@@ -43,6 +43,31 @@ Key findings (ordered most to least critical):
 
 - SD-BKZ costs 2.3–2.7× the runtime of BKZ across all configurations.
 
+## Paper and patches
+
+The paper ships in both HTML and LaTeX form alongside the benchmark code:
+
+| File | Purpose |
+|---|---|
+| `paper/sdbkz_paper.html` | Content-locked v1.0 HTML (drag into any browser) |
+| `paper/sdbkz_paper.pdf` | HTML-rendered PDF |
+| `paper/latex/sdbkz_paper_latex.tex` | iacrj LaTeX port (ePrint submission format) |
+| `paper/latex/sdbkz_paper_latex.pdf` | LaTeX-rendered PDF, 30 pages |
+| `paper/latex/Makefile` | `make` rebuilds the LaTeX PDF in one command |
+| `paper/latex/figs/` | 12 figures at 300 DPI, numbered in paper order |
+| `paper/latex/{abbrev3,crypto,biblio}.bib` | Bibliography (cryptobib extract + local entries) |
+| `paper/latex/iacrj.cls`, `metacapture.sty` | Vendored IACR journal class (no submodule needed) |
+
+To rebuild the LaTeX PDF from source:
+
+```bash
+cd paper/latex && make
+```
+
+Requires a TeX Live distribution with `pdflatex`, `bibtex`, and standard LaTeX packages.
+
+The **Kahan-compensated fplll GSO patch** referenced in paper §8.3 ships at `patches/fplll_gso_kahan.patch` with an accompanying `patches/README.md`. It applies cleanly to fplll HEAD (verified 2026-04-15 against commit `1987472`, all 15 regression tests pass). Only needed if you want to reproduce the q=3329 numerical-instability analysis — `q=97` results in the paper are unaffected and do not need the patch.
+
 ## Quick start
 
 **New here?** Run an example first to confirm the install:
