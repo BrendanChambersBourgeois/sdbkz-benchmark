@@ -1,0 +1,82 @@
+commit-message: gso: use Kahan-compensated subtraction in update_gso_row to prevent r(i,i) sign flips on near-degenerate bases
+
+The diagonal case of the GSO update computes
+    r(i,i) = <b_i, b_i> - sum_{k<i} mu(i,k) * r(i,k)
+         (= ||b_i||^2 - sum_{k<i} mu(i,k)^2 * ||b*_k||^2)
+i.e. the squared norm of the i-th Gram-Schmidt vector via "norm via
+difference of squares". This is the textbook cancellation-prone form:
+when b_i is nearly in the span of preceding b*_k (which is exactly the
+regime BKZ drives the basis into), the two large positive operands cancel
+and the residual loses precision. At sufficiently large dimension on
+LWE-Kannan lattices we observe finite *negative* r(i,i) returns from
+get_r in MPFR mode (38% hit rate at q=3329, n=100, beta=30, MPFR=1000).
+
+There is currently no sanity check, no clamp, and no reorthogonalization
+on this code path; the negative value silently propagates into log(r(i,i))
+in any caller that assumes r > 0.
+
+Fix: replace the naive in-place subtraction loop with a Kahan-compensated
+subtraction that maintains a running residual term and folds the
+low-order bits lost on each step back into the accumulator. This is a
+~10-line change with no branching, no precision change, no API change,
+and no algorithmic change in the non-cancellation regime. The same
+template instantiates for double, long double, dpe, dd, qd, mpfr.
+
+Empirically (see /mnt/hgfs/Research/q3329_mgs_investigation_2026-04-10/),
+the cancellation is hair-trigger: the bad value is teetering at zero and
+even tiny perturbations to the order/precision of the FP operations
+push it back to small-positive. Compensated summation should drop the
+hit rate from 38% to effectively zero on the q=3329 reproducer.
+
+This patch does NOT address callers that already assume r(i,i) > 0; a
+follow-up should also add an FPLLL_DEBUG_CHECK or RED_GSO_FAILURE return
+when r(i,j) for j==i comes out non-positive even after compensation.
+
+---
+diff --git a/fplll/gso_interface.cpp b/fplll/gso_interface.cpp
+--- a/fplll/gso_interface.cpp
++++ b/fplll/gso_interface.cpp
+@@ -131,6 +131,7 @@ template <class ZT, class FT> bool MatGSOInterface<ZT, FT>::update_gso_row(int i
+ {
+   // FPLLL_TRACE_IN("Updating GSO up to (" << i << ", " << last_j << ")");
+   // FPLLL_TRACE("n_known_rows=" << n_known_rows << " n_source_rows=" << n_source_rows);
+   if (i >= n_known_rows)
+   {
+     discover_row();
+@@ -142,12 +143,30 @@ template <class ZT, class FT> bool MatGSOInterface<ZT, FT>::update_gso_row(int i
+
+   for (; j <= last_j; j++)
+   {
+     get_gram(ftmp1, i, j);
+     FPLLL_DEBUG_CHECK(j == i || gso_valid_cols[j] >= j);
+-    for (int k = 0; k < j; k++)
+-    {
+-      ftmp2.mul(mu(j, k), r(i, k));
+-      ftmp1.sub(ftmp1, ftmp2);
+-    }
++    // Kahan-compensated subtraction loop computing
++    //   ftmp1 := <b_i, b_j> - sum_{k<j} mu(j,k) * r(i,k).
++    // The naive in-place form (ftmp1.sub(ftmp1, ftmp2)) suffers
++    // catastrophic cancellation in the diagonal case (j == i) when
++    // b_i is nearly in the span of {b*_k : k < i}, and can produce
++    // finite negative r(i,i) — the squared GS norm — on
++    // near-degenerate bases. Maintaining a Kahan compensation term
++    // captures the low-order bits lost on each subtraction and folds
++    // them back into the running sum at no cost in precision and at
++    // ~3x the inner-loop FP op count.
++    FT kahan_c, kahan_y, kahan_t;
++    kahan_c = 0.0;
++    for (int k = 0; k < j; k++)
++    {
++      ftmp2.mul(mu(j, k), r(i, k));
++      // ftmp1 -= ftmp2, with running residual kahan_c.
++      kahan_y.add(ftmp2, kahan_c);   // y = ftmp2 + c
++      kahan_t.sub(ftmp1, kahan_y);   // t = ftmp1 - y
++      kahan_c.sub(ftmp1, kahan_t);   // c = ftmp1 - t   (≈ y, off by lost bits)
++      kahan_c.sub(kahan_c, kahan_y); // c = (ftmp1 - t) - y   ← captured residual
++      ftmp1 = kahan_t;
++    }
+     r(i, j) = ftmp1;
+     if (i > j)
+     {
+</content>
