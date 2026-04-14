@@ -1,0 +1,366 @@
+{
+  "lll_scan": {
+    "label": "post-LLL",
+    "found": false,
+    "n_bad": 0,
+    "bad_positions": [],
+    "min_positive_r": 0.9991971852403341,
+    "max_r": 11082241.0,
+    "n_positions_scanned": 301
+  },
+  "first_bad_tour": 30,
+  "history": [
+    {
+      "label": "tour 1",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 1.3019681520722308,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 1,
+      "wall_seconds": 145.87
+    },
+    {
+      "label": "tour 2",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 1.759717175762094,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 2,
+      "wall_seconds": 127.84
+    },
+    {
+      "label": "tour 3",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 2.382396894592627,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 3,
+      "wall_seconds": 119.73
+    },
+    {
+      "label": "tour 4",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 2.983936833825992,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 4,
+      "wall_seconds": 126.26
+    },
+    {
+      "label": "tour 5",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 3.722569081469229,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 5,
+      "wall_seconds": 129.85
+    },
+    {
+      "label": "tour 6",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 4.670319143045535,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 6,
+      "wall_seconds": 149.49
+    },
+    {
+      "label": "tour 7",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 4.862888173337073,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 7,
+      "wall_seconds": 152.71
+    },
+    {
+      "label": "tour 8",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 6.00658896082669,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 8,
+      "wall_seconds": 147.82
+    },
+    {
+      "label": "tour 9",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 6.800008785753958,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 9,
+      "wall_seconds": 141.46
+    },
+    {
+      "label": "tour 10",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 7.063626441128303,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 10,
+      "wall_seconds": 141.07
+    },
+    {
+      "label": "tour 11",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 6.944686884053528,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 11,
+      "wall_seconds": 130.91
+    },
+    {
+      "label": "tour 12",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 6.774242117952893,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 12,
+      "wall_seconds": 137.99
+    },
+    {
+      "label": "tour 13",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 7.375826778695581,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 13,
+      "wall_seconds": 129.5
+    },
+    {
+      "label": "tour 14",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 9.081165002079693,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 14,
+      "wall_seconds": 129.69
+    },
+    {
+      "label": "tour 15",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 9.583590087644444,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 15,
+      "wall_seconds": 130.2
+    },
+    {
+      "label": "tour 16",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 10.143602910212481,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 16,
+      "wall_seconds": 125.03
+    },
+    {
+      "label": "tour 17",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 10.575122865149877,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 17,
+      "wall_seconds": 112.46
+    },
+    {
+      "label": "tour 18",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 8.733358339218691,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 18,
+      "wall_seconds": 131.26
+    },
+    {
+      "label": "tour 19",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 13.473753481782872,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 19,
+      "wall_seconds": 133.7
+    },
+    {
+      "label": "tour 20",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 13.02421788530606,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 20,
+      "wall_seconds": 120.72
+    },
+    {
+      "label": "tour 21",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 13.979775877259378,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 21,
+      "wall_seconds": 125.45
+    },
+    {
+      "label": "tour 22",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 12.324941095441027,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 22,
+      "wall_seconds": 114.03
+    },
+    {
+      "label": "tour 23",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 14.302229155770727,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 23,
+      "wall_seconds": 114.44
+    },
+    {
+      "label": "tour 24",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 13.217939873299194,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 24,
+      "wall_seconds": 109.81
+    },
+    {
+      "label": "tour 25",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 13.633266268623641,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 25,
+      "wall_seconds": 119.46
+    },
+    {
+      "label": "tour 26",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 14.914810616710657,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 26,
+      "wall_seconds": 110.61
+    },
+    {
+      "label": "tour 27",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 14.543982129642382,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 27,
+      "wall_seconds": 118.3
+    },
+    {
+      "label": "tour 28",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 12.125631239680978,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 28,
+      "wall_seconds": 109.69
+    },
+    {
+      "label": "tour 29",
+      "found": false,
+      "n_bad": 0,
+      "bad_positions": [],
+      "min_positive_r": 15.287762270991573,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 29,
+      "wall_seconds": 125.87
+    },
+    {
+      "label": "tour 30",
+      "found": true,
+      "n_bad": 1,
+      "bad_positions": [
+        {
+          "position": 293,
+          "in_active_block": true,
+          "active_block_index": 93,
+          "raw_repr": "-1.2805632996020577",
+          "raw_str": "-1.2805632996020577",
+          "as_float": -1.2805632996020577,
+          "is_negative": true,
+          "is_zero": false,
+          "is_nan": false
+        }
+      ],
+      "min_positive_r": 3.326653407286713,
+      "max_r": 11082241.0,
+      "n_positions_scanned": 301,
+      "tour": 30,
+      "wall_seconds": 116.89
+    }
+  ],
+  "status": "found_bad_value",
+  "generated_at": "2026-04-09T20:47:05",
+  "config": {
+    "seed": 1,
+    "n": 100,
+    "beta": 30,
+    "q": 3329,
+    "precision": 1000,
+    "max_tours": 70
+  }
+}

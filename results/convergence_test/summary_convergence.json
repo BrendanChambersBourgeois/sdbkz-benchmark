@@ -1,0 +1,14 @@
+{
+  "experiment": "convergence_test",
+  "n": 90,
+  "beta": 30,
+  "max_tours": 500,
+  "seeds": 20,
+  "bkz_mean_dln_70": 4.885675535501202,
+  "bkz_mean_dln_500": 4.843633728698636,
+  "sdbkz_mean_dln_70": 3.9608966759301127,
+  "sdbkz_mean_dln_500": 3.51306898431284,
+  "mean_advantage_500": 1.330564744385796,
+  "win_rate_500": 1.0,
+  "timestamp": "2026-04-08T07:20:36.698112+00:00"
+}

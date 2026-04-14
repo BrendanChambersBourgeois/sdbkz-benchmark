@@ -1,0 +1,22 @@
+[project]
+name = "sdbkz-benchmark"
+version = "1.0.0"
+description = "Empirical evaluation of SD-BKZ vs BKZ via the Li-Nguyen Rankin profile"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.12"
+
+dependencies = [
+    "fpylll==0.6.4",
+    "cysignals==1.12.6",
+    "numpy==2.4.4",
+    "boto3",
+    "matplotlib",
+    "scipy",
+]
+
+[project.optional-dependencies]
+cloud = ["boto3"]
+
+[tool.ruff]
+line-length = 100

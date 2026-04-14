@@ -1,0 +1,850 @@
+{
+  "target_group": {
+    "n": 100,
+    "beta": 30,
+    "q": 3329
+  },
+  "detection_threshold": -100.0,
+  "counts": {
+    "n_seeds": 100,
+    "clean": 62,
+    "bkz_only_degenerate": 16,
+    "sdbkz_only_degenerate": 13,
+    "both_degenerate": 9,
+    "any_degenerate": 38
+  },
+  "rates": {
+    "degenerate": 0.38,
+    "wilson_95_ci": [
+      0.2909759925247874,
+      0.4779024470448892
+    ],
+    "clean": 0.62
+  },
+  "clean_subset": {
+    "n_seeds": 62,
+    "mean_advantage": 0.5238278768396682,
+    "median_advantage": 0.5692193664756009,
+    "std_advantage": 0.43724445377023674,
+    "min_advantage": -1.0719264428689783,
+    "max_advantage": 1.56792269422753,
+    "win_rate": 0.9354838709677419,
+    "n_wins": 58
+  },
+  "full_sample": {
+    "n_seeds": 100,
+    "mean_advantage": 3.130772487197481,
+    "median_advantage": 0.5951216871507206,
+    "win_rate": 0.79,
+    "n_wins": 79
+  },
+  "per_seed": [
+    {
+      "seed": 1,
+      "source": "cloud",
+      "advantage": 136.2589449938084,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.47131132603805,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 4,
+      "source": "cloud",
+      "advantage": 162.64828029176937,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.5624984468986882,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 12,
+      "source": "local",
+      "advantage": 165.57416572866333,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.4633918407437667,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 20,
+      "source": "local",
+      "advantage": 130.57577609690992,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.58881697769285,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 30,
+      "source": "local",
+      "advantage": 144.1134275863571,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.4970381898932137,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 37,
+      "source": "local",
+      "advantage": 105.30897962591668,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.558015414060049,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 46,
+      "source": "local",
+      "advantage": 143.90871476231354,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.4995372990411662,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 54,
+      "source": "local",
+      "advantage": 169.42758922192257,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.5704071639619737,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 58,
+      "source": "local",
+      "advantage": 104.32975721500902,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.5194551467027402,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 62,
+      "source": "local",
+      "advantage": 124.83179511435391,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.590774310437233,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 65,
+      "source": "local",
+      "advantage": 125.5571032564027,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.3076221706495796,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 76,
+      "source": "local",
+      "advantage": 157.94189187313177,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.5220617552274398,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 78,
+      "source": "local",
+      "advantage": 121.3510520029099,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.5681123278807072,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 83,
+      "source": "local",
+      "advantage": 152.39348026950248,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.4941716031464976,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 91,
+      "source": "local",
+      "advantage": 138.6115187564514,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 0.8453216270795192,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 97,
+      "source": "local",
+      "advantage": 127.490657043723,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": 1.5363828984013728,
+      "classification": "bkz_only"
+    },
+    {
+      "seed": 2,
+      "source": "cloud",
+      "advantage": -161.6721117478847,
+      "bkz_min": 1.4384092196409288,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 3,
+      "source": "cloud",
+      "advantage": -143.13860386884633,
+      "bkz_min": 1.4310719865331276,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 6,
+      "source": "cloud",
+      "advantage": -170.05724032227286,
+      "bkz_min": 1.4212491560187368,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 15,
+      "source": "local",
+      "advantage": -152.0988270964785,
+      "bkz_min": 1.3733362039185266,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 27,
+      "source": "local",
+      "advantage": -158.1254618559389,
+      "bkz_min": 1.4317671112069856,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 44,
+      "source": "local",
+      "advantage": -161.14814927249077,
+      "bkz_min": 1.430138039767844,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 47,
+      "source": "local",
+      "advantage": -143.68114109942175,
+      "bkz_min": 1.2884095128742825,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 49,
+      "source": "local",
+      "advantage": -171.377342136953,
+      "bkz_min": 1.3767712868093478,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 67,
+      "source": "local",
+      "advantage": -106.02322311840734,
+      "bkz_min": 1.381683300499763,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 81,
+      "source": "local",
+      "advantage": -167.80127890802322,
+      "bkz_min": 1.3295369669006694,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 82,
+      "source": "local",
+      "advantage": -120.64065936935694,
+      "bkz_min": 1.3469712011291444,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 89,
+      "source": "local",
+      "advantage": -168.50221189505106,
+      "bkz_min": 1.376873244974032,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 98,
+      "source": "local",
+      "advantage": -158.68925369666616,
+      "bkz_min": 1.3807917207277884,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "sdbkz_only"
+    },
+    {
+      "seed": 16,
+      "source": "local",
+      "advantage": 10.154984204213775,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "both"
+    },
+    {
+      "seed": 24,
+      "source": "local",
+      "advantage": -9.960029597378622,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "both"
+    },
+    {
+      "seed": 29,
+      "source": "local",
+      "advantage": -2.898063651788277,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "both"
+    },
+    {
+      "seed": 40,
+      "source": "local",
+      "advantage": -17.976122055779342,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "both"
+    },
+    {
+      "seed": 52,
+      "source": "local",
+      "advantage": 13.864767001440754,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "both"
+    },
+    {
+      "seed": 56,
+      "source": "local",
+      "advantage": 6.660951907297772,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "both"
+    },
+    {
+      "seed": 60,
+      "source": "local",
+      "advantage": -8.620531448365398,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "both"
+    },
+    {
+      "seed": 77,
+      "source": "local",
+      "advantage": 52.38240709161694,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "both"
+    },
+    {
+      "seed": 79,
+      "source": "local",
+      "advantage": 9.62392745307767,
+      "bkz_min": -345.38776394910684,
+      "sdbkz_min": -345.38776394910684,
+      "classification": "both"
+    },
+    {
+      "seed": 5,
+      "source": "cloud",
+      "advantage": 0.7599806542656538,
+      "bkz_min": 1.3636217355362241,
+      "sdbkz_min": 1.5994216152897416,
+      "classification": "clean"
+    },
+    {
+      "seed": 7,
+      "source": "cloud",
+      "advantage": 0.06620754280016072,
+      "bkz_min": 1.4381061480967456,
+      "sdbkz_min": 1.576816830936857,
+      "classification": "clean"
+    },
+    {
+      "seed": 8,
+      "source": "cloud",
+      "advantage": -0.029905629920427224,
+      "bkz_min": 1.3732733012707963,
+      "sdbkz_min": 1.3413716086193042,
+      "classification": "clean"
+    },
+    {
+      "seed": 9,
+      "source": "cloud",
+      "advantage": 0.4705314556410123,
+      "bkz_min": 1.4685150325937382,
+      "sdbkz_min": 1.5757578959008105,
+      "classification": "clean"
+    },
+    {
+      "seed": 10,
+      "source": "cloud",
+      "advantage": 0.8499098420288691,
+      "bkz_min": 1.4139523332563193,
+      "sdbkz_min": 1.5652337005467505,
+      "classification": "clean"
+    },
+    {
+      "seed": 11,
+      "source": "local",
+      "advantage": 1.56792269422753,
+      "bkz_min": 1.393196217937824,
+      "sdbkz_min": 1.5579793893006721,
+      "classification": "clean"
+    },
+    {
+      "seed": 13,
+      "source": "local",
+      "advantage": -0.6816922864783708,
+      "bkz_min": 1.4653856385099227,
+      "sdbkz_min": 1.5612811737298586,
+      "classification": "clean"
+    },
+    {
+      "seed": 14,
+      "source": "local",
+      "advantage": 0.5680212876415878,
+      "bkz_min": 1.448241250974226,
+      "sdbkz_min": 1.477281216723401,
+      "classification": "clean"
+    },
+    {
+      "seed": 17,
+      "source": "local",
+      "advantage": 1.0350250420658123,
+      "bkz_min": 1.2993218028099618,
+      "sdbkz_min": 1.5240594039303992,
+      "classification": "clean"
+    },
+    {
+      "seed": 18,
+      "source": "local",
+      "advantage": 1.0308926293821266,
+      "bkz_min": 1.377230503786545,
+      "sdbkz_min": 1.5507220486088062,
+      "classification": "clean"
+    },
+    {
+      "seed": 19,
+      "source": "local",
+      "advantage": 1.4859091908056081,
+      "bkz_min": 1.471452821966789,
+      "sdbkz_min": 1.5637904491664645,
+      "classification": "clean"
+    },
+    {
+      "seed": 21,
+      "source": "local",
+      "advantage": 0.27538449879193294,
+      "bkz_min": 1.3917230272897463,
+      "sdbkz_min": 1.523184724676529,
+      "classification": "clean"
+    },
+    {
+      "seed": 22,
+      "source": "local",
+      "advantage": 0.6188728432862867,
+      "bkz_min": 1.424176360519512,
+      "sdbkz_min": 1.5182242136658584,
+      "classification": "clean"
+    },
+    {
+      "seed": 23,
+      "source": "local",
+      "advantage": 0.7837591503481995,
+      "bkz_min": 1.316721036375023,
+      "sdbkz_min": 1.5750923924123967,
+      "classification": "clean"
+    },
+    {
+      "seed": 25,
+      "source": "local",
+      "advantage": 0.655681070984329,
+      "bkz_min": 1.4333242990209651,
+      "sdbkz_min": 1.5440451029259594,
+      "classification": "clean"
+    },
+    {
+      "seed": 26,
+      "source": "local",
+      "advantage": 0.4943016829479179,
+      "bkz_min": 1.4541084683321213,
+      "sdbkz_min": 1.5273712233971117,
+      "classification": "clean"
+    },
+    {
+      "seed": 28,
+      "source": "local",
+      "advantage": 0.23931968855106334,
+      "bkz_min": 1.4337135864983794,
+      "sdbkz_min": 1.4542983733055015,
+      "classification": "clean"
+    },
+    {
+      "seed": 31,
+      "source": "local",
+      "advantage": 0.14514993801739529,
+      "bkz_min": 1.46889840453872,
+      "sdbkz_min": 1.4126810259835931,
+      "classification": "clean"
+    },
+    {
+      "seed": 32,
+      "source": "local",
+      "advantage": 0.6377095887709601,
+      "bkz_min": 1.3144707907726187,
+      "sdbkz_min": 1.5184111488481162,
+      "classification": "clean"
+    },
+    {
+      "seed": 33,
+      "source": "local",
+      "advantage": 0.6349103527402882,
+      "bkz_min": 1.3981532664226826,
+      "sdbkz_min": 1.4961078212706556,
+      "classification": "clean"
+    },
+    {
+      "seed": 34,
+      "source": "local",
+      "advantage": 0.6988726596082984,
+      "bkz_min": 1.4753381416335745,
+      "sdbkz_min": 1.5434355637597288,
+      "classification": "clean"
+    },
+    {
+      "seed": 35,
+      "source": "local",
+      "advantage": 0.7681363341563578,
+      "bkz_min": 1.462509063314449,
+      "sdbkz_min": 1.565021802986737,
+      "classification": "clean"
+    },
+    {
+      "seed": 36,
+      "source": "local",
+      "advantage": 0.684282484710871,
+      "bkz_min": 1.3799448620204677,
+      "sdbkz_min": 1.5789961282396572,
+      "classification": "clean"
+    },
+    {
+      "seed": 38,
+      "source": "local",
+      "advantage": 0.43615690553378705,
+      "bkz_min": 1.383008231317904,
+      "sdbkz_min": 1.5105166357960327,
+      "classification": "clean"
+    },
+    {
+      "seed": 39,
+      "source": "local",
+      "advantage": 0.570417445309614,
+      "bkz_min": 1.4272984080063156,
+      "sdbkz_min": 1.5260013413003901,
+      "classification": "clean"
+    },
+    {
+      "seed": 41,
+      "source": "local",
+      "advantage": 0.647467056283193,
+      "bkz_min": 1.4391585336215662,
+      "sdbkz_min": 1.5333899823835813,
+      "classification": "clean"
+    },
+    {
+      "seed": 42,
+      "source": "local",
+      "advantage": -1.0719264428689783,
+      "bkz_min": 1.445173358655839,
+      "sdbkz_min": -0.14008979574470756,
+      "classification": "clean"
+    },
+    {
+      "seed": 43,
+      "source": "local",
+      "advantage": 0.9145753611535117,
+      "bkz_min": 1.3785874440654822,
+      "sdbkz_min": 1.5819247909662804,
+      "classification": "clean"
+    },
+    {
+      "seed": 45,
+      "source": "local",
+      "advantage": 0.08645847539270513,
+      "bkz_min": 1.4276444510149076,
+      "sdbkz_min": 1.483283820804454,
+      "classification": "clean"
+    },
+    {
+      "seed": 48,
+      "source": "local",
+      "advantage": 0.3903341173502666,
+      "bkz_min": 1.423774328410848,
+      "sdbkz_min": 1.4918435511605543,
+      "classification": "clean"
+    },
+    {
+      "seed": 50,
+      "source": "local",
+      "advantage": 0.1955541773918128,
+      "bkz_min": 1.4425602668587616,
+      "sdbkz_min": 1.5261077202382174,
+      "classification": "clean"
+    },
+    {
+      "seed": 51,
+      "source": "local",
+      "advantage": 0.4670122425170824,
+      "bkz_min": 1.4062370067557302,
+      "sdbkz_min": 1.5088117275537678,
+      "classification": "clean"
+    },
+    {
+      "seed": 53,
+      "source": "local",
+      "advantage": 0.5914131058429186,
+      "bkz_min": 1.4412301355315238,
+      "sdbkz_min": 1.5388242754327752,
+      "classification": "clean"
+    },
+    {
+      "seed": 55,
+      "source": "local",
+      "advantage": 0.4109304585813458,
+      "bkz_min": 1.3830236592306973,
+      "sdbkz_min": 1.5575876374796531,
+      "classification": "clean"
+    },
+    {
+      "seed": 57,
+      "source": "local",
+      "advantage": 1.1694255047890847,
+      "bkz_min": 1.23348110116498,
+      "sdbkz_min": 1.570664598000533,
+      "classification": "clean"
+    },
+    {
+      "seed": 59,
+      "source": "local",
+      "advantage": 0.6062353320153822,
+      "bkz_min": 1.36137258259209,
+      "sdbkz_min": 1.538861270723246,
+      "classification": "clean"
+    },
+    {
+      "seed": 61,
+      "source": "local",
+      "advantage": 0.5988302684585225,
+      "bkz_min": 1.3938130995508244,
+      "sdbkz_min": 1.5557101481311295,
+      "classification": "clean"
+    },
+    {
+      "seed": 63,
+      "source": "local",
+      "advantage": 0.226692805140293,
+      "bkz_min": 1.4521252915735823,
+      "sdbkz_min": 1.530662007585943,
+      "classification": "clean"
+    },
+    {
+      "seed": 64,
+      "source": "local",
+      "advantage": 0.8345077792702895,
+      "bkz_min": 1.4116149855641527,
+      "sdbkz_min": 1.5719081901225034,
+      "classification": "clean"
+    },
+    {
+      "seed": 66,
+      "source": "local",
+      "advantage": 1.3340228753428853,
+      "bkz_min": 1.2385166907240288,
+      "sdbkz_min": 1.4824609108385072,
+      "classification": "clean"
+    },
+    {
+      "seed": 68,
+      "source": "local",
+      "advantage": 0.6098948807756619,
+      "bkz_min": 1.365381521792008,
+      "sdbkz_min": 1.572608939748673,
+      "classification": "clean"
+    },
+    {
+      "seed": 69,
+      "source": "local",
+      "advantage": 0.7809088884745528,
+      "bkz_min": 1.3963093893333058,
+      "sdbkz_min": 1.4012108395545628,
+      "classification": "clean"
+    },
+    {
+      "seed": 70,
+      "source": "local",
+      "advantage": 0.42290685915804627,
+      "bkz_min": 1.3714975660011286,
+      "sdbkz_min": 1.4933690076254813,
+      "classification": "clean"
+    },
+    {
+      "seed": 71,
+      "source": "local",
+      "advantage": 0.4562574127941277,
+      "bkz_min": 1.504868081466147,
+      "sdbkz_min": 1.5480065909504068,
+      "classification": "clean"
+    },
+    {
+      "seed": 72,
+      "source": "local",
+      "advantage": 0.49197020452638807,
+      "bkz_min": 1.3560269462765842,
+      "sdbkz_min": 1.4551899503879688,
+      "classification": "clean"
+    },
+    {
+      "seed": 73,
+      "source": "local",
+      "advantage": 0.6696829428067685,
+      "bkz_min": 1.4093035349635818,
+      "sdbkz_min": 1.5132594511853408,
+      "classification": "clean"
+    },
+    {
+      "seed": 74,
+      "source": "local",
+      "advantage": 0.18906126979821725,
+      "bkz_min": 1.4613890438542676,
+      "sdbkz_min": 1.5723452261184696,
+      "classification": "clean"
+    },
+    {
+      "seed": 75,
+      "source": "local",
+      "advantage": 1.1719797567072767,
+      "bkz_min": 1.3059731526943148,
+      "sdbkz_min": 1.4897725055140147,
+      "classification": "clean"
+    },
+    {
+      "seed": 80,
+      "source": "local",
+      "advantage": 0.47358172440019874,
+      "bkz_min": 1.4078723183581123,
+      "sdbkz_min": 1.5224694307169948,
+      "classification": "clean"
+    },
+    {
+      "seed": 84,
+      "source": "local",
+      "advantage": 0.21076860096209327,
+      "bkz_min": 1.4453420917669308,
+      "sdbkz_min": 1.5016055435505147,
+      "classification": "clean"
+    },
+    {
+      "seed": 85,
+      "source": "local",
+      "advantage": -0.4128438836397468,
+      "bkz_min": 1.4608269197432797,
+      "sdbkz_min": 1.1067053391191168,
+      "classification": "clean"
+    },
+    {
+      "seed": 86,
+      "source": "local",
+      "advantage": 0.4062208630466202,
+      "bkz_min": 1.4352136457378637,
+      "sdbkz_min": 1.547747389913408,
+      "classification": "clean"
+    },
+    {
+      "seed": 87,
+      "source": "local",
+      "advantage": 0.8073244786912595,
+      "bkz_min": 1.4776378327753321,
+      "sdbkz_min": 1.5454211614774844,
+      "classification": "clean"
+    },
+    {
+      "seed": 88,
+      "source": "local",
+      "advantage": 0.7921264574788651,
+      "bkz_min": 1.3827456077731772,
+      "sdbkz_min": 1.578715801207011,
+      "classification": "clean"
+    },
+    {
+      "seed": 90,
+      "source": "local",
+      "advantage": 0.39913377256631133,
+      "bkz_min": 1.4466975201233059,
+      "sdbkz_min": 1.5238853810601087,
+      "classification": "clean"
+    },
+    {
+      "seed": 92,
+      "source": "local",
+      "advantage": 0.35915716879926585,
+      "bkz_min": 1.3239269199228436,
+      "sdbkz_min": 1.5499346035731474,
+      "classification": "clean"
+    },
+    {
+      "seed": 93,
+      "source": "local",
+      "advantage": 0.37124011556856207,
+      "bkz_min": 1.2831571806598254,
+      "sdbkz_min": 1.4095468941413247,
+      "classification": "clean"
+    },
+    {
+      "seed": 94,
+      "source": "local",
+      "advantage": 0.19708372300172705,
+      "bkz_min": 1.3063865055367534,
+      "sdbkz_min": 1.4417306065594084,
+      "classification": "clean"
+    },
+    {
+      "seed": 95,
+      "source": "local",
+      "advantage": 0.6869914312539711,
+      "bkz_min": 1.4244319025407939,
+      "sdbkz_min": 1.5890093526625755,
+      "classification": "clean"
+    },
+    {
+      "seed": 96,
+      "source": "local",
+      "advantage": 0.1623084511800874,
+      "bkz_min": 1.378951438174916,
+      "sdbkz_min": 1.5137301932811833,
+      "classification": "clean"
+    },
+    {
+      "seed": 99,
+      "source": "local",
+      "advantage": 0.633145017992697,
+      "bkz_min": 1.4174602872042033,
+      "sdbkz_min": 1.5780154331562701,
+      "classification": "clean"
+    },
+    {
+      "seed": 100,
+      "source": "local",
+      "advantage": 0.43113804483930274,
+      "bkz_min": 1.4534298442248457,
+      "sdbkz_min": 1.5760830414160616,
+      "classification": "clean"
+    }
+  ],
+  "generated_at": "2026-04-14T11:25:10",
+  "source_dirs": [
+    "results/cloud",
+    "results/q3329"
+  ],
+  "n_cloud_seeds": 10,
+  "n_local_seeds": 90
+}

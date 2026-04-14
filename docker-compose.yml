@@ -1,0 +1,20 @@
+services:
+  sweep:
+    build: .
+    volumes:
+      - ./results:/experiment/results
+      - ./logs:/experiment/logs
+    command: ["python3", "scripts/sweep_parallel.py"]
+    # No CPU limit — the wrapper scripts (sweep_parallel.py,
+    # run_q3329_n100_local.py, etc.) already control parallelism via
+    # their --workers flag. A hardcoded `cpus: "22"` here was specific
+    # to Brendan's 13900K and broke on collaborator machines with
+    # fewer than 22 logical CPUs (Docker rejects the value at run
+    # time with "range of CPUs is from 0.01 to N.00").
+
+  verify:
+    build: .
+    volumes:
+      - ./results:/experiment/results
+      - ./logs:/experiment/logs
+    command: ["bash", "scripts/verify.sh"]

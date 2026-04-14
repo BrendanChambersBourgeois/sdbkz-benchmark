@@ -1,0 +1,46 @@
+# Per-seed result JSONs are now published — only exclude truly transient
+# files (backups, health logs, the convergence test which is still running).
+results/backups/
+results/health.log
+results/failed.json
+
+# Old result directories (pre-restructure)
+results_cloud/
+results_3x_tours/
+results_3x_tours_extended/
+results_convergence_test/
+results_q3329/
+results_cloud_q3329_corrupted_500bit/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+logs/*
+!logs/.gitkeep
+*.log
+nohup.out
+
+# External papers
+white_trill_srs-report.pdf
+
+# OS
+.DS_Store
+
+# Example outputs (generated PNGs)
+examples/output/
+
+# Claude Code local config (not for repo)
+CLAUDE.md
+.claude/
+compile_paper_findings.sh
+
+# Editor / navigation artifacts
+.tags
+tags
+.ctags.d/
+
+# Local-only background analyst (writes reports outside the repo)
+analysis/background_analyst.py

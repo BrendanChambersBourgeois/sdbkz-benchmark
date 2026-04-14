@@ -1,0 +1,117 @@
+name: Docker build & verify
+
+# Continuous verification of the reproducibility chain:
+#   1. Docker image builds cleanly from a fresh checkout
+#      → catches infrastructure rot (stale apt pins, stale COPY
+#        paths, stale BASE dirname bugs, broken docker-compose
+#        settings) the moment a bad commit lands.
+#
+#   2. All scripts import cleanly inside the image
+#      → catches syntax errors, stale path imports, missing deps.
+#
+#   3. verify.sh regenerates the 5 reference seeds from scratch and
+#      compares them against the hardcoded reference values in the
+#      script itself (tolerance 0.0001 on bkz_final_dln / sdbkz_final_dln
+#      / advantage)
+#      → catches any numerical reproducibility regression.
+#
+# Initially triggered manually via workflow_dispatch. Once the first
+# run is green, flip the commented-out `push:` / `pull_request:` triggers
+# on and every commit to main will be validated automatically.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (with GHA layer cache)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: sdbkz-benchmark:ci
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke-test script imports inside the image
+        run: |
+          docker run --rm sdbkz-benchmark:ci python3 -c "
+          import sys
+          sys.path.insert(0, 'scripts')
+          import sweep_parallel
+          import sweep_cloud
+          import q3329_verify
+          import overnight_experiments
+          import run_3x_extended
+          import run_convergence_test
+          print('all script imports OK')
+          "
+
+      - name: Run verify.sh with NUM_SEEDS=1 (numerical reproducibility check)
+        run: |
+          # Regenerate 1 n=50 β=20 reference seed from scratch inside
+          # the container (the image has no results/ directory so the
+          # existing file will not be found) and compare it against the
+          # hardcoded reference value in verify.sh. Tolerance 0.0001 on
+          # bkz_final_dln, sdbkz_final_dln, advantage.
+          #
+          # Why 1 seed not 5: CI is a tripwire that fires on ANY
+          # numerical divergence. 1 seed is sufficient to catch every
+          # failure mode that matters (Dockerfile rot, import breakage,
+          # numerical regression, cross-vendor FP drift). The "5 seeds
+          # is more convincing" argument applies to the one-time
+          # hash_verification.txt artifact, not to per-commit CI. Saves
+          # ~10 minutes of runner time per run.
+          docker run --rm -e NUM_SEEDS=1 sdbkz-benchmark:ci bash scripts/verify.sh
+
+      - name: Validate committed seed files (schema + integrity)
+        run: |
+          # Runs validate_seeds.py in --strict mode against all seed
+          # directories committed to the repo. Catches: invalid JSON,
+          # missing schema keys, incomplete status, filename/content
+          # mismatch, non-finite advantages, within-dataset duplicates,
+          # and SHA-256 spot-check against 3 reference seeds.
+          # Mount the checkout so committed seed files are visible inside
+          # the container. The image only ships scripts/, not results/.
+          # Sweep + q3329 + convergence: strict (no known warnings)
+          docker run --rm -v "${{ github.workspace }}:/repo" -w /repo \
+            sdbkz-benchmark:ci python3 scripts/validate_seeds.py \
+            --strict --sha-check \
+            results/raw/ results/q3329/ \
+            results/convergence/ results/convergence_test/ \
+            results/q3329_degenerate/
+          # 3x_tours: non-strict (10 known legacy duplicate warnings from
+          # original seeds co-existing with extended seeds at same n/beta/seed)
+          docker run --rm -v "${{ github.workspace }}:/repo" -w /repo \
+            sdbkz-benchmark:ci python3 scripts/validate_seeds.py \
+            --sha-check results/3x_tours/
+
+      - name: Diagnostic banner on failure
+        if: failure()
+        run: |
+          echo "::error::Build or verification failed."
+          echo ""
+          echo "This usually means one of:"
+          echo "  - a Dockerfile change broke the build environment"
+          echo "  - a Python script change broke imports"
+          echo "  - a code change shifted numerical output"
+          echo "    (SHA-256 reproducibility regression)"
+          echo "  - an apt package revision was garbage-collected"
+          echo "    from Debian mirrors"
+          echo ""
+          echo "Check the earlier job steps for the specific error."

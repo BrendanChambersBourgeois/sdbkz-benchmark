@@ -1,0 +1,16 @@
+{
+  "experiment": "3x_tour_count_extended",
+  "n": 60,
+  "beta": 30,
+  "bkz_tours": 210,
+  "sdbkz_tours": 70,
+  "seeds": 100,
+  "mean_advantage_equal": 0.48965155638809427,
+  "std_advantage_equal": 0.17171160904136026,
+  "mean_advantage_3x": 0.4992751717446552,
+  "std_advantage_3x": 0.15969474532726352,
+  "gap_closed_count": 0,
+  "win_rate_equal": 1.0,
+  "win_rate_3x": 1.0,
+  "timestamp": "2026-04-07T08:05:52.708743+00:00"
+}

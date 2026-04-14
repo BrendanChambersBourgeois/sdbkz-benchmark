@@ -1,0 +1,25 @@
+FROM python:3.12.3-bookworm
+
+# Pin system library versions
+# MPFR 4.2.1 — required by fplll for arbitrary-precision floating point
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libmpfr-dev \
+        libgmp-dev \
+        build-essential \
+        autoconf \
+        libtool \
+        pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Pin Python packages to exact versions used in the experiment
+# fpylll 0.6.4 bundles fplll 5.5.0 (libfplll.so.9.0.0) as a vendored library
+RUN pip install --no-cache-dir \
+        fpylll==0.6.4 \
+        cysignals==1.12.6 \
+        numpy==2.4.4 \
+        boto3
+
+WORKDIR /experiment
+COPY scripts/sweep_cloud.py .
+
+ENTRYPOINT ["python3", "sweep_cloud.py"]

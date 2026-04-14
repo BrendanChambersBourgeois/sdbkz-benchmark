@@ -1,0 +1,14 @@
+{
+  "experiment": "3x_tour_count",
+  "n": 60,
+  "beta": 30,
+  "bkz_tours": 210,
+  "sdbkz_tours": 70,
+  "seeds": 10,
+  "mean_gap_normal": 0.514758783245137,
+  "mean_gap_3x": 0.5333638544492638,
+  "mean_gap_closed": -0.01860507120412689,
+  "pct_closed": -3.614328071652705,
+  "sdbkz_still_wins": 10,
+  "timestamp": "2026-04-04T16:34:06.371792+00:00"
+}
