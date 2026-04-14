@@ -568,7 +568,7 @@ This phenomenon is mechanistically distinct from the BKZ tail collapse documente
 \section{Reproducibility}
 \label{sec:repro}
 
-All source code, the Dockerfile, and verification scripts are available at \url{https://github.com/BrendanChambersBourgeois/sdbkz-benchmark}. The container pins exact versions of all dependencies. The verification script runs 5 seeds and checks against known-good reference values to confirm bit-identical output across environments. A full 100-seed cross-environment verification at ($n=100$, $\beta=20$) confirmed bit-identical results between the local VM (Ubuntu 24.04, MPFR 4.2.1) and AWS Batch (Debian Bookworm, MPFR 4.2.0), with SHA-256 hashes matching on all 100 seeds. The sweep is fully resumable and skips completed work on restart. Individual seed results are stored as JSON files with full per-tour $d(\mathrm{LN})$ trajectories, Rankin profiles, and Gram--Schmidt log-norms.
+All source code, the Dockerfile, and verification scripts are available at \url{https://github.com/BrendanChambersBourgeois/sdbkz-benchmark}. The container pins exact versions of all dependencies. The verification script runs 5 seeds and checks against known-good reference values to confirm bit-identical output across environments. A full 100-seed cross-environment verification at ($n=100$, $\beta=20$) confirmed bit-identical results between the local VM (Ubuntu 24.04, MPFR 4.2.1) and AWS Batch (Debian Bookworm, MPFR 4.2.0), with SHA-256 hashes matching on all 100 seeds. The sweep is fully resumable and skips completed work on restart. Individual seed results are stored as JSON files with full per-tour $d(\mathrm{LN})$ trajectories, Rankin profiles, and Gram--Schmidt log-norms. The Kahan-compensated fplll GSO patch referenced in Section~\ref{sec:q3329} ships as \texttt{patches/fplll\_gso\_kahan.patch} in the same repository, with an accompanying \texttt{README.md} describing how to apply it and rebuild fplll.
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -581,7 +581,7 @@ These findings suggest that $d(\mathrm{LN})$ should be adopted alongside RHF in 
 
 \section*{Acknowledgements}
 
-The author thanks Dylan Chambers-Bourgeois for contributing compute resources (AMD Ryzen 9 9950X3D) and cross-architecture reproducibility verification during the $\beta=40$ sweep campaign.
+The author thanks Dylan Chambers Bourgeois for contributing compute resources (AMD Ryzen 9 9950X3D) and cross-architecture reproducibility verification during the $\beta=40$ sweep campaign.
 
 \bibliography{abbrev3,crypto,biblio}
 

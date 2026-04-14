@@ -580,7 +580,7 @@ The Root Hermite Factor (RHF), the dominant quality metric for lattice basis red
 
 <h2>9. Reproducibility</h2>
 
-<p>All source code, the Dockerfile, and verification scripts are available at <a href="https://github.com/BrendanChambersBourgeois/sdbkz-benchmark">https://github.com/BrendanChambersBourgeois/sdbkz-benchmark</a>. The container pins exact versions of all dependencies. The verification script runs 5 seeds and checks against known-good reference values to confirm bit-identical output across environments. A full 100-seed cross-environment verification at (n&nbsp;=&nbsp;100, &beta;&nbsp;=&nbsp;20) confirmed bit-identical results between the local VM (Ubuntu 24.04, MPFR 4.2.1) and AWS Batch (Debian Bookworm, MPFR 4.2.0), with SHA-256 hashes matching on all 100 seeds. The sweep is fully resumable and skips completed work on restart. Individual seed results are stored as JSON files with full per-tour d(LN) trajectories, Rankin profiles, and Gram&ndash;Schmidt log-norms.</p>
+<p>All source code, the Dockerfile, and verification scripts are available at <a href="https://github.com/BrendanChambersBourgeois/sdbkz-benchmark">https://github.com/BrendanChambersBourgeois/sdbkz-benchmark</a>. The container pins exact versions of all dependencies. The verification script runs 5 seeds and checks against known-good reference values to confirm bit-identical output across environments. A full 100-seed cross-environment verification at (n&nbsp;=&nbsp;100, &beta;&nbsp;=&nbsp;20) confirmed bit-identical results between the local VM (Ubuntu 24.04, MPFR 4.2.1) and AWS Batch (Debian Bookworm, MPFR 4.2.0), with SHA-256 hashes matching on all 100 seeds. The sweep is fully resumable and skips completed work on restart. Individual seed results are stored as JSON files with full per-tour d(LN) trajectories, Rankin profiles, and Gram&ndash;Schmidt log-norms. The Kahan-compensated fplll GSO patch referenced in Section 8 ships as <code>patches/fplll_gso_kahan.patch</code> in the same repository, with an accompanying README describing how to apply it and rebuild fplll.</p>
 
 <!-- ═══════════════════ 10. CONCLUSION ═══════════════════ -->
 
@@ -596,7 +596,7 @@ The Root Hermite Factor (RHF), the dominant quality metric for lattice basis red
 
 <h2>Acknowledgements</h2>
 
-<p>The author thanks Dylan Chambers-Bourgeois for contributing compute resources (AMD Ryzen 9 9950X3D) and cross-architecture reproducibility verification during the &beta;&nbsp;=&nbsp;40 sweep campaign.</p>
+<p>The author thanks Dylan Chambers Bourgeois for contributing compute resources (AMD Ryzen 9 9950X3D) and cross-architecture reproducibility verification during the &beta;&nbsp;=&nbsp;40 sweep campaign.</p>
 
 <!-- ═══════════════════ REFERENCES ═══════════════════ -->
 
