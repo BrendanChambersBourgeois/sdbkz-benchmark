@@ -265,7 +265,7 @@ See `Dockerfile` (local) and `Dockerfile.cloud` (AWS) for exact build specs. Pyt
 
 ## Acknowledgements
 
-The author thanks Dylan Chambers-Bourgeois for contributing compute resources (AMD Ryzen 9 9950X3D) and cross-architecture reproducibility verification during the β = 40 sweep campaign.
+The author thanks Dylan Chambers-Bourgeois for contributing compute resources (AMD Ryzen 9 9950X3D) and cross-architecture reproducibility verification during the β = 40 sweep campaign. The author also thanks Trill White (Deakin University) for early feedback and discussions on the benchmark results.
 
 ## References
 
