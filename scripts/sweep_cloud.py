@@ -252,7 +252,12 @@ def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
 # ---------------------------------------------------------------------------
 # Single run (copied from sweep_parallel.py with minimal changes)
 # ---------------------------------------------------------------------------
-def run_single(n, beta, seed, q=None, precision=None):
+# Fat-log toggle: see sweep_parallel.py for full commentary. Off by default
+# so the v1.0 dataset schema stays lean and SHA-256 reproducibility holds.
+STORE_PER_TOUR = False
+
+
+def run_single(n, beta, seed, q=None, precision=None, store_per_tour=False):
     q = q if q is not None else Q
     precision = precision if precision is not None else PRECISION
     FPLLL.set_precision(precision)
@@ -269,6 +274,8 @@ def run_single(n, beta, seed, q=None, precision=None):
         "precision": precision, "dim": dim, "m": m, "status": "completed",
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
+    if store_per_tour:
+        result["store_per_tour"] = True
 
     B_init = IntegerMatrix.from_matrix(L)
     LLL.reduction(B_init)
@@ -289,6 +296,9 @@ def run_single(n, beta, seed, q=None, precision=None):
 
         dln_per_tour = []
         deltas = []
+        rankin_per_tour = []
+        gs_lognorms_per_tour = []
+        rhf_per_tour = []
         stag_tour = None
         stag_rankin = None
         stag_rhf = None
@@ -303,7 +313,15 @@ def run_single(n, beta, seed, q=None, precision=None):
 
             M = GSO.Mat(B)
             M.update_gso()
-            metrics = _metrics_from_gso(M, dim, m, ln_p, full=False)
+            if store_per_tour:
+                metrics = _metrics_from_gso(M, dim, m, ln_p, full=True)
+                rankin_per_tour.append([float(x) for x in metrics["rankin"]])
+                gs_lognorms_per_tour.append(
+                    [float(x) for x in metrics["gs_lognorms"]]
+                )
+                rhf_per_tour.append(float(metrics["rhf"]))
+            else:
+                metrics = _metrics_from_gso(M, dim, m, ln_p, full=False)
             dln_per_tour.append(metrics["dln"])
 
             delta = float(np.mean(np.abs(
@@ -342,6 +360,10 @@ def run_single(n, beta, seed, q=None, precision=None):
         result[f"rankin_profile_{variant}"] = stag_rankin
         result[f"rhf_{variant}"] = stag_rhf
         result[f"gs_lognorms_{variant}"] = stag_gs
+        if store_per_tour:
+            result[f"{variant}_rankin_per_tour"] = rankin_per_tour
+            result[f"{variant}_gs_lognorms_per_tour"] = gs_lognorms_per_tour
+            result[f"{variant}_rhf_per_tour"] = rhf_per_tour
         if termination == "max_tours_reached" and len(deltas) >= 5:
             result[f"{variant}_floor"] = float(np.mean(deltas[-5:]))
         else:
@@ -366,11 +388,12 @@ def run_single(n, beta, seed, q=None, precision=None):
 # Worker
 # ---------------------------------------------------------------------------
 def worker(args):
-    n, beta, seed, bucket, output_dir, q, precision = args
+    n, beta, seed, bucket, output_dir, q, precision, store_per_tour = args
     key = (n, beta, seed)
 
     try:
-        result = run_single(n, beta, seed, q=q, precision=precision)
+        result = run_single(n, beta, seed, q=q, precision=precision,
+                            store_per_tour=store_per_tour)
 
         # Write locally first
         local_path = f"/tmp/n{n}_beta{beta}_seed{seed}.json"
@@ -416,7 +439,10 @@ def main():
     parser.add_argument("--q", type=int, default=97, help="LWE modulus (default: 97)")
     parser.add_argument("--precision", type=int, default=None,
                         help="MPFR precision in bits (default: 250 for q<=97, 500 for larger q)")
+    parser.add_argument("--store-per-tour", action="store_true",
+                        help="Record full per-tour Rankin/GS/RHF (fat-log schema, ~10x JSON). Off by default.")
     args = parser.parse_args()
+    store_per_tour = args.store_per_tour or STORE_PER_TOUR
 
     if not args.bucket and not args.output:
         print("ERROR: specify --bucket (S3) and/or --output (local directory)")
@@ -473,7 +499,7 @@ def main():
     watchdog_ping()
 
     # Build task list
-    tasks = [(args.n, args.beta, seed, args.bucket, args.output, Q, PRECISION) for seed in pending_seeds]
+    tasks = [(args.n, args.beta, seed, args.bucket, args.output, Q, PRECISION, store_per_tour) for seed in pending_seeds]
 
     n_done = 0
     n_failed = 0

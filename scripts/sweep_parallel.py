@@ -249,8 +249,22 @@ def migrate_old_results():
 # ---------------------------------------------------------------------------
 # Single run: one (n, beta, seed) comparison
 # ---------------------------------------------------------------------------
-def run_single(n, beta, seed):
-    """Run BKZ and SDBKZ on one (n, beta, seed). Returns result dict."""
+# Fat-log toggle: when True, run_single additionally records the full
+# per-tour Rankin profile, Gram–Schmidt log-norms, and RHF for every tour
+# of each variant (~10x JSON size, ~0.1% extra compute). Off by default so
+# the v1.0 dataset schema stays lean and SHA-256 reproducibility holds.
+# Flip via --store-per-tour at the command line or by editing this default.
+STORE_PER_TOUR = False
+
+
+def run_single(n, beta, seed, store_per_tour=False):
+    """Run BKZ and SDBKZ on one (n, beta, seed). Returns result dict.
+
+    When ``store_per_tour`` is True, the result additionally contains
+    ``{variant}_rankin_per_tour``, ``{variant}_gs_lognorms_per_tour``, and
+    ``{variant}_rhf_per_tour`` (one entry per executed tour). Default False
+    preserves the lean v1.0 schema.
+    """
     FPLLL.set_precision(PRECISION)
     FPLLL.set_random_seed(seed)
 
@@ -265,6 +279,11 @@ def run_single(n, beta, seed):
         "precision": PRECISION, "dim": dim, "m": m, "status": "completed",
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
+    # Only add the key when fat-log mode is ON, so the default-off path
+    # emits byte-for-byte the same JSON as the v1.0 dataset (SHA-256
+    # reproducibility evidence lives in hash_verification.txt).
+    if store_per_tour:
+        result["store_per_tour"] = True
 
     # --- Initial quality (after LLL, before any BKZ) ---
     B_init = IntegerMatrix.from_matrix(L)
@@ -288,6 +307,9 @@ def run_single(n, beta, seed):
 
         dln_per_tour = []
         deltas = []
+        rankin_per_tour = []
+        gs_lognorms_per_tour = []
+        rhf_per_tour = []
         stag_tour = None
         stag_rankin = None
         stag_rhf = None
@@ -302,7 +324,15 @@ def run_single(n, beta, seed):
 
             M = GSO.Mat(B)
             M.update_gso()
-            metrics = _metrics_from_gso(M, dim, m, ln_p, full=False)
+            if store_per_tour:
+                metrics = _metrics_from_gso(M, dim, m, ln_p, full=True)
+                rankin_per_tour.append([float(x) for x in metrics["rankin"]])
+                gs_lognorms_per_tour.append(
+                    [float(x) for x in metrics["gs_lognorms"]]
+                )
+                rhf_per_tour.append(float(metrics["rhf"]))
+            else:
+                metrics = _metrics_from_gso(M, dim, m, ln_p, full=False)
             dln_per_tour.append(metrics["dln"])
 
             delta = float(np.mean(np.abs(
@@ -342,6 +372,10 @@ def run_single(n, beta, seed):
         result[f"rankin_profile_{variant}"] = stag_rankin
         result[f"rhf_{variant}"] = stag_rhf
         result[f"gs_lognorms_{variant}"] = stag_gs
+        if store_per_tour:
+            result[f"{variant}_rankin_per_tour"] = rankin_per_tour
+            result[f"{variant}_gs_lognorms_per_tour"] = gs_lognorms_per_tour
+            result[f"{variant}_rhf_per_tour"] = rhf_per_tour
         result[f"{variant}_floor"] = float(np.mean(deltas[-5:]))
         result[f"{variant}_time"] = elapsed
 
@@ -383,7 +417,7 @@ def worker(args):
     signal.alarm(timeout)
 
     try:
-        result = run_single(n, beta, seed)
+        result = run_single(n, beta, seed, store_per_tour=STORE_PER_TOUR)
         with open(out, "w") as f:
             json.dump(result, f, indent=2)
         return (key, "completed", out)
@@ -582,6 +616,9 @@ def setup_logging():
 def main():
     migrate_only = "--migrate" in sys.argv
     summary_only = "--summary" in sys.argv
+    if "--store-per-tour" in sys.argv:
+        global STORE_PER_TOUR
+        STORE_PER_TOUR = True
 
     os.makedirs(RAW_DIR, exist_ok=True)
 
