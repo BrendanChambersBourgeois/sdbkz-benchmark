@@ -1,0 +1,14 @@
+{
+  "n": 90,
+  "beta": 30,
+  "seeds": 20,
+  "total_tours": 500,
+  "mean_bkz_dln_at_70": 4.8856755355012025,
+  "mean_sdbkz_dln_at_70": 3.9608966759301123,
+  "mean_advantage_at_70": 0.9247788595710899,
+  "mean_bkz_dln_at_500": 4.843633728698636,
+  "mean_sdbkz_dln_at_500": 3.51306898431284,
+  "mean_advantage_at_500": 1.330564744385796,
+  "bkz_improvement_70_to_500": 0.042041806802566306,
+  "sdbkz_improvement_70_to_500": 0.4478276916172721
+}

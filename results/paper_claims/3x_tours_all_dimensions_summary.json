@@ -1,0 +1,42 @@
+{
+  "n50_beta30": {
+    "n": 50,
+    "beta": 30,
+    "seeds": 100,
+    "bkz_tours": "?",
+    "sdbkz_tours": "?",
+    "mean_3x_advantage": 0.38179154082774214,
+    "gaps_closed": 0,
+    "gaps_closed_pct": 0.0
+  },
+  "n60_beta30": {
+    "n": 60,
+    "beta": 30,
+    "seeds": 100,
+    "bkz_tours": "?",
+    "sdbkz_tours": "?",
+    "mean_3x_advantage": 0.4992751717446552,
+    "gaps_closed": 0,
+    "gaps_closed_pct": 0.0
+  },
+  "n70_beta30": {
+    "n": 70,
+    "beta": 30,
+    "seeds": 100,
+    "bkz_tours": "?",
+    "sdbkz_tours": "?",
+    "mean_3x_advantage": 0.5493330440417175,
+    "gaps_closed": 0,
+    "gaps_closed_pct": 0.0
+  },
+  "n80_beta30": {
+    "n": 80,
+    "beta": 30,
+    "seeds": 100,
+    "bkz_tours": "?",
+    "sdbkz_tours": "?",
+    "mean_3x_advantage": 0.564796874848361,
+    "gaps_closed": 0,
+    "gaps_closed_pct": 0.0
+  }
+}

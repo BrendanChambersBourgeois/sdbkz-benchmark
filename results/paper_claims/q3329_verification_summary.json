@@ -1,0 +1,42 @@
+{
+  "n50_beta30_q3329": {
+    "n": 50,
+    "beta": 30,
+    "q": 3329,
+    "seeds": 20,
+    "mean_advantage": 0.43658408327669496,
+    "std_advantage": 0.1427912166470884,
+    "win_rate": 1.0,
+    "wins": 20
+  },
+  "n70_beta30_q3329": {
+    "n": 70,
+    "beta": 30,
+    "q": 3329,
+    "seeds": 20,
+    "mean_advantage": 0.5610273804807965,
+    "std_advantage": 0.22969284878584348,
+    "win_rate": 1.0,
+    "wins": 20
+  },
+  "n80_beta30_q3329": {
+    "n": 80,
+    "beta": 30,
+    "q": 3329,
+    "seeds": 20,
+    "mean_advantage": 0.5567271371855192,
+    "std_advantage": 0.1422883119588099,
+    "win_rate": 1.0,
+    "wins": 20
+  },
+  "n90_beta30_q3329": {
+    "n": 90,
+    "beta": 30,
+    "q": 3329,
+    "seeds": 20,
+    "mean_advantage": 9.162805566349258,
+    "std_advantage": 38.45228545726271,
+    "win_rate": 0.95,
+    "wins": 19
+  }
+}
