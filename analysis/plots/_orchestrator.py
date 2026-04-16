@@ -21,6 +21,8 @@ from .basis_profiles import fig_basis_profiles
 from .gso_profiles import fig_gso_profiles
 from .convergence_500_tours import fig_convergence_500_tours
 from .q3329_degeneracy import fig_q3329_degeneracy
+from .per_position_landscape import fig_per_position_landscape
+from .peak_dip_trajectory import fig_peak_dip_trajectory
 
 
 def generate_all(results_dirs, output_dir, tour_dir=None, min_seeds=10):
@@ -82,6 +84,12 @@ def generate_all(results_dirs, output_dir, tour_dir=None, min_seeds=10):
 
     print("--- q=3329 degeneracy ---")
     fig_q3329_degeneracy(groups, output_dir)
+
+    print("--- Per-position landscape ---")
+    fig_per_position_landscape(groups, output_dir, min_seeds=min_seeds)
+
+    print("--- Peak/dip trajectory ---")
+    fig_peak_dip_trajectory(groups, output_dir, min_seeds=min_seeds)
 
     print("\n--- Diagnostics ---")
     print("\n[Distribution diagnostics]")

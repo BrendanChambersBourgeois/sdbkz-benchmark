@@ -213,6 +213,47 @@ def _group_advantages(groups):
     }
 
 
+def _per_position_improvement(seed_data):
+    """Per-position |BKZ−R*| − |SDBKZ−R*| for a single seed.
+
+    Returns:
+        numpy array of length n+1, or None if data missing.
+    """
+    rp_bkz = seed_data.get("rankin_profile_bkz")
+    rp_sd = seed_data.get("rankin_profile_sdbkz")
+    if rp_bkz is None or rp_sd is None:
+        return None
+
+    n, beta = seed_data["n"], seed_data["beta"]
+    size = len(rp_bkz)
+    if size != len(rp_sd):
+        return None
+
+    fp = ln_fixed_point(n + 1, beta)
+    if len(fp) != size:
+        return None
+
+    fp_arr = np.array(fp)
+    return np.abs(np.array(rp_bkz) - fp_arr) - np.abs(np.array(rp_sd) - fp_arr)
+
+
+def _per_position_group_stats(seeds):
+    """Aggregate per-position improvement across seeds.
+
+    Returns:
+        (means, stds, n_used) or (None, None, 0) if no valid seeds.
+    """
+    arrays = []
+    for s in seeds:
+        imp = _per_position_improvement(s)
+        if imp is not None:
+            arrays.append(imp)
+    if not arrays:
+        return None, None, 0
+    stacked = np.stack(arrays)
+    return stacked.mean(axis=0), stacked.std(axis=0), len(arrays)
+
+
 def _decompose_seed(seed_data):
     """Compute head/mid/tail improvement for a single seed.
 
