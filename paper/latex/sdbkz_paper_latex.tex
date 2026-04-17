@@ -397,7 +397,7 @@ The GSO log-norm profiles (Figure~\ref{fig:gso}) reveal a complementary structur
 
 \subsection{Non-Monotonic Block Size Relationship}
 
-The advantage peaks at $\beta=30$ at most measured dimensions, but the relationship is dimension-dependent. At $n=110$, $\beta=40$ overtakes $\beta=30$ ($+1.158$ vs $+1.112$, both at 100 seeds) before collapsing dramatically:
+The advantage peaks at $\beta=30$ at most measured dimensions, but the relationship is dimension-dependent. At $n=110$, $\beta=40$ overtakes $\beta=30$ ($+1.158$ vs $+1.112$, both at 100 seeds) before collapsing dramatically (Table~\ref{tab:beta-n-matrix}, Figure~\ref{fig:dim-scaling}).
 
 \begin{table}[tbp]
 \centering
@@ -418,7 +418,7 @@ $\beta$ & $n{=}50$ & $60$ & $70$ & $80$ & $90$ & $100$ & $110$ & $120$ & $130$ &
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=\linewidth]{figs/fig09}
-\caption{Mean $d(\mathrm{LN})$ advantage ($\pm 1\sigma$) as a function of secret dimension $n$ for each block size. The peak dimension is block-size-dependent: $\beta=20$ peaks at $n=90$, $\beta=30$ at $n=100$, and $\beta=40$ near $n=110$. All three block sizes decline into negative territory. The $\beta=40$ cliff ($n=110$ to $n=130$) is the steepest decline in the dataset: a swing of 2.5 nats in two dimension steps.\label{fig:dim-scaling}}
+\caption{Mean $d(\mathrm{LN})$ advantage ($\pm 1\sigma$) as a function of secret dimension $n$ for each block size. The peak dimension is block-size-dependent: $\beta=20$ peaks at $n=90$, $\beta=30$ at $n=100$, and $\beta=40$ at $n=110$. All three block sizes decline into negative territory. The $\beta=40$ cliff ($n=110$ to $n=130$) is the steepest decline in the dataset: a swing of 2.5 nats in two dimension steps.\label{fig:dim-scaling}}
 \end{figure}
 
 At $n=50$, the ratio of $\beta=30$ advantage to $\beta=40$ advantage is $3.8{:}1$. At $n=70$, this ratio has narrowed to $1.5{:}1$, and at $n=80$ it is $1.4{:}1$. The $\beta=40$ advantage more than tripled from $n=50$ to $n=70$ ($+222\%$) and continued growing to 0.408 at $n=80$ ($+19\%$). At $n=90$, $\beta=30$ undergoes a dramatic acceleration: the advantage jumps from 0.580 to 0.922 nats ($+59\%$), the largest single-step increase in the completed dataset. This is followed by a decline to 0.741 at $n=120$ and 0.352 at $n=130$. The $\beta=20$ advantage follows a similar pattern, peaking at $n=90$ (0.484) before declining through 0.362 ($n=100$), 0.094 ($n=120$), 0.003 ($n=130$), and $-0.108$ ($n=140$, where BKZ actively wins). The peak dimension is block-size-dependent: $\beta=20$ peaks at $n=90$, while $\beta=30$ peaks at $n=100$ (Section~\ref{sec:dim-scaling}).
