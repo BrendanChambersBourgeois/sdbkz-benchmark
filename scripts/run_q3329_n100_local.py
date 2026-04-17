@@ -43,6 +43,9 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
+from log import get_logger
+PIPELINE = get_logger("run_q3329_n100_local")
+
 # Parse our own args before mocking sys.argv for q3329_verify import.
 _parser = argparse.ArgumentParser(add_help=False)
 _parser.add_argument("--start", type=int, default=1,
@@ -172,6 +175,12 @@ def main():
         print("Nothing to do.")
         return
 
+    PIPELINE.info(
+        "q3329 n=100 local start",
+        cat="sweep",
+        n=N, beta=BETA, q=Q, to_run=len(todo),
+        already_done=len(SEEDS) - len(todo), workers=NUM_WORKERS,
+    )
     completed = 0
     t_start = time.time()
 
@@ -203,6 +212,12 @@ def main():
     print(f"Done in {total_h:.2f} h.")
     print("Results written to results/q3329/ — regenerate figures with "
           "`python3 analysis/paper_figures.py`.")
+    PIPELINE.info(
+        "q3329 n=100 local complete",
+        cat="sweep",
+        n=N, beta=BETA, q=Q, completed=completed,
+        elapsed_s=int(time.time() - t_start),
+    )
 
 
 if __name__ == "__main__":

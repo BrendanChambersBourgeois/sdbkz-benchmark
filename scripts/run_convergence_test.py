@@ -16,6 +16,10 @@ import numpy as np
 from multiprocessing import Pool
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from log import get_logger
+PIPELINE = get_logger("run_convergence_test")
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(REPO_ROOT, "results", "convergence")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -171,6 +175,13 @@ def main():
     print("=" * 70)
     print()
 
+    PIPELINE.info(
+        "convergence start",
+        cat="sweep",
+        n=N, beta=BETA, tours=MAX_TOURS, n_seeds=NUM_SEEDS, workers=NUM_WORKERS,
+    )
+    _t_start = time.time()
+
     # Check completed
     completed = {}
     for seed in range(1, NUM_SEEDS + 1):
@@ -247,6 +258,13 @@ def main():
     }
     with open(os.path.join(OUTPUT_DIR, f"summary_convergence.json"), "w") as f:
         json.dump(summary, f, indent=2)
+
+    PIPELINE.info(
+        "convergence complete",
+        cat="sweep",
+        n=N, beta=BETA, tours=MAX_TOURS,
+        elapsed_s=int(time.time() - _t_start),
+    )
 
     sys.stdout.flush()
     sys.stderr.flush()

@@ -13,6 +13,10 @@ import numpy as np
 
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from log import get_logger
+PIPELINE = get_logger("q3329_verify")
+
 # -- Config -------------------------------------------------------------------
 import argparse
 
@@ -302,6 +306,14 @@ def main():
     print(f"Output: {OUTPUT_DIR}")
     print("=" * 70)
 
+    PIPELINE.info(
+        "q3329 verify start",
+        cat="sweep",
+        n=N, beta=BETA, q=Q, n_seeds=len(SEEDS),
+        output_dir=OUTPUT_DIR,
+    )
+    t_start = time.time()
+
     advantages = []
     completed = 0
 
@@ -381,6 +393,14 @@ def main():
         with open(sumpath, "w") as f:
             json.dump(summary, f, indent=2)
         print(f"\n  Saved: {sumpath}")
+
+    PIPELINE.info(
+        "q3329 verify complete",
+        cat="sweep",
+        n=N, beta=BETA, q=Q,
+        completed=completed,
+        elapsed_s=int(time.time() - t_start),
+    )
 
 
 if __name__ == "__main__":

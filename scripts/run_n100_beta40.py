@@ -32,6 +32,9 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
+from log import get_logger
+PIPELINE = get_logger("run_n100_beta40")
+
 # -- Args (parse before importing sweep_parallel to avoid conflicts) ----------
 
 parser = argparse.ArgumentParser(description="n=100 β=40 q=97 sweep gap-fill")
@@ -115,6 +118,13 @@ def main():
         print("Nothing to do.")
         return
 
+    PIPELINE.info(
+        "n=100 β=40 gap-fill start",
+        cat="sweep",
+        n=N, beta=BETA, q=sweep_parallel.Q,
+        to_run=len(todo), already_done=len(SEEDS) - len(todo),
+        workers=NUM_WORKERS,
+    )
     completed = 0
     t_start = time.time()
 
@@ -139,6 +149,12 @@ def main():
 
     total_h = (time.time() - t_start) / 3600
     print(f"\nDone in {total_h:.2f}h.")
+    PIPELINE.info(
+        "n=100 β=40 gap-fill complete",
+        cat="sweep",
+        n=N, beta=BETA, completed=completed,
+        elapsed_s=int(time.time() - t_start),
+    )
 
 
 if __name__ == "__main__":

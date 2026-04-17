@@ -39,6 +39,9 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
+from log import get_logger
+PIPELINE = get_logger("run_q3329_n90")
+
 _parser = argparse.ArgumentParser(
     description="q=3329 n=90 β=30 1000-bit MPFR verification (20 seeds)")
 _parser.add_argument("--workers", type=int, default=20,
@@ -122,6 +125,12 @@ def main():
         print("Nothing to do.")
         return
 
+    PIPELINE.info(
+        "q3329 n=90 start",
+        cat="sweep",
+        n=N, beta=BETA, to_run=len(todo),
+        already_done=done_count, workers=NUM_WORKERS,
+    )
     t_start = time.time()
     completed = 0
 
@@ -139,6 +148,12 @@ def main():
 
     elapsed = time.time() - t_start
     print(f"\nDone. {completed} seeds in {elapsed/3600:.2f}h")
+    PIPELINE.info(
+        "q3329 n=90 complete",
+        cat="sweep",
+        n=N, beta=BETA, completed=completed,
+        elapsed_s=int(elapsed),
+    )
     os._exit(0)
 
 

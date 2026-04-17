@@ -38,6 +38,9 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
+from log import get_logger
+PIPELINE = get_logger("run_q3329_intermediate")
+
 # q3329_verify parses argparse at import time. Mock argv so it picks up
 # Q=3329 / PRECISION=250 / β=30 / 70 tours before we import the module.
 # The --n value here is irrelevant — run_single() takes n as a parameter,
@@ -199,6 +202,12 @@ def main():
           f"PRECISION={q3329_verify.PRECISION}, "
           f"MAX_TOURS={q3329_verify.MAX_TOURS}")
 
+    PIPELINE.info(
+        "q3329 intermediate start",
+        cat="sweep",
+        q=q3329_verify.Q, precision=q3329_verify.PRECISION,
+        groups=[{"n": g["n"]} for g in GROUPS],
+    )
     overall_start = time.time()
 
     for group in GROUPS:
@@ -212,6 +221,11 @@ def main():
     print("Results written to results/q3329/ — regenerate figures with "
           "`python3 analysis/paper_figures.py`.")
     print("=" * 70)
+    PIPELINE.info(
+        "q3329 intermediate complete",
+        cat="sweep",
+        elapsed_s=int(time.time() - overall_start),
+    )
 
 
 if __name__ == "__main__":
