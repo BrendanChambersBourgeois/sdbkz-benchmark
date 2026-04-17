@@ -23,10 +23,13 @@ is computed as a naive in-place subtract loop with no compensation, reorthogonal
 ```
 git clone https://github.com/fplll/fplll.git
 cd fplll
+git checkout 1987472            # fplll HEAD as of 2025-10-15, verified 15/15 make check pass
 git apply /path/to/sdbkz-benchmark/patches/fplll_gso_kahan.patch
 ./autogen.sh && ./configure && make && make check
 sudo make install
 ```
+
+Also verified against fplll **5.5.0** (the version vendored inside fpylll 0.6.4, used by the paper's Docker build on 2026-04-10). Newer fplll HEADs may re-apply cleanly but have not been tested.
 
 Rebuild fpylll against the patched fplll afterwards.
 
