@@ -87,7 +87,7 @@ Profile-based analysis of BKZ is well established: the Chen--Nguyen BKZ simulato
 
 \subsection{Root Hermite Factor}
 
-The Root Hermite Factor $\delta = (\|b_1\| / \mathrm{vol}(L)^{1/d})^{1/d}$ is a scalar metric that depends only on the length of the shortest basis vector relative to the lattice volume.\footnote{Our implementation computes the Hermite Factor (without the outer $1/d$ exponent); since $\mathrm{RHF} = \mathrm{HF}^{1/d}$ is a monotone transformation, the conclusions hold for both metrics.} It captures nothing about the interior structure of the basis; the Gram--Schmidt vectors $b^*_2$ through $b^*_d$ are invisible to it. As we demonstrate, this makes it fundamentally unable to detect the type of structural improvement SD-BKZ provides.
+The Root Hermite Factor $\delta = (\|b_1\| / \mathrm{vol}(L)^{1/d})^{1/d}$ is a scalar metric that depends only on the length of the shortest basis vector relative to the lattice volume. Our implementation stores the uprooted Hermite Factor $\mathrm{HF} = \delta^d$ and converts only at report time (since $\mathrm{RHF} = \mathrm{HF}^{1/d}$, a monotone transformation, either metric ranks algorithms identically).\footnote{Our implementation computes the Hermite Factor (without the outer $1/d$ exponent); since $\mathrm{RHF} = \mathrm{HF}^{1/d}$ is a monotone transformation, the conclusions hold for both metrics.} It captures nothing about the interior structure of the basis; the Gram--Schmidt vectors $b^*_2$ through $b^*_d$ are invisible to it. As we demonstrate, this makes it fundamentally unable to detect the type of structural improvement SD-BKZ provides.
 
 \section{Experimental Design}
 \label{sec:design}
