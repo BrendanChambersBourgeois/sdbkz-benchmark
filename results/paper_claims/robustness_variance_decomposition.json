@@ -1,0 +1,58 @@
+{
+  "description": "Variance decomposition on per-tour advantage trajectories. Between-seed variance = spread of per-seed final advantage (lattice draw effect). Within-seed variance = tour-to-tour fluctuation of the advantage in the last 20 tours of each seed (tour noise). Sampled 5 groups across the (n,\u03b2) grid.",
+  "generated": "2026-04-17",
+  "method": "advantage_per_tour = bkz_dln_per_tour - sdbkz_dln_per_tour. Per-seed final = mean over last max(1, T/5) tours. Between-seed variance computed across per-seed finals. Within-seed variance computed as per-seed tour-variance over last 20 tours, then averaged across seeds.",
+  "interpretation": "Large between vs small within \u2192 100 seeds is the right count (lattice draw dominates). Small between vs large within \u2192 tour noise dominates and more seeds won't help.",
+  "per_group": {
+    "n100_beta30": {
+      "n_seeds": 100,
+      "min_tour_len": 70,
+      "between_seed_variance": 0.02380714162862208,
+      "within_seed_tour_variance_mean": 0.026329662031357125,
+      "pct_between_seed": 47.48436256542956,
+      "pct_within_seed": 52.51563743457044,
+      "final_advantage_mean": 1.2809604756586486,
+      "final_advantage_std": 0.15429563062064355
+    },
+    "n50_beta20": {
+      "n_seeds": 99,
+      "min_tour_len": 50,
+      "between_seed_variance": 0.011136101525180204,
+      "within_seed_tour_variance_mean": 0.014440459590851428,
+      "pct_between_seed": 43.54026123629259,
+      "pct_within_seed": 56.45973876370741,
+      "final_advantage_mean": 0.27652081442702947,
+      "final_advantage_std": 0.10552772870284001
+    },
+    "n80_beta40": {
+      "n_seeds": 100,
+      "min_tour_len": 100,
+      "between_seed_variance": 0.0034809724083774136,
+      "within_seed_tour_variance_mean": 0.012849551379032056,
+      "pct_between_seed": 21.31574255481737,
+      "pct_within_seed": 78.68425744518262,
+      "final_advantage_mean": 0.39929516169359297,
+      "final_advantage_std": 0.058999766172226596
+    },
+    "n100_beta20": {
+      "n_seeds": 100,
+      "min_tour_len": 50,
+      "between_seed_variance": 0.017339887066278085,
+      "within_seed_tour_variance_mean": 0.02107724738038876,
+      "pct_between_seed": 45.135815869740206,
+      "pct_within_seed": 54.86418413025979,
+      "final_advantage_mean": 0.3379694543044931,
+      "final_advantage_std": 0.1316810049562126
+    },
+    "n70_beta30": {
+      "n_seeds": 100,
+      "min_tour_len": 70,
+      "between_seed_variance": 0.012373672148510189,
+      "within_seed_tour_variance_mean": 0.02296210807634978,
+      "pct_between_seed": 35.01740182265701,
+      "pct_within_seed": 64.982598177343,
+      "final_advantage_mean": 0.4969789350033123,
+      "final_advantage_std": 0.11123700889771439
+    }
+  }
+}

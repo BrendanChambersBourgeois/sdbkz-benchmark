@@ -1,0 +1,272 @@
+{
+  "description": "Per-group crossover tour distribution (tour at which SD-BKZ first surpasses BKZ in d(LN)). Closes the paper's unstored claim of 'tour 3\u201323 depending on parameters'.",
+  "generated": "2026-04-17",
+  "field_source": "crossover_tour (per seed)",
+  "summary_median_range_over_groups": [
+    1.0,
+    35.0
+  ],
+  "per_group": {
+    "n50_beta20": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 16.77,
+      "crossover_tour_median": 16.0,
+      "crossover_tour_min": 8,
+      "crossover_tour_max": 31,
+      "crossover_tour_p25": 13.0,
+      "crossover_tour_p75": 19.0
+    },
+    "n50_beta30": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 5.63,
+      "crossover_tour_median": 5.0,
+      "crossover_tour_min": 3,
+      "crossover_tour_max": 15,
+      "crossover_tour_p25": 4.0,
+      "crossover_tour_p75": 7.0
+    },
+    "n50_beta40": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 4.33,
+      "crossover_tour_median": 3.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 22,
+      "crossover_tour_p25": 2.0,
+      "crossover_tour_p75": 4.25
+    },
+    "n60_beta20": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 20.91,
+      "crossover_tour_median": 20.0,
+      "crossover_tour_min": 9,
+      "crossover_tour_max": 42,
+      "crossover_tour_p25": 16.0,
+      "crossover_tour_p75": 23.0
+    },
+    "n60_beta30": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 8.22,
+      "crossover_tour_median": 7.5,
+      "crossover_tour_min": 4,
+      "crossover_tour_max": 19,
+      "crossover_tour_p25": 6.0,
+      "crossover_tour_p75": 10.0
+    },
+    "n60_beta40": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 4.7,
+      "crossover_tour_median": 4.0,
+      "crossover_tour_min": 3,
+      "crossover_tour_max": 13,
+      "crossover_tour_p25": 3.75,
+      "crossover_tour_p75": 5.0
+    },
+    "n70_beta20": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 21.28,
+      "crossover_tour_median": 21.0,
+      "crossover_tour_min": 11,
+      "crossover_tour_max": 36,
+      "crossover_tour_p25": 18.0,
+      "crossover_tour_p75": 23.25
+    },
+    "n70_beta30": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 9.24,
+      "crossover_tour_median": 9.0,
+      "crossover_tour_min": 5,
+      "crossover_tour_max": 15,
+      "crossover_tour_p25": 8.0,
+      "crossover_tour_p75": 10.25
+    },
+    "n70_beta40": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 5.76,
+      "crossover_tour_median": 5.0,
+      "crossover_tour_min": 4,
+      "crossover_tour_max": 16,
+      "crossover_tour_p25": 4.0,
+      "crossover_tour_p75": 6.0
+    },
+    "n80_beta20": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 23.57,
+      "crossover_tour_median": 23.0,
+      "crossover_tour_min": 14,
+      "crossover_tour_max": 50,
+      "crossover_tour_p25": 20.0,
+      "crossover_tour_p75": 27.0
+    },
+    "n80_beta30": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 10.68,
+      "crossover_tour_median": 10.0,
+      "crossover_tour_min": 6,
+      "crossover_tour_max": 19,
+      "crossover_tour_p25": 9.0,
+      "crossover_tour_p75": 12.0
+    },
+    "n80_beta40": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 6.51,
+      "crossover_tour_median": 6.0,
+      "crossover_tour_min": 5,
+      "crossover_tour_max": 12,
+      "crossover_tour_p25": 5.0,
+      "crossover_tour_p75": 7.0
+    },
+    "n90_beta20": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 9.48,
+      "crossover_tour_median": 10.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 32,
+      "crossover_tour_p25": 1.0,
+      "crossover_tour_p75": 17.0
+    },
+    "n90_beta30": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 1.87,
+      "crossover_tour_median": 1.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 10,
+      "crossover_tour_p25": 1.0,
+      "crossover_tour_p75": 2.0
+    },
+    "n90_beta40": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 4.92,
+      "crossover_tour_median": 5.0,
+      "crossover_tour_min": 3,
+      "crossover_tour_max": 11,
+      "crossover_tour_p25": 4.0,
+      "crossover_tour_p75": 5.0
+    },
+    "n100_beta20": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 1.0,
+      "crossover_tour_median": 1.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 1,
+      "crossover_tour_p25": 1.0,
+      "crossover_tour_p75": 1.0
+    },
+    "n100_beta30": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 1.0,
+      "crossover_tour_median": 1.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 1,
+      "crossover_tour_p25": 1.0,
+      "crossover_tour_p75": 1.0
+    },
+    "n100_beta40": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 1.0,
+      "crossover_tour_median": 1.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 1,
+      "crossover_tour_p25": 1.0,
+      "crossover_tour_p75": 1.0
+    },
+    "n110_beta20": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 1.0,
+      "crossover_tour_median": 1.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 1,
+      "crossover_tour_p25": 1.0,
+      "crossover_tour_p75": 1.0
+    },
+    "n110_beta30": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 1.04,
+      "crossover_tour_median": 1.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 2,
+      "crossover_tour_p25": 1.0,
+      "crossover_tour_p75": 1.0
+    },
+    "n110_beta40": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 1.91,
+      "crossover_tour_median": 2.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 2,
+      "crossover_tour_p25": 2.0,
+      "crossover_tour_p75": 2.0
+    },
+    "n120_beta20": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 1.0,
+      "crossover_tour_median": 1.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 1,
+      "crossover_tour_p25": 1.0,
+      "crossover_tour_p75": 1.0
+    },
+    "n120_beta30": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 3.73,
+      "crossover_tour_median": 4.0,
+      "crossover_tour_min": 3,
+      "crossover_tour_max": 6,
+      "crossover_tour_p25": 3.0,
+      "crossover_tour_p75": 4.0
+    },
+    "n120_beta40": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 18.73,
+      "crossover_tour_median": 13.0,
+      "crossover_tour_min": 6,
+      "crossover_tour_max": 100,
+      "crossover_tour_p25": 10.0,
+      "crossover_tour_p75": 18.0
+    },
+    "n130_beta20": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 1.0,
+      "crossover_tour_median": 1.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 1,
+      "crossover_tour_p25": 1.0,
+      "crossover_tour_p75": 1.0
+    },
+    "n130_beta30": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 9.1,
+      "crossover_tour_median": 9.0,
+      "crossover_tour_min": 7,
+      "crossover_tour_max": 15,
+      "crossover_tour_p25": 8.0,
+      "crossover_tour_p75": 10.0
+    },
+    "n140_beta20": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 1.0,
+      "crossover_tour_median": 1.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 1,
+      "crossover_tour_p25": 1.0,
+      "crossover_tour_p75": 1.0
+    },
+    "n140_beta30": {
+      "n_seeds": 91,
+      "crossover_tour_mean": 36.824175824175825,
+      "crossover_tour_median": 35.0,
+      "crossover_tour_min": 16,
+      "crossover_tour_max": 70,
+      "crossover_tour_p25": 26.0,
+      "crossover_tour_p75": 45.5
+    },
+    "n150_beta20": {
+      "n_seeds": 100,
+      "crossover_tour_mean": 1.0,
+      "crossover_tour_median": 1.0,
+      "crossover_tour_min": 1,
+      "crossover_tour_max": 1,
+      "crossover_tour_p25": 1.0,
+      "crossover_tour_p75": 1.0
+    }
+  }
+}
