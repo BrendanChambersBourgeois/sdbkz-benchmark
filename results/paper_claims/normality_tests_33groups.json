@@ -1,0 +1,284 @@
+{
+  "description": "Shapiro-Wilk normality tests on the per-seed d(LN) advantage distributions for each of the 33 groups (n=50..150 \u00d7 \u03b2=20/30/40 except incomplete groups), plus Pearson correlation between per-seed RHF advantage and d(LN) advantage for the n=100, \u03b2=30 subset cited in paper \u00a74.",
+  "generated": "2026-04-17 (results/paper_claims/ retrofit, closing a round-2-audit ORPHAN)",
+  "shapiro_wilk_per_group": {
+    "n50_beta20": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9857153800135272,
+      "shapiro_wilk_p": 0.35716869723879296,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.29091959977802373,
+      "std_advantage_reconfirm": 0.14368678712275187
+    },
+    "n50_beta30": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9918014652214056,
+      "shapiro_wilk_p": 0.8066631512707783,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.40486170521136633,
+      "std_advantage_reconfirm": 0.14376561911248112
+    },
+    "n50_beta40": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9906479702827719,
+      "shapiro_wilk_p": 0.7168954200435922,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.105509231681181,
+      "std_advantage_reconfirm": 0.08047276040373162
+    },
+    "n60_beta20": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9838973567388765,
+      "shapiro_wilk_p": 0.2637593994601441,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.31409359269961995,
+      "std_advantage_reconfirm": 0.18053110758111462
+    },
+    "n60_beta30": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9915435146218006,
+      "shapiro_wilk_p": 0.7872582784890478,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.4896515563880943,
+      "std_advantage_reconfirm": 0.17171160904136032
+    },
+    "n60_beta40": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9881229791097649,
+      "shapiro_wilk_p": 0.5173188138991501,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.22979320627118255,
+      "std_advantage_reconfirm": 0.11168689856296757
+    },
+    "n70_beta20": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9880325943787434,
+      "shapiro_wilk_p": 0.5106135877722766,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.4131416178349649,
+      "std_advantage_reconfirm": 0.16592125326439927
+    },
+    "n70_beta30": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9882005130989562,
+      "shapiro_wilk_p": 0.5231076172685161,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.5240636575870364,
+      "std_advantage_reconfirm": 0.17629961292504917
+    },
+    "n70_beta40": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9865523835920642,
+      "shapiro_wilk_p": 0.40823471476522566,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.3393744656190965,
+      "std_advantage_reconfirm": 0.09571528506884106
+    },
+    "n80_beta20": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9905779863200227,
+      "shapiro_wilk_p": 0.7112719643363942,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.4730500306962751,
+      "std_advantage_reconfirm": 0.1729524413537985
+    },
+    "n80_beta30": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9898800414630815,
+      "shapiro_wilk_p": 0.6548978825737292,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.5800114203890545,
+      "std_advantage_reconfirm": 0.19298212287269886
+    },
+    "n80_beta40": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9767942728646453,
+      "shapiro_wilk_p": 0.07459109010278539,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.4076763535132851,
+      "std_advantage_reconfirm": 0.1301261172440616
+    },
+    "n90_beta20": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9807499356685208,
+      "shapiro_wilk_p": 0.15201106526894437,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.48390046893856364,
+      "std_advantage_reconfirm": 0.19877841323376108
+    },
+    "n90_beta30": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9922088630449231,
+      "shapiro_wilk_p": 0.836143995332808,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.9222454916990175,
+      "std_advantage_reconfirm": 0.20044639216201432
+    },
+    "n90_beta40": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9931389058435588,
+      "shapiro_wilk_p": 0.8962972985794122,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.48256279335963387,
+      "std_advantage_reconfirm": 0.15851034665489075
+    },
+    "n100_beta20": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9721980495328011,
+      "shapiro_wilk_p": 0.03264248065638722,
+      "normal_at_0.05": false,
+      "mean_advantage_reconfirm": 0.36242276852383914,
+      "std_advantage_reconfirm": 0.17109660099971807
+    },
+    "n100_beta30": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9848743561652347,
+      "shapiro_wilk_p": 0.31102535263539993,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 1.3460981057232635,
+      "std_advantage_reconfirm": 0.2169548094653881
+    },
+    "n100_beta40": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9900399988606344,
+      "shapiro_wilk_p": 0.6678274121966041,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 1.1759299282619344,
+      "std_advantage_reconfirm": 0.1250591610472707
+    },
+    "n110_beta20": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.980854970252179,
+      "shapiro_wilk_p": 0.15488398947742038,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.23487771626647508,
+      "std_advantage_reconfirm": 0.15947730986371308
+    },
+    "n110_beta30": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.974639741177324,
+      "shapiro_wilk_p": 0.05056679367535589,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 1.1115467173622067,
+      "std_advantage_reconfirm": 0.19723259563413192
+    },
+    "n110_beta40": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9852850681341828,
+      "shapiro_wilk_p": 0.3329154498611515,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 1.1575293804506255,
+      "std_advantage_reconfirm": 0.16813444749876913
+    },
+    "n120_beta20": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9884089966046583,
+      "shapiro_wilk_p": 0.538835793039032,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.09420354858583353,
+      "std_advantage_reconfirm": 0.15714311455466437
+    },
+    "n120_beta30": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9848659151390206,
+      "shapiro_wilk_p": 0.3105882269719214,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.7410003194724911,
+      "std_advantage_reconfirm": 0.14916459088475117
+    },
+    "n120_beta40": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9857925493691808,
+      "shapiro_wilk_p": 0.3616618108773535,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": -0.028172131798952286,
+      "std_advantage_reconfirm": 0.10231762721003852
+    },
+    "n130_beta20": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9874274630036308,
+      "shapiro_wilk_p": 0.46699709981202175,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.003002495976152293,
+      "std_advantage_reconfirm": 0.15903890414282412
+    },
+    "n130_beta30": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9893559388346682,
+      "shapiro_wilk_p": 0.6127779324129614,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": 0.3520546631527159,
+      "std_advantage_reconfirm": 0.11045394013694794
+    },
+    "n130_beta40": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9930176773973836,
+      "shapiro_wilk_p": 0.8891231080946733,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": -1.3339853134200976,
+      "std_advantage_reconfirm": 0.1375535558298913
+    },
+    "n140_beta20": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9906532863945816,
+      "shapiro_wilk_p": 0.7173221401119577,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": -0.10761607977099516,
+      "std_advantage_reconfirm": 0.1415577697862447
+    },
+    "n140_beta30": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9866508371423636,
+      "shapiro_wilk_p": 0.4145767867780314,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": -0.036226691102530115,
+      "std_advantage_reconfirm": 0.0870348428502514
+    },
+    "n140_beta40": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9852387369552317,
+      "shapiro_wilk_p": 0.33038488386345655,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": -1.4522497241977197,
+      "std_advantage_reconfirm": 0.22037087845855988
+    },
+    "n150_beta20": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.990896102780942,
+      "shapiro_wilk_p": 0.7367302116727752,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": -0.17282322705816008,
+      "std_advantage_reconfirm": 0.14244543314292826
+    },
+    "n150_beta30": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9893044903968681,
+      "shapiro_wilk_p": 0.6086760126508087,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": -0.39458430391454713,
+      "std_advantage_reconfirm": 0.10178108859262033
+    },
+    "n150_beta40": {
+      "n_seeds": 100,
+      "shapiro_wilk_W": 0.9927477495700009,
+      "shapiro_wilk_p": 0.8723843425561375,
+      "normal_at_0.05": true,
+      "mean_advantage_reconfirm": -1.29247429460903,
+      "std_advantage_reconfirm": 0.20525865249296849
+    }
+  },
+  "pearson_rhf_vs_dln_n100_beta30": {
+    "first_30_seeds": {
+      "r": -0.13559045841876413,
+      "p": 0.4749721886051679,
+      "n": 30
+    },
+    "all_100_seeds": {
+      "r": -0.08461234080553631,
+      "p": 0.40259937565219023,
+      "n": 100
+    },
+    "paper_cites": "r = -0.14 (p = 0.48) on 30-seed subset (paper \u00a74 line ~218)"
+  },
+  "classifier": "scipy.stats.shapiro on `advantage` field; normal_at_0.05 = True if shapiro p > 0.05"
+}
