@@ -215,7 +215,7 @@ $n$ & $\beta$ & Seeds & RHF $\Delta$ (mean) & $d(\mathrm{LN})\,\Delta$ & std & W
 
 In all groups with RHF data, the RHF difference is below $10^{-6}$ (and below $10^{-7}$ in groups without outlier seeds), effectively zero. Both algorithms produce first basis vectors of indistinguishable length. Yet $d(\mathrm{LN})$ reveals advantages of 0.1--1.3 nats (natural log units) with standard deviations small enough to confirm statistical significance. An evaluation based on RHF alone would conclude ``no meaningful difference between BKZ and SD-BKZ''---a conclusion that is demonstrably wrong. At $n=120$ and $n=130$ with $\beta=20$, however, the advantage effectively vanishes (see Section~\ref{sec:peakmigration}).
 
-The decoupling is complete: RHF win rates are 42--58\% across all groups, indistinguishable from a coin flip, while $d(\mathrm{LN})$ win rates range from 90\% to 100\% at favourable dimensions. The $d(\mathrm{LN})$ advantage does not translate to improved RHF, confirming that SD-BKZ's benefit lies in profile regularity rather than first-vector length.\footnote{RHF is blind to the $q=3329$ fpylll instability (Section~\ref{sec:q3329}) for the same structural reason: both the SD-BKZ improvement and the GSO cancellation pathology live in the interior/tail of the basis profile, and RHF only sees the first basis vector. $d(\mathrm{LN})$ surfaced both effects precisely because it is sensitive to interior basis structure.}
+The decoupling is complete: RHF win rates are 42--58\% across all groups, indistinguishable from a coin flip, while $d(\mathrm{LN})$ win rates range from 90\% to 100\% at favourable dimensions. The $d(\mathrm{LN})$ advantage does not translate to improved RHF, confirming that SD-BKZ's benefit lies in profile regularity rather than first-vector length.\footnote{RHF is blind to the $q=3329$ fpylll instability (Section~\ref{sec:q3329}) for the same structural reason: both the SD-BKZ improvement and the GSO cancellation pathology live in the interior/tail of the basis profile, and RHF only sees the first basis vector. $d(\mathrm{LN})$ surfaced both effects precisely because it is sensitive to interior basis structure.} A per-seed verification on the $n=100$, $\beta=30$ sample (30 seeds) makes the decoupling concrete: $d(\mathrm{LN})$ identifies SD-BKZ wins in 30/30 seeds, while RHF identifies zero seeds where either algorithm wins by more than its $10^{-6}$ noise floor. The Pearson correlation between the per-seed RHF and $d(\mathrm{LN})$ advantages in this group is $r = -0.14$ ($p = 0.48$), statistically indistinguishable from zero. The two metrics are not merely disagreeing on magnitude; they are measuring orthogonal properties of the basis.
 
 \begin{figure}[tbp]
 \centering
@@ -224,7 +224,7 @@ The decoupling is complete: RHF win rates are 42--58\% across all groups, indist
 \end{figure}
 
 \paragraph{Statistical rigour.}
-At favourable dimensions ($n=50$--$120$), all groups show statistically significant $d(\mathrm{LN})$ advantages for SD-BKZ. Paired $t$-tests reject the null hypothesis of zero mean advantage with $p<10^{-20}$ for 28 of the 33 complete groups; one-sided Wilcoxon signed-rank tests confirm significance without normality assumptions ($p<10^{-10}$ in these groups). Effect sizes range from Cohen's $d=1.31$ ($n=50$, $\beta=40$) to $9.40$ ($n=100$, $\beta=40$). The 95\% confidence intervals on the mean advantage exclude zero in 32 of 33 groups (Table~\ref{tab:stats}). The sole exception is at $n=130$, $\beta=20$, where the CI straddles zero ($[-0.028, +0.034]$, $p=0.85$), the coin-flip transition point. Shapiro--Wilk tests confirm the advantage distributions are consistent with normality ($p>0.05$ in all but one group; the exception at $n=100$, $\beta=20$, $p=0.033$, shows only mild departure that does not affect the paired $t$-test at this sample size). The asymmetry is also quantified precisely: across all groups where BKZ wins any seeds, the mean loss margin is below 0.04 nats, while the mean win margin for SD-BKZ ranges from 0.106 to 1.346 nats.
+At favourable dimensions ($n=50$--$120$), all groups show statistically significant $d(\mathrm{LN})$ advantages for SD-BKZ. Paired $t$-tests reject the null hypothesis of zero mean advantage with $p<10^{-15}$ for 28 of the 33 complete groups; one-sided Wilcoxon signed-rank tests confirm significance without normality assumptions ($p<10^{-10}$ in these groups). Effect sizes range from Cohen's $d=1.31$ ($n=50$, $\beta=40$) to $9.40$ ($n=100$, $\beta=40$). The 95\% confidence intervals on the mean advantage exclude zero in 32 of 33 groups (Table~\ref{tab:stats}). The sole exception is at $n=130$, $\beta=20$, where the CI straddles zero ($[-0.028, +0.034]$, $p=0.85$), the coin-flip transition point. Shapiro--Wilk tests confirm the advantage distributions are consistent with normality ($p>0.05$ in all but one group; the exception at $n=100$, $\beta=20$, $p=0.033$, shows only mild departure that does not affect the paired $t$-test at this sample size). The asymmetry is also quantified precisely: across all groups where BKZ wins any seeds, the mean loss margin is below 0.04 nats, while the mean win margin for SD-BKZ ranges from 0.106 to 1.346 nats.
 
 \begin{table}[tbp]
 \centering
@@ -234,39 +234,39 @@ At favourable dimensions ($n=50$--$120$), all groups show statistically signific
 \hline
 $n$ & $\beta$ & 95\% CI & Cohen's $d$ & $t$-test $p$ & Wilcoxon $p$ \\
 \hline
-50  & 20 & $[0.262, 0.319]$ & $2.02$  & $<10^{-20}$ & $<10^{-10}$ \\
-50  & 30 & $[0.376, 0.433]$ & $2.82$  & $<10^{-20}$ & $<10^{-10}$ \\
-50  & 40 & $[0.090, 0.121]$ & $1.31$  & $<10^{-20}$ & $<10^{-10}$ \\
-60  & 20 & $[0.278, 0.350]$ & $1.74$  & $<10^{-20}$ & $<10^{-10}$ \\
-60  & 30 & $[0.456, 0.524]$ & $2.85$  & $<10^{-20}$ & $<10^{-10}$ \\
-60  & 40 & $[0.208, 0.252]$ & $2.06$  & $<10^{-20}$ & $<10^{-10}$ \\
-70  & 20 & $[0.380, 0.446]$ & $2.49$  & $<10^{-20}$ & $<10^{-10}$ \\
-70  & 30 & $[0.489, 0.559]$ & $2.97$  & $<10^{-50}$ & $<10^{-10}$ \\
+50  & 20 & $[0.262, 0.319]$ & $2.02$  & $<10^{-15}$ & $<10^{-10}$ \\
+50  & 30 & $[0.376, 0.433]$ & $2.82$  & $<10^{-15}$ & $<10^{-10}$ \\
+50  & 40 & $[0.090, 0.121]$ & $1.31$  & $<10^{-15}$ & $<10^{-10}$ \\
+60  & 20 & $[0.278, 0.350]$ & $1.74$  & $<10^{-15}$ & $<10^{-10}$ \\
+60  & 30 & $[0.456, 0.524]$ & $2.85$  & $<10^{-15}$ & $<10^{-10}$ \\
+60  & 40 & $[0.208, 0.252]$ & $2.06$  & $<10^{-15}$ & $<10^{-10}$ \\
+70  & 20 & $[0.380, 0.446]$ & $2.49$  & $<10^{-15}$ & $<10^{-10}$ \\
+70  & 30 & $[0.489, 0.559]$ & $2.97$  & $<10^{-15}$ & $<10^{-10}$ \\
 70  & 40 & $[0.320, 0.358]$ & $3.55$  & $<10^{-10}$ & $<10^{-10}$ \\
-80  & 20 & $[0.439, 0.507]$ & $2.74$  & $<10^{-18}$ & $<10^{-10}$ \\
-80  & 30 & $[0.542, 0.618]$ & $3.01$  & $<10^{-20}$ & $<10^{-10}$ \\
-80  & 40 & $[0.382, 0.433]$ & $3.13$  & $<10^{-20}$ & $<10^{-10}$ \\
-90  & 20 & $[0.444, 0.523]$ & $2.43$  & $<10^{-20}$ & $<10^{-10}$ \\
-90  & 30 & $[0.882, 0.962]$ & $4.60$  & $<10^{-50}$ & $<10^{-10}$ \\
-90  & 40 & $[0.452, 0.514]$ & $3.04$  & $<10^{-20}$ & $<10^{-10}$ \\
-100 & 20 & $[0.328, 0.396]$ & $2.12$  & $<10^{-20}$ & $<10^{-10}$ \\
-100 & 30 & $[1.303, 1.389]$ & $6.20$  & $<10^{-50}$ & $<10^{-10}$ \\
-100 & 40 & $[1.151, 1.201]$ & $9.40$  & $<10^{-50}$ & $<10^{-10}$ \\
-110 & 20 & $[0.203, 0.267]$ & $1.47$  & $<10^{-20}$ & $<10^{-10}$ \\
-110 & 30 & $[1.072, 1.151]$ & $5.64$  & $<10^{-50}$ & $<10^{-10}$ \\
-110 & 40 & $[1.124, 1.191]$ & $6.88$  & $<10^{-50}$ & $<10^{-10}$ \\
+80  & 20 & $[0.439, 0.507]$ & $2.74$  & $<10^{-15}$ & $<10^{-10}$ \\
+80  & 30 & $[0.542, 0.618]$ & $3.01$  & $<10^{-15}$ & $<10^{-10}$ \\
+80  & 40 & $[0.382, 0.433]$ & $3.13$  & $<10^{-15}$ & $<10^{-10}$ \\
+90  & 20 & $[0.444, 0.523]$ & $2.43$  & $<10^{-15}$ & $<10^{-10}$ \\
+90  & 30 & $[0.882, 0.962]$ & $4.60$  & $<10^{-15}$ & $<10^{-10}$ \\
+90  & 40 & $[0.452, 0.514]$ & $3.04$  & $<10^{-15}$ & $<10^{-10}$ \\
+100 & 20 & $[0.328, 0.396]$ & $2.12$  & $<10^{-15}$ & $<10^{-10}$ \\
+100 & 30 & $[1.303, 1.389]$ & $6.20$  & $<10^{-15}$ & $<10^{-10}$ \\
+100 & 40 & $[1.151, 1.201]$ & $9.40$  & $<10^{-15}$ & $<10^{-10}$ \\
+110 & 20 & $[0.203, 0.267]$ & $1.47$  & $<10^{-15}$ & $<10^{-10}$ \\
+110 & 30 & $[1.072, 1.151]$ & $5.64$  & $<10^{-15}$ & $<10^{-10}$ \\
+110 & 40 & $[1.124, 1.191]$ & $6.88$  & $<10^{-15}$ & $<10^{-10}$ \\
 120 & 20 & $[0.063, 0.125]$ & $0.60$  & $3.3\times 10^{-8}$ & $1.4\times 10^{-7}$ \\
-120 & 30 & $[0.711, 0.771]$ & $4.97$  & $<10^{-20}$ & $<10^{-10}$ \\
+120 & 30 & $[0.711, 0.771]$ & $4.97$  & $<10^{-15}$ & $<10^{-10}$ \\
 120 & 40 & $[-0.048, -0.008]$ & $-0.28$ & $0.008$ & $0.99$ \\
 130 & 20 & $[-0.029, 0.035]$ & $0.02$  & $0.85$ & $0.74$ \\
-130 & 30 & $[0.330, 0.374]$ & $3.19$  & $<10^{-20}$ & $<10^{-10}$ \\
-130 & 40 & $[-1.361, -1.307]$ & $-9.70$ & $<10^{-50}$ & $1.0$ \\
+130 & 30 & $[0.330, 0.374]$ & $3.19$  & $<10^{-15}$ & $<10^{-10}$ \\
+130 & 40 & $[-1.361, -1.307]$ & $-9.70$ & $<10^{-15}$ & $1.0$ \\
 140 & 20 & $[-0.136, -0.080]$ & $-0.76$ & $1.7\times 10^{-11}$ & $6.2\times 10^{-10}$ \\
 140 & 30 & $[-0.053, -0.019]$ & $-0.42$ & $7\times 10^{-5}$ & $1.5\times 10^{-4}$ \\
-140 & 40 & $[-1.496, -1.409]$ & $-6.59$ & $<10^{-50}$ & $1.0$ \\
-150 & 20 & $[-0.201, -0.145]$ & $-1.21$ & $<10^{-20}$ & $<10^{-10}$ \\
-150 & 30 & $[-0.415, -0.374]$ & $-3.88$ & $<10^{-50}$ & $<10^{-10}$ \\
-150 & 40 & $[-1.333, -1.253]$ & $-6.30$ & $<10^{-50}$ & $1.0$ \\
+140 & 40 & $[-1.496, -1.409]$ & $-6.59$ & $<10^{-15}$ & $1.0$ \\
+150 & 20 & $[-0.201, -0.145]$ & $-1.21$ & $<10^{-15}$ & $<10^{-10}$ \\
+150 & 30 & $[-0.415, -0.374]$ & $-3.88$ & $<10^{-15}$ & $<10^{-10}$ \\
+150 & 40 & $[-1.333, -1.253]$ & $-6.30$ & $<10^{-15}$ & $1.0$ \\
 \hline
 \end{tabular}
 \end{table}
@@ -555,7 +555,7 @@ A 100-seed dataset at $n=100$, $\beta=30$, $q=3329$, $\mathrm{MPFR}=1000$ bits c
 
 Cross-machine reproducibility is confirmed: the Intel 13900K reports 38.2\% degeneracy (21/55) and the AMD 9950X3D reports 37.8\% (17/45), a difference within sampling noise. A smoke test on seed 11 produced bit-identical output across architectures, ruling out any microarchitecture-specific cause.
 
-The cancellation is sharply dimension-bounded. At $n=50, 70,$ and $80$ (all at $\beta=30$, $q=3329$), 0/20 seeds in each group exhibit any degeneracy (0\%). At $n=90$, 1/20 seeds (5\%) shows degeneracy. At $n=100$, the rate jumps to 38/100 (38.0\%). The onset occurs between $n=80$ (0/20) and $n=90$ (1/20). Clean-subset mean advantage is stable across the non-broken regime ($+0.561$ at $n=70$, $+0.557$ at $n=80$, $+0.565$ at $n=90$ on the 19/20 clean subset, $+0.524$ at $n=100$ clean subset), confirming the degeneracy is a numerical-instability side effect, not a real SD-BKZ failure.
+The cancellation is sharply dimension-bounded. At $n=50, 70,$ and $80$ (all at $\beta=30$, $q=3329$), 0/20 seeds in each group exhibit any degeneracy (0\%). At $n=90$, 1/20 seeds (5\%) shows degeneracy. At $n=100$, the rate jumps to 38/100 (38.0\%). The onset occurs between $n=80$ (0/20) and $n=90$ (1/20). The instability persists at $n=110$ (at least 22 degenerate seeds observed in a partial run, with both algorithms affected in every seed); SD-BKZ reaches the degenerate state earlier on average than BKZ (median first-spike tour 4 vs 6--11), consistent with the backward pass providing more GSO updates per tour and therefore more opportunities for catastrophic cancellation. Clean-subset mean advantage is stable across the non-broken regime ($+0.561$ at $n=70$, $+0.557$ at $n=80$, $+0.565$ at $n=90$ on the 19/20 clean subset, $+0.524$ at $n=100$ clean subset), confirming the degeneracy is a numerical-instability side effect, not a real SD-BKZ failure.
 
 BKZ trajectories on bit-identical input matrices diverge run-to-run even with \texttt{FPLLL.\allowbreak set\_\allowbreak random\_\allowbreak seed} called. The 38\% degeneracy rate is an empirical hit probability for a hair-trigger cancellation, not a deterministic per-lattice property.
 
@@ -583,7 +583,7 @@ All source code, the Dockerfile, and verification scripts are available at \url{
 \section{Conclusion}
 \label{sec:conclusion}
 
-The lattice reduction community has relied on the Root Hermite Factor as its primary quality metric for nearly two decades. We have shown that RHF is blind to a consistent, statistically significant structural difference between BKZ and SD-BKZ output bases. The Li--Nguyen Rankin profile distance $d(\mathrm{LN})$ detects this difference clearly, revealing that SD-BKZ converges closer to the theoretical fixed point in over 95\% of trials at favourable dimensions, with an asymmetric advantage distribution: substantial wins, negligible losses. The statistical evidence is unambiguous: paired $t$-tests rejecting the null with $p<10^{-20}$ in 28 of the 33 complete groups, with Cohen's $|d|$ reaching 9.4 at $n=100$, $\beta=40$.
+The lattice reduction community has relied on the Root Hermite Factor as its primary quality metric for nearly two decades. We have shown that RHF is blind to a consistent, statistically significant structural difference between BKZ and SD-BKZ output bases. The Li--Nguyen Rankin profile distance $d(\mathrm{LN})$ detects this difference clearly, revealing that SD-BKZ converges closer to the theoretical fixed point in over 95\% of trials at favourable dimensions, with an asymmetric advantage distribution: substantial wins, negligible losses. The statistical evidence is unambiguous: paired $t$-tests rejecting the null with $p<10^{-15}$ in 28 of the 33 complete groups, with Cohen's $|d|$ reaching 9.4 at $n=100$, $\beta=40$.
 
 The advantage does not grow monotonically with dimension. The peak dimension is block-size-dependent: $\beta=20$ peaks at $n=90$ (0.484 nats), $\beta=30$ at $n=100$ (1.346 nats), and $\beta=40$ at $n=110$ (1.158 nats, confirmed at 100 seeds). Beyond the peak, all three block sizes decline into negative territory where the backward pass is actively harmful. The inversion severity scales with block size: $\beta=20$ declines gradually (0.66 nats over six dimension steps), $\beta=30$ more steeply (1.75 nats over five steps), and $\beta=40$ catastrophically (2.5 nats over two steps, from $+1.158$ at $n=110$ to $-1.334$ at $n=130$). Giving BKZ $3\times$ the tour budget does not close the gap at $\beta=30$ (0/400 seeds across four dimensions), while at $\beta=20$ BKZ can partially compensate with additional tours (67\% gap closed at $n=60$). A 500-tour convergence test at the crossover dimension ($n=140$, $\beta=30$) confirms that the reversal persists even at $7\times$ the standard tour budget, establishing it as a real regime change. This establishes that the SD-BKZ advantage at $\beta\geq 30$ is a capability difference, not a speed difference.
 
