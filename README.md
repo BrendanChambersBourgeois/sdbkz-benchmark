@@ -251,6 +251,12 @@ Each per-seed result is written as two JSON files next to each other in `results
 
 `scripts/split_fat_seeds.py` performs the split when a run produced a single combined file. Downstream analysis code in `analysis/_data.py` tolerates either layout.
 
+### Supplementary artifacts
+
+- **`results/profile_decomposition.json`** — full head/middle/tail Rankin-profile decomposition for all 33 groups, referenced by Table 5 in the paper (the table shows a representative n=50–70 subset only).
+- **`results/paper_claims/`** — per-claim evidence ledger: one JSON per paper claim with the raw numbers, seed counts, and source sweep paths used to derive it. Cross-references every quantitative statement in the paper.
+- **`results/hash_verification.txt`** — SHA-256 hashes for the 100-seed cross-environment verification at n=100, β=20 (VM Ubuntu 24.04 / MPFR 4.2.1 vs AWS Batch Debian Bookworm / MPFR 4.2.0), bit-identical on all 100 seeds.
+
 ## Reproducibility
 
 All results are produced with identical software versions across three independent environments:
@@ -270,7 +276,7 @@ See `Dockerfile` (local) and `Dockerfile.cloud` (AWS) for exact build specs. Pyt
 
 ## Acknowledgements
 
-The author thanks Dylan Chambers-Bourgeois for contributing compute resources (AMD Ryzen 9 9950X3D) and cross-architecture reproducibility verification during the β = 40 sweep campaign. The author also thanks Trill White (Deakin University) for early feedback and discussions on the benchmark results.
+The author thanks Dylan Chambers Bourgeois for contributing compute resources (AMD Ryzen 9 9950X3D) and cross-architecture reproducibility verification during the β = 40 sweep campaign. The author also thanks Trill White (Deakin University) for early feedback and discussions on the benchmark results.
 
 ## References
 
