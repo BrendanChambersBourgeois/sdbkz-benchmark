@@ -1,0 +1,277 @@
+{
+  "description": "Robustness check: middle-third dominance claim in paper \u00a76.2 + Table 5. Verifies 'the middle third dominates in every group' across all 33 groups (not only the n=50-70 representative subset shown in Table 5).",
+  "generated": "2026-04-17",
+  "groups_where_mid_dominates": 28,
+  "groups_total": 33,
+  "claim_holds": false,
+  "per_group": [
+    {
+      "group": "n=50_beta=20",
+      "pct_head": 20.848478153804027,
+      "pct_mid": 43.90220101984875,
+      "pct_tail": 35.24932082634722,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=50_beta=30",
+      "pct_head": 20.808927758050007,
+      "pct_mid": 46.39808168631964,
+      "pct_tail": 32.79299055563036,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=50_beta=40",
+      "pct_head": 7.0201056976687575,
+      "pct_mid": 82.35008490533332,
+      "pct_tail": 10.62980939699791,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=60_beta=20",
+      "pct_head": 21.800409509221215,
+      "pct_mid": 44.136943135286735,
+      "pct_tail": 34.06264735549205,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=60_beta=30",
+      "pct_head": 18.965650424149505,
+      "pct_mid": 45.29657757312416,
+      "pct_tail": 35.73777200272634,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=60_beta=40",
+      "pct_head": 25.41745585758044,
+      "pct_mid": 54.90848138610425,
+      "pct_tail": 19.674062756315312,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=70_beta=20",
+      "pct_head": 20.37401301421577,
+      "pct_mid": 44.527629402703504,
+      "pct_tail": 35.09835758308072,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=70_beta=30",
+      "pct_head": 18.102318086383615,
+      "pct_mid": 44.69020124292706,
+      "pct_tail": 37.20748067068933,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=70_beta=40",
+      "pct_head": 24.519219937752197,
+      "pct_mid": 53.16551595452559,
+      "pct_tail": 22.315264107722225,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=80_beta=20",
+      "pct_head": 23.76378986961017,
+      "pct_mid": 43.879698141720844,
+      "pct_tail": 32.35651198866899,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=80_beta=30",
+      "pct_head": 16.32620989070711,
+      "pct_mid": 44.52167380273625,
+      "pct_tail": 39.15211630655664,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=80_beta=40",
+      "pct_head": 20.923053926822956,
+      "pct_mid": 53.184537742422336,
+      "pct_tail": 25.892408330754712,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=90_beta=20",
+      "pct_head": 25.372124514795726,
+      "pct_mid": 46.1030772438487,
+      "pct_tail": 28.524798241355576,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=90_beta=30",
+      "pct_head": 15.68519139831194,
+      "pct_mid": 44.58868865449924,
+      "pct_tail": 39.726119947188835,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=90_beta=40",
+      "pct_head": 19.89384984146427,
+      "pct_mid": 52.46167043083684,
+      "pct_tail": 27.644479727698883,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=100_beta=20",
+      "pct_head": 35.118750892957394,
+      "pct_mid": 54.50987841043885,
+      "pct_tail": 10.371370696603757,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=100_beta=30",
+      "pct_head": 16.091276846448956,
+      "pct_mid": 46.94332733938252,
+      "pct_tail": 36.96539581416852,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=100_beta=40",
+      "pct_head": 18.750295524948353,
+      "pct_mid": 52.15415660148906,
+      "pct_tail": 29.095547873562587,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=110_beta=20",
+      "pct_head": 51.80668996105802,
+      "pct_mid": 72.57929008253974,
+      "pct_tail": -24.385980043597762,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=110_beta=30",
+      "pct_head": 21.397270762344338,
+      "pct_mid": 60.064676219310144,
+      "pct_tail": 18.53805301834551,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=110_beta=40",
+      "pct_head": 27.944800781964567,
+      "pct_mid": 79.28335180842329,
+      "pct_tail": -7.228152590387866,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=120_beta=20",
+      "pct_head": 117.0597985528104,
+      "pct_mid": 111.0511837065307,
+      "pct_tail": -128.11098225934109,
+      "mid_dominates": false
+    },
+    {
+      "group": "n=120_beta=30",
+      "pct_head": 35.218179900237054,
+      "pct_mid": 81.98327973791568,
+      "pct_tail": -17.201459638152734,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=120_beta=40",
+      "pct_head": -941.6340823378224,
+      "pct_mid": -516.9734390274007,
+      "pct_tail": 1558.6075213652232,
+      "mid_dominates": false
+    },
+    {
+      "group": "n=130_beta=20",
+      "pct_head": -78702.03532403125,
+      "pct_mid": -22959.145530687212,
+      "pct_tail": 101761.18085471846,
+      "mid_dominates": false
+    },
+    {
+      "group": "n=130_beta=30",
+      "pct_head": 78.13354279523872,
+      "pct_mid": 20.267042135218027,
+      "pct_tail": 1.5994150695432394,
+      "mid_dominates": false
+    },
+    {
+      "group": "n=130_beta=40",
+      "pct_head": 7.886913997129305,
+      "pct_mid": 70.19480052713986,
+      "pct_tail": 21.918285475730837,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=140_beta=20",
+      "pct_head": -75.81368683216945,
+      "pct_mid": 50.38177592116077,
+      "pct_tail": 125.43191091100869,
+      "mid_dominates": false
+    },
+    {
+      "group": "n=140_beta=30",
+      "pct_head": -756.967467884672,
+      "pct_mid": 1057.7130033710723,
+      "pct_tail": -200.74553548640037,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=140_beta=40",
+      "pct_head": 29.272334900168723,
+      "pct_mid": 66.06683254008237,
+      "pct_tail": 4.660832559748907,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=150_beta=20",
+      "pct_head": -42.22247791735065,
+      "pct_mid": 71.67426607873679,
+      "pct_tail": 70.54821183861387,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=150_beta=30",
+      "pct_head": -12.741555483922681,
+      "pct_mid": 131.9159989798119,
+      "pct_tail": -19.17444349588924,
+      "mid_dominates": true
+    },
+    {
+      "group": "n=150_beta=40",
+      "pct_head": 34.482208433907914,
+      "pct_mid": 72.75295958692388,
+      "pct_tail": -7.235168020831797,
+      "mid_dominates": true
+    }
+  ],
+  "dissent_groups": [
+    {
+      "group": "n=120_beta=20",
+      "pct_head": 117.0597985528104,
+      "pct_mid": 111.0511837065307,
+      "pct_tail": -128.11098225934109,
+      "mid_dominates": false
+    },
+    {
+      "group": "n=120_beta=40",
+      "pct_head": -941.6340823378224,
+      "pct_mid": -516.9734390274007,
+      "pct_tail": 1558.6075213652232,
+      "mid_dominates": false
+    },
+    {
+      "group": "n=130_beta=20",
+      "pct_head": -78702.03532403125,
+      "pct_mid": -22959.145530687212,
+      "pct_tail": 101761.18085471846,
+      "mid_dominates": false
+    },
+    {
+      "group": "n=130_beta=30",
+      "pct_head": 78.13354279523872,
+      "pct_mid": 20.267042135218027,
+      "pct_tail": 1.5994150695432394,
+      "mid_dominates": false
+    },
+    {
+      "group": "n=140_beta=20",
+      "pct_head": -75.81368683216945,
+      "pct_mid": 50.38177592116077,
+      "pct_tail": 125.43191091100869,
+      "mid_dominates": false
+    }
+  ]
+}
