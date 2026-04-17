@@ -20,6 +20,12 @@ RUN pip install --no-cache-dir \
         boto3
 
 WORKDIR /experiment
-COPY scripts/sweep_cloud.py .
+# Copy the full scripts/ directory so sweep_cloud.py can import its
+# siblings (log.py, q3329_verify, etc.) via the same scripts/-relative
+# paths used in the host repo. Previously only sweep_cloud.py was
+# copied, which silently broke any import once the repo restructure
+# moved helpers into scripts/ (see main Dockerfile for the 2026-04-09
+# commentary on the parallel bug).
+COPY scripts/ scripts/
 
-ENTRYPOINT ["python3", "sweep_cloud.py"]
+ENTRYPOINT ["python3", "scripts/sweep_cloud.py"]
