@@ -24,6 +24,10 @@ import numpy as np
 
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from log import get_logger
+PIPELINE = get_logger("overnight_experiments")
+
 # BASE is the repo root. Two dirname() calls because this script lives
 # at scripts/overnight_experiments.py — the first goes to scripts/, the
 # second goes to the repo root.
@@ -390,6 +394,14 @@ if __name__ == "__main__":
     profile = "--profile-only" in sys.argv or "--profile" in sys.argv
     both = not three_x and not profile
 
+    PIPELINE.info(
+        "overnight start",
+        cat="sweep",
+        run_3x=bool(both or three_x),
+        run_profile=bool(both or profile),
+    )
+    t_start = time.time()
+
     if both or profile:
         # Profile decomposition is fast (just reads existing JSONs)
         run_profile_decomposition()
@@ -397,3 +409,9 @@ if __name__ == "__main__":
     if both or three_x:
         # 3x tour test takes ~30 min (10 seeds × ~3 min each)
         run_3x_tour_test()
+
+    PIPELINE.info(
+        "overnight complete",
+        cat="sweep",
+        elapsed_s=int(time.time() - t_start),
+    )

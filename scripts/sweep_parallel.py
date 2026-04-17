@@ -15,6 +15,10 @@ import traceback as tb
 import numpy as np
 from multiprocessing import Pool
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from log import get_logger
+PIPELINE = get_logger("sweep_parallel")
+
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
@@ -650,6 +654,18 @@ def main():
     logger.info(f"  Remaining: {len(pending)}")
     logger.info(f"  Workers: {NUM_WORKERS}, Timeouts: {TIMEOUT_BY_BETA}")
 
+    PIPELINE.info(
+        "sweep start",
+        cat="sweep",
+        total=total_experiment,
+        already_done=already_done,
+        pending=len(pending),
+        workers=NUM_WORKERS,
+        q=Q,
+        precision=PRECISION,
+        store_per_tour=STORE_PER_TOUR,
+    )
+
     if not pending:
         logger.info("Nothing to do — all runs already completed.")
         generate_summary()
@@ -703,6 +719,15 @@ def main():
 
     elapsed = time.time() - t_start
     logger.info(f"All done: {n_done} processed ({n_failed} failed) in {elapsed:.0f}s")
+    PIPELINE.info(
+        "sweep complete",
+        cat="sweep",
+        processed=n_done,
+        failed=n_failed,
+        wins=wins,
+        win_rate_pct=(wins / n_done * 100) if n_done else 0,
+        elapsed_s=int(elapsed),
+    )
 
     # Final summary
     generate_summary()

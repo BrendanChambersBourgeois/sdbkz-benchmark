@@ -19,6 +19,10 @@ import traceback as tb
 import numpy as np
 from multiprocessing import Pool, cpu_count
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from log import get_logger
+PIPELINE = get_logger("sweep_cloud")
+
 # ---------------------------------------------------------------------------
 # Configuration (matches sweep_parallel.py exactly)
 # ---------------------------------------------------------------------------
@@ -484,6 +488,17 @@ def main():
     print(f"  Output: {args.bucket or ''} {args.output or ''}")
     print("=" * 70)
 
+    PIPELINE.info(
+        "sweep start",
+        cat="sweep",
+        n=args.n, beta=args.beta, q=Q, precision=PRECISION,
+        seeds_pending=len(pending_seeds),
+        seeds_completed=len(completed),
+        workers=num_workers,
+        output_bucket=args.bucket, output_dir=args.output,
+        store_per_tour=store_per_tour,
+    )
+
     if not pending_seeds:
         print("All seeds already completed.")
         sys.stdout.flush()
@@ -530,6 +545,14 @@ def main():
 
     elapsed = time.time() - t_start
     print(f"\nDone: {n_done} processed ({n_failed} failed) in {elapsed:.0f}s")
+    PIPELINE.info(
+        "sweep complete",
+        cat="sweep",
+        n=args.n, beta=args.beta,
+        processed=n_done, failed=n_failed, wins=wins,
+        win_rate_pct=(wins / n_done * 100) if n_done else 0,
+        elapsed_s=int(elapsed),
+    )
     n_success = n_done - n_failed
     if n_success > 0:
         print(f"Win rate: {wins}/{n_success} = {wins/n_success*100:.0f}%")
