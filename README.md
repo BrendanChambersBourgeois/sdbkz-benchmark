@@ -54,10 +54,9 @@ The paper ships in both HTML and LaTeX form alongside the benchmark code:
 
 | File | Purpose |
 |---|---|
-| `paper/sdbkz_paper.html` | Content-locked v1.0 HTML (drag into any browser) |
-| `paper/sdbkz_paper.pdf` | HTML-rendered PDF |
-| `paper/latex/sdbkz_paper_latex.tex` | iacrj LaTeX port (ePrint submission format) |
-| `paper/latex/sdbkz_paper_latex.pdf` | LaTeX-rendered PDF, 30 pages |
+| `paper/sdbkz_paper.html` | v1.1 web-viewable HTML (drag into any browser) |
+| `paper/latex/sdbkz_paper_latex.tex` | iacrj LaTeX port (ePrint submission format, canonical source) |
+| `paper/latex/sdbkz_paper_latex.pdf` | LaTeX-rendered PDF, 30 pages (canonical artifact) |
 | `paper/latex/Makefile` | `make` rebuilds the LaTeX PDF in one command |
 | `paper/latex/figs/` | 12 figures at 300 DPI, numbered in paper order |
 | `paper/latex/{abbrev3,crypto,biblio}.bib` | Bibliography (cryptobib extract + local entries) |
