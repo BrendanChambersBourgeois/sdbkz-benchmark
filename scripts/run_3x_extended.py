@@ -15,6 +15,10 @@ import numpy as np
 from multiprocessing import Pool
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from log import get_logger
+PIPELINE = get_logger("run_3x_extended")
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(REPO_ROOT, "results", "3x_tours_extended")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -179,6 +183,15 @@ def main():
     print("=" * 70)
     print()
 
+    PIPELINE.info(
+        "3x tour extended start",
+        cat="sweep",
+        n_groups=len(GROUPS),
+        groups=[{"n": g["n"], "beta": g["beta"]} for g in GROUPS],
+        workers=NUM_WORKERS,
+    )
+    _t_start = time.time()
+
     for group in GROUPS:
         n, beta = group["n"], group["beta"]
         normal_tours = group["normal_tours"]
@@ -273,6 +286,12 @@ def main():
     print("=" * 70)
     print("ALL GROUPS COMPLETE")
     print("=" * 70)
+
+    PIPELINE.info(
+        "3x tour extended complete",
+        cat="sweep",
+        elapsed_s=int(time.time() - _t_start),
+    )
 
     sys.stdout.flush()
     sys.stderr.flush()
