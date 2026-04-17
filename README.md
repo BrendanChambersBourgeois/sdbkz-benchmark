@@ -4,6 +4,11 @@
 
 The CI workflow builds the Docker image from a fresh checkout and runs the 5-seed numerical verification on every commit, so any environment-level reproducibility regression breaks the build immediately.
 
+## License
+
+- **Code** (scripts, analysis, Docker, patches): [MIT](LICENSE)
+- **Paper and data** (`paper/`, `results/`): [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)
+  
 This project benchmarks the **self-dual BKZ (SD-BKZ)** algorithm against standard BKZ for lattice basis reduction on LWE-Kannan embedding lattices. It measures convergence to the Li–Nguyen fixed-point Rankin profile across 11 lattice dimensions (n=50–150), 3 block sizes (β=20, 30, 40), and 100 random seeds per configuration — 3,300 runs total.
 
 ## Current results
