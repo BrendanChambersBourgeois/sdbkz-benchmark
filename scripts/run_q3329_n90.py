@@ -40,6 +40,7 @@ SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
 from log import get_logger
+from _seed_paths import seed_path_for, seed_dir_for
 PIPELINE = get_logger("run_q3329_n90")
 
 _parser = argparse.ArgumentParser(
@@ -80,12 +81,22 @@ N = 90
 BETA = 30
 NUM_WORKERS = _cli_args.workers
 NUM_SEEDS = _cli_args.seeds
-OUTPUT_DIR = os.path.join(REPO_ROOT, "results", "q3329_n90_beta30")
+OUTPUT_DIR = seed_dir_for(
+    "q3329", n=N, beta=BETA,
+    precision=q3329_verify.PRECISION, max_tours=q3329_verify.MAX_TOURS,
+    base=REPO_ROOT,
+)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 def _out_path(seed):
-    return os.path.join(OUTPUT_DIR, f"n{N}_beta{BETA}_q3329_seed{seed}.json")
+    return seed_path_for(
+        "q3329", n=N, beta=BETA, seed=seed,
+        q=3329,
+        precision=q3329_verify.PRECISION,
+        max_tours=q3329_verify.MAX_TOURS,
+        base=REPO_ROOT,
+    )
 
 
 def _worker(seed):
