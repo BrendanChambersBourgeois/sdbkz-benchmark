@@ -170,142 +170,20 @@ def migrate_old_results():
 STORE_PER_TOUR = False
 
 
+from _bkz_core import run_single as _bkz_core_run_single
+
+
 def run_single(n, beta, seed, store_per_tour=False):
-    """Run BKZ and SDBKZ on one (n, beta, seed). Returns result dict.
-
-    When ``store_per_tour`` is True, the result additionally contains
-    ``{variant}_rankin_per_tour``, ``{variant}_gs_lognorms_per_tour``, and
-    ``{variant}_rhf_per_tour`` (one entry per executed tour). Default False
-    preserves the lean v1.0 schema.
-    """
-    FPLLL.set_precision(PRECISION)
-    FPLLL.set_random_seed(seed)
-
-    max_tours = TOURS_BY_BETA[beta]
-    m = n * 2
-    dim = m + n + 1
-    L, _, _ = build_lwe_kannan(n, m, Q, seed=seed)
-    ln_p = ln_fixed_point(n + 1, beta)
-
-    result = {
-        "n": n, "beta": beta, "seed": seed, "q": Q, "max_tours": max_tours,
-        "precision": PRECISION, "dim": dim, "m": m, "status": "completed",
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-    }
-    # Only add the key when fat-log mode is ON, so the default-off path
-    # emits byte-for-byte the same JSON as the v1.0 dataset (SHA-256
-    # reproducibility evidence lives in hash_verification.txt).
-    if store_per_tour:
-        result["store_per_tour"] = True
-
-    # --- Initial quality (after LLL, before any BKZ) ---
-    B_init = IntegerMatrix.from_matrix(L)
-    LLL.reduction(B_init)
-    M_init = GSO.Mat(B_init)
-    M_init.update_gso()
-    init = _metrics_from_gso(M_init, dim, m, ln_p, full=True)
-    result["initial_dln"] = init["dln"]
-    result["initial_rhf"] = init["rhf"]
-    result["initial_rankin_profile"] = [float(x) for x in init["rankin"]]
-    result["initial_gs_lognorms"] = [float(x) for x in init["gs_lognorms"]]
-
-    # --- Run both variants ---
-    for variant in ("bkz", "sdbkz"):
-        B = IntegerMatrix.from_matrix(L)
-        LLL.reduction(B)
-
-        flags = BKZ.MAX_LOOPS | BKZ.AUTO_ABORT
-        if variant == "sdbkz":
-            flags |= BKZ.SD_VARIANT
-
-        dln_per_tour = []
-        deltas = []
-        rankin_per_tour = []
-        gs_lognorms_per_tour = []
-        rhf_per_tour = []
-        stag_tour = None
-        stag_rankin = None
-        stag_rhf = None
-        stag_gs = None
-        termination = "max_tours_reached"
-        prev_rankin = init["rankin"]
-        t0 = time.time()
-
-        for t in range(1, max_tours + 1):
-            param = BKZ.Param(beta, max_loops=1, flags=flags)
-            BKZ.reduction(B, param, float_type="mpfr", precision=PRECISION)
-
-            M = GSO.Mat(B)
-            M.update_gso()
-            if store_per_tour:
-                metrics = _metrics_from_gso(M, dim, m, ln_p, full=True)
-                rankin_per_tour.append([float(x) for x in metrics["rankin"]])
-                gs_lognorms_per_tour.append(
-                    [float(x) for x in metrics["gs_lognorms"]]
-                )
-                rhf_per_tour.append(float(metrics["rhf"]))
-            else:
-                metrics = _metrics_from_gso(M, dim, m, ln_p, full=False)
-            dln_per_tour.append(metrics["dln"])
-
-            delta = float(np.mean(np.abs(
-                np.array(metrics["rankin"]) - np.array(prev_rankin)
-            )))
-            deltas.append(delta)
-
-            if delta < 1e-6:
-                stag_tour = t
-                full_m = _metrics_from_gso(M, dim, m, ln_p, full=True)
-                stag_rankin = [float(x) for x in full_m["rankin"]]
-                stag_rhf = full_m["rhf"]
-                stag_gs = [float(x) for x in full_m["gs_lognorms"]]
-                termination = "stagnated"
-                break
-
-            prev_rankin = metrics["rankin"]
-
-        elapsed = time.time() - t0
-        tours_run = len(dln_per_tour)
-
-        # If never stagnated, capture at final tour
-        if stag_tour is None:
-            stag_tour = tours_run
-            M_final = GSO.Mat(B)
-            M_final.update_gso()
-            full_m = _metrics_from_gso(M_final, dim, m, ln_p, full=True)
-            stag_rankin = [float(x) for x in full_m["rankin"]]
-            stag_rhf = full_m["rhf"]
-            stag_gs = [float(x) for x in full_m["gs_lognorms"]]
-
-        result[f"{variant}_dln_per_tour"] = dln_per_tour
-        result[f"{variant}_final_dln"] = dln_per_tour[-1]
-        result[f"{variant}_tours_run"] = tours_run
-        result[f"{variant}_termination"] = termination
-        result[f"stagnation_tour_{variant}"] = stag_tour
-        result[f"rankin_profile_{variant}"] = stag_rankin
-        result[f"rhf_{variant}"] = stag_rhf
-        result[f"gs_lognorms_{variant}"] = stag_gs
-        if store_per_tour:
-            result[f"{variant}_rankin_per_tour"] = rankin_per_tour
-            result[f"{variant}_gs_lognorms_per_tour"] = gs_lognorms_per_tour
-            result[f"{variant}_rhf_per_tour"] = rhf_per_tour
-        result[f"{variant}_floor"] = float(np.mean(deltas[-5:]))
-        result[f"{variant}_time"] = elapsed
-
-    # --- Derived metrics ---
-    result["advantage"] = result["bkz_final_dln"] - result["sdbkz_final_dln"]
-    result["rhf_advantage"] = result["rhf_bkz"] - result["rhf_sdbkz"]
-
-    # --- Crossover tour ---
-    bkz_final = result["bkz_final_dln"]
-    crossover = None
-    for t_idx, sd_dln in enumerate(result["sdbkz_dln_per_tour"], 1):
-        if sd_dln < bkz_final:
-            crossover = t_idx
-            break
-    result["crossover_tour"] = crossover
-
-    return result
+    """Thin wrapper: feeds the canonical BKZ driver with sweep_parallel
+    conventions (Q=97, PRECISION=250, TOURS_BY_BETA, plain floor metric)."""
+    return _bkz_core_run_single(
+        n=n, beta=beta, seed=seed,
+        q=Q, precision=PRECISION,
+        max_tours=TOURS_BY_BETA[beta],
+        log_clamp_fn=_log_clamp,
+        store_per_tour=store_per_tour,
+        floor_mode="plain",
+    )
 
 
 # ---------------------------------------------------------------------------
