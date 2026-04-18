@@ -36,6 +36,7 @@ import sweep_parallel  # noqa: E402
 sys.argv = _saved_argv
 
 from log import get_logger
+from _seed_paths import seed_path_for, seed_dir_for
 PIPELINE = get_logger("run_fplll54_sensitivity")
 
 # Sanity — should match main-sweep canonical config
@@ -49,15 +50,31 @@ BETA = 30
 SEEDS = list(range(1, 6))
 NUM_WORKERS = 5
 
-# Output dir taken from env so the same runner can be reused across
-# multiple fplll-version variants without file collision.
+# FPLLL_LABEL still drives the Docker build variant; FPLLL_VERSION
+# drives the v1.3 seed_path_for() slug. Legacy labels map as:
+#   fplll543 → 5.4.3  (libfplll.so.7.1.0)
+#   fplll544 → 5.4.4  (libfplll.so.8.0.0)
+#   fplll54  → 5.4.5  (libfplll.so.8.0.1)
+_LABEL_TO_VERSION = {"fplll543": "5.4.3", "fplll544": "5.4.4", "fplll54": "5.4.5"}
 _label = os.environ.get("FPLLL_LABEL", "fplll54")
-OUTPUT_DIR = os.path.join(REPO_ROOT, "results", f"{_label}_sensitivity")
+_version = os.environ.get("FPLLL_VERSION", _LABEL_TO_VERSION.get(_label))
+if _version is None:
+    raise SystemExit(
+        f"FPLLL_VERSION not set and label {_label!r} has no default mapping. "
+        "Set FPLLL_VERSION=<x.y.z> explicitly."
+    )
+OUTPUT_DIR = seed_dir_for(
+    "fplll_sensitivity", n=N, beta=BETA,
+    fplll_version=_version, base=REPO_ROOT,
+)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 def out_path(seed):
-    return os.path.join(OUTPUT_DIR, f"n{N}_beta{BETA}_q97_seed{seed}.json")
+    return seed_path_for(
+        "fplll_sensitivity", n=N, beta=BETA, seed=seed,
+        fplll_version=_version, base=REPO_ROOT,
+    )
 
 
 def already_done(seed):

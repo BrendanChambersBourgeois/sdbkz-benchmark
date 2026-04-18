@@ -19,9 +19,13 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
 from _math_core import build_lwe_kannan, log_clamp, ln_fixed_point
+from _seed_paths import seed_path_for, seed_dir_for
 PIPELINE = get_logger("run_convergence_test")
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Legacy dir preserved for summary JSON writes; per-seed writes are
+# redirected below to seed_path_for("convergence", ...) once N/BETA/
+# MAX_TOURS are known.
 OUTPUT_DIR = os.path.join(REPO_ROOT, "results", "convergence")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 CLAMP_LOG_FILE = os.path.join(REPO_ROOT, "results", "clamp_events.jsonl")
@@ -139,7 +143,11 @@ def main():
     # Check completed
     completed = {}
     for seed in range(1, NUM_SEEDS + 1):
-        outpath = os.path.join(OUTPUT_DIR, f"convergence_n{N}_beta{BETA}_seed{seed}.json")
+        outpath = seed_path_for(
+            "convergence", n=N, beta=BETA, seed=seed,
+            max_tours=MAX_TOURS, base=REPO_ROOT,
+        )
+        os.makedirs(os.path.dirname(outpath), exist_ok=True)
         if os.path.exists(outpath):
             with open(outpath) as f:
                 completed[seed] = json.load(f)
@@ -158,7 +166,11 @@ def main():
         with Pool(processes=NUM_WORKERS, maxtasksperchild=5) as pool:
             for result in pool.imap_unordered(run_seed, pending):
                 seed = result["seed"]
-                outpath = os.path.join(OUTPUT_DIR, f"convergence_n{N}_beta{BETA}_seed{seed}.json")
+                outpath = seed_path_for(
+                    "convergence", n=N, beta=BETA, seed=seed,
+                    max_tours=MAX_TOURS, base=REPO_ROOT,
+                )
+                os.makedirs(os.path.dirname(outpath), exist_ok=True)
                 with open(outpath, "w") as f:
                     json.dump(result, f, indent=2)
                 all_results.append(result)
