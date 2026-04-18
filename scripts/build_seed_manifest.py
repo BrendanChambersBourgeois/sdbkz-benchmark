@@ -216,9 +216,16 @@ def _classify(
         effective_campaign = "q3329"
 
     st = os.stat(path)
+    # After the v1.3 physical migration, files live under
+    # results/seeds/<campaign>/... with backwards-compat symlinks at
+    # the old paths. Record the canonical (realpath) location in the
+    # manifest so the manifest is an index over files, not symlinks;
+    # the old-path symlinks are a transition aid, not the ground truth.
+    real_path = os.path.realpath(path)
+    canonical_path = os.path.relpath(real_path) if real_path else os.path.relpath(path)
     entry = {
         "campaign": effective_campaign,
-        "path": os.path.relpath(path),
+        "path": canonical_path,
         "n": int(data["n"]),
         "beta": int(data["beta"]),
         "seed": int(data["seed"]),
