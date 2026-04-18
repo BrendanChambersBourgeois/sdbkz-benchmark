@@ -161,7 +161,7 @@ $n$ & $\beta$ & BKZ (s) & SD-BKZ (s) & Ratio \\
 
 \subsection{Reproducibility}
 
-The benchmark is containerised with a Dockerfile pinning exact library versions (fplll 5.5.0, fpylll 0.6.4, MPFR 4.2.1, Python 3.12.3, numpy 2.4.4). A verification script runs 5 seeds at ($n=50$, $\beta=20$) and checks output against known-good reference values. Source code is available at \url{https://github.com/BrendanChambersBourgeois/sdbkz-benchmark}.
+The benchmark is containerised with a Dockerfile pinning exact library versions (fplll 5.5.0, fpylll 0.6.4, MPFR 4.2.1, Python 3.12.3, numpy 2.4.4). A verification script runs 5 seeds at ($n=50$, $\beta=20$) and checks output against known-good reference values. To confirm the results do not depend on the specific fplll point version inside the wheel, we additionally re-ran the canonical $(n=100,\,\beta=30)$ sweep point under fplll 5.4.3, 5.4.4, and 5.4.5 (each source-built against fpylll 0.6.0; SONAMEs $7.1.0$, $8.0.0$, $8.0.1$, $9.0.0$ respectively across the four tags); all 15 seeds were bit-identical to the 5.5.0 baseline to 18 decimal digits, indicating that 250-bit MPFR dominates whatever fplll GSO drift exists between these tags. Source code is available at \url{https://github.com/BrendanChambersBourgeois/sdbkz-benchmark}.
 
 \section{RHF Cannot Distinguish BKZ from SD-BKZ}
 \label{sec:rhf-blind}

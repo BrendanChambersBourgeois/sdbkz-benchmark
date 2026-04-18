@@ -192,7 +192,7 @@ The Root Hermite Factor (RHF), the dominant quality metric for lattice basis red
 
 <h3>3.5 Reproducibility</h3>
 
-<p>The benchmark is containerised with a Dockerfile pinning exact library versions (fplll 5.5.0, fpylll 0.6.4, MPFR 4.2.1, Python 3.12.3, numpy 2.4.4). A verification script runs 5 seeds at (n&nbsp;=&nbsp;50, &beta;&nbsp;=&nbsp;20) and checks output against known-good reference values. Source code is available at <a href="https://github.com/BrendanChambersBourgeois/sdbkz-benchmark">https://github.com/BrendanChambersBourgeois/sdbkz-benchmark</a>.</p>
+<p>The benchmark is containerised with a Dockerfile pinning exact library versions (fplll 5.5.0, fpylll 0.6.4, MPFR 4.2.1, Python 3.12.3, numpy 2.4.4). A verification script runs 5 seeds at (n&nbsp;=&nbsp;50, &beta;&nbsp;=&nbsp;20) and checks output against known-good reference values. To confirm the results do not depend on the specific fplll point version inside the wheel, we additionally re-ran the canonical (n&nbsp;=&nbsp;100, &beta;&nbsp;=&nbsp;30) sweep point under fplll 5.4.3, 5.4.4, and 5.4.5 (each source-built against fpylll 0.6.0; SONAMEs 7.1.0, 8.0.0, 8.0.1, 9.0.0 respectively across the four tags); all 15 seeds were bit-identical to the 5.5.0 baseline to 18 decimal digits, indicating that 250-bit MPFR dominates whatever fplll GSO drift exists between these tags. Source code is available at <a href="https://github.com/BrendanChambersBourgeois/sdbkz-benchmark">https://github.com/BrendanChambersBourgeois/sdbkz-benchmark</a>.</p>
 
 <!-- ═══════════════════ 4. RHF IS BLIND ═══════════════════ -->
 
