@@ -1,0 +1,48 @@
+FROM python:3.12.3-bookworm
+
+# fplll 5.4.x sensitivity variant: source-build fplll 5.4.5 and fpylll
+# 0.6.0 against it, in place of the fpylll 0.6.4 wheel (which bundles
+# fplll 5.5.0) used by the main Dockerfile. Purpose: reviewer-defensible
+# check that paper results are not fplll-version-sensitive. Runs the same
+# sweep entry points as Dockerfile, so only the GSO/BKZ C++ backend
+# differs between this image and Dockerfile.
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libmpfr-dev \
+        libgmp-dev \
+        build-essential \
+        autoconf \
+        automake \
+        libtool \
+        libtool-bin \
+        pkg-config \
+        git \
+    && rm -rf /var/lib/apt/lists/*
+
+# -- Build fplll 5.4.5 from source ------------------------------------------
+RUN git clone --depth 1 --branch 5.4.5 https://github.com/fplll/fplll.git /tmp/fplll \
+    && cd /tmp/fplll \
+    && ./autogen.sh \
+    && ./configure --prefix=/usr/local --disable-static \
+    && make -j$(nproc) \
+    && make install \
+    && ldconfig \
+    && rm -rf /tmp/fplll
+
+# -- Build fpylll 0.6.0 from sdist against the system fplll 5.4.5 ----------
+# fpylll 0.6.0 sdist targets fplll 5.4.x. Cython>=3 per its setup.cfg.
+RUN pip install --no-cache-dir \
+        "Cython>=3.0,<3.1" \
+        "cysignals==1.11.4" \
+        "numpy<2.0"
+RUN pip install --no-cache-dir --no-binary=:all: fpylll==0.6.0
+
+WORKDIR /experiment
+COPY scripts/ scripts/
+
+# Verify at build time that the backend really is fplll 5.4.5
+RUN python3 -c "import fpylll; print('fpylll version:', fpylll.__version__)" \
+    && find / -name 'libfplll.so*' 2>/dev/null \
+    && (strings /usr/local/lib/libfplll.so* 2>/dev/null | grep -oE 'fplll-[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)
+
+CMD ["python3", "-c", "import fpylll; print('fpylll 0.6.0 against fplll 5.4.5 ready')"]

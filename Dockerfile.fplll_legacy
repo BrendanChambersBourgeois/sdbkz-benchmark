@@ -1,0 +1,67 @@
+FROM python:3.12.3-bookworm
+
+# Parameterised fplll legacy-version sensitivity image.
+# Builds an fplll version from source and fpylll from sdist against
+# it, in place of the wheel-bundled fplll 5.5.0 used by the main
+# Dockerfile. Reviewer-defensive: paper results should not depend on
+# the specific fplll version inside the vendored fpylll 0.6.4 wheel.
+#
+# Verified build matrix (as of 2026-04-18):
+#   fplll 5.4.3 + fpylll 0.6.0  (libfplll.so.7.1.0, built)
+#   fplll 5.4.4 + fpylll 0.6.0  (libfplll.so.8.0.0, built)
+#   fplll 5.4.5 + fpylll 0.6.0  (libfplll.so.8.0.1, built)
+#
+# Build-time blockers not worth working around:
+#   fplll 5.4.0..5.4.2 : fpylll 0.6.0 references from_canonical /
+#       to_canonical (added in fplll 5.4.3). Would need fpylll < 0.6.0,
+#       which doesn't have Python 3.12 wheels on PyPI.
+#   fplll 5.3.x : fpylll 0.5.9 (API-compatible) uses PyLongObject.ob_digit
+#       which Python 3.12 removed from the public struct layout. Source
+#       patch required.
+#   fplll 5.2.x : pre-pruner/ header layout, major rework.
+#
+# Build example:
+#   docker build -f Dockerfile.fplll_legacy \
+#       --build-arg FPLLL_TAG=5.4.5 \
+#       --build-arg FPYLLL_VERSION=0.6.0 \
+#       --build-arg EXTRA_CXXFLAGS="-include cstdint" \
+#       -t bkz-fplll545 .
+
+ARG FPLLL_TAG=5.4.5
+ARG FPYLLL_VERSION=0.6.0
+# Old fplll 5.4.0 source forgets to #include <cstdint> under modern
+# libstdc++; force-include it via CXXFLAGS for affected tags. Caller
+# can override this to empty for newer tags that don't need it.
+ARG EXTRA_CXXFLAGS=""
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libmpfr-dev libgmp-dev build-essential \
+        autoconf automake libtool libtool-bin pkg-config git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 --branch ${FPLLL_TAG} https://github.com/fplll/fplll.git /tmp/fplll \
+    && cd /tmp/fplll \
+    && ./autogen.sh \
+    && CXXFLAGS="-O2 ${EXTRA_CXXFLAGS}" ./configure --prefix=/usr/local --disable-static \
+    && make -j$(nproc) \
+    && make install \
+    && ldconfig \
+    && rm -rf /tmp/fplll
+
+RUN pip install --no-cache-dir \
+        "Cython>=3.0,<3.1" \
+        "cysignals==1.11.4" \
+        "numpy<2.0"
+# Also propagate EXTRA_CXXFLAGS to the fpylll compile — if the fplll
+# headers themselves forgot to include <cstdint>, the C++ extension
+# pulling them in needs the same -include fix.
+RUN CFLAGS="-O2 ${EXTRA_CXXFLAGS}" CXXFLAGS="-O2 ${EXTRA_CXXFLAGS}" \
+    pip install --no-cache-dir --no-binary=:all: "fpylll==${FPYLLL_VERSION}"
+
+WORKDIR /experiment
+COPY scripts/ scripts/
+
+RUN python3 -c "import fpylll; print('fpylll version:', fpylll.__version__)" \
+    && ls /usr/local/lib/libfplll.so.*
+
+CMD ["python3", "-c", "import fpylll; print('ready')"]

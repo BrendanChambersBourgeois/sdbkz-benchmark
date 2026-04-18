@@ -15,6 +15,15 @@ inlined versions until the v1.2 consolidation lands and we can run
 verify.sh against the conversion. New wrappers should import and
 use `run_pool` directly.
 
+Note on process start method: ``_worker`` receives the ``run_single``
+callable inside the args tuple. Works under Linux's default ``fork``
+start method (the forked child inherits the parent's module state and
+the function reference). Would break under ``spawn`` (macOS, Windows)
+because spawn re-pickles args and bare functions aren't always
+pickleable. This repo runs Linux-only end-to-end so this is fine;
+ports to other platforms would need to pass a module + function name
+pair and re-import inside the worker.
+
 Example:
 
     from _runner_core import run_pool
