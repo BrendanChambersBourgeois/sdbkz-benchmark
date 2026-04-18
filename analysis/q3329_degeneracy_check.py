@@ -176,6 +176,10 @@ from scipy import stats as scipy_stats
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+from log import get_logger  # noqa: E402
+PIPELINE = get_logger("q3329_degeneracy_check")
+
 
 # ── Config ──────────────────────────────────────────────────────────────────
 DEFAULT_CLOUD_DIR = os.path.join(REPO_ROOT, "results", "cloud")
@@ -394,7 +398,7 @@ def format_text_report(result):
                  f"({c['sdbkz_only_degenerate']/n*100:5.1f}%)")
     lines.append(f"  Both degenerate:      {c['both_degenerate']:>3}/{n}  "
                  f"({c['both_degenerate']/n*100:5.1f}%)")
-    lines.append(f"  ─" * 14)
+    lines.append("  ─" * 14)
     lines.append(f"  ANY degenerate:       {c['any_degenerate']:>3}/{n}  "
                  f"({c['any_degenerate']/n*100:5.1f}%)")
     lines.append("")
@@ -465,6 +469,7 @@ def format_text_report(result):
 # ── Main ────────────────────────────────────────────────────────────────────
 
 def main():
+    PIPELINE.info("q3329_degeneracy_check start", cat="analysis")
     print("Loading q=3329 seeds...")
     seeds = load_q3329_seeds()
     n_cloud = sum(1 for s in seeds if s["_source"] == "cloud")
@@ -501,6 +506,7 @@ def main():
 
     # Print formatted report
     print(format_text_report(result))
+    PIPELINE.info("q3329_degeneracy_check complete", cat="analysis")
 
 
 if __name__ == "__main__":

@@ -31,8 +31,13 @@ sys.path.insert(0, REPO_ROOT)
 
 from analysis.plots import generate_all  # noqa: E402
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+from log import get_logger  # noqa: E402
+PIPELINE = get_logger("paper_figures")
+
 
 def main():
+    PIPELINE.info("paper_figures start", cat="analysis")
     parser = argparse.ArgumentParser(
         description="Generate paper figures and analysis from BKZ seed data."
     )
@@ -72,6 +77,7 @@ def main():
         tour_dir=args.tour_dir if os.path.isdir(args.tour_dir) else None,
         min_seeds=args.min_seeds,
     )
+    PIPELINE.info("paper_figures complete", cat="analysis")
 
 
 if __name__ == "__main__":

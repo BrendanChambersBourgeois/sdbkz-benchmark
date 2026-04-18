@@ -15,6 +15,9 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
+from _math_core import (
+    ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
+)
 PIPELINE = get_logger("q3329_verify")
 
 # -- Config -------------------------------------------------------------------
@@ -49,252 +52,41 @@ CLAMP_LOG_FILE = os.path.join(BASE, "results", "clamp_events.jsonl")
 
 
 def _log_clamp(ctx, position, raw_value):
-    """Append one defensive-clamp event to the side log. Never raises.
-
-    Defensive clamps on get_r log the raw value to a JSONL side file
-    before the 1e-300 substitution fires, so SHA-256 reproducibility
-    of the per-seed JSON schema is preserved and the raw non-positive
-    value stays auditable for paper §8 analyses.
-    """
-    import datetime
-    try:
-        os.makedirs(os.path.dirname(CLAMP_LOG_FILE), exist_ok=True)
-        with open(CLAMP_LOG_FILE, "a") as f:
-            f.write(json.dumps({
-                "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "script": "q3329_verify",
-                "ctx": ctx,
-                "position": int(position),
-                "raw_value": float(raw_value),
-            }) + "\n")
-    except OSError:
-        pass
+    log_clamp(ctx, position, raw_value,
+              script_name="q3329_verify", log_path=CLAMP_LOG_FILE)
 
 
 # -- Copied verbatim from sweep_parallel.py -----------------------------------
 
-def build_lwe_kannan(n, m, q, seed=123):
-    rng = np.random.RandomState(seed)
-    s = rng.randint(0, 2, n).astype(int)
-    e = rng.choice([-1, 0, 1], m).astype(int)
-    A = rng.randint(0, q, (m, n)).astype(int)
-    b = (A @ s + e) % q
-    dim = m + n + 1
-    L = [[0] * dim for _ in range(dim)]
-    for i in range(m):
-        L[i][i] = q
-    for j in range(n):
-        for i in range(m):
-            L[m + j][i] = int(A[i][j])
-    for j in range(n):
-        L[m + j][m + j] = 1
-    for i in range(m):
-        L[m + n][i] = int(b[i])
-    L[m + n][m + n] = 1
-    return L, s, e
-
-
-def ln_fixed_point(size, beta):
-    exp = (size - 1) / (2 * (beta - 1)) + (beta * (beta - 2)) / (
-        2 * size * (beta - 1)
-    )
-    log_v_beta = math.log(beta / (2 * math.pi * math.e)) * exp
-    log_delta = math.log(beta / (2 * math.pi * math.e)) / (2 * beta - 2)
-    total_vol = sum((size + 1 - 2 * i) * log_delta for i in range(1, size + 1))
-    profile, cum = [], 0.0
-    for i in range(1, size + 1):
-        cum += (size + 1 - 2 * i) * log_delta
-        profile.append(cum - (i / size) * total_vol)
-    return [p + log_v_beta for p in profile]
-
-
 def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
-    start, size = m, dim - m
-    n_clamped = 0
-
-    def _safe_log_r(i, ctx_tag):
-        nonlocal n_clamped
-        r_val = M.get_r(i, i)
-        if r_val > 0:
-            return 0.5 * math.log(r_val)
-        n_clamped += 1
-        _log_clamp(f"{clamp_ctx} {ctx_tag}".strip(), i, r_val)
-        return 0.5 * math.log(1e-300)
-
-    gs_log_active = [_safe_log_r(i, "active") for i in range(start, dim)]
-    if n_clamped > 0:
-        # Keep the legacy warning print — it's visible in the progress log
-        # and gives a fast signal that a clamp fired. Raw values are
-        # preserved in results/clamp_events.jsonl for post-mortem.
-        print(f"  WARNING: {n_clamped} get_r values <= 0 "
-              f"(logged to results/clamp_events.jsonl)")
-    log_vol = sum(gs_log_active)
-    rankin, cum = [], 0.0
-    for idx, val in enumerate(gs_log_active):
-        cum += val
-        rankin.append(cum - ((idx + 1) / size) * log_vol)
-
-    dln = float(np.mean(np.abs(np.array(rankin) - np.array(ln_profile))))
-    result = {"rankin": rankin, "dln": dln}
-
-    if full:
-        gs_all = [_safe_log_r(i, "full") for i in range(dim)]
-        log_b1 = gs_all[0]
-        log_det_over_dim = sum(gs_all) / dim
-        result["gs_lognorms"] = gs_all
-        result["rhf"] = math.exp(log_b1 - log_det_over_dim)
-
-    return result
+    # warn_on_clamp=True preserves the q=3329 legacy behaviour of
+    # printing a progress-log line on active-block clamp events.
+    return metrics_from_gso(
+        M, dim, m, ln_profile, full=full, clamp_ctx=clamp_ctx,
+        log_clamp_fn=_log_clamp, warn_on_clamp=True,
+    )
 
 
 # -- Run logic (single-threaded, no timeout) ----------------------------------
 
+from _bkz_core import run_single as _bkz_core_run_single
+
+
 def run_single(n, beta, seed, store_per_tour=False):
-    """Run one (n, β, seed) BKZ + SD-BKZ comparison at q=3329.
-
-    Args:
-        n, beta, seed: lattice parameters
-        store_per_tour: when True, also stores the full per-tour Rankin
-            profile, Gram-Schmidt log-norms, and RHF for each tour of
-            each variant. Roughly 10x larger output JSON, ~0.1% extra
-            compute. Off by default for backward compatibility with the
-            existing dataset; the n=70/n=80 intermediate verification
-            wrapper opts in so future investigations don't require
-            re-running BKZ from scratch.
-    """
-    FPLLL.set_precision(PRECISION)
-    FPLLL.set_random_seed(seed)
-
-    m = n * 2
-    dim = m + n + 1
-    L, _, _ = build_lwe_kannan(n, m, Q, seed=seed)
-    ln_p = ln_fixed_point(n + 1, beta)
-
-    result = {
-        "n": n, "beta": beta, "seed": seed, "q": Q, "max_tours": MAX_TOURS,
-        "precision": PRECISION, "dim": dim, "m": m, "status": "completed",
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "store_per_tour": store_per_tour,
-    }
-
-    # Initial quality
-    B_init = IntegerMatrix.from_matrix(L)
-    LLL.reduction(B_init)
-    M_init = GSO.Mat(B_init)
-    M_init.update_gso()
-    init = _metrics_from_gso(M_init, dim, m, ln_p, full=True)
-    result["initial_dln"] = init["dln"]
-    result["initial_rhf"] = init["rhf"]
-    result["initial_rankin_profile"] = [float(x) for x in init["rankin"]]
-    result["initial_gs_lognorms"] = [float(x) for x in init["gs_lognorms"]]
-
-    # Run both variants (reuse LLL-reduced basis — LLL is deterministic)
-    for variant in ("bkz", "sdbkz"):
-        B = IntegerMatrix(B_init)  # copy already-LLL-reduced basis
-
-        flags = BKZ.MAX_LOOPS | BKZ.AUTO_ABORT
-        if variant == "sdbkz":
-            flags |= BKZ.SD_VARIANT
-
-        dln_per_tour = []
-        deltas = []
-        # Per-tour storage (only populated if store_per_tour=True)
-        rankin_per_tour = []
-        gs_lognorms_per_tour = []
-        rhf_per_tour = []
-        stag_tour = None
-        stag_rankin = None
-        stag_rhf = None
-        stag_gs = None
-        termination = "max_tours_reached"
-        prev_rankin = init["rankin"]
-        t0 = time.time()
-
-        for t in range(1, MAX_TOURS + 1):
-            param = BKZ.Param(beta, max_loops=1, flags=flags)
-            BKZ.reduction(B, param, float_type="mpfr", precision=PRECISION)
-
-            M = GSO.Mat(B)
-            M.update_gso()
-            # Always compute the lean per-tour metrics (dln + rankin) so
-            # the stagnation delta check can run. If store_per_tour is
-            # enabled, also pull the full state (gs_lognorms + rhf) so
-            # the per-tour evolution is captured for later analysis
-            # without needing to re-run BKZ.
-            if store_per_tour:
-                metrics = _metrics_from_gso(M, dim, m, ln_p, full=True)
-                rankin_per_tour.append([float(x) for x in metrics["rankin"]])
-                gs_lognorms_per_tour.append(
-                    [float(x) for x in metrics["gs_lognorms"]]
-                )
-                rhf_per_tour.append(float(metrics["rhf"]))
-            else:
-                metrics = _metrics_from_gso(M, dim, m, ln_p, full=False)
-            dln_per_tour.append(metrics["dln"])
-
-            delta = float(np.mean(np.abs(
-                np.array(metrics["rankin"]) - np.array(prev_rankin)
-            )))
-            deltas.append(delta)
-
-            # Stagnation threshold: matches sweep_parallel.py (1e-6)
-            # Paper should mention this value and ideally sensitivity-check at 1e-5/1e-7
-            if delta < 1e-6:
-                stag_tour = t
-                full_m = _metrics_from_gso(M, dim, m, ln_p, full=True)
-                stag_rankin = [float(x) for x in full_m["rankin"]]
-                stag_rhf = full_m["rhf"]
-                stag_gs = [float(x) for x in full_m["gs_lognorms"]]
-                termination = "stagnated"
-                break
-
-            prev_rankin = metrics["rankin"]
-
-        elapsed = time.time() - t0
-        tours_run = len(dln_per_tour)
-
-        if stag_tour is None:
-            stag_tour = tours_run
-            M_final = GSO.Mat(B)
-            M_final.update_gso()
-            full_m = _metrics_from_gso(M_final, dim, m, ln_p, full=True)
-            stag_rankin = [float(x) for x in full_m["rankin"]]
-            stag_rhf = full_m["rhf"]
-            stag_gs = [float(x) for x in full_m["gs_lognorms"]]
-
-        result[f"{variant}_dln_per_tour"] = dln_per_tour
-        result[f"{variant}_final_dln"] = dln_per_tour[-1]
-        result[f"{variant}_tours_run"] = tours_run
-        result[f"{variant}_termination"] = termination
-        result[f"stagnation_tour_{variant}"] = stag_tour
-        result[f"rankin_profile_{variant}"] = stag_rankin
-        result[f"rhf_{variant}"] = stag_rhf
-        result[f"gs_lognorms_{variant}"] = stag_gs
-        if store_per_tour:
-            result[f"{variant}_rankin_per_tour"] = rankin_per_tour
-            result[f"{variant}_gs_lognorms_per_tour"] = gs_lognorms_per_tour
-            result[f"{variant}_rhf_per_tour"] = rhf_per_tour
-        # Floor metric: only meaningful if we hit max_tours (not early stagnation)
-        if termination == "max_tours_reached" and len(deltas) >= 5:
-            result[f"{variant}_floor"] = float(np.mean(deltas[-5:]))
-        else:
-            result[f"{variant}_floor"] = float(deltas[-1]) if deltas else None
-        result[f"{variant}_time"] = elapsed
-
-    # Derived metrics
-    result["advantage"] = result["bkz_final_dln"] - result["sdbkz_final_dln"]
-    result["rhf_advantage"] = result["rhf_bkz"] - result["rhf_sdbkz"]
-
-    # Crossover tour
-    bkz_final = result["bkz_final_dln"]
-    crossover = None
-    for t_idx, sd_dln in enumerate(result["sdbkz_dln_per_tour"], 1):
-        if sd_dln < bkz_final:
-            crossover = t_idx
-            break
-    result["crossover_tour"] = crossover
-
-    return result
+    """Thin wrapper: feeds the canonical BKZ driver with q3329_verify
+    conventions (Q=3329 default, MAX_TOURS captured at import time,
+    warn_on_clamp=True for the q=3329 fast-signal, store_per_tour key
+    always emitted at position 10 for legacy schema parity)."""
+    return _bkz_core_run_single(
+        n=n, beta=beta, seed=seed,
+        q=Q, precision=PRECISION,
+        max_tours=MAX_TOURS,
+        log_clamp_fn=_log_clamp,
+        warn_on_clamp=True,
+        store_per_tour=store_per_tour,
+        floor_mode="safe",
+        always_emit_store_per_tour=True,
+    )
 
 
 # -- Main ---------------------------------------------------------------------
@@ -376,7 +168,7 @@ def main():
             else:
                 print(f"  q=97 baseline (n={N}, beta={BETA}):  no local data")
         except Exception:
-            print(f"  q=97 baseline:  could not load")
+            print("  q=97 baseline:  could not load")
         print(f"  q={Q} result:                   mean={np.mean(adv):.3f}, "
               f"win={np.mean(adv > 0)*100:.0f}%")
 

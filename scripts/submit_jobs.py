@@ -168,7 +168,6 @@ def main():
     for n, beta in sorted(set((n, b) for n, b, _, _, _, _, _ in all_jobs)):
         done[(n, beta)] = check_completed(n, beta, q=args.q)
 
-    total_vcpus = sum(v for _, _, _, _, v, _, _ in all_jobs)
     max_concurrent = MAX_VCPUS // all_jobs[0][4] if all_jobs else 0
 
     print(f"Submitting {len(all_jobs)} job(s) across {len(groups)} group(s) to AWS Batch")

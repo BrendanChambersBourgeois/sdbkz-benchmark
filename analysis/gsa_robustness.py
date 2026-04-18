@@ -42,6 +42,10 @@ from scipy import stats as sp_stats
 sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
 from _data import ln_fixed_point, gsa_fixed_point, load_all_seeds
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
+from log import get_logger  # noqa: E402
+PIPELINE = get_logger("gsa_robustness")
+
 
 def d_metric(profile, reference):
     """Mean absolute distance — same as sweep_parallel._metrics_from_gso."""
@@ -49,6 +53,7 @@ def d_metric(profile, reference):
 
 
 def main():
+    PIPELINE.info("gsa_robustness start", cat="analysis")
     parser = argparse.ArgumentParser(
         description="Compute d(GSA) robustness check across all seeds."
     )
@@ -199,12 +204,17 @@ def main():
     print(f"Total: {len(all_ln_advs)} seeds, {len(group_results)} groups, "
           f"{len(reversals)} reversal(s)")
     if reversals:
-        print(f"\nReversals:")
+        print("\nReversals:")
         for rev in reversals:
             print(f"  {rev['group']}: d(LN) → {rev['dLN_winner']}, "
                   f"d(GSA) → {rev['dGSA_winner']}")
 
     print(f"\nWritten to {args.output}")
+    PIPELINE.info("gsa_robustness complete", cat="analysis",
+                  total_seeds=len(all_ln_advs),
+                  groups=len(group_results),
+                  reversals=len(reversals),
+                  output=args.output)
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
+from _math_core import build_lwe_kannan, log_clamp, ln_fixed_point
 PIPELINE = get_logger("run_convergence_test")
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,20 +28,8 @@ CLAMP_LOG_FILE = os.path.join(REPO_ROOT, "results", "clamp_events.jsonl")
 
 
 def _log_clamp(ctx, position, raw_value):
-    """Append one defensive-clamp event to the side log. Never raises.
-    Mirrors sweep_parallel.py:_log_clamp — see the docstring there."""
-    try:
-        os.makedirs(os.path.dirname(CLAMP_LOG_FILE), exist_ok=True)
-        with open(CLAMP_LOG_FILE, "a") as f:
-            f.write(json.dumps({
-                "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "script": "run_convergence_test",
-                "ctx": ctx,
-                "position": int(position),
-                "raw_value": float(raw_value),
-            }) + "\n")
-    except OSError:
-        pass
+    log_clamp(ctx, position, raw_value,
+              script_name="run_convergence_test", log_path=CLAMP_LOG_FILE)
 
 Q = 97
 PRECISION = 250
@@ -49,41 +38,6 @@ N = 90
 BETA = 30
 MAX_TOURS = 500
 NUM_SEEDS = 20
-
-
-def build_lwe_kannan(n, m, q, seed=123):
-    rng = np.random.RandomState(seed)
-    s = rng.randint(0, 2, n).astype(int)
-    e = rng.choice([-1, 0, 1], m).astype(int)
-    A = rng.randint(0, q, (m, n)).astype(int)
-    b = (A @ s + e) % q
-    dim = m + n + 1
-    L = [[0] * dim for _ in range(dim)]
-    for i in range(m):
-        L[i][i] = q
-    for j in range(n):
-        for i in range(m):
-            L[m + j][i] = int(A[i][j])
-    for j in range(n):
-        L[m + j][m + j] = 1
-    for i in range(m):
-        L[m + n][i] = int(b[i])
-    L[m + n][m + n] = 1
-    return L, s, e
-
-
-def ln_fixed_point(size, beta):
-    exp = (size - 1) / (2 * (beta - 1)) + (beta * (beta - 2)) / (
-        2 * size * (beta - 1)
-    )
-    log_v_beta = math.log(beta / (2 * math.pi * math.e)) * exp
-    log_delta = math.log(beta / (2 * math.pi * math.e)) / (2 * beta - 2)
-    total_vol = sum((size + 1 - 2 * i) * log_delta for i in range(1, size + 1))
-    profile, cum = [], 0.0
-    for i in range(1, size + 1):
-        cum += (size + 1 - 2 * i) * log_delta
-        profile.append(cum - (i / size) * total_vol)
-    return [p + log_v_beta for p in profile]
 
 
 def _dln_from_gso(M, dim, m, ln_profile, clamp_ctx=""):
@@ -256,7 +210,7 @@ def main():
         "win_rate_500": float(np.mean(advs > 0)),
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
-    with open(os.path.join(OUTPUT_DIR, f"summary_convergence.json"), "w") as f:
+    with open(os.path.join(OUTPUT_DIR, "summary_convergence.json"), "w") as f:
         json.dump(summary, f, indent=2)
 
     PIPELINE.info(
