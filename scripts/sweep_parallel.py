@@ -16,7 +16,7 @@ import numpy as np
 from multiprocessing import Pool
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from log import get_logger
+from log import get_logger, new_run_id, get_run_id
 from _math_core import (
     ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
 )
@@ -214,9 +214,15 @@ def worker(args):
         return (key, "completed", out)
 
     except _Timeout:
+        PIPELINE.error("worker timed_out", cat="sweep",
+                       n=n, beta=beta, seed=seed, timeout_s=timeout)
         return (key, "timed_out", f"Exceeded {timeout}s")
 
     except Exception as exc:
+        PIPELINE.error("worker failed", cat="sweep",
+                       n=n, beta=beta, seed=seed,
+                       exc_type=type(exc).__name__, exc_msg=str(exc),
+                       traceback=tb.format_exc())
         return (key, "failed", f"{type(exc).__name__}: {exc}")
 
     finally:
@@ -410,6 +416,12 @@ def main():
     if "--store-per-tour" in sys.argv:
         global STORE_PER_TOUR
         STORE_PER_TOUR = True
+
+    # Tag every event from this run with a single correlation id so
+    # parent + workers + any subprocess descendants group together
+    # in pipeline.jsonl. Inherits via BKZ_RUN_ID env if already set.
+    if not get_run_id():
+        new_run_id()
 
     os.makedirs(RAW_DIR, exist_ok=True)
 

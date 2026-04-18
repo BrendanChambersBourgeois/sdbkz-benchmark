@@ -24,6 +24,7 @@ import json
 import logging
 import os
 import sys
+import uuid
 
 # JSONL log file location
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,6 +34,41 @@ LOG_FILE = os.path.join(LOG_DIR, "pipeline.jsonl")
 # Custom level for known incidents (between WARNING and ERROR)
 INCIDENT = 35
 logging.addLevelName(INCIDENT, "INCIDENT")
+
+
+# -- Correlation ID --------------------------------------------------------
+# A short hex token attached to every event so a single end-to-end run
+# (wrapper → runner → multiprocessing workers → subprocess re-entrants)
+# groups in pipeline.jsonl analyses. On fork the workers inherit the
+# parent's module state automatically. For subprocess re-entrants, set
+# the BKZ_RUN_ID environment variable before launching child Python and
+# the child will pick it up on import.
+_RUN_ID = os.environ.get("BKZ_RUN_ID") or None
+
+
+def new_run_id():
+    """Generate a fresh 12-hex-char run id, set it module-globally
+    AND export to the environment so any subprocess inherits it.
+    Returns the new id."""
+    global _RUN_ID
+    _RUN_ID = uuid.uuid4().hex[:12]
+    os.environ["BKZ_RUN_ID"] = _RUN_ID
+    return _RUN_ID
+
+
+def get_run_id():
+    return _RUN_ID
+
+
+def set_run_id(rid):
+    """Override the run id (used by tests or by code that wants to
+    join a previously-launched chain). Pass None to clear."""
+    global _RUN_ID
+    _RUN_ID = rid
+    if rid is None:
+        os.environ.pop("BKZ_RUN_ID", None)
+    else:
+        os.environ["BKZ_RUN_ID"] = rid
 
 
 class JsonlHandler(logging.Handler):
@@ -53,6 +89,8 @@ class JsonlHandler(logging.Handler):
             "cat": getattr(record, "cat", "general"),
             "msg": record.getMessage(),
         }
+        if _RUN_ID:
+            entry["run_id"] = _RUN_ID
         # Merge any extra context
         ctx = getattr(record, "ctx", {})
         if ctx:

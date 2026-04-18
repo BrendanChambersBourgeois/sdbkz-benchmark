@@ -42,7 +42,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
-from log import get_logger
+from log import get_logger, new_run_id, get_run_id
 PIPELINE = get_logger("run_cliff_500bit")
 
 # -- CLI ---------------------------------------------------------------------
@@ -124,6 +124,10 @@ def worker(seed):
         }
     except Exception as e:
         import traceback
+        PIPELINE.error("cliff worker failed", cat="sweep",
+                       n=N, beta=BETA, seed=seed,
+                       exc_type=type(e).__name__, exc_msg=str(e),
+                       traceback=traceback.format_exc())
         return {
             "seed": seed,
             "status": "fail",
@@ -136,6 +140,8 @@ def worker(seed):
 # -- Main --------------------------------------------------------------------
 
 def main():
+    if not get_run_id():
+        new_run_id()
     todo = [s for s in SEEDS if not already_done(s)]
     done_count = len(SEEDS) - len(todo)
 

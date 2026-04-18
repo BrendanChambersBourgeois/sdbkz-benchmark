@@ -20,7 +20,7 @@ import numpy as np
 from multiprocessing import Pool, cpu_count
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from log import get_logger
+from log import get_logger, new_run_id, get_run_id
 from _math_core import (
     ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
 )
@@ -243,6 +243,10 @@ def worker(args):
         return (key, "completed", result.get("advantage", 0))
 
     except Exception as exc:
+        PIPELINE.error("worker failed", cat="sweep",
+                       n=n, beta=beta, seed=seed,
+                       exc_type=type(exc).__name__, exc_msg=str(exc),
+                       traceback=tb.format_exc())
         return (key, "failed", f"{type(exc).__name__}: {exc}")
 
 
@@ -250,6 +254,8 @@ def worker(args):
 # Main
 # ---------------------------------------------------------------------------
 def main():
+    if not get_run_id():
+        new_run_id()
     parser = argparse.ArgumentParser(description="Cloud BKZ benchmark runner")
     parser.add_argument("--n", type=int, required=True, help="LWE dimension")
     parser.add_argument("--beta", type=int, required=True, help="Block size")

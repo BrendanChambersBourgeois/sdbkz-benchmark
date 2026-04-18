@@ -25,6 +25,10 @@ sys.path.insert(0, REPO_ROOT)
 
 from analysis._data import load_all_seeds  # noqa: E402
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+from log import get_logger  # noqa: E402
+PIPELINE = get_logger("runtime_table")
+
 
 # ── Config ──────────────────────────────────────────────────────────────────
 DEFAULT_RAW_DIR = os.path.join(REPO_ROOT, "results", "raw")
@@ -134,6 +138,7 @@ def render_html(rows):
 
 
 def main():
+    PIPELINE.info("runtime_table start", cat="analysis")
     print(f"Loading seeds from:")
     print(f"  {DEFAULT_RAW_DIR}")
     print(f"  {DEFAULT_CLOUD_DIR}")
@@ -184,6 +189,7 @@ def main():
               f"{row['ratio']:>7.2f}×")
     print()
     print(f"{len(rows)} complete groups summarized.")
+    PIPELINE.info("runtime_table complete", cat="analysis")
 
 
 if __name__ == "__main__":

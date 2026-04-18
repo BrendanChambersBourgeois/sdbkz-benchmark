@@ -48,6 +48,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Lint centralised logging coverage (CLAUDE.md §16)
+        run: |
+          # Every entry-point script under scripts/ and analysis/ must
+          # import scripts/log.py:get_logger so its events flow to
+          # logs/pipeline.jsonl. Library files (no main entry) are
+          # auto-exempt; everything else must be wired.
+          python3 scripts/lint_logging.py
+
       - name: Smoke-test script imports inside the image
         run: |
           docker run --rm sdbkz-benchmark:ci python3 -c "
