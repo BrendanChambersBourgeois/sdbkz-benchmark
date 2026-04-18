@@ -3,7 +3,9 @@
 Provides:
     ln_fixed_point()         — Li-Nguyen Rankin profile
     gsa_fixed_point()        — Geometric Series Assumption Rankin profile
-    load_all_seeds()         — Group per-seed JSONs by (n, beta)
+    load_all_seeds()         — Group per-seed JSONs by (n, beta); dual-mode
+                                (legacy globber for positional dirs, v1.3
+                                manifest query for campaign/n/beta/... kwargs)
     load_3x_tour_data()      — Load 3x-tour experiment seeds
     _load_convergence_files() — Load 500-tour convergence test seeds
     _group_advantages()      — Per-group advantage arrays
@@ -19,9 +21,16 @@ import json
 import glob
 import math
 import re
+import warnings
 from collections import defaultdict
 
 import numpy as np
+
+DEFAULT_MANIFEST_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "results", "seed_manifest.json",
+)
+_MANIFEST_CACHE: dict = {}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -77,15 +86,172 @@ def gsa_fixed_point(size, beta):
 # Data loading
 # ─────────────────────────────────────────────────────────────────────────────
 
-def load_all_seeds(*dirs, min_seeds=1):
-    """Load all seed JSONs from one or more directories and group by (n, beta).
+def _load_manifest(manifest_path: str) -> dict:
+    """Read + cache the seed manifest. Cache keyed on (path, mtime)."""
+    key = (os.path.abspath(manifest_path), os.path.getmtime(manifest_path))
+    cached = _MANIFEST_CACHE.get(key)
+    if cached is not None:
+        return cached
+    with open(manifest_path) as f:
+        manifest = json.load(f)
+    _MANIFEST_CACHE.clear()
+    _MANIFEST_CACHE[key] = manifest
+    return manifest
 
-    Args:
-        *dirs: One or more directories containing n*_beta*_seed*.json files.
-        min_seeds: Minimum seeds to include a group (default 1).
+
+def _manifest_entry_matches(
+    entry: dict,
+    campaign,
+    n, beta, q,
+    precision, max_tours,
+    include_fat, include_unverified,
+    fplll_version,
+) -> bool:
+    if campaign is not None and entry["campaign"] != campaign:
+        return False
+    if n is not None and entry["n"] != n:
+        return False
+    if beta is not None and entry["beta"] != beta:
+        return False
+    if q is not None and entry["q"] != q:
+        return False
+    if precision is not None and entry.get("precision") != precision:
+        return False
+    if max_tours is not None and entry.get("max_tours") != max_tours:
+        return False
+    if fplll_version is not None and entry.get("fplll_version") != fplll_version:
+        return False
+    tags = set(entry.get("tags", []))
+    if not include_fat and "fat" in tags:
+        return False
+    if not include_unverified and not entry.get("verified", False):
+        return False
+    return True
+
+
+def _manifest_load_groups(
+    *,
+    campaign="main",
+    n=None, beta=None, q=97,
+    precision=None, max_tours=None,
+    fplll_version=None,
+    include_fat=False,
+    include_unverified=False,
+    min_seeds=1,
+    load_json=True,
+    manifest_path=None,
+) -> dict:
+    """v1.3 manifest-driven loader. Dedup by (campaign, n, β, seed);
+    within each key, prefer the non-cloud copy so that paper-era
+    figures remain byte-identical to their legacy globber output
+    (raw/ wins over cloud/ for the 205 §3.7 dual-copy pairs).
+    """
+    manifest_path = manifest_path or DEFAULT_MANIFEST_PATH
+    if not os.path.exists(manifest_path):
+        raise FileNotFoundError(
+            f"seed_manifest.json not found at {manifest_path}. "
+            "Run scripts/build_seed_manifest.py first."
+        )
+    manifest = _load_manifest(manifest_path)
+
+    by_key: dict = {}
+    for entry in manifest["seeds"]:
+        if not _manifest_entry_matches(
+            entry, campaign, n, beta, q,
+            precision, max_tours,
+            include_fat, include_unverified, fplll_version,
+        ):
+            continue
+        is_fat = "fat" in entry.get("tags", [])
+        # When include_fat=True we keep fat alongside lean (same n, β,
+        # seed); the fat flag becomes part of the dedup key so the two
+        # don't collide.
+        key = (entry["n"], entry["beta"], entry["seed"], is_fat)
+        prev = by_key.get(key)
+        if prev is None:
+            by_key[key] = entry
+        else:
+            # Prefer non-cloud copy (matches legacy raw/ > cloud/ order).
+            prev_cloud = "cloud" in prev.get("tags", [])
+            new_cloud = "cloud" in entry.get("tags", [])
+            if prev_cloud and not new_cloud:
+                by_key[key] = entry
+
+    groups: dict = defaultdict(list)
+    repo_root = os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))
+    )
+    for entry in by_key.values():
+        if not load_json:
+            groups[(entry["n"], entry["beta"])].append(dict(entry))
+            continue
+        # Resolve the manifest's relative `path` against the repo root
+        # (manifest stores paths relative to repo root, e.g.
+        # results/seeds/main/q97/n050_beta30/seed0001.json).
+        abs_path = os.path.join(repo_root, entry["path"])
+        try:
+            with open(abs_path) as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            continue
+        groups[(entry["n"], entry["beta"])].append(data)
+
+    filtered = {
+        k: sorted(v, key=lambda d: d["seed"])
+        for k, v in sorted(groups.items())
+        if len(v) >= min_seeds
+    }
+
+    total = sum(len(v) for v in filtered.values())
+    print(f"Loaded {total} seeds across {len(filtered)} groups "
+          f"from seed_manifest.json "
+          f"(campaign={campaign}, q={q}"
+          + (f", n={n}" if n is not None else "")
+          + (f", β={beta}" if beta is not None else "")
+          + ")")
+    return filtered
+
+
+def load_all_seeds(*args, **kwargs):
+    """Load seeds grouped by (n, beta). Dual-mode.
+
+    Legacy (pre-v1.3) — positional directory args::
+
+        groups = load_all_seeds("results/raw", "results/cloud", min_seeds=1)
+
+    Globs every `n*_beta*_seed*.json` under each dir, dedup by basename
+    (raw/ wins over cloud/ on collision), skips non-q=97 files. Still
+    supported — works transparently through the v1.3 back-compat
+    symlinks at the old paths.
+
+    v1.3 manifest mode — keyword args::
+
+        groups = load_all_seeds(campaign="main", q=97)
+        groups = load_all_seeds(campaign="cliff500")
+        groups = load_all_seeds(campaign="q3329", precision=1000, max_tours=70)
+
+    Queries `results/seed_manifest.json` directly. Dedups by (n, β,
+    seed) within the selected campaign, preferring the non-cloud copy
+    so that paper-era figures stay byte-identical to the legacy
+    globber output.
 
     Returns:
-        dict: {(n, beta): [seed_data_dict, ...]} sorted by (n, beta).
+        dict: {(n, beta): [seed_data_dict, ...]} sorted by (n, beta),
+        each value sorted by seed.
+    """
+    # Legacy routing: any positional string that looks like a path →
+    # run the globber. This keeps every pre-v1.3 caller working
+    # unchanged through the symlink layer.
+    if args and all(isinstance(a, str) for a in args):
+        return _legacy_load_all_seeds(*args, **kwargs)
+    return _manifest_load_groups(*args, **kwargs)
+
+
+def _legacy_load_all_seeds(*dirs, min_seeds=1):
+    """Legacy globber kept verbatim so pre-v1.3 callers stay
+    byte-identical through the back-compat symlinks at old paths.
+    New code should pass `campaign=...` kwargs to the public
+    `load_all_seeds()` instead.
     """
     groups = defaultdict(list)
     seen = set()
@@ -149,21 +315,40 @@ def load_all_seeds(*dirs, min_seeds=1):
     return filtered
 
 
-def load_3x_tour_data(tour_dir):
+def load_3x_tour_data(tour_dir=None, manifest_path=None):
     """Load 3x tour experiment seed JSONs.
 
-    Loads only the extended-format files (n*_beta*_3x_seed*.json), which
-    contain the advantage_3x / advantage_equal_tours fields used by the
-    fig7 visualization. The directory may also contain old-format files
-    (n*_beta*_seed*.json) from the original 10-seed pilot experiment;
-    those are skipped.
-
-    Args:
-        tour_dir: Path to results/3x_tours/ directory.
-
-    Returns:
-        list of dicts, one per seed.
+    Prefers the v1.3 seed_manifest.json (campaign="tours3x") when
+    available; falls back to the legacy glob of `tour_dir` for
+    callers that still pass a directory. Either mode returns a
+    flat list of seed dicts loaded from disk.
     """
+    if tour_dir is None:
+        manifest_path = manifest_path or DEFAULT_MANIFEST_PATH
+    if manifest_path or tour_dir is None:
+        manifest_path = manifest_path or DEFAULT_MANIFEST_PATH
+        if os.path.exists(manifest_path):
+            manifest = _load_manifest(manifest_path)
+            repo_root = os.path.dirname(
+                os.path.dirname(os.path.abspath(__file__))
+            )
+            seeds = []
+            entries = [
+                e for e in manifest["seeds"]
+                if e["campaign"] == "tours3x" and "3x" in e.get("tags", [])
+            ]
+            entries.sort(key=lambda e: (e["n"], e["beta"], e["seed"]))
+            for entry in entries:
+                abs_path = os.path.join(repo_root, entry["path"])
+                try:
+                    with open(abs_path) as f:
+                        seeds.append(json.load(f))
+                except (json.JSONDecodeError, KeyError, OSError):
+                    continue
+            print(f"Loaded {len(seeds)} seeds from 3x tour experiment "
+                  f"(manifest campaign=tours3x)")
+            return seeds
+
     if not os.path.isdir(tour_dir):
         print(f"3x tour directory not found: {tour_dir}")
         return []
@@ -178,22 +363,88 @@ def load_3x_tour_data(tour_dir):
     return seeds
 
 
-def _load_convergence_files(convergence_dir):
-    """Load all convergence test seed JSONs from a directory.
+def _load_convergence_files(
+    convergence_dir=None,
+    *,
+    n=None, beta=None, max_tours=None,
+    manifest_path=None,
+):
+    """Load all convergence test seed JSONs.
 
-    Returns (bkz_arr, sd_arr, n_val, beta_val, n_seeds) where the arrays
-    are shape (n_seeds, n_tours), or (None, None, None, None, 0) if no
-    files match.
+    Prefers the v1.3 seed_manifest.json (campaign="convergence"); the
+    caller may optionally narrow by (n, beta, max_tours) to pick a
+    specific convergence-test variant (e.g., n=90 β=30 mt=500 vs
+    n=140 β=30 mt=500). Falls back to globbing `convergence_dir` if
+    that positional path is given and the manifest does not yield
+    a match (preserves pre-v1.3 callers through back-compat symlinks).
+
+    Returns (bkz_arr, sd_arr, n_val, beta_val, n_seeds) where the
+    arrays are shape (n_seeds, n_tours), or (None, None, None, None,
+    0) if no files match.
     """
+    bkz_trajs = []
+    sd_trajs = []
+    n_val = beta_val = None
+
+    manifest_path = manifest_path or DEFAULT_MANIFEST_PATH
+    if os.path.exists(manifest_path):
+        manifest = _load_manifest(manifest_path)
+        repo_root = os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))
+        )
+        entries = [
+            e for e in manifest["seeds"]
+            if e["campaign"] == "convergence"
+        ]
+        if n is not None:
+            entries = [e for e in entries if e["n"] == n]
+        if beta is not None:
+            entries = [e for e in entries if e["beta"] == beta]
+        if max_tours is not None:
+            entries = [e for e in entries if e.get("max_tours") == max_tours]
+        # If the caller passed convergence_dir, filter entries whose
+        # path lives under that dir — keeps the legacy `convergence/`
+        # vs `convergence_test/` disambiguation working.
+        if convergence_dir is not None:
+            cdir_abs = os.path.realpath(convergence_dir)
+            filt = []
+            for e in entries:
+                abs_path = os.path.realpath(os.path.join(repo_root, e["path"]))
+                legacy_abs = os.path.realpath(os.path.join(
+                    convergence_dir,
+                    f"convergence_n{e['n']}_beta{e['beta']}_seed{e['seed']}.json",
+                ))
+                if os.path.exists(legacy_abs) and (
+                    os.path.samefile(legacy_abs, abs_path)
+                    if os.path.exists(abs_path) else False
+                ):
+                    filt.append(e)
+                elif cdir_abs in abs_path:
+                    filt.append(e)
+            entries = filt
+        entries.sort(key=lambda e: (e["n"], e["beta"], e["seed"]))
+        for entry in entries:
+            abs_path = os.path.join(repo_root, entry["path"])
+            try:
+                d = json.load(open(abs_path))
+            except (FileNotFoundError, json.JSONDecodeError):
+                continue
+            bkz_trajs.append(d["bkz_dln_per_tour"])
+            sd_trajs.append(d["sdbkz_dln_per_tour"])
+            if n_val is None:
+                n_val, beta_val = d["n"], d["beta"]
+        if bkz_trajs:
+            return (np.array(bkz_trajs), np.array(sd_trajs),
+                    n_val, beta_val, len(bkz_trajs))
+
+    if convergence_dir is None:
+        return None, None, None, None, 0
     files = sorted(glob.glob(
         os.path.join(convergence_dir, "convergence_n*_beta*_seed*.json")
     ))
     if not files:
         return None, None, None, None, 0
 
-    bkz_trajs = []
-    sd_trajs = []
-    n_val = beta_val = None
     for f in files:
         d = json.load(open(f))
         bkz_trajs.append(d["bkz_dln_per_tour"])
