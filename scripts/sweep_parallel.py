@@ -21,6 +21,7 @@ from _math_core import (
     ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
 )
 from _signal_utils import managed_pool
+from _seed_paths import seed_path_for
 PIPELINE = get_logger("sweep_parallel")
 
 # ---------------------------------------------------------------------------
@@ -40,8 +41,13 @@ SUMMARY_INTERVAL = 10       # regenerate summary every N completions
 # so we need TWO dirname() calls — the first goes from sweep_parallel.py
 # up to scripts/, the second goes from scripts/ up to the repo root.
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# RAW_DIR kept as a read-side shim for legacy callers + back-compat
+# symlinks left by the v1.3 migration (ac52379). Writes go via
+# _seed_paths.seed_path_for("main", ...) below.
 RAW_DIR = os.path.join(BASE, "results", "raw")
 RESULTS_DIR = os.path.join(BASE, "results")
+# v1.3: main-campaign writes land under results/seeds/main/q97/...
+MAIN_SEEDS_DIR = os.path.join(BASE, "results", "seeds", "main", "q97")
 FAILED_FILE = os.path.join(RESULTS_DIR, "failed.json")
 SUMMARY_FILE = os.path.join(RESULTS_DIR, "summary.json")
 LOG_FILE = os.path.join(RESULTS_DIR, "progress.log")
@@ -83,13 +89,38 @@ def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
 # File path helpers
 # ---------------------------------------------------------------------------
 def result_path(n, beta, seed):
-    return os.path.join(RAW_DIR, f"n{n}_beta{beta}_seed{seed}.json")
+    return seed_path_for("main", n=n, beta=beta, seed=seed, base=BASE)
 
 
 def scan_completed():
-    """Return set of (n, beta, seed) tuples already completed."""
+    """Return set of (n, beta, seed) tuples already completed.
+
+    Walks the v1.3 layout first (results/seeds/main/q97/...) and falls
+    back to the legacy results/raw/ scan so resumability works during
+    the transition window (until the old-path symlinks are dropped at
+    v2). Seeds under `_cloud` suffixes are treated as the same (n, β,
+    seed) triple — the paper §3.7 dual-copy preservation means one
+    completion is enough to skip re-running.
+    """
     done = set()
+    # v1.3 layout: results/seeds/main/q97/n{n:03d}_beta{beta:02d}/seed{seed:04d}[_cloud].json
+    for fp in glob.glob(os.path.join(
+            MAIN_SEEDS_DIR, "n*_beta*", "seed*.json")):
+        leaf = os.path.basename(fp)
+        parent = os.path.basename(os.path.dirname(fp))
+        try:
+            n = int(parent.split("_")[0][1:])
+            beta = int(parent.split("_")[1][4:])
+            seed_digits = leaf.replace(".json", "").replace("_cloud", "")
+            seed = int(seed_digits[4:])  # drop "seed" prefix
+            done.add((n, beta, seed))
+        except (IndexError, ValueError):
+            continue
+    # Legacy scan for any seeds not yet migrated (should be empty
+    # post-ac52379, but keeps resumability honest on partial trees).
     for fp in glob.glob(os.path.join(RAW_DIR, "n*_beta*_seed*.json")):
+        if os.path.islink(fp):
+            continue  # already counted via the seeds/ walk above
         fname = os.path.basename(fp)
         try:
             parts = fname.replace(".json", "").split("_")
@@ -210,6 +241,7 @@ def worker(args):
 
     try:
         result = run_single(n, beta, seed, store_per_tour=STORE_PER_TOUR)
+        os.makedirs(os.path.dirname(out), exist_ok=True)
         with open(out, "w") as f:
             json.dump(result, f, indent=2)
         return (key, "completed", out)
@@ -423,6 +455,10 @@ def main():
     if not get_run_id():
         new_run_id()
 
+    # v1.3: parent for new-layout writes. Leaf dirs (n{n}_beta{beta}/)
+    # are created on-demand in worker(). RAW_DIR still exists as a
+    # transition shim holding symlinks into the new tree.
+    os.makedirs(MAIN_SEEDS_DIR, exist_ok=True)
     os.makedirs(RAW_DIR, exist_ok=True)
 
     if summary_only:

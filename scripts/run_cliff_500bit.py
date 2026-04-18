@@ -44,6 +44,7 @@ sys.path.insert(0, SCRIPT_DIR)
 
 from log import get_logger, new_run_id, get_run_id
 from _signal_utils import managed_pool
+from _seed_paths import seed_path_for, seed_dir_for
 PIPELINE = get_logger("run_cliff_500bit")
 
 # -- CLI ---------------------------------------------------------------------
@@ -94,12 +95,15 @@ PRECISION = 500
 NUM_WORKERS = _cli_args.workers
 SEEDS = list(range(1, _cli_args.seeds + 1))
 
-OUTPUT_DIR = os.path.join(REPO_ROOT, "results", "cliff_500bit")
+OUTPUT_DIR = seed_dir_for("cliff500", n=N, beta=BETA, base=REPO_ROOT)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 def out_path(seed):
-    return os.path.join(OUTPUT_DIR, f"n{N}_beta{BETA}_q{Q}_seed{seed}.json")
+    return seed_path_for(
+        "cliff500", n=N, beta=BETA, seed=seed,
+        precision=PRECISION, base=REPO_ROOT,
+    )
 
 
 def already_done(seed):

@@ -15,6 +15,7 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
+from _seed_paths import seed_path_for, seed_dir_for
 from _math_core import (
     ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
 )
@@ -46,8 +47,16 @@ SEEDS = list(range(1, _args.seeds + 1))
 # at scripts/q3329_verify.py — the first goes to scripts/, the second
 # to the repo root.
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTPUT_DIR = os.path.join(BASE, "results", "q3329")
+# v1.3: q3329 seeds land at results/seeds/q3329/p{precision}_mt{max_tours}/n{n}_beta{beta}/.
+# OUTPUT_DIR kept for legacy callers reading q3329 summary JSONs; the
+# per-seed JSONs now land under the seed_path_for() tree.
+OUTPUT_DIR = seed_dir_for(
+    "q3329", n=N, beta=BETA,
+    precision=PRECISION, max_tours=MAX_TOURS, base=BASE,
+)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+SUMMARY_DIR = os.path.join(BASE, "results", "q3329")
+os.makedirs(SUMMARY_DIR, exist_ok=True)
 CLAMP_LOG_FILE = os.path.join(BASE, "results", "clamp_events.jsonl")
 
 
@@ -110,7 +119,10 @@ def main():
     completed = 0
 
     for seed in SEEDS:
-        outpath = os.path.join(OUTPUT_DIR, f"n{N}_beta{BETA}_q{Q}_seed{seed}.json")
+        outpath = seed_path_for(
+            "q3329", n=N, beta=BETA, seed=seed,
+            q=Q, precision=PRECISION, max_tours=MAX_TOURS, base=BASE,
+        )
 
         if os.path.exists(outpath):
             print(f"Seed {seed}: already done, skipping.")
@@ -181,7 +193,7 @@ def main():
             "advantages": [float(a) for a in advantages],
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
-        sumpath = os.path.join(OUTPUT_DIR, "summary_q3329.json")
+        sumpath = os.path.join(SUMMARY_DIR, "summary_q3329.json")
         with open(sumpath, "w") as f:
             json.dump(summary, f, indent=2)
         print(f"\n  Saved: {sumpath}")
