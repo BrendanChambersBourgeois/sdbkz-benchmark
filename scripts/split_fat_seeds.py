@@ -44,6 +44,10 @@ import os
 import sys
 from pathlib import Path
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from log import get_logger  # noqa: E402
+PIPELINE = get_logger("split_fat_seeds")
+
 # Keys present ONLY in fat-schema files. Everything else is lean.
 #
 # Note: `bkz_dln_per_tour` and `sdbkz_dln_per_tour` are NOT in this set
@@ -169,9 +173,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if not files:
         print("no files to process", file=sys.stderr)
+        PIPELINE.warning("split_fat_seeds no files to process",
+                         cat="schema", input_dir=str(args.input_dir))
         return 1
 
     print(f"processing {len(files)} file(s)", file=sys.stderr)
+    PIPELINE.info("split_fat_seeds start",
+                  cat="schema",
+                  file_count=len(files),
+                  lean_out_dir=str(args.lean_out_dir),
+                  fat_out_dir=str(args.fat_out_dir),
+                  dry_run=args.dry_run)
     n_wrote = n_skip = n_dry = 0
     for f in files:
         status = process_one(f, args.lean_out_dir, args.fat_out_dir,
@@ -189,6 +201,10 @@ def main(argv: list[str] | None = None) -> int:
         f"wrote {n_wrote}, skipped {n_skip}, dry-run {n_dry}",
         file=sys.stderr,
     )
+    PIPELINE.info("split_fat_seeds complete",
+                  cat="schema",
+                  files=len(files), wrote=n_wrote, skipped=n_skip,
+                  dry_run_count=n_dry)
     return 0
 
 

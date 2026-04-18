@@ -260,6 +260,11 @@ def _tier_c():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tier", choices=["A", "B", "C", "all"], default="A")
+    ap.add_argument("--only", default=None,
+                    help="Substring filter on group label. Use when "
+                         "launching multiple confirm_v1_2 instances in "
+                         "parallel so each one writes its own pipeline "
+                         "events (e.g. --tier all --only 'n=110').")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -271,6 +276,11 @@ def main():
     }[args.tier]
 
     all_groups = [g for tier_groups in tiers_to_run for g in tier_groups]
+    if args.only:
+        all_groups = [g for g in all_groups if args.only in g[0]]
+        if not all_groups:
+            print(f"No group matches --only {args.only!r}")
+            return 1
 
     print("=" * 70)
     print(f"v1.2-consolidation confirmation — tier {args.tier}")
