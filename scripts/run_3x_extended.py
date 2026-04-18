@@ -18,9 +18,12 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
 from _math_core import build_lwe_kannan, log_clamp, ln_fixed_point
+from _seed_paths import seed_path_for, seed_dir_for
 PIPELINE = get_logger("run_3x_extended")
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# v1.3: tours3x seeds land at results/seeds/tours3x/q97/n{n}_beta{beta}/.
+# The 3x_tours_extended/ legacy dir is kept for summary JSON writes.
 OUTPUT_DIR = os.path.join(REPO_ROOT, "results", "3x_tours_extended")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 CLAMP_LOG_FILE = os.path.join(REPO_ROOT, "results", "clamp_events.jsonl")
@@ -148,7 +151,11 @@ def main():
         normal_tours = group["normal_tours"]
         triple_tours = group["triple_tours"]
         group_label = f"n={n}_beta={beta}"
-        group_dir = OUTPUT_DIR
+        # v1.3: per-seed write dir under results/seeds/tours3x/; the
+        # summary JSON still lands at the legacy OUTPUT_DIR so that
+        # analysis tooling reading the summary files keeps working.
+        group_dir = seed_dir_for("tours3x", n=n, beta=beta, base=REPO_ROOT)
+        os.makedirs(group_dir, exist_ok=True)
 
         print(f"{'='*70}")
         print(f"GROUP: n={n}, β={beta}, BKZ@{triple_tours} vs SD-BKZ@{normal_tours}")
@@ -157,7 +164,9 @@ def main():
         # Check what's already done
         completed = {}
         for seed in range(1, 101):
-            outpath = os.path.join(group_dir, f"n{n}_beta{beta}_3x_seed{seed}.json")
+            outpath = seed_path_for(
+                "tours3x", n=n, beta=beta, seed=seed, base=REPO_ROOT,
+            )
             if os.path.exists(outpath):
                 with open(outpath) as f:
                     completed[seed] = json.load(f)
@@ -178,7 +187,9 @@ def main():
             with Pool(processes=NUM_WORKERS, maxtasksperchild=5) as pool:
                 for result in pool.imap_unordered(run_seed, tasks):
                     seed = result["seed"]
-                    outpath = os.path.join(group_dir, f"n{n}_beta{beta}_3x_seed{seed}.json")
+                    outpath = seed_path_for(
+                "tours3x", n=n, beta=beta, seed=seed, base=REPO_ROOT,
+            )
                     with open(outpath, "w") as f:
                         json.dump(result, f, indent=2)
                     all_results.append(result)
@@ -229,7 +240,7 @@ def main():
             "win_rate_3x": float(np.mean(np.array(advs_3x) > 0)),
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
-        with open(os.path.join(group_dir, f"summary_n{n}_beta{beta}.json"), "w") as f:
+        with open(os.path.join(OUTPUT_DIR, f"summary_n{n}_beta{beta}.json"), "w") as f:
             json.dump(summary, f, indent=2)
 
     print("=" * 70)

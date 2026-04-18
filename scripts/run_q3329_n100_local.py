@@ -44,6 +44,7 @@ SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
 from log import get_logger
+from _seed_paths import seed_path_for, seed_dir_for
 PIPELINE = get_logger("run_q3329_n100_local")
 
 # Parse our own args before mocking sys.argv for q3329_verify import.
@@ -91,17 +92,30 @@ Q = 3329
 NUM_WORKERS = _cli_args.workers
 SEEDS = list(range(_cli_args.start, _cli_args.end + 1))
 
-OUTPUT_DIR = os.path.join(REPO_ROOT, "results", "q3329")
-CLOUD_DIR = os.path.join(REPO_ROOT, "results", "cloud")
+OUTPUT_DIR = seed_dir_for(
+    "q3329", n=N, beta=BETA,
+    precision=q3329_verify.PRECISION, max_tours=q3329_verify.MAX_TOURS,
+    base=REPO_ROOT,
+)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 def out_path(seed):
-    return os.path.join(OUTPUT_DIR, f"n{N}_beta{BETA}_q{Q}_seed{seed}.json")
+    return seed_path_for(
+        "q3329", n=N, beta=BETA, seed=seed, q=Q,
+        precision=q3329_verify.PRECISION,
+        max_tours=q3329_verify.MAX_TOURS,
+        base=REPO_ROOT,
+    )
 
 
 def cloud_path(seed):
-    return os.path.join(CLOUD_DIR, f"n{N}_beta{BETA}_q{Q}_seed{seed}.json")
+    # Pre-v1.3, AWS-Batch q=3329 seeds lived in results/cloud/ and
+    # local seeds in results/q3329/. After the v1.3 migration (ac52379)
+    # both collapse into the same leaf dir (q3329 seed numbers
+    # don't overlap: AWS=1..10, local=11..100). Kept as an alias of
+    # out_path() so the already-done probe still reads the right file.
+    return out_path(seed)
 
 
 def already_done(seed):

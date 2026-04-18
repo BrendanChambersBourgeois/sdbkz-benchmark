@@ -128,6 +128,19 @@ jobs:
             sdbkz-benchmark:ci python3 scripts/validate_seeds.py \
             --sha-check results/3x_tours/
 
+      - name: Seed manifest lint (v1.3 integrity gate)
+        run: |
+          # Enforces the three manifest invariants from
+          # Research/backlog/2026-04-18_seed_consolidation.md:
+          #   (a) no orphan files under results/seeds/ missing from
+          #       seed_manifest.json,
+          #   (b) no ghost manifest entries pointing at absent files,
+          #   (c) (local-only, nightly) on-disk SHA-256 matches record.
+          # CI runs the fast mode only; --sha-check is a local /
+          # pre-tag verification (~15 min on 4,300 seeds).
+          docker run --rm -v "${{ github.workspace }}:/repo" -w /repo \
+            sdbkz-benchmark:ci python3 scripts/lint_seed_manifest.py
+
       - name: Diagnostic banner on failure
         if: failure()
         run: |

@@ -202,41 +202,46 @@ TARGET_BETA = 30
 
 def load_q3329_seeds(cloud_dir=DEFAULT_CLOUD_DIR, local_dir=DEFAULT_LOCAL_DIR,
                     n=TARGET_N, beta=TARGET_BETA):
-    """Load all q=3329 seeds for the target (n, β) from both result dirs.
+    """Load all q=3329 seeds for the target (n, β) via the v1.3 manifest.
 
-    The standard analysis._data.load_all_seeds() explicitly EXCLUDES
-    q=3329 files (to avoid q3329-into-q97 contamination — see
-    Incidents #14, #19). This loader is the q=3329-specific
-    counterpart.
+    Switched in v1.3 from the pre-migration glob of cloud_dir + local_dir
+    to a scripts/_data.load_all_seeds(campaign="q3329", ...) query. The
+    _source/_path fields are preserved for downstream reporting and
+    reconstructed from the manifest's `tags` (cloud present ⇒ _source
+    "cloud") and `path` fields.
 
-    Returns a list of seed dicts with the original JSON schema.
+    cloud_dir / local_dir remain as function args for the pre-v1.3
+    caller contract, but are now unused — the manifest is the source of
+    truth. Returns a list of seed dicts with the original JSON schema.
     """
-    pattern = f"n{n}_beta{beta}_q3329_seed*.json"
-    files = sorted(
-        glob.glob(os.path.join(cloud_dir, pattern))
-        + glob.glob(os.path.join(local_dir, pattern))
+    from analysis._data import load_all_seeds  # noqa: E402 — lazy to
+    # preserve standalone `python3 analysis/q3329_degeneracy_check.py`
+    # execution before REPO_ROOT is on sys.path at import time.
+
+    # q=3329 is excluded from the default load_all_seeds() main-campaign
+    # filter (to prevent q3329-into-q97 contamination, Incidents #14/19);
+    # the manifest-mode query with campaign="q3329" is the q3329-specific
+    # counterpart.
+    # The paper §8 headline dataset is 1000-bit MPFR, 70-tour cap.
+    # p500 / p=250 entries (q3329_degenerate/, convergence tests) are
+    # different campaigns analytically and filtered out here.
+    groups = load_all_seeds(
+        campaign="q3329", n=n, beta=beta, q=3329,
+        precision=1000, max_tours=70,
     )
+    entries = groups.get((n, beta), [])
 
     seeds = []
-    seen = set()
-    for fp in files:
-        fname = os.path.basename(fp)
-        # Skip fat companion files — they hold per-tour arrays and a
-        # minimal identifier block, but no gs_lognorms_bkz/sdbkz etc.
-        # that this check needs. The lean sibling is always present.
-        if fname.endswith("_fat.json"):
-            continue
-        if fname in seen:
-            continue
-        seen.add(fname)
-        try:
-            with open(fp) as f:
-                d = json.load(f)
-            d["_source"] = "cloud" if "/cloud/" in fp else "local"
-            d["_path"] = fp
-            seeds.append(d)
-        except (json.JSONDecodeError, KeyError):
-            continue
+    for d in entries:
+        # Reconstruct the _source/_path fields legacy callers relied on.
+        # The manifest's canonical path lives under results/seeds/q3329/;
+        # the cloud-vs-local provenance comes from the manifest tags that
+        # the walker assigned based on the original dir (build_seed_manifest
+        # tags cloud-sourced entries with "cloud").
+        tags = d.get("_manifest_tags") or ()
+        d["_source"] = "cloud" if "cloud" in tags else "local"
+        d["_path"] = d.get("_manifest_path", "")
+        seeds.append(d)
 
     return seeds
 
