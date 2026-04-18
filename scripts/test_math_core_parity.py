@@ -21,6 +21,9 @@ import sys
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO, "scripts"))
 
+from log import get_logger  # noqa: E402
+PIPELINE = get_logger("test_math_core_parity")
+
 # Mock argv so the target modules' import-time argparse doesn't choke
 _saved = sys.argv
 sys.argv = ["dummy.py"]
@@ -38,8 +41,9 @@ LEGACY = {
     "q3329_verify": q3329_verify.ln_fixed_point,
 }
 
-# Full paper sweep grid plus edge cases (β=2 is the degenerate BKZ,
-# covered only as a boundary smoke test — paper uses β >= 20).
+# Full paper sweep grid (n, β covering the published range) plus
+# small-β boundary smoke tests (β=3, 10) outside the paper's β >= 20
+# regime to exercise the (β-1) and (2β-2) divisors at small values.
 GRID = [
     (n, beta)
     for n in [20, 50, 70, 80, 90, 100, 110, 120, 130, 140, 150, 200]
@@ -48,6 +52,11 @@ GRID = [
 
 
 def main():
+    PIPELINE.info(
+        "math_core parity check start",
+        cat="validation",
+        grid_pairs=len(GRID), legacy_copies=list(LEGACY.keys()),
+    )
     failures = []
     for n, beta in GRID:
         ref = canonical(n, beta)
@@ -61,6 +70,11 @@ def main():
     if not failures:
         print("PASS — _math_core.ln_fixed_point is bit-identical to all "
               "three legacy copies across the full grid.")
+        PIPELINE.info(
+            "math_core parity check pass",
+            cat="validation",
+            comparisons=len(GRID) * len(LEGACY), failures=0,
+        )
         return 0
 
     print(f"FAIL — {len(failures)} disagreement(s):")
@@ -70,6 +84,13 @@ def main():
         print(f"    legacy[:3]    = {legacy[:3]}")
     if len(failures) > 5:
         print(f"  ... {len(failures) - 5} more")
+    PIPELINE.error(
+        "math_core parity check fail",
+        cat="validation",
+        comparisons=len(GRID) * len(LEGACY),
+        failures=len(failures),
+        first_disagreement=f"{failures[0][0]} n={failures[0][1]} β={failures[0][2]}",
+    )
     return 1
 
 
