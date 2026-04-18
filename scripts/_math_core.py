@@ -33,9 +33,47 @@ CLAUDE.md §3 (q=3329 lessons): "check raw values, not derived metrics"
 legacy copy and flag the bug, because the legacy copies are what
 produced the paper's SHA-256-stable seed JSONs.
 """
+import datetime
+import json
 import math
+import os
 
 import numpy as np
+
+
+def log_clamp(ctx, position, raw_value, *, script_name, log_path):
+    """Append one defensive-clamp event to a JSONL side log. Never raises.
+
+    Canonical implementation of the defensive-clamp logger used by
+    `sweep_parallel.py`, `sweep_cloud.py`, `q3329_verify.py`,
+    `overnight_experiments.py`, `run_3x_extended.py`, and
+    `run_convergence_test.py`. Each caller keeps a thin wrapper
+    `_log_clamp(ctx, position, raw_value)` that supplies its own
+    `script_name` + `log_path` (the cloud variant points at a
+    container-local path that gets uploaded to S3 alongside each
+    per-seed result).
+
+    Writes an append-only JSONL record:
+
+        {"ts": "...", "script": "<name>", "ctx": "...", "position": int,
+         "raw_value": float}
+
+    POSIX atomic-append semantics (writes < PIPE_BUF = 4096 B) make
+    this safe under multiprocessing workers. Never raises on OSError
+    so a log write failure cannot block compute.
+    """
+    try:
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        with open(log_path, "a") as f:
+            f.write(json.dumps({
+                "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "script": script_name,
+                "ctx": ctx,
+                "position": int(position),
+                "raw_value": float(raw_value),
+            }) + "\n")
+    except OSError:
+        pass
 
 
 def build_lwe_kannan(n, m, q, seed=123):

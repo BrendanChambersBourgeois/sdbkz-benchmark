@@ -15,7 +15,7 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
-from _math_core import ln_fixed_point, build_lwe_kannan
+from _math_core import ln_fixed_point, build_lwe_kannan, log_clamp
 PIPELINE = get_logger("q3329_verify")
 
 # -- Config -------------------------------------------------------------------
@@ -50,26 +50,8 @@ CLAMP_LOG_FILE = os.path.join(BASE, "results", "clamp_events.jsonl")
 
 
 def _log_clamp(ctx, position, raw_value):
-    """Append one defensive-clamp event to the side log. Never raises.
-
-    Defensive clamps on get_r log the raw value to a JSONL side file
-    before the 1e-300 substitution fires, so SHA-256 reproducibility
-    of the per-seed JSON schema is preserved and the raw non-positive
-    value stays auditable for paper §8 analyses.
-    """
-    import datetime
-    try:
-        os.makedirs(os.path.dirname(CLAMP_LOG_FILE), exist_ok=True)
-        with open(CLAMP_LOG_FILE, "a") as f:
-            f.write(json.dumps({
-                "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "script": "q3329_verify",
-                "ctx": ctx,
-                "position": int(position),
-                "raw_value": float(raw_value),
-            }) + "\n")
-    except OSError:
-        pass
+    log_clamp(ctx, position, raw_value,
+              script_name="q3329_verify", log_path=CLAMP_LOG_FILE)
 
 
 # -- Copied verbatim from sweep_parallel.py -----------------------------------

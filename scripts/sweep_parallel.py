@@ -17,7 +17,7 @@ from multiprocessing import Pool
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
-from _math_core import ln_fixed_point, build_lwe_kannan
+from _math_core import ln_fixed_point, build_lwe_kannan, log_clamp
 PIPELINE = get_logger("sweep_parallel")
 
 # ---------------------------------------------------------------------------
@@ -46,31 +46,8 @@ CLAMP_LOG_FILE = os.path.join(RESULTS_DIR, "clamp_events.jsonl")
 
 
 def _log_clamp(ctx, position, raw_value):
-    """Append one defensive-clamp event to the side log. Never raises.
-
-    Defensive clamps on get_r must log the raw value before substituting.
-    This writes a JSONL side file instead of mutating the per-seed JSON
-    schema, so SHA-256 reproducibility is preserved. POSIX atomic-append
-    semantics (writes < PIPE_BUF) make this safe under multiprocessing
-    workers.
-
-    The `ctx` string should carry enough identifiers to correlate with
-    the per-seed JSON (e.g. "n100_beta30_seed42 active_block"); the
-    timestamp + progress.log give coarse correlation too.
-    """
-    import datetime
-    try:
-        os.makedirs(os.path.dirname(CLAMP_LOG_FILE), exist_ok=True)
-        with open(CLAMP_LOG_FILE, "a") as f:
-            f.write(json.dumps({
-                "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "script": "sweep_parallel",
-                "ctx": ctx,
-                "position": int(position),
-                "raw_value": float(raw_value),
-            }) + "\n")
-    except OSError:
-        pass
+    log_clamp(ctx, position, raw_value,
+              script_name="sweep_parallel", log_path=CLAMP_LOG_FILE)
 
 # ---------------------------------------------------------------------------
 # Install deps (idempotent)

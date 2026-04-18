@@ -26,7 +26,7 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
-from _math_core import build_lwe_kannan
+from _math_core import build_lwe_kannan, log_clamp
 PIPELINE = get_logger("overnight_experiments")
 
 # BASE is the repo root. Two dirname() calls because this script lives
@@ -38,22 +38,8 @@ CLAMP_LOG_FILE = os.path.join(BASE, "results", "clamp_events.jsonl")
 
 
 def _log_clamp(ctx, position, raw_value):
-    """Append one defensive-clamp event to the side log. Never raises.
-    Mirrors sweep_parallel.py:_log_clamp — defensive clamps on get_r
-    record the raw value before the 1e-300 substitution fires."""
-    import datetime
-    try:
-        os.makedirs(os.path.dirname(CLAMP_LOG_FILE), exist_ok=True)
-        with open(CLAMP_LOG_FILE, "a") as f:
-            f.write(json.dumps({
-                "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "script": "overnight_experiments",
-                "ctx": ctx,
-                "position": int(position),
-                "raw_value": float(raw_value),
-            }) + "\n")
-    except OSError:
-        pass
+    log_clamp(ctx, position, raw_value,
+              script_name="overnight_experiments", log_path=CLAMP_LOG_FILE)
 
 # ── Copied from sweep_parallel.py ───────────────────────────────────────
 
