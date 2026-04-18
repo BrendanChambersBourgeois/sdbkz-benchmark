@@ -1,14 +1,25 @@
 """Canonical numerical helpers for the SD-BKZ benchmark.
 
-v1.2 consolidation target (Phase 1). Currently holds only the pure-math
-helpers that are duplicated across sweep_parallel.py, sweep_cloud.py,
-and q3329_verify.py. Phase 2 will add `build_lwe_kannan`, `_log_clamp`,
-`_safe_log_r`; Phase 3 will add `_metrics_from_gso` — each gated on
-verify.sh SHA-256 bit-identity proof.
+v1.2 consolidation target. Holds the pure-math helpers that are
+duplicated across `sweep_parallel.py`, `sweep_cloud.py`, and
+`q3329_verify.py` (per the 2026-04-17 code_complexity audit).
 
-For now: new scripts import `ln_fixed_point` from this module. The
-three legacy scripts keep their character-identical local copies until
-Phase 2 replaces them with an import from here.
+Roadmap (each phase is its own commit on `v1.2-consolidation`):
+
+  Phase 1 (DONE)  — Add canonical `ln_fixed_point` here. Legacy copies
+                    untouched. Parity test in
+                    `scripts/test_math_core_parity.py` proves
+                    bit-identity across a 60-pair (n, β) grid.
+  Phase 2         — Swap the three legacy `ln_fixed_point` defs out
+                    for `from _math_core import ln_fixed_point`.
+                    Verify with `bash scripts/verify.sh` (gates on
+                    n=50 β=20 seed 1 advantage = 0.211363 ± 1e-4).
+  Phase 3         — Add `build_lwe_kannan` + `_metrics_from_gso`
+                    (schema-affecting; harder gate). `_log_clamp`
+                    folds in too if its `script_name` log field is
+                    parameterised first. `_safe_log_r` is nested
+                    inside `_metrics_from_gso` in the legacy code so
+                    moves with it, not separately.
 
 CLAUDE.md §3 (q=3329 lessons): "check raw values, not derived metrics"
 — if this module's output ever disagrees with a legacy copy, trust the
