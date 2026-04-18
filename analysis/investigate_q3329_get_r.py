@@ -63,6 +63,10 @@ sys.argv = _argv_save
 
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO  # noqa: E402
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+from log import get_logger  # noqa: E402
+PIPELINE = get_logger("investigate_q3329_get_r")
+
 
 # ── Config ──────────────────────────────────────────────────────────────────
 
@@ -136,6 +140,7 @@ def save(payload, status, path=OUT_PATH):
 # ── Main ────────────────────────────────────────────────────────────────────
 
 def main():
+    PIPELINE.info("investigate_q3329_get_r start", cat="analysis")
     print("=" * 72)
     print(f"Investigating raw get_r for seed {SEED} "
           f"(n={N}, β={BETA}, q={Q}, {PRECISION}-bit MPFR)")
@@ -235,6 +240,7 @@ def main():
         "first_bad_tour": None,
         "history": history,
     }, "no_bad_found")
+    PIPELINE.info("investigate_q3329_get_r complete", cat="analysis")
 
 
 if __name__ == "__main__":

@@ -30,6 +30,10 @@ sys.path.insert(0, REPO_ROOT)
 
 from analysis._data import load_all_seeds  # noqa: E402
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+from log import get_logger  # noqa: E402
+PIPELINE = get_logger("stats_analysis")
+
 # ── Config ──────────────────────────────────────────────────────────────────
 DEFAULT_RAW_DIR = os.path.join(REPO_ROOT, "results", "raw")
 OUTPUT_FILE = os.path.join(REPO_ROOT, "logs", "stats_output.txt")
@@ -119,6 +123,7 @@ def format_p(p):
 
 
 def main():
+    PIPELINE.info("stats_analysis start", cat="analysis")
     raw_dir = DEFAULT_RAW_DIR
     if len(sys.argv) > 1 and sys.argv[1] == '--results-dir':
         raw_dir = sys.argv[2]
@@ -227,6 +232,8 @@ def main():
         out(f"Output saved to: {OUTPUT_FILE}")
     except Exception as e:
         out(f"Could not save output file: {e}")
+
+    PIPELINE.info("stats_analysis complete", cat="analysis")
 
 
 if __name__ == '__main__':

@@ -47,7 +47,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.join(REPO, "scripts")
 sys.path.insert(0, SCRIPTS)
 
-from log import get_logger  # noqa: E402
+from log import get_logger, new_run_id, get_run_id  # noqa: E402
 PIPELINE = get_logger("confirm_v1_2")
 
 STAGING = "/tmp/confirm_v1_2"
@@ -294,6 +294,12 @@ def main():
         print("DRY-RUN — no regen.")
         return 0
 
+    # Generate a run-id once at the suite level — every subprocess
+    # we launch (the inline `python3 -c '...'` runners) inherits it
+    # via the BKZ_RUN_ID environment variable, so all events for this
+    # confirmation pass group together in pipeline.jsonl analyses.
+    run_id = get_run_id() or new_run_id()
+    print(f"  run_id: {run_id}", flush=True)
     PIPELINE.info("confirmation suite start", cat="validation",
                   tier=args.tier, groups=len(all_groups))
     total_ok = 0
