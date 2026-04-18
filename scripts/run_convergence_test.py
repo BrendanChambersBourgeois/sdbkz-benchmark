@@ -18,7 +18,7 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
-from _math_core import build_lwe_kannan, log_clamp
+from _math_core import build_lwe_kannan, log_clamp, ln_fixed_point
 PIPELINE = get_logger("run_convergence_test")
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -38,20 +38,6 @@ N = 90
 BETA = 30
 MAX_TOURS = 500
 NUM_SEEDS = 20
-
-
-def ln_fixed_point(size, beta):
-    exp = (size - 1) / (2 * (beta - 1)) + (beta * (beta - 2)) / (
-        2 * size * (beta - 1)
-    )
-    log_v_beta = math.log(beta / (2 * math.pi * math.e)) * exp
-    log_delta = math.log(beta / (2 * math.pi * math.e)) / (2 * beta - 2)
-    total_vol = sum((size + 1 - 2 * i) * log_delta for i in range(1, size + 1))
-    profile, cum = [], 0.0
-    for i in range(1, size + 1):
-        cum += (size + 1 - 2 * i) * log_delta
-        profile.append(cum - (i / size) * total_vol)
-    return [p + log_v_beta for p in profile]
 
 
 def _dln_from_gso(M, dim, m, ln_profile, clamp_ctx=""):
