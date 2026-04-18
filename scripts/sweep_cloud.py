@@ -21,7 +21,7 @@ from multiprocessing import Pool, cpu_count
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
-from _math_core import ln_fixed_point, build_lwe_kannan
+from _math_core import ln_fixed_point, build_lwe_kannan, log_clamp
 PIPELINE = get_logger("sweep_cloud")
 
 # ---------------------------------------------------------------------------
@@ -166,27 +166,11 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 
 def _log_clamp_cloud(ctx, position, raw_value):
-    """Cloud-container equivalent of the local scripts' _log_clamp.
-
-    This runs inside the AWS Batch Docker container with S3 upload as the
-    only persistent output channel. We append clamp events to a known
-    path (/tmp/clamp_events.jsonl) inside the container; the entrypoint
-    uploads it alongside each per-seed result. Never raises — a log
-    write failure must not block compute.
-    """
-    import datetime
-    try:
-        log_path = "/tmp/clamp_events.jsonl"
-        with open(log_path, "a") as f:
-            f.write(json.dumps({
-                "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "script": "sweep_cloud",
-                "ctx": ctx,
-                "position": int(position),
-                "raw_value": float(raw_value),
-            }) + "\n")
-    except OSError:
-        pass
+    """Cloud-container wrapper — writes to /tmp/clamp_events.jsonl
+    inside the AWS Batch Docker container; the entrypoint uploads it
+    alongside each per-seed result."""
+    log_clamp(ctx, position, raw_value,
+              script_name="sweep_cloud", log_path="/tmp/clamp_events.jsonl")
 
 
 def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
