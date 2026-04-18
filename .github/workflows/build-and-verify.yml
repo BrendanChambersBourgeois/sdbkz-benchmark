@@ -65,6 +65,16 @@ jobs:
           python3 -m pip install --upgrade ruff
           ruff check scripts/ analysis/
 
+      - name: Unit tests (pytest) — fast edge-case coverage
+        run: |
+          # tests/ covers _math_core + _bkz_core corner cases that the
+          # bit-identity parity + verify.sh gates do not touch (clamp
+          # semantics, log_clamp schema, ln_fixed_point boundaries,
+          # build_lwe_kannan determinism, etc.). Fast — no fpylll heavy
+          # path required for the pure-math tests; runs in ~0.1s.
+          python3 -m pip install --upgrade pytest
+          python3 -m pytest tests/ -v
+
       - name: Smoke-test script imports inside the image
         run: |
           docker run --rm sdbkz-benchmark:ci python3 -c "
