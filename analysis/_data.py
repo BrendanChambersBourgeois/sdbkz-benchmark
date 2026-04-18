@@ -194,6 +194,12 @@ def _manifest_load_groups(
                 data = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             continue
+        # Inject manifest-side fields that callers sometimes need
+        # (provenance tags, canonical relative path). Prefixed with
+        # `_manifest_` to avoid colliding with the JSON schema.
+        data["_manifest_tags"] = list(entry.get("tags", []))
+        data["_manifest_path"] = entry["path"]
+        data["_manifest_campaign"] = entry["campaign"]
         groups[(entry["n"], entry["beta"])].append(data)
 
     filtered = {

@@ -6,12 +6,11 @@ q=3329 distribution showing the bimodal clean/degenerate failure mode
 example per-tour trajectory of one degenerate seed.
 """
 import os
-import json
-import glob
 
 import numpy as np
 import matplotlib.pyplot as plt
 
+from .._data import load_all_seeds
 from .._style import COLORS
 
 
@@ -33,19 +32,17 @@ def fig_q3329_degeneracy(groups, output_dir="."):
         return
     q97_advs = np.array([s["advantage"] for s in q97_seeds])
 
-    # q=3329: load from both cloud/ and q3329/ directories, skip _fat.json.
-    # Derive the results dir from this file's location so it works for any
-    # checkout path.
-    base = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        "results",
+    # q=3329: v1.3 manifest query for the n=100 β=30 p=1000 mt=70
+    # campaign (paper §8 headline 100-seed dataset, 10 AWS-Batch +
+    # 45 Intel 13900K + 45 AMD 9950X3D). Dedup by (n, β, seed) with
+    # non-cloud preference mirrors the legacy raw/cloud-first globber
+    # behaviour; fat companions skipped by default.
+    q3329_groups = load_all_seeds(
+        campaign="q3329", n=100, beta=30, q=3329,
+        precision=1000, max_tours=70,
     )
-    q3329_files = sorted(
-        glob.glob(os.path.join(base, "cloud", "n100_beta30_q3329_seed*.json"))
-        + glob.glob(os.path.join(base, "q3329", "n100_beta30_q3329_seed*.json"))
-    )
-    q3329_files = [f for f in q3329_files if not f.endswith("_fat.json")]
-    if not q3329_files:
+    q3329_seeds = q3329_groups.get((100, 30), [])
+    if not q3329_seeds:
         print("  No q=3329 n=100 β=30 data available")
         return
 
@@ -59,21 +56,14 @@ def fig_q3329_degeneracy(groups, output_dir="."):
     # helper whenever get_r returns a non-positive value.
     DEGENERACY_THRESHOLD_LN = -100.0
 
-    # Deduplicate by seed (cloud seeds 1-10 exist in both dirs)
-    seen_seeds = set()
     q3329_data = []
-    for f in q3329_files:
-        d = json.load(open(f))
-        seed = d["seed"]
-        if seed in seen_seeds:
-            continue
-        seen_seeds.add(seed)
+    for d in q3329_seeds:
         sd_min = min(d["gs_lognorms_sdbkz"])
         bkz_min = min(d["gs_lognorms_bkz"])
         is_degen = (sd_min < DEGENERACY_THRESHOLD_LN
                     or bkz_min < DEGENERACY_THRESHOLD_LN)
         q3329_data.append({
-            "seed": seed,
+            "seed": d["seed"],
             "advantage": d["advantage"],
             "is_degen": is_degen,
             "bkz_traj": d["bkz_dln_per_tour"],
