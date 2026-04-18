@@ -48,7 +48,20 @@ def _write_seed(dirpath, fname, **overrides):
 
 
 def _build_manifest(results_root, manifest_path):
-    entries, rejects = bsm.walk(str(results_root))
+    # bsm.walk stores entry["path"] as os.path.relpath(os.path.realpath(path)).
+    # That relpath is computed against CWD at walk time. Tests later
+    # os.chdir() to tmp_path and expect manifest entries to resolve
+    # relative to tmp_path, so do the walk from tmp_path too (the
+    # parent of results_root) regardless of where pytest was launched
+    # from — otherwise the relpath resolution depends on the caller's
+    # starting CWD depth (the coincidence that hid the bug on host and
+    # surfaced it inside the CI Docker image whose CWD is /repo).
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(os.path.dirname(os.path.abspath(str(results_root))))
+        entries, rejects = bsm.walk(str(results_root))
+    finally:
+        os.chdir(old_cwd)
     manifest = {
         "schema_version": 1,
         "generated_utc": "2026-04-18T00:00:00Z",
@@ -210,7 +223,17 @@ def test_preflight_blocks_missing_source(tmp_path):
     moves = mig.plan_moves(manifest)
     # Remove the source file after the plan is built.
     os.unlink(os.path.join(str(root), "raw", "n50_beta20_seed1.json"))
-    problems = mig.preflight_checks(moves)
+    # preflight_checks resolves mv.old_path relative to CWD. Ensure the
+    # check happens from tmp_path so the relative path in the manifest
+    # refers to the (now deleted) fixture file — not a coincidentally-
+    # present file under the real repo's results/raw/ when pytest is
+    # launched from a repo-root CWD.
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(str(tmp_path))
+        problems = mig.preflight_checks(moves)
+    finally:
+        os.chdir(old_cwd)
     assert len(problems) == 1
     assert "missing source" in problems[0]
 
