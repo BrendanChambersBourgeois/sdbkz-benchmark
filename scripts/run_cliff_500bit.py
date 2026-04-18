@@ -36,13 +36,14 @@ seeds — includes per-tour trajectories so per-position analysis can
 compare against the 250-bit baseline without a re-run).
 """
 import os, sys, json, time, datetime, argparse
-from multiprocessing import Pool
+from multiprocessing import Pool  # noqa: F401  (kept for API compat)
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
 from log import get_logger, new_run_id, get_run_id
+from _signal_utils import managed_pool
 PIPELINE = get_logger("run_cliff_500bit")
 
 # -- CLI ---------------------------------------------------------------------
@@ -179,7 +180,8 @@ def main():
     t_start = time.time()
     completed = 0
 
-    with Pool(processes=NUM_WORKERS, maxtasksperchild=1) as pool:
+    with managed_pool(processes=NUM_WORKERS, maxtasksperchild=1,
+                      label="run_cliff_500bit") as pool:
         for r in pool.imap_unordered(worker, todo):
             completed += 1
             elapsed = time.time() - t_start

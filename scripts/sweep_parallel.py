@@ -20,6 +20,7 @@ from log import get_logger, new_run_id, get_run_id
 from _math_core import (
     ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
 )
+from _signal_utils import managed_pool
 PIPELINE = get_logger("sweep_parallel")
 
 # ---------------------------------------------------------------------------
@@ -478,7 +479,8 @@ def main():
     t_start = time.time()
 
     # maxtasksperchild prevents memory leaks in long fpylll sessions
-    with Pool(processes=NUM_WORKERS, maxtasksperchild=5) as pool:
+    with managed_pool(processes=NUM_WORKERS, maxtasksperchild=5,
+                      label="sweep_parallel") as pool:
         for key, status, detail in pool.imap_unordered(worker, pending):
             n_done += 1
             n_val, beta_val, seed_val = key
