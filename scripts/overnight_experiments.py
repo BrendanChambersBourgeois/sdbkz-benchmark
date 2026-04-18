@@ -26,6 +26,9 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
+from _math_core import (
+    build_lwe_kannan, log_clamp, metrics_from_gso, ln_fixed_point,
+)
 PIPELINE = get_logger("overnight_experiments")
 
 # BASE is the repo root. Two dirname() calls because this script lives
@@ -37,85 +40,15 @@ CLAMP_LOG_FILE = os.path.join(BASE, "results", "clamp_events.jsonl")
 
 
 def _log_clamp(ctx, position, raw_value):
-    """Append one defensive-clamp event to the side log. Never raises.
-    Mirrors sweep_parallel.py:_log_clamp — defensive clamps on get_r
-    record the raw value before the 1e-300 substitution fires."""
-    import datetime
-    try:
-        os.makedirs(os.path.dirname(CLAMP_LOG_FILE), exist_ok=True)
-        with open(CLAMP_LOG_FILE, "a") as f:
-            f.write(json.dumps({
-                "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "script": "overnight_experiments",
-                "ctx": ctx,
-                "position": int(position),
-                "raw_value": float(raw_value),
-            }) + "\n")
-    except OSError:
-        pass
-
-# ── Copied from sweep_parallel.py ───────────────────────────────────────
-
-def build_lwe_kannan(n, m, q, seed=123):
-    rng = np.random.RandomState(seed)
-    s = rng.randint(0, 2, n).astype(int)
-    e = rng.choice([-1, 0, 1], m).astype(int)
-    A = rng.randint(0, q, (m, n)).astype(int)
-    b = (A @ s + e) % q
-    dim = m + n + 1
-    L = [[0] * dim for _ in range(dim)]
-    for i in range(m):
-        L[i][i] = q
-    for j in range(n):
-        for i in range(m):
-            L[m + j][i] = int(A[i][j])
-    for j in range(n):
-        L[m + j][m + j] = 1
-    for i in range(m):
-        L[m + n][i] = int(b[i])
-    L[m + n][m + n] = 1
-    return L, s, e
-
-
-def ln_fixed_point(size, beta):
-    exp = (size - 1) / (2 * (beta - 1)) + (beta * (beta - 2)) / (
-        2 * size * (beta - 1)
-    )
-    log_v_beta = math.log(beta / (2 * math.pi * math.e)) * exp
-    log_delta = math.log(beta / (2 * math.pi * math.e)) / (2 * beta - 2)
-    total_vol = sum((size + 1 - 2 * i) * log_delta for i in range(1, size + 1))
-    profile, cum = [], 0.0
-    for i in range(1, size + 1):
-        cum += (size + 1 - 2 * i) * log_delta
-        profile.append(cum - (i / size) * total_vol)
-    return [p + log_v_beta for p in profile]
+    log_clamp(ctx, position, raw_value,
+              script_name="overnight_experiments", log_path=CLAMP_LOG_FILE)
 
 
 def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
-    start, size = m, dim - m
-
-    def _safe_log_r(i, ctx_tag):
-        r = M.get_r(i, i)
-        if r > 0:
-            return 0.5 * math.log(r)
-        _log_clamp(f"{clamp_ctx} {ctx_tag}".strip(), i, r)
-        return 0.5 * math.log(1e-300)
-
-    gs_log_active = [_safe_log_r(i, "active") for i in range(start, dim)]
-    log_vol = sum(gs_log_active)
-    rankin, cum = [], 0.0
-    for idx, val in enumerate(gs_log_active):
-        cum += val
-        rankin.append(cum - ((idx + 1) / size) * log_vol)
-    dln = float(np.mean(np.abs(np.array(rankin) - np.array(ln_profile))))
-    result = {"rankin": rankin, "dln": dln}
-    if full:
-        gs_all = [_safe_log_r(i, "full") for i in range(dim)]
-        log_b1 = gs_all[0]
-        log_det_over_dim = sum(gs_all) / dim
-        result["gs_lognorms"] = gs_all
-        result["rhf"] = math.exp(log_b1 - log_det_over_dim)
-    return result
+    return metrics_from_gso(
+        M, dim, m, ln_profile, full=full, clamp_ctx=clamp_ctx,
+        log_clamp_fn=_log_clamp,
+    )
 
 
 # ═════════════════════════════════════════════════════════════════════════
@@ -162,7 +95,6 @@ def run_3x_tour_test():
         LLL.reduction(B_init)
         M_init = GSO.Mat(B_init)
         M_init.update_gso()
-        init = _metrics_from_gso(M_init, dim, m, ln_p, full=False)
 
         row = {"seed": seed, "n": N, "beta": BETA}
 

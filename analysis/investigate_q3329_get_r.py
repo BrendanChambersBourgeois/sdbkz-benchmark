@@ -63,6 +63,10 @@ sys.argv = _argv_save
 
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO  # noqa: E402
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+from log import get_logger  # noqa: E402
+PIPELINE = get_logger("investigate_q3329_get_r")
+
 
 # ── Config ──────────────────────────────────────────────────────────────────
 
@@ -136,6 +140,7 @@ def save(payload, status, path=OUT_PATH):
 # ── Main ────────────────────────────────────────────────────────────────────
 
 def main():
+    PIPELINE.info("investigate_q3329_get_r start", cat="analysis")
     print("=" * 72)
     print(f"Investigating raw get_r for seed {SEED} "
           f"(n={N}, β={BETA}, q={Q}, {PRECISION}-bit MPFR)")
@@ -174,8 +179,8 @@ def main():
 
     print()
     print(f"LLL state is clean. Running BKZ tour-by-tour, β={BETA}...")
-    print(f"Will stop at the first tour with a non-positive r_val.")
-    print(f"Per-tour cost: ~5-15 minutes wall (single-threaded MPFR).")
+    print("Will stop at the first tour with a non-positive r_val.")
+    print("Per-tour cost: ~5-15 minutes wall (single-threaded MPFR).")
     print()
 
     flags = BKZ.MAX_LOOPS | BKZ.AUTO_ABORT
@@ -228,13 +233,14 @@ def main():
     # Ran all tours without finding a bad value
     print()
     print(f"Ran {MAX_TOURS_TO_TRY} tours without triggering the clamp.")
-    print(f"This is unexpected — seed 1 is known to be degenerate at "
-          f"the final state.")
+    print("This is unexpected — seed 1 is known to be degenerate at "
+          "the final state.")
     save({
         "lll_scan": lll_scan,
         "first_bad_tour": None,
         "history": history,
     }, "no_bad_found")
+    PIPELINE.info("investigate_q3329_get_r complete", cat="analysis")
 
 
 if __name__ == "__main__":

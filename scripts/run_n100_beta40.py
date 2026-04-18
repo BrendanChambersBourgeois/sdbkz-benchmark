@@ -107,7 +107,7 @@ def main():
     print(f"  Workers:        {NUM_WORKERS}")
     print(f"  Tours:          {sweep_parallel.TOURS_BY_BETA[BETA]}")
     print(f"  Output dir:     {sweep_parallel.RAW_DIR}")
-    print(f"  Per-seed est:   ~5.3h (interpolated from n=90/n=110 β=40)")
+    print("  Per-seed est:   ~5.3h (interpolated from n=90/n=110 β=40)")
     if todo:
         est_h = len(todo) * 5.3 / NUM_WORKERS
         print(f"  Wall-clock est: ~{est_h:.1f}h")

@@ -16,7 +16,11 @@ import numpy as np
 from multiprocessing import Pool
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from log import get_logger
+from log import get_logger, new_run_id, get_run_id
+from _math_core import (
+    ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
+)
+from _signal_utils import managed_pool
 PIPELINE = get_logger("sweep_parallel")
 
 # ---------------------------------------------------------------------------
@@ -45,31 +49,8 @@ CLAMP_LOG_FILE = os.path.join(RESULTS_DIR, "clamp_events.jsonl")
 
 
 def _log_clamp(ctx, position, raw_value):
-    """Append one defensive-clamp event to the side log. Never raises.
-
-    Defensive clamps on get_r must log the raw value before substituting.
-    This writes a JSONL side file instead of mutating the per-seed JSON
-    schema, so SHA-256 reproducibility is preserved. POSIX atomic-append
-    semantics (writes < PIPE_BUF) make this safe under multiprocessing
-    workers.
-
-    The `ctx` string should carry enough identifiers to correlate with
-    the per-seed JSON (e.g. "n100_beta30_seed42 active_block"); the
-    timestamp + progress.log give coarse correlation too.
-    """
-    import datetime
-    try:
-        os.makedirs(os.path.dirname(CLAMP_LOG_FILE), exist_ok=True)
-        with open(CLAMP_LOG_FILE, "a") as f:
-            f.write(json.dumps({
-                "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "script": "sweep_parallel",
-                "ctx": ctx,
-                "position": int(position),
-                "raw_value": float(raw_value),
-            }) + "\n")
-    except OSError:
-        pass
+    log_clamp(ctx, position, raw_value,
+              script_name="sweep_parallel", log_path=CLAMP_LOG_FILE)
 
 # ---------------------------------------------------------------------------
 # Install deps (idempotent)
@@ -91,82 +72,11 @@ def install_deps():
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 
-def build_lwe_kannan(n, m, q, seed=123):
-    rng = np.random.RandomState(seed)
-    s = rng.randint(0, 2, n).astype(int)
-    e = rng.choice([-1, 0, 1], m).astype(int)
-    A = rng.randint(0, q, (m, n)).astype(int)
-    b = (A @ s + e) % q
-    dim = m + n + 1
-    L = [[0] * dim for _ in range(dim)]
-    for i in range(m):
-        L[i][i] = q
-    for j in range(n):
-        for i in range(m):
-            L[m + j][i] = int(A[i][j])
-    for j in range(n):
-        L[m + j][m + j] = 1
-    for i in range(m):
-        L[m + n][i] = int(b[i])
-    L[m + n][m + n] = 1
-    return L, s, e
-
-
-def ln_fixed_point(size, beta):
-    exp = (size - 1) / (2 * (beta - 1)) + (beta * (beta - 2)) / (
-        2 * size * (beta - 1)
-    )
-    log_v_beta = math.log(beta / (2 * math.pi * math.e)) * exp
-    log_delta = math.log(beta / (2 * math.pi * math.e)) / (2 * beta - 2)
-    total_vol = sum((size + 1 - 2 * i) * log_delta for i in range(1, size + 1))
-    profile, cum = [], 0.0
-    for i in range(1, size + 1):
-        cum += (size + 1 - 2 * i) * log_delta
-        profile.append(cum - (i / size) * total_vol)
-    return [p + log_v_beta for p in profile]
-
-
 def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
-    """Extract metrics from an already-updated GSO object.
-
-    Always returns rankin profile (active block) and d(LN).
-    If full=True, also returns gs_lognorms (full basis) and RHF.
-
-    When fpylll's `get_r(i, i)` returns a non-positive value (the
-    Cholesky-style GS cancellation at q=3329 n>=100, documented in
-    paper §8), the raw value is logged to `results/clamp_events.jsonl`
-    via `_log_clamp` before the 1e-300 substitution fires. Clamps are
-    recorded in a side file instead of the per-seed JSON so SHA-256
-    reproducibility is preserved.
-    """
-    start, size = m, dim - m
-
-    def _safe_log_r(i, ctx_tag):
-        r = M.get_r(i, i)
-        if r > 0:
-            return 0.5 * math.log(r)
-        _log_clamp(f"{clamp_ctx} {ctx_tag}".strip(), i, r)
-        return 0.5 * math.log(1e-300)
-
-    # GS log-norms for active block (always needed for rankin)
-    gs_log_active = [_safe_log_r(i, "active") for i in range(start, dim)]
-    log_vol = sum(gs_log_active)
-    rankin, cum = [], 0.0
-    for idx, val in enumerate(gs_log_active):
-        cum += val
-        rankin.append(cum - ((idx + 1) / size) * log_vol)
-
-    dln = float(np.mean(np.abs(np.array(rankin) - np.array(ln_profile))))
-    result = {"rankin": rankin, "dln": dln}
-
-    if full:
-        gs_all = [_safe_log_r(i, "full") for i in range(dim)]
-        log_b1 = gs_all[0]
-        log_det_over_dim = sum(gs_all) / dim
-        result["gs_lognorms"] = gs_all
-        result["rhf"] = math.exp(log_b1 - log_det_over_dim)
-
-    return result
+    return metrics_from_gso(
+        M, dim, m, ln_profile, full=full, clamp_ctx=clamp_ctx,
+        log_clamp_fn=_log_clamp,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -261,142 +171,20 @@ def migrate_old_results():
 STORE_PER_TOUR = False
 
 
+from _bkz_core import run_single as _bkz_core_run_single
+
+
 def run_single(n, beta, seed, store_per_tour=False):
-    """Run BKZ and SDBKZ on one (n, beta, seed). Returns result dict.
-
-    When ``store_per_tour`` is True, the result additionally contains
-    ``{variant}_rankin_per_tour``, ``{variant}_gs_lognorms_per_tour``, and
-    ``{variant}_rhf_per_tour`` (one entry per executed tour). Default False
-    preserves the lean v1.0 schema.
-    """
-    FPLLL.set_precision(PRECISION)
-    FPLLL.set_random_seed(seed)
-
-    max_tours = TOURS_BY_BETA[beta]
-    m = n * 2
-    dim = m + n + 1
-    L, _, _ = build_lwe_kannan(n, m, Q, seed=seed)
-    ln_p = ln_fixed_point(n + 1, beta)
-
-    result = {
-        "n": n, "beta": beta, "seed": seed, "q": Q, "max_tours": max_tours,
-        "precision": PRECISION, "dim": dim, "m": m, "status": "completed",
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-    }
-    # Only add the key when fat-log mode is ON, so the default-off path
-    # emits byte-for-byte the same JSON as the v1.0 dataset (SHA-256
-    # reproducibility evidence lives in hash_verification.txt).
-    if store_per_tour:
-        result["store_per_tour"] = True
-
-    # --- Initial quality (after LLL, before any BKZ) ---
-    B_init = IntegerMatrix.from_matrix(L)
-    LLL.reduction(B_init)
-    M_init = GSO.Mat(B_init)
-    M_init.update_gso()
-    init = _metrics_from_gso(M_init, dim, m, ln_p, full=True)
-    result["initial_dln"] = init["dln"]
-    result["initial_rhf"] = init["rhf"]
-    result["initial_rankin_profile"] = [float(x) for x in init["rankin"]]
-    result["initial_gs_lognorms"] = [float(x) for x in init["gs_lognorms"]]
-
-    # --- Run both variants ---
-    for variant in ("bkz", "sdbkz"):
-        B = IntegerMatrix.from_matrix(L)
-        LLL.reduction(B)
-
-        flags = BKZ.MAX_LOOPS | BKZ.AUTO_ABORT
-        if variant == "sdbkz":
-            flags |= BKZ.SD_VARIANT
-
-        dln_per_tour = []
-        deltas = []
-        rankin_per_tour = []
-        gs_lognorms_per_tour = []
-        rhf_per_tour = []
-        stag_tour = None
-        stag_rankin = None
-        stag_rhf = None
-        stag_gs = None
-        termination = "max_tours_reached"
-        prev_rankin = init["rankin"]
-        t0 = time.time()
-
-        for t in range(1, max_tours + 1):
-            param = BKZ.Param(beta, max_loops=1, flags=flags)
-            BKZ.reduction(B, param, float_type="mpfr", precision=PRECISION)
-
-            M = GSO.Mat(B)
-            M.update_gso()
-            if store_per_tour:
-                metrics = _metrics_from_gso(M, dim, m, ln_p, full=True)
-                rankin_per_tour.append([float(x) for x in metrics["rankin"]])
-                gs_lognorms_per_tour.append(
-                    [float(x) for x in metrics["gs_lognorms"]]
-                )
-                rhf_per_tour.append(float(metrics["rhf"]))
-            else:
-                metrics = _metrics_from_gso(M, dim, m, ln_p, full=False)
-            dln_per_tour.append(metrics["dln"])
-
-            delta = float(np.mean(np.abs(
-                np.array(metrics["rankin"]) - np.array(prev_rankin)
-            )))
-            deltas.append(delta)
-
-            if delta < 1e-6:
-                stag_tour = t
-                full_m = _metrics_from_gso(M, dim, m, ln_p, full=True)
-                stag_rankin = [float(x) for x in full_m["rankin"]]
-                stag_rhf = full_m["rhf"]
-                stag_gs = [float(x) for x in full_m["gs_lognorms"]]
-                termination = "stagnated"
-                break
-
-            prev_rankin = metrics["rankin"]
-
-        elapsed = time.time() - t0
-        tours_run = len(dln_per_tour)
-
-        # If never stagnated, capture at final tour
-        if stag_tour is None:
-            stag_tour = tours_run
-            M_final = GSO.Mat(B)
-            M_final.update_gso()
-            full_m = _metrics_from_gso(M_final, dim, m, ln_p, full=True)
-            stag_rankin = [float(x) for x in full_m["rankin"]]
-            stag_rhf = full_m["rhf"]
-            stag_gs = [float(x) for x in full_m["gs_lognorms"]]
-
-        result[f"{variant}_dln_per_tour"] = dln_per_tour
-        result[f"{variant}_final_dln"] = dln_per_tour[-1]
-        result[f"{variant}_tours_run"] = tours_run
-        result[f"{variant}_termination"] = termination
-        result[f"stagnation_tour_{variant}"] = stag_tour
-        result[f"rankin_profile_{variant}"] = stag_rankin
-        result[f"rhf_{variant}"] = stag_rhf
-        result[f"gs_lognorms_{variant}"] = stag_gs
-        if store_per_tour:
-            result[f"{variant}_rankin_per_tour"] = rankin_per_tour
-            result[f"{variant}_gs_lognorms_per_tour"] = gs_lognorms_per_tour
-            result[f"{variant}_rhf_per_tour"] = rhf_per_tour
-        result[f"{variant}_floor"] = float(np.mean(deltas[-5:]))
-        result[f"{variant}_time"] = elapsed
-
-    # --- Derived metrics ---
-    result["advantage"] = result["bkz_final_dln"] - result["sdbkz_final_dln"]
-    result["rhf_advantage"] = result["rhf_bkz"] - result["rhf_sdbkz"]
-
-    # --- Crossover tour ---
-    bkz_final = result["bkz_final_dln"]
-    crossover = None
-    for t_idx, sd_dln in enumerate(result["sdbkz_dln_per_tour"], 1):
-        if sd_dln < bkz_final:
-            crossover = t_idx
-            break
-    result["crossover_tour"] = crossover
-
-    return result
+    """Thin wrapper: feeds the canonical BKZ driver with sweep_parallel
+    conventions (Q=97, PRECISION=250, TOURS_BY_BETA, plain floor metric)."""
+    return _bkz_core_run_single(
+        n=n, beta=beta, seed=seed,
+        q=Q, precision=PRECISION,
+        max_tours=TOURS_BY_BETA[beta],
+        log_clamp_fn=_log_clamp,
+        store_per_tour=store_per_tour,
+        floor_mode="plain",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -427,9 +215,15 @@ def worker(args):
         return (key, "completed", out)
 
     except _Timeout:
+        PIPELINE.error("worker timed_out", cat="sweep",
+                       n=n, beta=beta, seed=seed, timeout_s=timeout)
         return (key, "timed_out", f"Exceeded {timeout}s")
 
     except Exception as exc:
+        PIPELINE.error("worker failed", cat="sweep",
+                       n=n, beta=beta, seed=seed,
+                       exc_type=type(exc).__name__, exc_msg=str(exc),
+                       traceback=tb.format_exc())
         return (key, "failed", f"{type(exc).__name__}: {exc}")
 
     finally:
@@ -618,11 +412,16 @@ def setup_logging():
 # Main
 # ---------------------------------------------------------------------------
 def main():
-    migrate_only = "--migrate" in sys.argv
     summary_only = "--summary" in sys.argv
     if "--store-per-tour" in sys.argv:
         global STORE_PER_TOUR
         STORE_PER_TOUR = True
+
+    # Tag every event from this run with a single correlation id so
+    # parent + workers + any subprocess descendants group together
+    # in pipeline.jsonl. Inherits via BKZ_RUN_ID env if already set.
+    if not get_run_id():
+        new_run_id()
 
     os.makedirs(RAW_DIR, exist_ok=True)
 
@@ -679,7 +478,8 @@ def main():
     t_start = time.time()
 
     # maxtasksperchild prevents memory leaks in long fpylll sessions
-    with Pool(processes=NUM_WORKERS, maxtasksperchild=5) as pool:
+    with managed_pool(processes=NUM_WORKERS, maxtasksperchild=5,
+                      label="sweep_parallel") as pool:
         for key, status, detail in pool.imap_unordered(worker, pending):
             n_done += 1
             n_val, beta_val, seed_val = key

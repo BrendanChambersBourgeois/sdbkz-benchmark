@@ -36,13 +36,14 @@ seeds — includes per-tour trajectories so per-position analysis can
 compare against the 250-bit baseline without a re-run).
 """
 import os, sys, json, time, datetime, argparse
-from multiprocessing import Pool
+from multiprocessing import Pool  # noqa: F401  (kept for API compat)
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
-from log import get_logger
+from log import get_logger, new_run_id, get_run_id
+from _signal_utils import managed_pool
 PIPELINE = get_logger("run_cliff_500bit")
 
 # -- CLI ---------------------------------------------------------------------
@@ -124,6 +125,10 @@ def worker(seed):
         }
     except Exception as e:
         import traceback
+        PIPELINE.error("cliff worker failed", cat="sweep",
+                       n=N, beta=BETA, seed=seed,
+                       exc_type=type(e).__name__, exc_msg=str(e),
+                       traceback=traceback.format_exc())
         return {
             "seed": seed,
             "status": "fail",
@@ -136,18 +141,20 @@ def worker(seed):
 # -- Main --------------------------------------------------------------------
 
 def main():
+    if not get_run_id():
+        new_run_id()
     todo = [s for s in SEEDS if not already_done(s)]
     done_count = len(SEEDS) - len(todo)
 
     print("=" * 70)
-    print(f"β=40 CLIFF PRECISION TEST (camera-ready §6.3 robustness)")
+    print("β=40 CLIFF PRECISION TEST (camera-ready §6.3 robustness)")
     print(f"  n={N} β={BETA} q={Q} precision={PRECISION}-bit MPFR")
     print(f"  Plan:           seeds 1..{len(SEEDS)} ({len(SEEDS)} total)")
     print(f"  Already done:   {done_count}")
     print(f"  To run:         {len(todo)}")
     print(f"  Workers:        {NUM_WORKERS}")
     print(f"  Output dir:     {OUTPUT_DIR}")
-    print(f"  Per-seed est:   ~70 ks wall (27 ks @ 250-bit × ~2.5× penalty)")
+    print("  Per-seed est:   ~70 ks wall (27 ks @ 250-bit × ~2.5× penalty)")
     if todo:
         est_h = len(todo) * 70000 / NUM_WORKERS / 3600
         print(f"  Wall-clock est: ~{est_h:.1f} h")
@@ -173,7 +180,8 @@ def main():
     t_start = time.time()
     completed = 0
 
-    with Pool(processes=NUM_WORKERS, maxtasksperchild=1) as pool:
+    with managed_pool(processes=NUM_WORKERS, maxtasksperchild=1,
+                      label="run_cliff_500bit") as pool:
         for r in pool.imap_unordered(worker, todo):
             completed += 1
             elapsed = time.time() - t_start

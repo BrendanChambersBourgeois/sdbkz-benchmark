@@ -139,7 +139,7 @@ def main():
     todo = [s for s in SEEDS if not seed_exists(s)]
     tours = sweep_parallel.TOURS_BY_BETA[BETA]
 
-    slog.info(f"sweep gap-fill starting", cat="sweep",
+    slog.info("sweep gap-fill starting", cat="sweep",
               n=N, beta=BETA, q=sweep_parallel.Q,
               range=f"{args.start}-{args.end}", total=len(SEEDS),
               todo=len(todo), workers=args.workers, tours=tours)
@@ -202,7 +202,7 @@ def main():
                       f"FAILED — {r['error']}", flush=True)
 
     total_h = (time.time() - t_start) / 3600
-    slog.info(f"sweep gap-fill done", cat="sweep",
+    slog.info("sweep gap-fill done", cat="sweep",
               n=N, beta=BETA, succeeded=completed-failed,
               failed=failed, wall_h=round(total_h, 2))
     print(f"\nDone in {total_h:.2f}h. "

@@ -163,7 +163,7 @@ def main():
     print(f"  To run:         {len(todo)}")
     print(f"  Workers:        {NUM_WORKERS}")
     print(f"  Output dir:     {OUTPUT_DIR}")
-    print(f"  Per-seed est:   ~9.1 h on a single core (AWS baseline)")
+    print("  Per-seed est:   ~9.1 h on a single core (AWS baseline)")
     if todo:
         est_h = len(todo) * 9.1 / NUM_WORKERS
         print(f"  Wall-clock est: ~{est_h:.1f} h "
