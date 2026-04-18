@@ -1,0 +1,58 @@
+{
+  "claim": "beta=40 cliff at n=130 is structural, not a 250-bit MPFR precision artifact",
+  "paper_section": "6.3 Per-position mechanism / 7.4 Limitations",
+  "hypothesis_tested": "Paper \u00a76.3 reports abrupt SD-BKZ disadvantage at n=130 \u03b2=40 (-1.334 nats, 0% win, d=-9.70 at 250-bit MPFR). Reviewer concern: could the cliff be a numerical precision artifact in the squared-form GSO recurrence at 250-bit MPFR?",
+  "test_design": {
+    "n": 130,
+    "beta": 40,
+    "q": 97,
+    "max_tours": 100,
+    "baseline_precision_bits": 250,
+    "test_precision_bits": 500,
+    "seeds_baseline": 25,
+    "seeds_test": 20,
+    "test_seeds_range": "1-20",
+    "total_wall_hours": 8.85,
+    "runner": "scripts/run_cliff_500bit.py",
+    "data_dir": "results/cliff_500bit/"
+  },
+  "results": {
+    "250bit": {
+      "n_seeds": 25,
+      "mean_advantage_nats": -1.3696,
+      "stdev_nats": 0.134,
+      "wins": 0,
+      "win_rate": 0.0,
+      "cohen_d_vs_zero": -10.218
+    },
+    "500bit": {
+      "n_seeds": 20,
+      "mean_advantage_nats": -1.2819,
+      "stdev_nats": 0.1123,
+      "wins": 0,
+      "win_rate": 0.0,
+      "cohen_d_vs_zero": -11.413
+    }
+  },
+  "comparison": {
+    "delta_mean_nats": 0.0878,
+    "delta_pct_of_baseline": -6.4,
+    "welch_t": 2.389,
+    "cohen_d_indep": 0.703,
+    "win_rate_change": "0/25 \u2192 0/20 (unchanged)"
+  },
+  "verdict": "CLIFF STRUCTURAL \u2014 precision robustness confirmed",
+  "interpretation": "Doubling MPFR precision (250\u2192500 bit) softens the mean SD-BKZ disadvantage by +0.088 nats (6.4% of baseline magnitude) but does not change the sign of the disadvantage in any of 20 seeds. Win rate remains 0%. Cohen's d vs zero is actually STRONGER at 500-bit (-11.4 vs -9.70) because variance tightens with precision. The small Welch t=+2.39 captures a measurable-but-negligible numerical shift; the phenomenon itself is not precision-driven.",
+  "paper_impact": {
+    "strengthens_claim": true,
+    "section_6_3_needs_caveat": false,
+    "section_7_4_limitations_add": "The \u03b2=40 cliff at n=130 was tested for precision-sensitivity by re-running 20 seeds at 500-bit MPFR (double the 250-bit baseline). Mean advantage moved from -1.370 to -1.282 nats (\u0394=+0.088 nats); win rate stayed at 0/20. The cliff is therefore structural, not a numerical artifact of the squared-form GSO recurrence at 250-bit."
+  },
+  "provenance": {
+    "generated_utc": "2026-04-18",
+    "runner_commit": "856f436",
+    "script": "scripts/run_cliff_500bit.py",
+    "per_seed_json_dir": "results/cliff_500bit/",
+    "log": "logs/cliff_500bit_n130_b40.out"
+  }
+}
