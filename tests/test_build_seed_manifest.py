@@ -251,6 +251,141 @@ def test_summarise_counts_per_campaign(tmp_path):
     assert summary["q3329"]["q_values"] == [3329]
 
 
+# ---------------- v1.3 native-layout walker --------------------------------
+
+
+def _write_v13_seed(root, rel, **overrides):
+    full = os.path.join(root, rel)
+    os.makedirs(os.path.dirname(full), exist_ok=True)
+    base = {
+        "n": 50, "beta": 20, "seed": 1, "q": 97,
+        "precision": 250, "max_tours": 70,
+        "store_per_tour": False,
+        "status": "completed", "advantage": 0.12345,
+    }
+    base.update(overrides)
+    with open(full, "w") as f:
+        json.dump(base, f)
+    return full
+
+
+def test_walk_v13_direct_main_seed(tmp_path):
+    root = tmp_path / "results"
+    _write_v13_seed(
+        str(root), "seeds/main/q97/n050_beta20/seed0001.json",
+        n=50, beta=20, seed=1,
+    )
+    entries, rejects = bsm.walk(str(root))
+    assert rejects == []
+    assert len(entries) == 1
+    e = entries[0]
+    assert e["campaign"] == "main"
+    assert (e["n"], e["beta"], e["seed"]) == (50, 20, 1)
+    assert e["tags"] == []
+
+
+def test_walk_v13_q3329_parses_precision_and_max_tours(tmp_path):
+    root = tmp_path / "results"
+    _write_v13_seed(
+        str(root),
+        "seeds/q3329/p1000_mt70/n090_beta30/seed0021.json",
+        n=90, beta=30, seed=21, q=3329, precision=1000, max_tours=70,
+    )
+    entries, rejects = bsm.walk(str(root))
+    assert rejects == []
+    assert len(entries) == 1
+    e = entries[0]
+    assert e["campaign"] == "q3329"
+    assert e["precision"] == 1000
+    assert e["max_tours"] == 70
+
+
+def test_walk_v13_fplll_sensitivity_parses_version(tmp_path):
+    root = tmp_path / "results"
+    _write_v13_seed(
+        str(root),
+        "seeds/fplll_sensitivity/v5_4_3/q97/n100_beta30/seed0001.json",
+        n=100, beta=30, seed=1,
+    )
+    entries, rejects = bsm.walk(str(root))
+    assert rejects == []
+    assert entries[0]["fplll_version"] == "5.4.3"
+
+
+def test_walk_v13_convergence_parses_max_tours_from_leaf(tmp_path):
+    root = tmp_path / "results"
+    _write_v13_seed(
+        str(root),
+        "seeds/convergence/q97/n140_beta30_mt500/seed0010.json",
+        n=140, beta=30, seed=10, max_tours=500,
+    )
+    entries, rejects = bsm.walk(str(root))
+    assert rejects == []
+    assert entries[0]["max_tours"] == 500
+
+
+def test_walk_v13_cloud_suffix_tagged(tmp_path):
+    root = tmp_path / "results"
+    _write_v13_seed(
+        str(root),
+        "seeds/main/q97/n050_beta20/seed0001_cloud.json",
+        n=50, beta=20, seed=1,
+    )
+    entries, rejects = bsm.walk(str(root))
+    assert rejects == []
+    assert "cloud" in entries[0]["tags"]
+
+
+def test_walk_v13_fat_companion_tagged(tmp_path):
+    root = tmp_path / "results"
+    _write_v13_seed(
+        str(root),
+        "seeds/q3329/p1000_mt70/n100_beta30/seed0001.json",
+        n=100, beta=30, seed=1, q=3329, precision=1000, max_tours=70,
+    )
+    _write_v13_seed(
+        str(root),
+        "seeds/q3329/p1000_mt70/n100_beta30/seed0001_fat.json",
+        n=100, beta=30, seed=1, q=3329, precision=1000, max_tours=70,
+    )
+    entries, rejects = bsm.walk(str(root))
+    assert rejects == []
+    assert len(entries) == 2
+    fat = [e for e in entries if "fat" in e["tags"]]
+    assert len(fat) == 1
+
+
+def test_walk_v13_dedup_symlink_and_canonical(tmp_path):
+    root = tmp_path / "results"
+    canonical = _write_v13_seed(
+        str(root), "seeds/main/q97/n050_beta20/seed0001.json",
+        n=50, beta=20, seed=1,
+    )
+    legacy_dir = root / "raw"
+    legacy_dir.mkdir(parents=True, exist_ok=True)
+    legacy_link = legacy_dir / "n50_beta20_seed1.json"
+    rel = os.path.relpath(canonical, str(legacy_dir))
+    os.symlink(rel, str(legacy_link))
+
+    entries, rejects = bsm.walk(str(root))
+    assert rejects == []
+    assert len(entries) == 1
+
+
+def test_walk_v13_rejects_unknown_campaign(tmp_path):
+    root = tmp_path / "results"
+    _write_v13_seed(
+        str(root),
+        "seeds/portfolio/q97/n050_beta20/seed0001.json",
+        n=50, beta=20, seed=1,
+    )
+    entries, rejects = bsm.walk(str(root))
+    assert entries == []
+    assert len(rejects) == 1
+    _, reason = rejects[0]
+    assert "v1.3 layout" in reason
+
+
 def test_cli_writes_manifest_and_is_idempotent(tmp_path):
     """End-to-end CLI: builds manifest, re-run produces identical content."""
     root = tmp_path / "results"

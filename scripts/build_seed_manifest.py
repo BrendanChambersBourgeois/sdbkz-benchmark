@@ -247,14 +247,211 @@ def _classify(
     return entry, None
 
 
+# ---------------------------------------------------------------------------
+# v1.3 layout parser
+# ---------------------------------------------------------------------------
+# Leaf-filename pattern under results/seeds/<campaign>/...:
+#   seed{NNNN}[_cloud][_fat].json
+_V13_LEAF_RE = re.compile(
+    r"^seed(?P<seed>\d+)(?P<cloud>_cloud)?(?P<fat>_fat)?\.json$"
+)
+# Parent-dir pattern: n{NNN}_beta{BB} or (convergence) n{NNN}_beta{BB}_mt{MT}
+_V13_NBETA_RE = re.compile(
+    r"^n(?P<n>\d+)_beta(?P<beta>\d+)(?:_mt(?P<mt>\d+))?$"
+)
+
+
+def _parse_v13_path(
+    rel_path: str,
+) -> Optional[dict]:
+    """Parse a path under results/seeds/ into (campaign, n, β, seed, ...).
+
+    Returns None when the path shape does not match any known v1.3 layout.
+    Matches the emit logic in scripts/_seed_paths.py — any drift there
+    must be mirrored here or the walker will miss new entries.
+    """
+    parts = rel_path.split(os.sep)
+    # Expected: ["results", "seeds", "<campaign>", ..., "n{n}_beta{b}[_mt]", "seed{s}.json"]
+    if len(parts) < 5 or parts[0] != "results" or parts[1] != "seeds":
+        return None
+    campaign = parts[2]
+    leaf = parts[-1]
+    m_leaf = _V13_LEAF_RE.match(leaf)
+    if m_leaf is None:
+        return None
+    seed = int(m_leaf.group("seed"))
+    is_cloud = m_leaf.group("cloud") is not None
+    is_fat = m_leaf.group("fat") is not None
+
+    parent = parts[-2]
+    m_nb = _V13_NBETA_RE.match(parent)
+    if m_nb is None:
+        return None
+    n = int(m_nb.group("n"))
+    beta = int(m_nb.group("beta"))
+    conv_mt = int(m_nb.group("mt")) if m_nb.group("mt") else None
+
+    # Campaign-specific path middles between seeds/<campaign>/ and the
+    # n_beta leaf. Extract precision / max_tours / fplll_version as
+    # relevant.
+    mid = parts[3:-2]
+    q = 97
+    precision: Optional[int] = None
+    max_tours: Optional[int] = None
+    fplll_version: Optional[str] = None
+
+    if campaign == "main":
+        # seeds/main/q97/n{n}_beta{b}/
+        if mid != ["q97"]:
+            return None
+    elif campaign == "q3329":
+        # seeds/q3329/p{prec}_mt{mt}/n{n}_beta{b}/
+        if len(mid) != 1:
+            return None
+        m_q = re.match(r"^p(?P<p>\d+)_mt(?P<mt>\d+)$", mid[0])
+        if m_q is None:
+            return None
+        q = 3329
+        precision = int(m_q.group("p"))
+        max_tours = int(m_q.group("mt"))
+    elif campaign == "cliff500":
+        if mid != ["q97"]:
+            return None
+    elif campaign == "fplll_sensitivity":
+        # seeds/fplll_sensitivity/v{x_y_z}/q97/n{n}_beta{b}/
+        if len(mid) != 2 or mid[1] != "q97":
+            return None
+        ver_slug = mid[0]
+        if not ver_slug.startswith("v"):
+            return None
+        fplll_version = ver_slug[1:].replace("_", ".")
+    elif campaign == "tours3x":
+        if mid != ["q97"]:
+            return None
+    elif campaign == "convergence":
+        if mid != ["q97"]:
+            return None
+        max_tours = conv_mt
+    else:
+        return None
+
+    return {
+        "campaign": campaign,
+        "n": n, "beta": beta, "seed": seed, "q": q,
+        "precision": precision, "max_tours": max_tours,
+        "fplll_version": fplll_version,
+        "is_cloud": is_cloud, "is_fat": is_fat,
+    }
+
+
+def _classify_v13(
+    path: str,
+    rel_path: str,
+    generated_utc: str,
+) -> tuple[Optional[dict], Optional[str]]:
+    """Build a manifest entry from a v1.3-layout path, or reject it."""
+    parsed = _parse_v13_path(rel_path)
+    if parsed is None:
+        return None, f"path does not match v1.3 layout: {rel_path}"
+
+    try:
+        with open(path) as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        return None, f"json decode error: {e}"
+    except OSError as e:
+        return None, f"open error: {e}"
+
+    missing = [k for k in REQUIRED_KEYS if k not in data]
+    if missing:
+        return None, f"missing required keys: {missing}"
+
+    # Cross-check path-derived vs content-derived params.
+    if data["n"] != parsed["n"] or data["beta"] != parsed["beta"] \
+            or data["seed"] != parsed["seed"]:
+        return None, (
+            f"path/content mismatch: path (n,β,seed)="
+            f"({parsed['n']},{parsed['beta']},{parsed['seed']}) vs "
+            f"content ({data['n']},{data['beta']},{data['seed']})"
+        )
+    if data["q"] != parsed["q"]:
+        return None, (
+            f"q mismatch: path implies q={parsed['q']}, "
+            f"content says q={data['q']}"
+        )
+
+    is_fat = parsed["is_fat"]
+    advantage: Optional[float]
+    if is_fat:
+        advantage = None
+    elif parsed["campaign"] == "tours3x":
+        adv_source = data.get("advantage_equal_tours")
+        if not isinstance(adv_source, (int, float)) or not math.isfinite(adv_source):
+            return None, f"advantage_equal_tours not finite (got {adv_source!r})"
+        advantage = float(adv_source)
+    else:
+        adv_source = data.get("advantage")
+        if not isinstance(adv_source, (int, float)) or not math.isfinite(adv_source):
+            return None, f"advantage not finite (got {adv_source!r})"
+        advantage = float(adv_source)
+
+    # status check: same rules as legacy walker
+    if not is_fat and parsed["campaign"] not in ("tours3x", "convergence"):
+        if data.get("status") != "completed":
+            return None, f"status != 'completed' (got {data.get('status')!r})"
+
+    tags: list[str] = []
+    if parsed["is_cloud"]:
+        tags.append("cloud")
+    if is_fat:
+        tags.append("fat")
+    # tours3x legacy tag (single-runner campaign; all v1.3 seeds are 3x-variant)
+    if parsed["campaign"] == "tours3x":
+        tags.append("3x")
+
+    st = os.stat(path)
+    entry = {
+        "campaign": parsed["campaign"],
+        "path": os.path.relpath(os.path.realpath(path)),
+        "n": parsed["n"],
+        "beta": parsed["beta"],
+        "seed": parsed["seed"],
+        "q": parsed["q"],
+        "precision": parsed["precision"] if parsed["precision"] is not None
+                     else data.get("precision"),
+        "max_tours": parsed["max_tours"] if parsed["max_tours"] is not None
+                     else data.get("max_tours"),
+        "store_per_tour": data.get("store_per_tour"),
+        "advantage": advantage,
+        "sha256": _sha256(path),
+        "size_bytes": st.st_size,
+        "mtime_utc": _iso_utc_from_epoch(st.st_mtime),
+        "tags": tags,
+        "verified": True,
+        "verified_at_utc": generated_utc,
+        "verified_by": "build_seed_manifest.py",
+    }
+    if parsed["fplll_version"] is not None:
+        entry["fplll_version"] = parsed["fplll_version"]
+    return entry, None
+
+
 def walk(results_root: str) -> tuple[list[dict], list[tuple[str, str]]]:
-    """Scan results_root for seed JSONs. Returns (entries, rejects)."""
+    """Scan results_root for seed JSONs via both the legacy-CAMPAIGN_DIRS
+    walker and the v1.3 results/seeds/ native walker. Entries dedup by
+    canonical (os.path.realpath) destination so a file reachable via
+    both a pre-v1.3 symlink and its new canonical path lands once.
+
+    Returns (entries, rejects).
+    """
     generated_utc = dt.datetime.now(tz=dt.timezone.utc).strftime(
         "%Y-%m-%dT%H:%M:%SZ"
     )
-    entries: list[dict] = []
     rejects: list[tuple[str, str]] = []
+    # keyed by canonical realpath → entry
+    by_real: dict[str, dict] = {}
 
+    # ----- legacy walker -----
     for dirname, (campaign, tags) in CAMPAIGN_DIRS.items():
         abs_dir = os.path.join(results_root, dirname)
         if not os.path.isdir(abs_dir):
@@ -274,8 +471,40 @@ def walk(results_root: str) -> tuple[list[dict], list[tuple[str, str]]]:
             if entry is None:
                 rejects.append((path, reason))
                 continue
-            entries.append(entry)
+            real = os.path.realpath(path)
+            by_real.setdefault(real, entry)
 
+    # ----- v1.3 native walker -----
+    seeds_root = os.path.join(results_root, "seeds")
+    results_parent = os.path.dirname(os.path.abspath(results_root)) or "."
+    results_leaf = os.path.basename(os.path.abspath(results_root)) or "results"
+    if os.path.isdir(seeds_root):
+        for root, _dirs, files in os.walk(seeds_root):
+            for fname in sorted(files):
+                if not fname.endswith(".json"):
+                    continue
+                path = os.path.join(root, fname)
+                if os.path.islink(path):
+                    continue
+                # Build a path whose first component is "results" so
+                # _parse_v13_path's shape check lines up regardless of
+                # where results_root sits in the filesystem (repo root,
+                # tmp_path, etc.).
+                rel_under_results = os.path.relpath(path, results_root)
+                rel_path = os.path.join(results_leaf, rel_under_results) \
+                    if results_leaf == "results" \
+                    else os.path.join("results", rel_under_results)
+                entry, reason = _classify_v13(path, rel_path, generated_utc)
+                if entry is None:
+                    rejects.append((path, reason))
+                    continue
+                real = os.path.realpath(path)
+                # If the legacy walker already indexed the same file via
+                # a symlink, keep the legacy entry (preserves existing
+                # tag/category semantics). Otherwise use the v1.3 entry.
+                by_real.setdefault(real, entry)
+
+    entries = list(by_real.values())
     entries.sort(
         key=lambda e: (
             e["campaign"],
