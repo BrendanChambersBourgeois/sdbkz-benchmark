@@ -145,7 +145,7 @@ sys.path.insert(0, 'scripts')
 from sweep_parallel import run_single
 N, BETA = {n}, {beta}
 SEEDS = {list(seeds)!r}
-STAGING_TMPL = {os.path.join(STAGING, f'sp_n{{n}}_b{{beta}}_s{{seed}}.json')!r}
+STAGING_TMPL = {os.path.join(STAGING, 'sp_n{n}_b{beta}_s{seed}.json')!r}
 def work(s):
     r = run_single(N, BETA, s)
     out = STAGING_TMPL.format(n=N, beta=BETA, seed=s)

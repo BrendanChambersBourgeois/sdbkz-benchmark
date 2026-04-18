@@ -398,7 +398,7 @@ def format_text_report(result):
                  f"({c['sdbkz_only_degenerate']/n*100:5.1f}%)")
     lines.append(f"  Both degenerate:      {c['both_degenerate']:>3}/{n}  "
                  f"({c['both_degenerate']/n*100:5.1f}%)")
-    lines.append(f"  ─" * 14)
+    lines.append("  ─" * 14)
     lines.append(f"  ANY degenerate:       {c['any_degenerate']:>3}/{n}  "
                  f"({c['any_degenerate']/n*100:5.1f}%)")
     lines.append("")

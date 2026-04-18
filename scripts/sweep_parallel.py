@@ -412,7 +412,6 @@ def setup_logging():
 # Main
 # ---------------------------------------------------------------------------
 def main():
-    migrate_only = "--migrate" in sys.argv
     summary_only = "--summary" in sys.argv
     if "--store-per-tour" in sys.argv:
         global STORE_PER_TOUR

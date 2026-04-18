@@ -43,7 +43,7 @@ def compute_stats(advantages):
     """Compute all statistical measures for a group's advantages."""
     n_seeds = len(advantages)
     adv = np.array(advantages)
-    
+
     result = {
         'n_seeds': n_seeds,
         'mean': np.mean(adv),
@@ -54,19 +54,19 @@ def compute_stats(advantages):
         'win_rate': np.mean(adv > 0),
         'skewness': scipy_stats.skew(adv),
     }
-    
+
     # ── 95% Confidence Interval on mean (t-distribution) ──
     se = result['std'] / np.sqrt(n_seeds)
     t_crit = scipy_stats.t.ppf(0.975, df=n_seeds - 1)
     result['ci_lower'] = result['mean'] - t_crit * se
     result['ci_upper'] = result['mean'] + t_crit * se
-    
+
     # ── Cohen's d (effect size: mean / std) ──
     if result['std'] > 0:
         result['cohens_d'] = result['mean'] / result['std']
     else:
         result['cohens_d'] = float('inf')
-    
+
     # ── Paired t-test: H0: mean advantage = 0 ──
     if n_seeds >= 2:
         t_stat, p_ttest = scipy_stats.ttest_1samp(adv, 0)
@@ -75,7 +75,7 @@ def compute_stats(advantages):
     else:
         result['t_stat'] = None
         result['p_ttest'] = None
-    
+
     # ── Wilcoxon signed-rank test: H0: symmetric around 0 ──
     # (non-parametric, doesn't assume normality)
     if n_seeds >= 10:
@@ -89,7 +89,7 @@ def compute_stats(advantages):
     else:
         result['w_stat'] = None
         result['p_wilcoxon'] = None
-    
+
     # ── Shapiro-Wilk normality test ──
     if 3 <= n_seeds <= 5000:
         try:
@@ -99,7 +99,7 @@ def compute_stats(advantages):
             result['p_shapiro'] = None
     else:
         result['p_shapiro'] = None
-    
+
     return result
 
 
@@ -110,13 +110,13 @@ def format_p(p):
     if p < 1e-300:
         return "< 1e-300"
     if p < 1e-100:
-        return f"< 1e-100"
+        return "< 1e-100"
     if p < 1e-50:
-        return f"< 1e-50"
+        return "< 1e-50"
     if p < 1e-20:
-        return f"< 1e-20"
+        return "< 1e-20"
     if p < 1e-10:
-        return f"< 1e-10"
+        return "< 1e-10"
     if p < 0.0001:
         return f"{p:.2e}"
     return f"{p:.6f}"
@@ -127,7 +127,7 @@ def main():
     raw_dir = DEFAULT_RAW_DIR
     if len(sys.argv) > 1 and sys.argv[1] == '--results-dir':
         raw_dir = sys.argv[2]
-    
+
     print("=" * 80)
     print("SDBKZ vs BKZ — Statistical Analysis")
     print(f"Reading from: {raw_dir}")
@@ -140,18 +140,18 @@ def main():
         print(f"ERROR: No seed files found in {raw_dir}")
         print("Check --results-dir or run from the right location.")
         sys.exit(1)
-    
+
     output_lines = []
-    
+
     def out(line=""):
         print(line)
         output_lines.append(line)
-    
+
     out("=" * 100)
     out("STATISTICAL ANALYSIS — SDBKZ vs BKZ d(LN) Advantage")
     out(f"Generated from {sum(len(v) for v in groups.values())} seeds across {len(groups)} groups")
     out("=" * 100)
-    
+
     # ── Summary Table ──
     out()
     out("TABLE FOR PAPER — Section 4 (add to methodology paragraph)")
@@ -159,31 +159,31 @@ def main():
     out(f"{'Group':<12} {'Seeds':>5} {'Mean':>7} {'95% CI':>18} {'Median':>7} "
         f"{'Cohen d':>8} {'t-test p':>12} {'Wilcoxon p':>12} {'Win%':>6}")
     out("-" * 100)
-    
+
     for (n, beta) in sorted(groups.keys()):
         entries = groups[(n, beta)]
         advantages = [e['advantage'] for e in entries]
         s = compute_stats(advantages)
-        
+
         ci_str = f"[{s['ci_lower']:.3f}, {s['ci_upper']:.3f}]"
-        
+
         out(f"n={n} β={beta:<4} {s['n_seeds']:>5} {s['mean']:>7.3f} {ci_str:>18} {s['median']:>7.3f} "
             f"{s['cohens_d']:>8.2f} {format_p(s['p_ttest']):>12} {format_p(s['p_wilcoxon']):>12} "
             f"{s['win_rate']*100:>5.1f}%")
-    
+
     out("-" * 100)
-    
+
     # ── Detailed per-group analysis ──
     out()
     out("=" * 100)
     out("DETAILED PER-GROUP ANALYSIS")
     out("=" * 100)
-    
+
     for (n, beta) in sorted(groups.keys()):
         entries = groups[(n, beta)]
         advantages = [e['advantage'] for e in entries]
         s = compute_stats(advantages)
-        
+
         out()
         out(f"── n={n}, β={beta} ({s['n_seeds']} seeds) " + "─" * 50)
         out(f"  Mean advantage:     {s['mean']:.4f} nats")
@@ -197,19 +197,19 @@ def main():
         out(f"  Paired t-test:      t={s['t_stat']:.2f}, p={format_p(s['p_ttest'])}" if s['t_stat'] else "  Paired t-test:      N/A")
         out(f"  Wilcoxon signed-rank: W={s['w_stat']:.0f}, p={format_p(s['p_wilcoxon'])}" if s['w_stat'] else "  Wilcoxon signed-rank: N/A (need ≥10 seeds)")
         out(f"  Shapiro-Wilk normality: p={format_p(s['p_shapiro'])}" if s['p_shapiro'] else "  Shapiro-Wilk: N/A")
-        
+
         # Percentiles
         adv = np.array(advantages)
         p5, p25, p75, p95 = np.percentile(adv, [5, 25, 75, 95])
         out(f"  Percentiles:        5th={p5:.3f}  25th={p25:.3f}  75th={p75:.3f}  95th={p95:.3f}")
-        
+
         # Count of losses (BKZ wins)
         losses = adv[adv < 0]
         if len(losses) > 0:
             out(f"  BKZ wins:           {len(losses)} seeds, mean loss margin: {np.mean(losses):.4f} nats")
         else:
-            out(f"  BKZ wins:           0 (SD-BKZ wins every seed)")
-    
+            out("  BKZ wins:           0 (SD-BKZ wins every seed)")
+
     # ── Paper-ready paragraph ──
     out()
     out("=" * 100)
@@ -223,7 +223,7 @@ def main():
     out("  in all groups, ranging from [MIN d] to [MAX d]. The 95% confidence intervals")
     out("  exclude zero in every group. These statistics confirm that the d(LN) advantage")
     out("  is not a statistical artifact but a consistent structural phenomenon.")
-    
+
     # ── Write output file ──
     try:
         with open(OUTPUT_FILE, 'w') as f:

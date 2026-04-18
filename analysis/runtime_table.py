@@ -139,7 +139,7 @@ def render_html(rows):
 
 def main():
     PIPELINE.info("runtime_table start", cat="analysis")
-    print(f"Loading seeds from:")
+    print("Loading seeds from:")
     print(f"  {DEFAULT_RAW_DIR}")
     print(f"  {DEFAULT_CLOUD_DIR}")
     groups = load_all_seeds(DEFAULT_RAW_DIR, DEFAULT_CLOUD_DIR)

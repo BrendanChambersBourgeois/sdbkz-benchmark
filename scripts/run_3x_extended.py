@@ -129,7 +129,7 @@ def main():
     print("EXTENDED 3x TOUR COUNT EXPERIMENTS")
     print(f"  Workers: {NUM_WORKERS}")
     print(f"  Groups: {len(GROUPS)}")
-    print(f"  Seeds per group: 100")
+    print("  Seeds per group: 100")
     print(f"  Output: {OUTPUT_DIR}")
     print("=" * 70)
     print()
@@ -184,8 +184,6 @@ def main():
                     all_results.append(result)
                     done_count += 1
 
-                    adv_eq = result["advantage_equal_tours"]
-                    adv_3x = result["advantage_3x"]
                     closed = "YES" if result["gap_closed"] else "no"
                     elapsed = time.time() - t_start
                     rate = (done_count - len(completed)) / elapsed if elapsed > 0 else 0

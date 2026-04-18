@@ -204,7 +204,7 @@ def main():
     print(f"Total: {len(all_ln_advs)} seeds, {len(group_results)} groups, "
           f"{len(reversals)} reversal(s)")
     if reversals:
-        print(f"\nReversals:")
+        print("\nReversals:")
         for rev in reversals:
             print(f"  {rev['group']}: d(LN) → {rev['dLN_winner']}, "
                   f"d(GSA) → {rev['dGSA_winner']}")

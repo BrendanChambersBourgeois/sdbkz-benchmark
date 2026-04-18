@@ -48,7 +48,7 @@ MAX_SEED_TIME_Q3329 = {20: 7200, 30: 57600, 40: 86400}  # 2h, 16h, 24h
 # SIGTERM handler: clean exit on Batch termination / spot reclaim
 # ---------------------------------------------------------------------------
 def _sigterm_handler(signum, frame):
-    print(f"\nSIGTERM received. Flushing and exiting.", flush=True)
+    print("\nSIGTERM received. Flushing and exiting.", flush=True)
     sys.stdout.flush()
     sys.stderr.flush()
     os._exit(1)
@@ -304,7 +304,7 @@ def main():
     pending_seeds = [s for s in all_seeds if s not in completed]
 
     print("=" * 70)
-    print(f"BKZ Benchmark — Cloud Runner")
+    print("BKZ Benchmark — Cloud Runner")
     print(f"  n={args.n}, beta={args.beta}, q={Q}, precision={PRECISION}")
     print(f"  Seeds: {seed_start}-{seed_end} ({len(all_seeds)} total)")
     print(f"  Already completed: {len(completed)}")
@@ -382,7 +382,7 @@ def main():
     if n_success > 0:
         print(f"Win rate: {wins}/{n_success} = {wins/n_success*100:.0f}%")
     else:
-        print(f"Win rate: N/A (all seeds failed)")
+        print("Win rate: N/A (all seeds failed)")
 
     # Force exit to prevent fpylll C library cleanup deadlock
     sys.stdout.flush()
