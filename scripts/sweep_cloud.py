@@ -21,7 +21,7 @@ from multiprocessing import Pool, cpu_count
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
-from _math_core import ln_fixed_point
+from _math_core import ln_fixed_point, build_lwe_kannan
 PIPELINE = get_logger("sweep_cloud")
 
 # ---------------------------------------------------------------------------
@@ -163,27 +163,6 @@ def local_list_completed(output_dir, n, beta):
 # Core lattice helpers (copied verbatim from sweep_parallel.py)
 # ---------------------------------------------------------------------------
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
-
-
-def build_lwe_kannan(n, m, q, seed=123):
-    rng = np.random.RandomState(seed)
-    s = rng.randint(0, 2, n).astype(int)
-    e = rng.choice([-1, 0, 1], m).astype(int)
-    A = rng.randint(0, q, (m, n)).astype(int)
-    b = (A @ s + e) % q
-    dim = m + n + 1
-    L = [[0] * dim for _ in range(dim)]
-    for i in range(m):
-        L[i][i] = q
-    for j in range(n):
-        for i in range(m):
-            L[m + j][i] = int(A[i][j])
-    for j in range(n):
-        L[m + j][m + j] = 1
-    for i in range(m):
-        L[m + n][i] = int(b[i])
-    L[m + n][m + n] = 1
-    return L, s, e
 
 
 def _log_clamp_cloud(ctx, position, raw_value):

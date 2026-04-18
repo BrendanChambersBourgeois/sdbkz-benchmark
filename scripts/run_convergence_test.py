@@ -18,6 +18,7 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
+from _math_core import build_lwe_kannan
 PIPELINE = get_logger("run_convergence_test")
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -49,27 +50,6 @@ N = 90
 BETA = 30
 MAX_TOURS = 500
 NUM_SEEDS = 20
-
-
-def build_lwe_kannan(n, m, q, seed=123):
-    rng = np.random.RandomState(seed)
-    s = rng.randint(0, 2, n).astype(int)
-    e = rng.choice([-1, 0, 1], m).astype(int)
-    A = rng.randint(0, q, (m, n)).astype(int)
-    b = (A @ s + e) % q
-    dim = m + n + 1
-    L = [[0] * dim for _ in range(dim)]
-    for i in range(m):
-        L[i][i] = q
-    for j in range(n):
-        for i in range(m):
-            L[m + j][i] = int(A[i][j])
-    for j in range(n):
-        L[m + j][m + j] = 1
-    for i in range(m):
-        L[m + n][i] = int(b[i])
-    L[m + n][m + n] = 1
-    return L, s, e
 
 
 def ln_fixed_point(size, beta):
