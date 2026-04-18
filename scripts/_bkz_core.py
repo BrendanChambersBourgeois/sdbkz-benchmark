@@ -59,6 +59,7 @@ def run_single(
     warn_on_clamp=False,
     store_per_tour=False,
     floor_mode="safe",
+    always_emit_store_per_tour=False,
 ):
     """Run BKZ and SD-BKZ on a single (n, beta, seed) lattice.
 
@@ -79,8 +80,13 @@ def run_single(
         "precision": precision, "dim": dim, "m": m, "status": "completed",
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
-    if store_per_tour:
-        result["store_per_tour"] = True
+    # The legacy q3329_verify dict-literal placed `store_per_tour` at
+    # position 10 unconditionally (True or False); other callers only
+    # emit the key when the flag is True. always_emit_store_per_tour
+    # preserves the q3329_verify schema position so future re-runs are
+    # SHA-256 reproducible against existing q3329 seeds.
+    if store_per_tour or always_emit_store_per_tour:
+        result["store_per_tour"] = bool(store_per_tour)
 
     def _metrics(M, full):
         return metrics_from_gso(M, dim, m, ln_p, full=full,

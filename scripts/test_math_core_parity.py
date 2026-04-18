@@ -46,6 +46,9 @@ LN_LEGACY = {
     "sweep_parallel": sweep_parallel.ln_fixed_point,
     "sweep_cloud": sweep_cloud.ln_fixed_point,
     "q3329_verify": q3329_verify.ln_fixed_point,
+    "overnight_experiments": overnight_experiments.ln_fixed_point,
+    "run_3x_extended": run_3x_extended.ln_fixed_point,
+    "run_convergence_test": run_convergence_test.ln_fixed_point,
 }
 
 BLWE_LEGACY = {

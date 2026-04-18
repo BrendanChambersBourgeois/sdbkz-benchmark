@@ -76,8 +76,8 @@ def run_single(n, beta, seed, store_per_tour=False):
     """Thin wrapper: feeds the canonical BKZ driver with q3329_verify
     conventions (Q=3329 default, MAX_TOURS captured at import time,
     warn_on_clamp=True for the q=3329 fast-signal, store_per_tour key
-    always present in the result dict for legacy schema parity)."""
-    result = _bkz_core_run_single(
+    always emitted at position 10 for legacy schema parity)."""
+    return _bkz_core_run_single(
         n=n, beta=beta, seed=seed,
         q=Q, precision=PRECISION,
         max_tours=MAX_TOURS,
@@ -85,13 +85,8 @@ def run_single(n, beta, seed, store_per_tour=False):
         warn_on_clamp=True,
         store_per_tour=store_per_tour,
         floor_mode="safe",
+        always_emit_store_per_tour=True,
     )
-    # q3329_verify has historically always emitted the store_per_tour
-    # key (True or False); preserve schema for the existing q=3329
-    # seed JSONs.
-    if "store_per_tour" not in result:
-        result["store_per_tour"] = store_per_tour
-    return result
 
 
 # -- Main ---------------------------------------------------------------------
