@@ -59,6 +59,10 @@ for seed in range(1, num_seeds + 1):
         continue
     print(f'  seed {seed}: running ...', end=' ', flush=True)
     result = run_single(50, 20, seed)
+    # v1.3 layout leaf (results/seeds/main/q97/n050_beta20/) is not
+    # pre-created in a fresh container — sweep_parallel.worker() has
+    # its own makedirs, but we call run_single + write directly.
+    os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, 'w') as f:
         json.dump(result, f, indent=2)
     print(f'done (advantage={result[\"advantage\"]:.6f})')
@@ -81,10 +85,17 @@ while IFS=' ' read -r seed ref_bkz ref_sd ref_adv; do
         break
     fi
     checked=$((checked + 1))
-    file="$RAW_DIR/n50_beta20_seed${seed}.json"
+    # v1.3 layout: ask sweep_parallel.result_path for the canonical
+    # path rather than hardcoding RAW_DIR, so verify.sh tracks the
+    # same location writes actually go to.
+    file=$(python3 -c "
+import sys; sys.path.insert(0, '$SCRIPT_DIR')
+from sweep_parallel import result_path
+print(result_path(50, 20, $seed))
+")
 
     if [ ! -f "$file" ]; then
-        echo "  FAIL  seed $seed: result file missing"
+        echo "  FAIL  seed $seed: result file missing ($file)"
         fail=$((fail + 1))
         continue
     fi
