@@ -104,8 +104,7 @@ def _grep_count(symbol, exclude_path=None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--verbose", action="store_true")
-    args = ap.parse_args()
-    verbose = args.verbose
+    ap.parse_args()
 
     PIPELINE.info("tag bug-hunt start", cat="audit")
 
@@ -134,7 +133,7 @@ def main():
                 print(f"    {p}")
 
     # -- Pass 2: Defined but never referenced -------------------------------
-    print(f"\n=== Pass 2: Functions defined but unreferenced ===")
+    print("\n=== Pass 2: Functions defined but unreferenced ===")
     unused = []
     for name, path, kind in funcs:
         if name in ALWAYS_USED or name.startswith("__"):
@@ -161,7 +160,7 @@ def main():
             print(f"  {n}: {paths}")
 
     # -- Pass 4: Private symbols imported elsewhere -------------------------
-    print(f"\n=== Pass 4: Private symbols (_foo) imported across files ===")
+    print("\n=== Pass 4: Private symbols (_foo) imported across files ===")
     leaks = []
     for name, path, kind in funcs + classes:
         if not name.startswith("_") or name.startswith("__"):
@@ -188,7 +187,7 @@ def main():
     # -- Summary ------------------------------------------------------------
     print()
     print("=" * 70)
-    print(f"Summary:")
+    print("Summary:")
     print(f"  Duplicate functions:   {len(duplicates)}")
     print(f"  Candidate unused:      {len(unused)}")
     print(f"  Duplicate classes:     {len(cls_dup)}")

@@ -168,7 +168,7 @@ def main():
             else:
                 print(f"  q=97 baseline (n={N}, beta={BETA}):  no local data")
         except Exception:
-            print(f"  q=97 baseline:  could not load")
+            print("  q=97 baseline:  could not load")
         print(f"  q={Q} result:                   mean={np.mean(adv):.3f}, "
               f"win={np.mean(adv > 0)*100:.0f}%")
 

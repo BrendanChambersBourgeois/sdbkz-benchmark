@@ -344,7 +344,7 @@ class SeedValidator:
         if tag_breakdown:
             print(f"  By tag: {tag_breakdown}")
         elif self.checked == 0:
-            print(f"  WARNING: 0 seed files matched — check the path(s) above")
+            print("  WARNING: 0 seed files matched — check the path(s) above")
         if self.incidents:
             print(f"  {len(self.incidents)} known incident(s) (not promoted in --strict):")
             for i in self.incidents:

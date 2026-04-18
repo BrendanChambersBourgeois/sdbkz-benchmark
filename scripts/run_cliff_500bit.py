@@ -147,14 +147,14 @@ def main():
     done_count = len(SEEDS) - len(todo)
 
     print("=" * 70)
-    print(f"β=40 CLIFF PRECISION TEST (camera-ready §6.3 robustness)")
+    print("β=40 CLIFF PRECISION TEST (camera-ready §6.3 robustness)")
     print(f"  n={N} β={BETA} q={Q} precision={PRECISION}-bit MPFR")
     print(f"  Plan:           seeds 1..{len(SEEDS)} ({len(SEEDS)} total)")
     print(f"  Already done:   {done_count}")
     print(f"  To run:         {len(todo)}")
     print(f"  Workers:        {NUM_WORKERS}")
     print(f"  Output dir:     {OUTPUT_DIR}")
-    print(f"  Per-seed est:   ~70 ks wall (27 ks @ 250-bit × ~2.5× penalty)")
+    print("  Per-seed est:   ~70 ks wall (27 ks @ 250-bit × ~2.5× penalty)")
     if todo:
         est_h = len(todo) * 70000 / NUM_WORKERS / 3600
         print(f"  Wall-clock est: ~{est_h:.1f} h")

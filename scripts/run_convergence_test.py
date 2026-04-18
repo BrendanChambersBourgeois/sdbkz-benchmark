@@ -210,7 +210,7 @@ def main():
         "win_rate_500": float(np.mean(advs > 0)),
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
-    with open(os.path.join(OUTPUT_DIR, f"summary_convergence.json"), "w") as f:
+    with open(os.path.join(OUTPUT_DIR, "summary_convergence.json"), "w") as f:
         json.dump(summary, f, indent=2)
 
     PIPELINE.info(

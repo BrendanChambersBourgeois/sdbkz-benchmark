@@ -135,7 +135,7 @@ def main():
         )
         return 0
 
-    print(f"FAIL — first 5 disagreement(s):")
+    print("FAIL — first 5 disagreement(s):")
     for entry in failures[:5]:
         print(f"  {entry}")
     if len(failures) > 5:

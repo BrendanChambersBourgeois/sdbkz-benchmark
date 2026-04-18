@@ -179,8 +179,8 @@ def main():
 
     print()
     print(f"LLL state is clean. Running BKZ tour-by-tour, β={BETA}...")
-    print(f"Will stop at the first tour with a non-positive r_val.")
-    print(f"Per-tour cost: ~5-15 minutes wall (single-threaded MPFR).")
+    print("Will stop at the first tour with a non-positive r_val.")
+    print("Per-tour cost: ~5-15 minutes wall (single-threaded MPFR).")
     print()
 
     flags = BKZ.MAX_LOOPS | BKZ.AUTO_ABORT
@@ -233,8 +233,8 @@ def main():
     # Ran all tours without finding a bad value
     print()
     print(f"Ran {MAX_TOURS_TO_TRY} tours without triggering the clamp.")
-    print(f"This is unexpected — seed 1 is known to be degenerate at "
-          f"the final state.")
+    print("This is unexpected — seed 1 is known to be degenerate at "
+          "the final state.")
     save({
         "lll_scan": lll_scan,
         "first_bad_tour": None,

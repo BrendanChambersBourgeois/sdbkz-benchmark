@@ -95,7 +95,6 @@ def run_3x_tour_test():
         LLL.reduction(B_init)
         M_init = GSO.Mat(B_init)
         M_init.update_gso()
-        init = _metrics_from_gso(M_init, dim, m, ln_p, full=False)
 
         row = {"seed": seed, "n": N, "beta": BETA}
 
