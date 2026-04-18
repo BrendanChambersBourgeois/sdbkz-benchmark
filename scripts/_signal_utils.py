@@ -91,9 +91,17 @@ def managed_pool(*pool_args, label: str = "pool", **pool_kwargs):
         # the parent process) retain their own signal disposition.
         signal.signal(signal.SIGINT, old_int)
         signal.signal(signal.SIGTERM, old_term)
-        # Best-effort cleanup if context exited normally without abort.
+        # Best-effort cleanup. We use terminate() (not close()) even on
+        # the clean-exit path because:
+        #   - Callers drain the full imap_unordered iterator before
+        #     leaving the context — by the time we're here, workers
+        #     are idle and terminate() is a no-op for in-flight state.
+        #   - If the user raised inside the context (e.g. a pickle
+        #     failure on args), pool.close() + pool.join() would hang
+        #     forever waiting for dead workers. terminate() guarantees
+        #     progress.
         try:
-            pool.close()
+            pool.terminate()
             pool.join()
         except Exception:
             pass
