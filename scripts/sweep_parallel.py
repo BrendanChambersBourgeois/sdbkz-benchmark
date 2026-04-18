@@ -17,7 +17,9 @@ from multiprocessing import Pool
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
-from _math_core import ln_fixed_point, build_lwe_kannan, log_clamp
+from _math_core import (
+    ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
+)
 PIPELINE = get_logger("sweep_parallel")
 
 # ---------------------------------------------------------------------------
@@ -70,46 +72,10 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 
 def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
-    """Extract metrics from an already-updated GSO object.
-
-    Always returns rankin profile (active block) and d(LN).
-    If full=True, also returns gs_lognorms (full basis) and RHF.
-
-    When fpylll's `get_r(i, i)` returns a non-positive value (the
-    Cholesky-style GS cancellation at q=3329 n>=100, documented in
-    paper §8), the raw value is logged to `results/clamp_events.jsonl`
-    via `_log_clamp` before the 1e-300 substitution fires. Clamps are
-    recorded in a side file instead of the per-seed JSON so SHA-256
-    reproducibility is preserved.
-    """
-    start, size = m, dim - m
-
-    def _safe_log_r(i, ctx_tag):
-        r = M.get_r(i, i)
-        if r > 0:
-            return 0.5 * math.log(r)
-        _log_clamp(f"{clamp_ctx} {ctx_tag}".strip(), i, r)
-        return 0.5 * math.log(1e-300)
-
-    # GS log-norms for active block (always needed for rankin)
-    gs_log_active = [_safe_log_r(i, "active") for i in range(start, dim)]
-    log_vol = sum(gs_log_active)
-    rankin, cum = [], 0.0
-    for idx, val in enumerate(gs_log_active):
-        cum += val
-        rankin.append(cum - ((idx + 1) / size) * log_vol)
-
-    dln = float(np.mean(np.abs(np.array(rankin) - np.array(ln_profile))))
-    result = {"rankin": rankin, "dln": dln}
-
-    if full:
-        gs_all = [_safe_log_r(i, "full") for i in range(dim)]
-        log_b1 = gs_all[0]
-        log_det_over_dim = sum(gs_all) / dim
-        result["gs_lognorms"] = gs_all
-        result["rhf"] = math.exp(log_b1 - log_det_over_dim)
-
-    return result
+    return metrics_from_gso(
+        M, dim, m, ln_profile, full=full, clamp_ctx=clamp_ctx,
+        log_clamp_fn=_log_clamp,
+    )
 
 
 # ---------------------------------------------------------------------------

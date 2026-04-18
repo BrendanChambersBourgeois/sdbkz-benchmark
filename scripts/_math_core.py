@@ -109,6 +109,68 @@ def build_lwe_kannan(n, m, q, seed=123):
     return L, s, e
 
 
+def metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx="",
+                     log_clamp_fn=None, warn_on_clamp=False):
+    """Extract metrics from an already-updated fpylll GSO object.
+
+    Always returns ``{"rankin": [...], "dln": float}`` computed over
+    the active block ``[m, dim)``. With ``full=True`` also includes
+    the full-basis Gram-Schmidt log-norms and the Root Hermite Factor.
+
+    Defensive clamps: when ``M.get_r(i, i)`` returns a non-positive
+    value (the Cholesky-style cancellation described in paper §8,
+    surfaced at q=3329 n>=100), the raw value is routed to
+    ``log_clamp_fn`` (typically each caller's thin wrapper around
+    ``log_clamp`` — so the event lands in `results/clamp_events.jsonl`
+    or the cloud container's ``/tmp/clamp_events.jsonl``) before the
+    ``1e-300`` substitution fires. The per-seed JSON schema is NOT
+    mutated on clamp; SHA-256 reproducibility is preserved.
+
+    ``warn_on_clamp=True`` emits one stdout line per call summarising
+    the active-block clamp count. Opt-in so the quiet q=97 main sweep
+    stays quiet; the q=3329 verification wrapper enables it for a
+    fast-signal during the long runs at the ML-KEM modulus.
+
+    ``log_clamp_fn`` may be ``None`` for tests or code paths that
+    deliberately want the silent 1e-300 substitute without side
+    effects. All existing callers pass a real logger.
+    """
+    start, size = m, dim - m
+    n_clamped = 0
+
+    def _safe_log_r(i, ctx_tag):
+        nonlocal n_clamped
+        r = M.get_r(i, i)
+        if r > 0:
+            return 0.5 * math.log(r)
+        n_clamped += 1
+        if log_clamp_fn is not None:
+            log_clamp_fn(f"{clamp_ctx} {ctx_tag}".strip(), i, r)
+        return 0.5 * math.log(1e-300)
+
+    gs_log_active = [_safe_log_r(i, "active") for i in range(start, dim)]
+    if warn_on_clamp and n_clamped > 0:
+        print(f"  WARNING: {n_clamped} get_r values <= 0 "
+              f"(logged to results/clamp_events.jsonl)")
+    log_vol = sum(gs_log_active)
+    rankin, cum = [], 0.0
+    for idx, val in enumerate(gs_log_active):
+        cum += val
+        rankin.append(cum - ((idx + 1) / size) * log_vol)
+
+    dln = float(np.mean(np.abs(np.array(rankin) - np.array(ln_profile))))
+    result = {"rankin": rankin, "dln": dln}
+
+    if full:
+        gs_all = [_safe_log_r(i, "full") for i in range(dim)]
+        log_b1 = gs_all[0]
+        log_det_over_dim = sum(gs_all) / dim
+        result["gs_lognorms"] = gs_all
+        result["rhf"] = math.exp(log_b1 - log_det_over_dim)
+
+    return result
+
+
 def ln_fixed_point(size, beta):
     """Closed-form Li-Nguyen fixed-point GS-log-norm profile.
 

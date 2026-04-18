@@ -15,7 +15,9 @@ from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger
-from _math_core import ln_fixed_point, build_lwe_kannan, log_clamp
+from _math_core import (
+    ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
+)
 PIPELINE = get_logger("q3329_verify")
 
 # -- Config -------------------------------------------------------------------
@@ -57,42 +59,12 @@ def _log_clamp(ctx, position, raw_value):
 # -- Copied verbatim from sweep_parallel.py -----------------------------------
 
 def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
-    start, size = m, dim - m
-    n_clamped = 0
-
-    def _safe_log_r(i, ctx_tag):
-        nonlocal n_clamped
-        r_val = M.get_r(i, i)
-        if r_val > 0:
-            return 0.5 * math.log(r_val)
-        n_clamped += 1
-        _log_clamp(f"{clamp_ctx} {ctx_tag}".strip(), i, r_val)
-        return 0.5 * math.log(1e-300)
-
-    gs_log_active = [_safe_log_r(i, "active") for i in range(start, dim)]
-    if n_clamped > 0:
-        # Keep the legacy warning print — it's visible in the progress log
-        # and gives a fast signal that a clamp fired. Raw values are
-        # preserved in results/clamp_events.jsonl for post-mortem.
-        print(f"  WARNING: {n_clamped} get_r values <= 0 "
-              f"(logged to results/clamp_events.jsonl)")
-    log_vol = sum(gs_log_active)
-    rankin, cum = [], 0.0
-    for idx, val in enumerate(gs_log_active):
-        cum += val
-        rankin.append(cum - ((idx + 1) / size) * log_vol)
-
-    dln = float(np.mean(np.abs(np.array(rankin) - np.array(ln_profile))))
-    result = {"rankin": rankin, "dln": dln}
-
-    if full:
-        gs_all = [_safe_log_r(i, "full") for i in range(dim)]
-        log_b1 = gs_all[0]
-        log_det_over_dim = sum(gs_all) / dim
-        result["gs_lognorms"] = gs_all
-        result["rhf"] = math.exp(log_b1 - log_det_over_dim)
-
-    return result
+    # warn_on_clamp=True preserves the q=3329 legacy behaviour of
+    # printing a progress-log line on active-block clamp events.
+    return metrics_from_gso(
+        M, dim, m, ln_profile, full=full, clamp_ctx=clamp_ctx,
+        log_clamp_fn=_log_clamp, warn_on_clamp=True,
+    )
 
 
 # -- Run logic (single-threaded, no timeout) ----------------------------------
