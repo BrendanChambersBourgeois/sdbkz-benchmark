@@ -326,8 +326,7 @@ class SeedValidator:
             if os.path.isdir(subdir):
                 # Skip non-data dirs
                 if entry in ("analysis", "logs", "summaries", "backups",
-                             "error_logs", "scripts", "paper", "cheatsheets",
-                             "dashboard"):
+                             "error_logs", "scripts", "paper", "cheatsheets"):
                     continue
                 self.check_directory(subdir, tag=entry)
 
