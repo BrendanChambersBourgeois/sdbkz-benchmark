@@ -20,10 +20,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Pin Python packages to exact versions used in the experiment
 # fpylll 0.6.4 bundles fplll 5.5.0 (libfplll.so.9.0.0) as a vendored library
+# matplotlib + scipy needed by the analysis package (imported at
+# tests/test_analysis_data_loader.py collection time via
+# analysis/__init__.py's matplotlib.use("Agg")); pytest ships so the
+# CI "Unit tests" step can run inside this image rather than on the
+# host runner (host runner python has no numpy/matplotlib).
 RUN pip install --no-cache-dir \
         fpylll==0.6.4 \
         cysignals==1.12.6 \
-        numpy==2.4.4
+        numpy==2.4.4 \
+        matplotlib \
+        scipy \
+        pytest
 
 WORKDIR /experiment
 # Copy the full scripts/ directory so wrapper scripts (run_q3329_n100_local,

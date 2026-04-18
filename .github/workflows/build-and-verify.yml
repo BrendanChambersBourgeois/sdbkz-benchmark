@@ -67,13 +67,19 @@ jobs:
 
       - name: Unit tests (pytest) — fast edge-case coverage
         run: |
-          # tests/ covers _math_core + _bkz_core corner cases that the
-          # bit-identity parity + verify.sh gates do not touch (clamp
-          # semantics, log_clamp schema, ln_fixed_point boundaries,
-          # build_lwe_kannan determinism, etc.). Fast — no fpylll heavy
-          # path required for the pure-math tests; runs in ~0.1s.
-          python3 -m pip install --upgrade pytest
-          python3 -m pytest tests/ -v
+          # tests/ covers _math_core + _bkz_core corner cases, manifest
+          # walker (v1.3 native + legacy), seed-path parity, lint-manifest
+          # invariants, and analysis data-loader dual-mode. Run inside
+          # sdbkz-benchmark:ci because several tests import analysis._data,
+          # which transitively imports matplotlib/numpy/scipy (all pinned
+          # in the image). Host runner only ships pytest, so a host-side
+          # invocation would die with ModuleNotFoundError at collection
+          # (this is the regression that broke build #71).
+          docker run --rm \
+            -v "${{ github.workspace }}:/repo:ro" \
+            -w /repo \
+            sdbkz-benchmark:ci \
+            python3 -m pytest tests/ -v
 
       - name: Smoke-test script imports inside the image
         run: |
