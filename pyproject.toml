@@ -20,3 +20,25 @@ cloud = ["boto3"]
 
 [tool.ruff]
 line-length = 100
+target-version = "py312"
+extend-exclude = ["paper", "patches", "_archives", "results", "Research"]
+
+[tool.ruff.lint]
+# Conservative rule set — style-drift-catching without being
+# opinionated. Raise F-codes (pyflakes: undef vars, unused imports),
+# W-codes (whitespace), E-codes excluding line-length (already 100),
+# and I001 (import sorting — unsorted imports are a pre-commit smell).
+select = ["F", "W", "I"]
+ignore = [
+    "F401",   # unused import: some wrappers re-export math/numpy
+    "F403",   # `from module import *` — not used but cheap to keep off
+    "F405",   # may be undefined, or defined from star imports
+    "I001",   # import sorting: too noisy for existing layout, opt-in later
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Test + confirmation scripts build inline Python source strings; keep
+# lenient.
+"scripts/confirm_v1_2.py" = ["E501", "F841"]
+"scripts/test_math_core_parity.py" = ["E402"]
+"scripts/test_log_clamp_wrappers.py" = ["E402"]

@@ -56,6 +56,15 @@ jobs:
           # auto-exempt; everything else must be wired.
           python3 scripts/lint_logging.py
 
+      - name: Lint (ruff) — style + dead-import drift guard
+        run: |
+          # Config in pyproject.toml [tool.ruff]; conservative rule set
+          # (F-codes, W-codes, I001 disabled for now). Dev machines
+          # without ruff can `pip install --user --break-system-packages
+          # ruff` or run inside a venv; CI installs fresh each build.
+          python3 -m pip install --upgrade ruff
+          ruff check scripts/ analysis/
+
       - name: Smoke-test script imports inside the image
         run: |
           docker run --rm sdbkz-benchmark:ci python3 -c "
