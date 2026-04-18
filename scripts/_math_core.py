@@ -33,15 +33,32 @@ CLAUDE.md §3 (q=3329 lessons): "check raw values, not derived metrics"
 legacy copy and flag the bug, because the legacy copies are what
 produced the paper's SHA-256-stable seed JSONs.
 """
+from __future__ import annotations
+
 import datetime
 import json
 import math
 import os
+from typing import Any, Callable, Optional
 
 import numpy as np
 
+# -- Tunable constants -------------------------------------------------------
+# Sentinel value substituted for fpylll's ``M.get_r(i, i)`` when it
+# returns a non-positive number. Logged via ``log_clamp_fn`` before
+# the substitution fires so the raw value stays auditable. Mirrored
+# in scripts/_bkz_core.py as CLAMP_FLOOR_R for the BKZ driver.
+CLAMP_FLOOR_R: float = 1e-300
 
-def log_clamp(ctx, position, raw_value, *, script_name, log_path):
+
+def log_clamp(
+    ctx: str,
+    position: int,
+    raw_value: float,
+    *,
+    script_name: str,
+    log_path: str,
+) -> None:
     """Append one defensive-clamp event to a JSONL side log. Never raises.
 
     Canonical implementation of the defensive-clamp logger used by
@@ -76,7 +93,9 @@ def log_clamp(ctx, position, raw_value, *, script_name, log_path):
         pass
 
 
-def build_lwe_kannan(n, m, q, seed=123):
+def build_lwe_kannan(
+    n: int, m: int, q: int, seed: int = 123
+) -> tuple[list[list[int]], np.ndarray, np.ndarray]:
     """Construct an LWE-Kannan embedding lattice of dimension n+m+1.
 
     Pure function of (n, m, q, seed) — seeded numpy RandomState makes
@@ -109,8 +128,16 @@ def build_lwe_kannan(n, m, q, seed=123):
     return L, s, e
 
 
-def metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx="",
-                     log_clamp_fn=None, warn_on_clamp=False):
+def metrics_from_gso(
+    M: Any,
+    dim: int,
+    m: int,
+    ln_profile: list[float],
+    full: bool = False,
+    clamp_ctx: str = "",
+    log_clamp_fn: Optional[Callable[[str, int, float], None]] = None,
+    warn_on_clamp: bool = False,
+) -> dict[str, Any]:
     """Extract metrics from an already-updated fpylll GSO object.
 
     Always returns ``{"rankin": [...], "dln": float}`` computed over
@@ -138,7 +165,7 @@ def metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx="",
     start, size = m, dim - m
     n_clamped = 0
 
-    def _safe_log_r(i, ctx_tag):
+    def _safe_log_r(i: int, ctx_tag: str) -> float:
         nonlocal n_clamped
         r = M.get_r(i, i)
         if r > 0:
@@ -146,7 +173,7 @@ def metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx="",
         n_clamped += 1
         if log_clamp_fn is not None:
             log_clamp_fn(f"{clamp_ctx} {ctx_tag}".strip(), i, r)
-        return 0.5 * math.log(1e-300)
+        return 0.5 * math.log(CLAMP_FLOOR_R)
 
     gs_log_active = [_safe_log_r(i, "active") for i in range(start, dim)]
     if warn_on_clamp and n_clamped > 0:
@@ -171,7 +198,7 @@ def metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx="",
     return result
 
 
-def ln_fixed_point(size, beta):
+def ln_fixed_point(size: int, beta: int) -> list[float]:
     """Closed-form Li-Nguyen fixed-point GS-log-norm profile.
 
     Pure function of (size, beta). Returns a list of length ``size``

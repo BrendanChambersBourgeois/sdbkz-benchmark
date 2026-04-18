@@ -37,30 +37,62 @@ original sweep_parallel and the "LLL once + copy" pattern in the
 other two produce bit-identical reductions; the canonical uses the
 copy pattern uniformly because it is strictly cheaper.
 """
+from __future__ import annotations
+
 import datetime
 import math
+import os
+import sys
 import time
+from typing import Any, Callable, Optional
 
 import numpy as np
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 from _math_core import build_lwe_kannan, ln_fixed_point, metrics_from_gso
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from log import get_logger  # noqa: E402
+PIPELINE = get_logger("_bkz_core")
+
+# -- Tunable constants -------------------------------------------------------
+# Per-tour delta below which the basis is considered to have stagnated;
+# triggers early termination of the BKZ tour loop and captures the final
+# Rankin profile + RHF + GS log-norms at the stagnation tour. Matches
+# the value used in every legacy run_single copy (sweep_parallel, cloud,
+# q3329_verify) at the time of the v1.2 consolidation; lowering it
+# means more tours before stagnation is declared, raising it means
+# earlier termination.
+STAGNATION_THRESHOLD: float = 1e-6
+
+# Sentinel value substituted for fpylll's ``M.get_r(i, i)`` when it
+# returns a non-positive number (the Cholesky-style cancellation at
+# q=3329 n>=100, paper §8). Logged via ``log_clamp_fn`` before the
+# substitution fires so the raw value stays auditable.
+CLAMP_FLOOR_R: float = 1e-300
+
+# Emit a heartbeat pipeline.jsonl event every N tours during the
+# BKZ/SD-BKZ inner loop so long-running seeds (n>=130, β>=40) leave
+# a breadcrumb trail in the centralised log without per-tour bloat.
+# Set to 0 to disable heartbeats. DEBUG level — filtered from console
+# but visible in pipeline.jsonl analyses.
+HEARTBEAT_EVERY: int = 25
+
 
 def run_single(
     *,
-    n,
-    beta,
-    seed,
-    q,
-    precision,
-    max_tours,
-    log_clamp_fn,
-    warn_on_clamp=False,
-    store_per_tour=False,
-    floor_mode="safe",
-    always_emit_store_per_tour=False,
-):
+    n: int,
+    beta: int,
+    seed: int,
+    q: int,
+    precision: int,
+    max_tours: int,
+    log_clamp_fn: Optional[Callable[[str, int, float], None]],
+    warn_on_clamp: bool = False,
+    store_per_tour: bool = False,
+    floor_mode: str = "safe",
+    always_emit_store_per_tour: bool = False,
+) -> dict[str, Any]:
     """Run BKZ and SD-BKZ on a single (n, beta, seed) lattice.
 
     Returns a result dict matching the schema of the legacy run_single
@@ -149,7 +181,15 @@ def run_single(
             )))
             deltas.append(delta)
 
-            if delta < 1e-6:
+            if HEARTBEAT_EVERY and t % HEARTBEAT_EVERY == 0:
+                PIPELINE.debug(
+                    "tour heartbeat", cat="sweep",
+                    n=n, beta=beta, seed=seed, variant=variant,
+                    tour=t, max_tours=max_tours,
+                    dln=metrics["dln"], delta=delta,
+                )
+
+            if delta < STAGNATION_THRESHOLD:
                 stag_tour = t
                 full_m = _metrics(M, full=True)
                 stag_rankin = [float(x) for x in full_m["rankin"]]
