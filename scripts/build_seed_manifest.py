@@ -476,7 +476,6 @@ def walk(results_root: str) -> tuple[list[dict], list[tuple[str, str]]]:
 
     # ----- v1.3 native walker -----
     seeds_root = os.path.join(results_root, "seeds")
-    results_parent = os.path.dirname(os.path.abspath(results_root)) or "."
     results_leaf = os.path.basename(os.path.abspath(results_root)) or "results"
     if os.path.isdir(seeds_root):
         for root, _dirs, files in os.walk(seeds_root):
