@@ -123,8 +123,8 @@ The full patch is a single 30-line hunk at [`patches/fplll_gso_kahan.patch`](../
 | 2026-04-10 | Kahan patch drafted and verified: 38% → 0% on 55-seed rerun, 15/15 `make check` pass  |
 | 2026-04-15 | Patch shipped in repo as `patches/fplll_gso_kahan.patch` with README                  |
 | 2026-04-18 | Draft upstream issue text prepared (maintained internally pre-filing)                 |
-| TBD        | Upstream issue filed on fplll/fplll repo (gated on ePrint publication; 7–14 day pre-publication window)    |
-| TBD        | CVE status evaluated (likely N/A — numerical-correctness finding, not an exploitable vulnerability) |
+| TBD (gated on ePrint publication clearance)        | Upstream issue filed on fplll/fplll repo; target filing window is 7–14 days pre-publication    |
+| TBD (gated on upstream issue + reviewer feedback)  | CVE status evaluated (likely N/A — numerical-correctness finding, not an exploitable vulnerability) |
 
 Timeline entries are appended, never revised in place. Revision means a new row with `(revised YYYY-MM-DD: …)` annotation.
 
