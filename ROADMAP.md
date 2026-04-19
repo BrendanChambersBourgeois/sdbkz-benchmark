@@ -18,7 +18,7 @@ See [`Research/CHANGELOG.md`](Research/CHANGELOG.md) for per-release details (Ke
 
 | target  | scope                                                                  | design doc                                                     |
 |---------|------------------------------------------------------------------------|----------------------------------------------------------------|
-| `v1.4.0` | portfolio-presentation pass: README rewrite, SECURITY.md + disclosure, CONTRIBUTING.md, ROADMAP.md, ADRs, Makefile, pipeline-log cookbook, q=3329 post-mortem. **All additive** — zero numerical drift on paper-cited files. | [`Research/backlog/2026-04-18_portfolio_presentation_plan.md`](Research/backlog/2026-04-18_portfolio_presentation_plan.md) |
+| `v1.4.0` | Reader-facing documentation pass: README rewrite, SECURITY.md + disclosure, CONTRIBUTING.md, ROADMAP.md, ADRs, Makefile, pipeline-log cookbook, q=3329 post-mortem. **All additive** — zero numerical drift on paper-cited files. | [`Research/backlog/2026-04-18_v1.4_docs_plan.md`](Research/backlog/2026-04-18_v1.4_docs_plan.md) |
 | `v2.0.0` | Breaking layout change: drop legacy-path back-compat symlinks, promote crosswalk CSV as permanent record. Paper + CI + analysis argparse + sync-script coordinated edits. | [`Research/backlog/2026-04-19_v2_symlink_drop.md`](Research/backlog/2026-04-19_v2_symlink_drop.md) |
 
 ## External waits
@@ -39,9 +39,9 @@ Items with rough designs but no current motivator. Each has an explicit revisit 
 |---------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
 | Campaign config file (`config/sweep.toml`)              | ≥2 new runners per month, cross-script constant drift, or a future seed-index rev wanting per-campaign provenance | [`2026-04-18_config_file_sweep_campaigns.md`](Research/backlog/2026-04-18_config_file_sweep_campaigns.md) |
 | Dockerfile `USER` directive fix                         | Opportunistic; anytime, rolls into next patch release                                                        | [`2026-04-19_dockerfile_user_directive.md`](Research/backlog/2026-04-19_dockerfile_user_directive.md) |
-| Post-portfolio sweep candidates (A–F)                   | Compute window opens AND v1.4.0 shipped AND reviewer/collab asks a data-shaped question                      | [`2026-04-19_post_portfolio_sweep_candidates.md`](Research/backlog/2026-04-19_post_portfolio_sweep_candidates.md) |
+| Post-v1.4 sweep candidates (A–F)                        | Compute window opens AND v1.4.0 shipped AND reviewer/collab asks a data-shaped question                      | [`2026-04-19_post_v1.4_sweep_candidates.md`](Research/backlog/2026-04-19_post_v1.4_sweep_candidates.md) |
 
-Priority ranking for the sweep candidates lives in the post_portfolio doc (tier 1 = A, D; tier 2 = B, C; tier 3 = E, F).
+Priority ranking for the sweep candidates lives in the post_v1.4 doc (tier 1 = A, D; tier 2 = B, C; tier 3 = E, F).
 
 ## Project-management artefacts (existing)
 
@@ -63,7 +63,7 @@ Loose SemVer:
 - **Minor** — new features, new sweep dimensions, new analysis scripts.
 - **Patch** — bug fixes, infra tweaks, doc updates.
 
-v1.x series is the paper-publication + portfolio window. v2.0.0 marks the legacy-path symlink drop (breaking layout change). v3.0.0 has no scheduled content yet.
+v1.x series is the paper-publication window: v1.0–v1.3.x for the campaign itself, v1.4.x for reader-facing docs. v2.0.0 marks the legacy-path symlink drop (breaking layout change). v3.0.0 has no scheduled content yet.
 
 ## Contact
 
