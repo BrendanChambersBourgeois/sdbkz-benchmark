@@ -62,13 +62,23 @@ def main():
         help="Output path (default: results/dGSA_summary.json)"
     )
     parser.add_argument(
+        "--campaign", default="main",
+        help="Manifest campaign (default: main). Set to empty string to "
+        "opt into the pre-v1.3 --seed-dirs globber for non-standard "
+        "layouts.",
+    )
+    parser.add_argument(
         "--seed-dirs", nargs="+",
         default=["results/raw", "results/cloud"],
-        help="Directories containing seed JSONs"
+        help="Legacy override: directories containing seed JSONs. Used "
+        "only when --campaign is empty.",
     )
     args = parser.parse_args()
 
-    groups = load_all_seeds(*args.seed_dirs)
+    if args.campaign:
+        groups = load_all_seeds(campaign=args.campaign)
+    else:
+        groups = load_all_seeds(*args.seed_dirs)
     if not groups:
         print("No seeds found.", file=sys.stderr)
         sys.exit(1)
