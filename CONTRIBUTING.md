@@ -118,7 +118,7 @@ The repo enforces a "never delete experimental data" rule. Seed JSONs, clamp eve
 - No rewriting committed seed JSONs. If a seed needs to be re-generated, the new version lands with a different path (e.g. under `results/seeds/<campaign>/<new_precision_bucket>/...`) and the manifest indexes both.
 - Moving corrupted data is acceptable: it goes to a clearly-named `*_corrupted` or `_archives/` location, never `/dev/null`.
 
-Rationale: CLAUDE.md §7 (`feedback_keep_data` memory). The policy is zero-tolerance; the one time we bent it (an early incident) produced a 9-day debugging loss documented in `Research/incidents.md`.
+Rationale: the policy is zero-tolerance. The one time we bent it (an early incident) produced a 9-day debugging loss. Narrative at [`docs/incident_q3329_post_mortem.md`](docs/incident_q3329_post_mortem.md).
 
 ## Sudo / destructive actions
 

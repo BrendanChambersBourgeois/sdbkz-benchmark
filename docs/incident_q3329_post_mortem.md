@@ -76,7 +76,7 @@ Kahan-compensated subtraction. 30 lines, single hunk. Replaces the naive subtrac
 
 Paper §8 was rewritten: the finding is not "SD-BKZ is unstable at cryptographic moduli", it's "fplll's squared-form GSO recurrence produces bad output at cryptographic moduli, and here is a patch that fixes it." The paper claims 38.0% → 0% on 55-seed verification and cites `patches/fplll_gso_kahan.patch`.
 
-The upstream issue was drafted (`Research/drafts/fplll_gso_kahan_issue.md`) but filing was gated on ePrint publication to keep the fix visible upstream before the paper references it. Filing day runbook lives at [`Research/backlog/2026-04-19_fplll_upstream_disclosure_timeline.md`](../Research/backlog/2026-04-19_fplll_upstream_disclosure_timeline.md).
+The upstream issue was drafted (maintained internally pre-filing) but filing was gated on ePrint publication to keep the fix visible upstream before the paper references it. Filing runbook exists internally; the GitHub issue URL will be appended to this doc's Timeline row on filing day.
 
 ---
 
@@ -150,4 +150,4 @@ Worth recording so future investigations skip them:
 - Patch: [`patches/fplll_gso_kahan.patch`](../patches/fplll_gso_kahan.patch) + [`patches/README.md`](../patches/README.md).
 - Design decisions: [`docs/design_decisions.md`](design_decisions.md) (ADR-001 is the deduplication story that made the clamp-logging rule enforceable).
 - Security policy: [`SECURITY.md`](../SECURITY.md) — defensive engineering inventory, all three policy changes above live there.
-- Upstream timeline: [`Research/backlog/2026-04-19_fplll_upstream_disclosure_timeline.md`](../Research/backlog/2026-04-19_fplll_upstream_disclosure_timeline.md) — filing runbook.
+- Upstream timeline: filing runbook maintained internally; issue URL will appear in the disclosure doc's Timeline once filed.

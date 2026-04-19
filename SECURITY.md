@@ -37,7 +37,7 @@ The repo embeds several policies that keep evidence integrity auditable:
 
 Every defensive numerical clamp (substitution of a sentinel value for a non-positive Gram–Schmidt norm) writes the raw pre-substitute value to `results/clamp_events.jsonl` — timestamp, script, seed context, position, raw `get_r()` return value. The file is append-only, never truncated, and is the canonical audit trail for the §8 instability investigation.
 
-**Why this exists:** in the 9-day q=3329 incident (see `Research/incidents.md`), an earlier clamp silently substituted a sentinel without logging the raw value. The defective `get_r()` return was invisible for 9 days while a draft §8 was being written against clamped output. Never again.
+**Why this exists:** in the 9-day q=3329 incident (narrative at [`docs/incident_q3329_post_mortem.md`](docs/incident_q3329_post_mortem.md)), an earlier clamp silently substituted a sentinel without logging the raw value. The defective `get_r()` return was invisible for 9 days while a draft §8 was being written against clamped output. Never again.
 
 ### Never-raises logging
 
