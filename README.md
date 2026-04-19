@@ -40,7 +40,7 @@ The rest of the repo is the infrastructure that made finding it possible: pinned
 
 - **CI-gated numerical reproducibility.** `.github/workflows/build-and-verify.yml` runs on every push: Docker build from scratch → import smoke tests → 96-test pytest suite → `verify.sh` regenerating one seed in a fresh container and comparing SHA-256 → `validate_seeds.py` schema + volume-drift checks → `lint_seed_manifest.py`. Any regression in any of these fails the build; ~5 min end-to-end.
 
-- **Incident-driven hardening.** `Research/incidents.md` logs 30+ operational incidents with root-cause and resolution. Defensive clamps must log raw values before substituting (introduced after a clamp hid the real `get_r` return for 9 days and produced a wrong Section 8 in a draft paper). Data is never deleted without backup. `sudo` paths require explicit opt-in.
+- **Incident-driven hardening.** Repo policies are written against real operational incidents, not conjectured ones. Defensive clamps must log raw values before substituting (introduced after a clamp hid the real `get_r` return for 9 days and produced a wrong Section 8 in a draft paper — see [`docs/incident_q3329_post_mortem.md`](docs/incident_q3329_post_mortem.md)). Data is never deleted without backup. `sudo` paths require explicit opt-in.
 
 ## Data-flow architecture
 

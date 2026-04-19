@@ -12,7 +12,7 @@ Format is lightweight ADR — no strict template. Collapsed from an earlier 5-AD
 
 ### Context
 
-A pre-v1.2 audit (`Research/audit/`) identified ~884 LOC of duplicated lattice-math and BKZ-driver code across six sibling sweep/verify scripts:
+A pre-v1.2 audit identified ~884 LOC of duplicated lattice-math and BKZ-driver code across six sibling sweep/verify scripts:
 
 - `scripts/sweep_parallel.py`
 - `scripts/sweep_cloud.py`
@@ -23,7 +23,7 @@ A pre-v1.2 audit (`Research/audit/`) identified ~884 LOC of duplicated lattice-m
 
 Each maintained its own copy of `ln_fixed_point`, `build_lwe_kannan`, `metrics_from_gso`, `log_clamp` (defensive-clamp side-log helper), and a single-seed BKZ driver (`run_single`). The copies had drifted: different clamp-logging semantics, different `floor_mode` defaults, different schema-emit decisions (`store_per_tour` key appearance conditions).
 
-The drift was not academic. It caused the 9-day q=3329 incident documented in `Research/incidents.md`: one copy of the defensive clamp silently substituted a sentinel value without logging the raw pre-clamp `get_r()` return, while the other copy logged it. Draft paper §8 was written against the silent-clamp output, then had to be rewritten once the raw return was finally captured. Cost: ~9 days of debugging and a substantial §8 rewrite before submission.
+The drift was not academic. It caused the 9-day q=3329 incident (narrative at [`incident_q3329_post_mortem.md`](incident_q3329_post_mortem.md)): one copy of the defensive clamp silently substituted a sentinel value without logging the raw pre-clamp `get_r()` return, while the other copy logged it. Draft paper §8 was written against the silent-clamp output, then had to be rewritten once the raw return was finally captured. Cost: ~9 days of debugging and a substantial §8 rewrite before submission.
 
 ### Decision
 
@@ -133,7 +133,7 @@ A CI gate (`scripts/lint_seed_manifest.py`) enforces three invariants on every p
 - **Manifest schema is a referenced artefact**: `SECURITY.md` cites the `lint_seed_manifest` invariants as evidence-integrity policy; `docs/disclosure/fplll_gso_kahan_findings.md` cites the manifest as the SHA-256 authority. The manifest is not just an index — it's part of the security story.
 
 **Accepted costs**:
-- **Two layers during the v1.x transition**: backwards-compat symlinks at old paths coexist with the canonical v1.3 tree. Duplicated inodes, near-zero disk cost, clear extra cognitive load for any reader who notices the symlinks. Dropped at v2.0.0 per [`Research/backlog/2026-04-19_v2_symlink_drop.md`](../Research/backlog/2026-04-19_v2_symlink_drop.md).
+- **Two layers during the v1.x transition**: backwards-compat symlinks at old paths coexist with the canonical v1.3 tree. Duplicated inodes, near-zero disk cost, clear extra cognitive load for any reader who notices the symlinks. Scheduled to drop at v2.0.0 (breaking layout change; see the v2.0.0 line in [`ROADMAP.md`](../ROADMAP.md)).
 - **Campaign-intent mapping is a judgement call**: cloud-sourced q=3329 seeds remapped from `main` (where `sweep_cloud.py` originally filed them) to `q3329` (intent-aware). Documented inline in `scripts/build_seed_manifest.py`; called out in the manifest-build commit message. Low-risk when the judgement follows the paper's narrative; future reviewers can always regroup.
 - **`paper/hash_verification.txt` paths still reference pre-v1.3 `results/raw/`**: preserved through v1.4 via symlinks. The `results/seed_path_crosswalk.csv` crosswalk is the permanent record; paper §9 will gain a one-sentence pointer at the v2.0.0 breaking change.
 

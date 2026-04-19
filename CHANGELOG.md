@@ -1,0 +1,379 @@
+# Changelog
+
+User-visible and structural changes to the SD-BKZ benchmark project.
+Roughly [Keep a Changelog](https://keepachangelog.com/) style. Newest
+release at the **top**.
+
+## Format
+
+```
+## [version] — YYYY-MM-DD
+### Added
+- New features, scripts, datasets
+
+### Changed
+- Modifications to existing behavior
+
+### Fixed
+- Bug fixes that affect downstream users
+
+### Removed
+- Deprecated or deleted functionality
+```
+
+Versions follow loose SemVer. Bump on:
+- **Major** — breaking schema changes, repo rename, paper submission tag
+- **Minor** — new features, new sweep dimensions, new analysis scripts
+- **Patch** — bug fixes, infra tweaks, doc updates
+
+## Unreleased
+
+### Deferred (tracked design)
+- **Portfolio presentation pass (planned `portfolio-presentation` branch).**
+  Recruiter-facing positioning over the existing repo: README rewrite,
+  ARCHITECTURE.md, SECURITY.md + fplll disclosure write-up,
+  CONTRIBUTING.md, ROADMAP.md, 5 ADRs in `docs/decisions/`, Makefile,
+  pipeline-log query cookbook, q=3329 incident post-mortem narrative,
+  mermaid architecture diagram. All ADDITIVE — zero changes to
+  paper, seeds, scripts, or CI gates. Hard invariant: SHA-256 of
+  every paper-cited file preserved. Audience priority: cyber/PQC
+  recruiters → research PM recruiters → paper reviewers →
+  collaborators. Full design + commit plan + paper-safety gates in
+  `backlog/2026-04-18_portfolio_presentation_plan.md`. Targets
+  `v1.4.0` post-v1.3.1.
+- **Campaign config file (`config/sweep.toml`)** — parked, not scheduled.
+  Replaces hardcoded `BETAS`/`NS`/`TOURS_BY_BETA` constants across
+  sweep scripts with a single TOML-defined campaign registry. Only
+  worth doing if sweep-authoring cadence picks up (≥2 new runners
+  per month, or cross-script constant drift, or a future seed-index
+  rev that wants per-campaign provenance in seed JSONs). Full
+  design + explicit trigger conditions in
+  `backlog/2026-04-18_config_file_sweep_campaigns.md`. Today the
+  hardcoded-constants-per-script pattern is stable and self-documenting;
+  the consolidation wins would be retroactive on a paper-final
+  dataset and the up-front migration cost is not justified.
+
+## [1.3.1] — 2026-04-19
+
+Tag: `v1.3.1`. One-night coverage-expansion branch (originally
+`overnight-sweep-20260418`, renamed `v1.3-coverage-expansion` pre-merge)
+adds 25 q=3329 seeds at the paper-headline 1000-bit precision and
+fixes a forward-compat gap in the v1.3 manifest walker that the sweep
+surfaced.
+
+### Added
+- **+25 q=3329 seeds at 1000-bit MPFR** across intermediate dimensions:
+  - n=70 β=30 seeds 21–25 (+5 seeds, 3.09 h wall on 22-worker pool)
+  - n=80 β=30 seeds 21–30 (+10 seeds, 6.93 h wall on 8-worker pool)
+  - n=90 β=30 seeds 21–30 (+10 seeds, 8.72 h wall on 8-worker pool)
+
+  Completes the intermediate-dimension 30-seed fill (previously
+  20 seeds per group at 250-bit MPFR) at paper-§8 precision.
+  Per-seed advantages range +0.17 to +0.98 nats, all positive;
+  consistent with paper §8 clean-subset mean +0.524 at n=100.
+  14 `WARNING: 1 get_r values <= 0` entries from the n=90 pool
+  (logged to `results/clamp_events.jsonl`) — expected per the
+  paper §8 GSO-instability family, no impact on advantage values.
+  (c53e08a)
+- **`scripts/run_overnight_q3329_intermediate_1000bit.py`** — one-shot
+  overnight fill runner. Writes through `_seed_paths.seed_path_for`
+  so new seeds land natively at
+  `results/seeds/q3329/p1000_mt70/n{n:03d}_beta{b:02d}/seed{s:04d}.json`.
+  Restart-safe (file-exists probe against the v1.3 layout).
+  (6005490)
+- **8 test cases in `tests/test_build_seed_manifest.py`** covering the
+  new v1.3-native walker path: direct-in-tree parse, symlink/canonical
+  dedup, per-campaign path extraction (main / q3329 / cliff500 /
+  fplll_sensitivity / tours3x / convergence), cloud & fat suffix
+  handling, unknown-campaign rejection. (2b5365c)
+
+### Fixed
+- **`scripts/build_seed_manifest.py` walker forward-compat gap.** The
+  v1 walker (commit 84564ab, shipped in v1.3.0) enumerated only the
+  pre-v1.3 `CAMPAIGN_DIRS` set (raw, cloud, q3329, q3329_n*_beta30,
+  q3329_degenerate, cliff_500bit, fplll5{43,44,5}_sensitivity,
+  3x_tours, 3x_tours_extended, convergence, convergence_test),
+  followed symlinks at those old paths, and recorded canonical
+  `results/seeds/` destinations via `os.path.realpath`. Worked for
+  pre-migration files because `migrate_seeds_to_new_layout.py`
+  (ac52379) left backwards-compat symlinks at every old path.
+
+  Gap: new seeds written directly to the v1.3 tree via
+  `_seed_paths.seed_path_for()` — for example this release's
+  overnight fill — bypass the walker entirely. No legacy symlink =
+  no walker visit = no manifest entry = `lint_seed_manifest.py`
+  flags an orphan.
+
+  Fix: add a v1.3 native walker that recurses `results/seeds/`
+  and parses `(campaign, n, β, seed, q, precision, max_tours,
+  fplll_version, is_cloud, is_fat)` from the leaf-dir + filename
+  pattern. Parser mirrors the emit logic in `scripts/_seed_paths.py`
+  — any drift there must be mirrored here. After both walkers run,
+  entries dedup by canonical `os.path.realpath()` so a file
+  reachable via both a legacy symlink and its new canonical path
+  lands once. (2b5365c)
+
+### Changed
+- Manifest entry count: **4387 → 4412** (+25 q=3329 intermediate-fill
+  seeds). Per-campaign totals:
+  | campaign            | entries | delta |
+  |---------------------|---------|-------|
+  | cliff500            |    20   |   0   |
+  | convergence         |    40   |   0   |
+  | fplll_sensitivity   |    15   |   0   |
+  | main                | 3,505   |   0   |
+  | q3329               |   332   | **+25** |
+  | tours3x             |   500   |   0   |
+
+  `lint_seed_manifest --sha-check`: 0 orphan / 0 ghost / 0 drift on
+  the v1.3.1 tree.
+
+## [1.2.0] — 2026-04-18
+
+Tag: `v1.2.0` at commit `c66160e` (merge of `v1.2-consolidation` into
+main). Landed via a 17-commit feature branch spanning Phases 1–5 of the
+code consolidation, a confirmation suite, ruff CI, and a final polish
+pass. Paper numerics unchanged — every hot path verified bit-identical
+to v1.1.0 via `scripts/confirm_v1_2.py` (30 seeds × 4 `run_single`
+paths) and `scripts/test_math_core_parity.py` (576 comparisons, 0
+failures).
+
+### Added
+- **`scripts/_math_core.py`** — single authoritative source for
+  `ln_fixed_point`, `build_lwe_kannan`, `metrics_from_gso`, `log_clamp`,
+  and `_safe_log_r`. Full type hints; magic numbers (`CLAMP_FLOOR_R =
+  1e-300`) lifted to named constants. Replaces 6 inlined copies across
+  `sweep_parallel`, `sweep_cloud`, `q3329_verify`,
+  `overnight_experiments`, `run_3x_extended`, `run_convergence_test`
+  (9413d81, b672a31).
+- **`scripts/_bkz_core.py`** — shared `run_single(n, beta, seed)`
+  implementation lifted out of `sweep_parallel`, `sweep_cloud`, and
+  `q3329_verify`. Named constants (`STAGNATION_THRESHOLD`,
+  `HEARTBEAT_EVERY`, `CLAMP_FLOOR_R`). Heartbeat-logged via
+  `PIPELINE.info` every 25 tours (152bafc, a4b3e61).
+- **`scripts/_signal_utils.py`** — shared `managed_pool`
+  context-manager factoring out the 4-way-duplicated `SIGINT` handler +
+  `Pool.terminate()` pickle-failure-survival logic (076a264, 8a82053).
+- **`scripts/confirm_v1_2.py`** — end-to-end confirmation harness that
+  regenerates 30 reference seeds across 7 `(n, β)` groups and 4
+  `run_single` paths (`sweep_parallel` / `sweep_cloud` / `q3329_verify`
+  / `overnight_experiments`) and asserts byte-identity against the
+  v1.1.0 baseline JSONs (6284e00).
+- **`scripts/confirm_extra_compare.py`** — complementary cross-path
+  byte-compare helper for seeds not covered by `verify.sh` reference
+  set (bf70300).
+- **`scripts/test_math_core_parity.py`** — standalone 576-comparison
+  parity check: 60 `ln_fixed_point` pairs × 6 legacy copies + 36
+  `build_lwe_kannan` pairs × 6 legacy copies. Runs in ~0.2 s, 0
+  failures on the v1.2.0 tree.
+- **`scripts/test_log_clamp_wrappers.py`** — smoke tests for the
+  `log_clamp` thin-wrapper pattern introduced in Phase 4a.
+- **`tests/test_math_core_edge_cases.py`** — pytest suite covering
+  clamp semantics, `log_clamp` schema, `ln_fixed_point` boundaries,
+  `build_lwe_kannan` determinism, `metrics_from_gso` sensitivity to
+  negative `get_r` values. 17 tests, ~0.2 s, wired into CI (076a264).
+- **`scripts/find_bugs_via_tags.py`** — static bug-hunt over the
+  `.tags` ctags index: duplicate function definitions, defined-
+  but-unreferenced symbols, private (`_foo`) leaks across files
+  (19cb533).
+- **ruff style + dead-import drift guard** in CI: `[tool.ruff]` in
+  `pyproject.toml` (line-length=100, F/W codes + I001, scripts/ +
+  analysis/ scope). New `build-and-verify.yml` step fails on any drift
+  (a4b3e61, 1c96e71).
+- **`scripts/lint_logging.py`** + CI step enforcing CLAUDE.md §16: every
+  entry-point script under `scripts/` and `analysis/` must import
+  `scripts/log.py:get_logger` so events flow to `logs/pipeline.jsonl`
+  (3a12c77, bf70300).
+
+### Changed
+- `sweep_parallel.py`, `sweep_cloud.py`, `q3329_verify.py`,
+  `overnight_experiments.py`, `run_3x_extended.py`,
+  `run_convergence_test.py` — all six now import `ln_fixed_point`,
+  `build_lwe_kannan`, `metrics_from_gso`, and `log_clamp` from
+  `_math_core` instead of maintaining private copies
+  (a37bdfb, 0f33306, 70e2edf, 95dc826).
+- `sweep_parallel.py`, `sweep_cloud.py`, `q3329_verify.py` — now
+  import `run_single` from `_bkz_core` instead of maintaining private
+  copies. Net diff: −914 lines, +2212 lines (of which ~1800 are new
+  tests / confirmation harnesses, not production code) (152bafc,
+  d3999d2).
+- Pipeline logging production-grade upgrades: structured
+  `PIPELINE.info` events across `sweep_parallel`, `sweep_cloud`,
+  `confirm_v1_2`, `run_cliff_500bit`; `analysis/` scripts routed
+  through `get_logger` (3a12c77).
+- `scripts/overnight_experiments.py` and `scripts/run_3x_extended.py`
+  now import `run_single` from `_bkz_core` where the thin-wrapper
+  swap is bit-safe (d3999d2).
+
+### Fixed
+- `managed_pool` context-exit path: use `Pool.terminate()` (not
+  `.close() + .join()`) on context-manager exit so the pool survives
+  a pickle failure in a child worker. Previously, a pickle error hung
+  the parent indefinitely (8a82053).
+- `q3329_verify.py`: `store_per_tour` flag position moved to match
+  Phase 2 signature; prior order caused an unchecked positional
+  argument mismatch on the q=3329 path (d3999d2).
+- Ruff clean pass: F541/W293 auto-fix + 5 F841 dead-local removal
+  across `scripts/` and `analysis/`. Parity-verified bit-identical
+  via `test_math_core_parity` (576 comparisons, 0 failures) +
+  `verify.sh` + pytest 17/17. Stylistic-only, zero numerical impact;
+  precondition for the ruff CI gate (added in a4b3e61) to actually
+  pass on merge to main (1c96e71).
+
+### Removed
+- `dashboard/` directory — unused since v1.0; git history preserves
+  the last working version. Saves 150+ MB of static assets from
+  `git clone` (896e25c).
+
+## [1.1.0] — 2026-04-18
+
+Tag: `v1.1.0` at commit `896e25c`. LaTeX port of the paper, Kahan
+fplll patch published, paper v1.1 substantive edits (§3.7, §7.4),
+cliff 500-bit precision test, fplll 5.4.x version-sensitivity test.
+Paper numerics unchanged from v1.0; 250-bit MPFR remains the
+authoritative precision for all sweep seeds.
+
+### Added
+- **iacrj LaTeX port of the paper** — `paper/latex/sdbkz_paper_latex.tex`
+  (30 pages, IACR journal class, CC-BY-4.0, cryptobib citations).
+  Mirrors the content-locked v1.0 HTML verbatim; numbers audited clean
+  against `paper_audit_handoff/` snapshots; all 12 figures renamed to
+  paper order (`fig01.png`–`fig12.png`), preemptively fixing the
+  scrambled-filename issue (Finding 18) on the LaTeX side. Vendored
+  `iacrj.cls` + `metacapture.sty` + `abbrev3.bib` — no submodules
+  required. `paper/latex/Makefile` provides a one-command rebuild
+  (7127712, 6be7589).
+- **`patches/fplll_gso_kahan.patch`** + README — ships the Kahan-
+  compensated fplll GSO patch referenced in paper §8.3. Closes the
+  gap between the paper claim and the public repo so readers can
+  reproduce §8.3 directly. Verified against fplll HEAD (`1987472`,
+  2025-10-15): clean `git apply`, full build, **15/15 `make check`
+  pass**, matching the 2026-04-10 Docker build on fplll 5.5.0. Only
+  needed for q=3329 reproduction; q=97 unaffected. (d57808c + 161f188)
+- `.gitattributes` with `paper/** linguist-documentation` so GitHub
+  language stats reflect actual benchmark code (Python, Shell,
+  Dockerfile) rather than the 10k-line vendored `abbrev3.bib`
+  (086f6a2).
+- "Paper and patches" section in the README pointing readers at
+  `paper/`, `paper/latex/`, and `patches/`.
+- **β=40 cliff precision-robustness test** — 20 seeds at
+  $n=130$, $\beta=40$, $q=97$, 500-bit MPFR (double the 250-bit
+  main-sweep precision). Confirms the cliff is structural, not a
+  squared-form GSO recurrence artifact: mean advantage shifts only
+  $-1.370 \to -1.282$ nats ($\Delta=+0.088$, 6.4% softening), win rate
+  unchanged at 0/20, Cohen's $d$ vs zero strengthens to $-11.4$
+  (baseline $-9.70$) due to tighter variance at higher precision.
+  Reviewer-defensive coverage of paper §6.3. Runner:
+  `scripts/run_cliff_500bit.py` (856f436); fat seeds:
+  `results/cliff_500bit/` (636186a); evidence:
+  `results/paper_claims/cliff_precision_robustness.json`. 8.85 h on
+  22 workers single-wave.
+- **fplll 5.4.x vs 5.5.0 version-sensitivity test** — 15 seeds (5
+  per legacy version) at the canonical $(n=100, \beta=30, q=97,
+  250\text{-bit MPFR})$ sweep point under fplll 5.4.3 / 5.4.4 / 5.4.5
+  (each source-built against fpylll 0.6.0 inside a custom Docker
+  image), compared to the $5.5.0$ baseline shipped in fpylll 0.6.4.
+  **Every seed bit-identical to the 5.5.0 baseline to 18 decimal
+  digits** despite three SONAME bumps across the tested window
+  (libfplll.so.7.1.0 → 8.0.0 → 8.0.1 → 9.0.0). Welch t = 0.0 vs
+  baseline for all three legacy versions. Indicates that 250-bit
+  MPFR dominates whatever fplll-internal numerical drift exists
+  between these tags. Reviewer-defensive coverage of the fplll
+  pin in §3.7 Reproducibility. Infrastructure: `Dockerfile.fplll54`,
+  parameterised `Dockerfile.fplll_legacy`, `scripts/run_fplll54_sensitivity.py`,
+  `analysis/fplll_sensitivity_compare.py`; evidence:
+  `results/paper_claims/fplll_version_robustness.json`; fat seeds:
+  `results/fplll5{43,44,5}_sensitivity/`. 8.85 h on 22 workers
+  single-wave (15 in flight, 5 queue). Build matrix + tags blocked
+  by API/Python compat documented in the Dockerfile header.
+  (bc9eaf8)
+- **`scripts/_runner_core.py`** — shared `run_pool()` skeleton
+  factoring out the ~80-line argparse / Pool.imap_unordered /
+  per-seed status / PIPELINE.info boilerplate from the five existing
+  `run_*.py` wrappers. Paper-numerical-neutral shell code; safe to
+  land without verify.sh. New wrappers should import directly;
+  existing wrappers keep their inlined versions until the v1.2
+  consolidation Phase 2 swap. (13e8a53)
+
+### Changed
+- `paper/sdbkz_paper.html` + `paper/sdbkz_paper.pdf`: Acknowledgements
+  now render "Dylan Chambers Bourgeois" (no hyphen). §9 Reproducibility
+  appended one sentence pointing readers at
+  `patches/fplll_gso_kahan.patch` (7f8f690). Same edits mirrored into
+  the LaTeX port.
+- `paper/latex/main.tex` → `paper/latex/sdbkz_paper_latex.tex` and
+  `main.pdf` → `sdbkz_paper_latex.pdf` so every rebuild produces an
+  unambiguously-named file (6be7589).
+- **Paper v1.1 substantive edits** (LaTeX only; HTML already
+  mirrored):
+  - Fixed p-value underflow artifacts in Table 4, §4 "Statistical
+    rigour", and §10 Conclusion: `<10^{-50}`, `<10^{-20}`, `<10^{-18}`
+    all collapsed to `<10^{-15}` (SciPy double-precision floor; 29
+    replacements).
+  - §4 RHF/$d(\mathrm{LN})$ decoupling sharpened with a per-seed
+    verification on the $n=100$, $\beta=30$ sample (30 seeds): $r =
+    -0.14$ ($p=0.48$) Pearson correlation between per-seed RHF and
+    $d(\mathrm{LN})$ advantages — metrics measure orthogonal basis
+    properties.
+  - §8.2 extended to $n=110$: instability persists (≥22 degenerate
+    seeds in partial run, both algorithms affected every seed);
+    SD-BKZ reaches the degenerate state earlier on average (median
+    first-spike tour 4 vs 6–11).
+  - **§7.4 Limitations** gained a precision-robustness one-liner
+    for the $\beta=40$ cliff at $n=130$: 500-bit MPFR re-run (20
+    seeds) moves the mean advantage by only $+0.088$ nats and keeps
+    win rate at 0/20, confirming the cliff is structural rather than
+    numerical. Backported to the HTML mirror; LaTeX PDF rebuilt
+    (06c6e04).
+  - **§3.7 Reproducibility** gained an fplll version-robustness
+    one-liner: the canonical $(n=100, \beta=30)$ sweep point produces
+    bit-identical advantages to 18 decimal digits across fplll
+    5.4.3 / 5.4.4 / 5.4.5 / 5.5.0 (all 15 seeds, 4 SONAMEs). Confirms
+    the paper does not depend on the specific fplll point version
+    inside the wheel. Mirrored to HTML; LaTeX PDF rebuilt 30 → 31
+    pages (single sentence pushed overflow). (54ec605)
+
+### Fixed
+- Replaced malformed `patches/fplll_gso_kahan.patch` with a
+  regenerated single-hunk version. The file initially shipped in
+  d57808c was a byte-for-byte copy of the broken original from the
+  2026-04-10 investigation directory — `BUILD_REPORT.md` flagged it
+  as having a corrupt first hunk (header claimed 6→7 lines but body
+  contained 6→6). The actual patch used for the 55-seed verification
+  was a corrected version written inside an ephemeral Docker
+  container and never saved back. Caught during pre-submission
+  apply-check against fplll HEAD. (161f188)
+
+## [1.0] — 2026-04-14
+
+Initial public release of the benchmark and v1.0 paper. Tag: `v1.0`
+at commit `40991a4`.
+
+### Added
+- `scripts/run_sweep_fill.py` — general-purpose β=40 gap-filler,
+  replaces per-group one-off scripts. Auto-detects physical core count,
+  checks both `raw/` and `cloud/` for existing seeds, `--dry-run`
+  support (4239963)
+- `scripts/run_q3329_n100_local.py --start/--end/--workers` flags for
+  splitting q=3329 expansion across machines (1a58930)
+- n=120 β=40 complete at 100 seeds (75 cloud + 25 local, 4239963)
+- n=130 β=40 seeds 76-99 (24 of 25, run in progress)
+
+### Changed
+- Documentation structure split: `CHANGELOG.txt` → `CHANGELOG.md` +
+  `incidents.md` + `sessions/`. Legacy log frozen as
+  `CHANGELOG.txt.frozen-2026-04-09`.
+
+### Fixed
+- `scripts/sync_research.sh` now backs up `results/convergence/` and
+  `results/convergence_test/` to the Research mirror (f3a75f5,
+  see legacy Incident 23)
+- **Incident #29:** `run_sweep_fill.py` was created and referenced in
+  Dylan's handoff doc but never pushed. Dylan lost one overnight compute
+  window (~18h delay on 25 seeds). See `incidents.md` #29.
+
+## Pre-split history
+
+Everything before 2026-04-09 lives in `CHANGELOG.txt.frozen-2026-04-09`.
+That file is the authoritative record for the campaign's first phase
+(repo creation through n=140 β=30 convergence test). Do not edit it.

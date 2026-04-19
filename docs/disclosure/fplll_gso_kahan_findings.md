@@ -122,7 +122,7 @@ The full patch is a single 30-line hunk at [`patches/fplll_gso_kahan.patch`](../
 | 2026-04-10 | Direct `get_r` capture surfaces the negative squared norm. Cross-machine reproduction |
 | 2026-04-10 | Kahan patch drafted and verified: 38% → 0% on 55-seed rerun, 15/15 `make check` pass  |
 | 2026-04-15 | Patch shipped in repo as `patches/fplll_gso_kahan.patch` with README                  |
-| 2026-04-18 | Draft upstream issue text at `Research/drafts/fplll_gso_kahan_issue.md`               |
+| 2026-04-18 | Draft upstream issue text prepared (maintained internally pre-filing)                 |
 | TBD        | Upstream issue filed on fplll/fplll repo (gated on ePrint publication; 7–14 day pre-publication window)    |
 | TBD        | CVE status evaluated (likely N/A — numerical-correctness finding, not an exploitable vulnerability) |
 
