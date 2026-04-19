@@ -25,20 +25,44 @@ from .per_position_landscape import fig_per_position_landscape
 from .peak_dip_trajectory import fig_peak_dip_trajectory
 
 
-def generate_all(results_dirs, output_dir, tour_dir=None, min_seeds=10):
+def generate_all(
+    results_dirs=None,
+    output_dir=None,
+    tour_dir=None,
+    min_seeds=10,
+    campaign=None,
+    tour_campaign=None,
+):
     """Run all figures and diagnostics.
 
+    Dual-mode seed load:
+      - campaign=<name>           manifest query (preferred, v1.3+)
+      - results_dirs=[dir, ...]   legacy globber fallback
+
     Args:
-        results_dirs: List of directories containing seed JSONs.
+        results_dirs: List of directories containing seed JSONs (legacy
+            mode). Ignored when `campaign` is set.
         output_dir: Where to save PNGs and text output.
-        tour_dir: Path to results/3x_tours/ (optional).
+        tour_dir: Path to a 3x-tour directory (legacy). Ignored when
+            `tour_campaign` is set.
         min_seeds: Minimum seeds per group.
+        campaign: Manifest campaign name for the main figure pipeline
+            (e.g. "main"). Preferred path post-v1.3.
+        tour_campaign: Manifest campaign name for the 3x-tour figure
+            (e.g. "tours3x").
     """
     os.makedirs(output_dir, exist_ok=True)
-    groups = load_all_seeds(*results_dirs, min_seeds=1)
+    if campaign:
+        groups = load_all_seeds(campaign=campaign, min_seeds=1)
+    else:
+        groups = load_all_seeds(*(results_dirs or []), min_seeds=1)
 
     if not groups:
-        print("No data found. Check your --results-dir paths.")
+        if campaign:
+            print(f"No data found for campaign={campaign!r} — check "
+                  "results/seed_manifest.json.")
+        else:
+            print("No data found. Check your --results-dir paths.")
         return
 
     print(f"\nGenerating figures (min_seeds={min_seeds})...")
@@ -53,8 +77,10 @@ def generate_all(results_dirs, output_dir, tour_dir=None, min_seeds=10):
     print("--- Convergence trajectories ---")
     fig_convergence_trajectories(groups, output_dir)
 
-    if tour_dir:
+    if tour_campaign or tour_dir:
         print("--- 3x tour test ---")
+        # load_3x_tour_data has its own dual-mode: passing tour_dir=None
+        # triggers the manifest path (campaign="tours3x" by default).
         tour_seeds = load_3x_tour_data(tour_dir)
         fig_3x_tour_test(tour_seeds, output_dir)
 

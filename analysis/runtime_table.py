@@ -31,8 +31,7 @@ PIPELINE = get_logger("runtime_table")
 
 
 # ── Config ──────────────────────────────────────────────────────────────────
-DEFAULT_RAW_DIR = os.path.join(REPO_ROOT, "results", "raw")
-DEFAULT_CLOUD_DIR = os.path.join(REPO_ROOT, "results", "cloud")
+DEFAULT_CAMPAIGN = "main"
 OUT_DIR = os.path.join(REPO_ROOT, "results")
 MIN_SEEDS = 100   # only complete groups
 
@@ -139,10 +138,11 @@ def render_html(rows):
 
 def main():
     PIPELINE.info("runtime_table start", cat="analysis")
-    print("Loading seeds from:")
-    print(f"  {DEFAULT_RAW_DIR}")
-    print(f"  {DEFAULT_CLOUD_DIR}")
-    groups = load_all_seeds(DEFAULT_RAW_DIR, DEFAULT_CLOUD_DIR)
+    # v1.3+ manifest mode. Legacy dir globber still reachable by passing
+    # positional dirs to load_all_seeds explicitly; keeping that path
+    # available guards against the manifest being stale / absent.
+    print(f"Loading seeds via manifest (campaign={DEFAULT_CAMPAIGN!r}).")
+    groups = load_all_seeds(campaign=DEFAULT_CAMPAIGN)
     if not groups:
         print("ERROR: no seed files loaded.")
         sys.exit(1)
