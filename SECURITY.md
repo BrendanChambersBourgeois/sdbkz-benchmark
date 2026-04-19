@@ -49,7 +49,7 @@ Every defensive numerical clamp (substitution of a sentinel value for a non-posi
 - `results/clamp_events.jsonl` — defensive-clamp side-log per above.
 - `results/seed_manifest.json` — every seed file indexed with SHA-256, size, mtime, verified flag. Rebuilt deterministically from the on-disk tree.
 
-All three are append-only by policy. CLAUDE.md Section 7 forbids `rm` of experimental data without backup; no exception has ever been taken.
+All three are append-only by policy. The repo's data-discipline rule (see [`CONTRIBUTING.md`](CONTRIBUTING.md)) forbids `rm` of experimental data without backup; no exception has ever been taken.
 
 ### `validate_seeds.py --strict --sha-check`
 

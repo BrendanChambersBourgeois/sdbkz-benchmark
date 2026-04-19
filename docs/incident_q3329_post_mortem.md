@@ -96,7 +96,7 @@ See ADR-001 (`docs/design_decisions.md`) for the deduplication story — before 
 
 Extended from clamp events to everything. `logs/pipeline.jsonl` receives structured events from every committed script (`scripts/lint_logging.py` enforces this as a CI gate). `results/clamp_events.jsonl` and `logs/pipeline.jsonl` are both strict append-only — never truncated, never rewritten, never deleted.
 
-Policy in [`CONTRIBUTING.md`](../CONTRIBUTING.md) and CLAUDE.md §7: no `rm -rf` over `results/` or any subset, no truncation of append-only files, no rewriting of committed seed JSONs. Corrupted data moves to an explicitly-named `*_corrupted` or `_archives/` location. Zero exceptions have been taken.
+Policy in [`CONTRIBUTING.md`](../CONTRIBUTING.md): no `rm -rf` over `results/` or any subset, no truncation of append-only files, no rewriting of committed seed JSONs. Corrupted data moves to an explicitly-named `*_corrupted` or `_archives/` location. Zero exceptions have been taken.
 
 ### 3. Manifest-gated integrity lint
 
