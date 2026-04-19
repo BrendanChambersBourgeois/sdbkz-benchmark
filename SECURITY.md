@@ -17,6 +17,12 @@ Contact: **brendanchambersbou@gmail.com** (GPG key available on request). Please
 - The affected commit hash or release tag.
 - A reproduction path if available (container command, seed parameters, expected vs observed output).
 
+**Response expectations**:
+
+- Acknowledgment within 7 days of receipt.
+- Triage decision within 30 days (confirmed / can't-reproduce / out-of-scope / needs-more-info).
+- No guaranteed fix timeline. This is a research repo attached to a published paper, not a deployed service with an SLA. Critical findings (numerical correctness + cryptographic context) will be prioritised; polish / doc issues may sit in backlog.
+
 For upstream library findings (fplll, fpylll, MPFR), coordinate timing so the fix lands upstream before the public disclosure lands here. The fplll Kahan-patch finding (see below) is the working template.
 
 ## Known findings
