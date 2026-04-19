@@ -134,18 +134,36 @@ jobs:
             sdbkz-benchmark:ci python3 scripts/validate_seeds.py \
             --sha-check results/3x_tours/
 
-      - name: Seed manifest lint (v1.3 integrity gate)
+      - name: Figure SHA-256 byte-identity gate (paper-safety invariant)
         run: |
-          # Enforces the three manifest invariants from
-          # Research/backlog/2026-04-18_seed_consolidation.md:
+          # Regenerates every paper figure inside the pinned container
+          # and compares the output SHA-256 set against the baseline
+          # committed at analysis/figures/.sha256. Any non-empty diff
+          # means a figure has drifted — either the dataset changed
+          # under it or the rendering did. Either is a blocker.
+          #
+          # Baseline regenerated pre-tag locally; see Makefile `figs`
+          # target or CONTRIBUTING "Testing expectations" section.
+          docker run --rm -v "${{ github.workspace }}:/repo:ro" -w /repo \
+            sdbkz-benchmark:ci bash -c "
+              mkdir -p /tmp/figs
+              python3 analysis/paper_figures.py --output-dir /tmp/figs
+              cd /tmp/figs
+              sha256sum *.png | sort -k2 > /tmp/actual.sha256
+              diff /repo/analysis/figures/.sha256 /tmp/actual.sha256
+            "
+
+      - name: Seed manifest lint (v1.3 integrity gate, --sha-check)
+        run: |
+          # Enforces the three manifest invariants:
           #   (a) no orphan files under results/seeds/ missing from
           #       seed_manifest.json,
           #   (b) no ghost manifest entries pointing at absent files,
-          #   (c) (local-only, nightly) on-disk SHA-256 matches record.
-          # CI runs the fast mode only; --sha-check is a local /
-          # pre-tag verification (~15 min on 4,300 seeds).
+          #   (c) on-disk SHA-256 matches the manifest record.
+          # --sha-check adds invariant (c). Measured ~0.3s on 4,432
+          # entries on this host's NVMe; well within CI budget.
           docker run --rm -v "${{ github.workspace }}:/repo" -w /repo \
-            sdbkz-benchmark:ci python3 scripts/lint_seed_manifest.py
+            sdbkz-benchmark:ci python3 scripts/lint_seed_manifest.py --sha-check
 
       - name: Diagnostic banner on failure
         if: failure()
