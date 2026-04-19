@@ -46,7 +46,7 @@ Every reader routes through `load_all_seeds` with either `campaign=...` (v1.3+ d
 
 Observed from actual history:
 
-- Branch names: `vN.M-<topic>` for release work, `<topic>-<detail>` for fixes. Examples: `v1.2-consolidation`, `v1.3-seed-index`, `v1.3-coverage-expansion`, `fix-ci-pytest-in-docker`, `portfolio-presentation`.
+- Branch names: `vN.M-<topic>` for release work, `<topic>-<detail>` for fixes. Examples: `v1.2-consolidation`, `v1.3-seed-index`, `v1.3-coverage-expansion`, `fix-ci-pytest-in-docker`, `v1.4-docs`.
 - Commit subjects: conventional-ish prefix (`feat(scope)`, `fix(scope)`, `docs(scope)`, `chore(scope)`, `refactor(scope)`, `ci(scope)`), 50-70 chars.
 - Commit bodies: prose paragraph explaining *why*, a short bullet list of *what*, and a **Verification** block summarising the gates that passed (pytest counts, ruff, verify.sh, lint_seed_manifest, figure SHA parity where relevant).
 - Co-authored-by trailer on Claude-Code-assisted commits.
