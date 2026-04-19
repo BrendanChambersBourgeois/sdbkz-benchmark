@@ -8,7 +8,7 @@ If you're reading this from a cyber / incident-response angle: the interesting p
 
 ## TL;DR
 
-A defensive clamp in a verification script silently substituted a sentinel value for a non-positive `get_r()` return from fplll at q=3329, n=100, β=30, 1000-bit MPFR. The clamp fired on ~38% of seeds, but neither the clamp event nor the raw pre-clamp value was logged. The draft paper §8 was written against the clamped output for 9 days. The root cause was not detected until someone asked "what does `get_r()` actually return?" — a question that took 5 minutes to answer via a standalone reproducer and turned a rate-based statistical investigation into an algorithmic one.
+A defensive clamp in a verification script silently substituted a sentinel value for a non-positive `get_r()` return from fplll at q=3329, n=100, β=30, 1000-bit MPFR. The clamp fired on ~38% of seeds, but neither the clamp event nor the raw pre-clamp value was logged. The draft paper §8 was written against the clamped output for 9 days (absolute dates: 2026-04-02 → 2026-04-10). The root cause was not detected until someone asked "what does `get_r()` actually return?" — a question that took 5 minutes to answer via a standalone reproducer and turned a rate-based statistical investigation into an algorithmic one.
 
 The fix is a 30-line Kahan-compensated subtraction in `fplll/gso_interface.cpp`. The policy fallout is:
 

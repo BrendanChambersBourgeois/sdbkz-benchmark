@@ -11,11 +11,17 @@ Example:
     from analysis._data import load_all_seeds
     from analysis.plots import fig_dimension_scaling, generate_all
 
-    groups = load_all_seeds("/path/to/results/raw", "/path/to/results/cloud")
+    # v1.3+ manifest API (preferred):
+    groups = load_all_seeds(campaign="main")
     fig_dimension_scaling(groups, output_dir="./figures")
 
-    # Or run everything:
-    generate_all(["/path/to/results/raw"], "./figures")
+    # Or run everything via the orchestrator:
+    generate_all(campaign="main", tour_campaign="tours3x",
+                 output_dir="./figures")
+
+    # Pre-v1.3 positional-dirs form is still supported for unusual
+    # layouts but is no longer the recommended entry point; the
+    # manifest query path is tested byte-identical against it.
 """
 from .dimension_scaling import fig_dimension_scaling
 from .advantage_histograms import fig_advantage_histograms
