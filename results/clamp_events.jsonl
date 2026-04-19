@@ -142,3 +142,7 @@
 {"ts": "2026-04-18T18:54:42.233999+00:00", "script": "q3329_verify", "ctx": "full", "position": 269, "raw_value": -20.721646819352458}
 {"ts": "2026-04-18T19:26:44.969249+00:00", "script": "q3329_verify", "ctx": "active", "position": 263, "raw_value": -118.16775213967418}
 {"ts": "2026-04-18T19:26:44.969454+00:00", "script": "q3329_verify", "ctx": "full", "position": 263, "raw_value": -118.16775213967418}
+{"ts": "2026-04-19T00:51:34.795550+00:00", "script": "q3329_verify", "ctx": "active", "position": 233, "raw_value": -45.996283213227194}
+{"ts": "2026-04-19T00:51:34.795847+00:00", "script": "q3329_verify", "ctx": "full", "position": 233, "raw_value": -45.996283213227194}
+{"ts": "2026-04-19T02:33:51.128574+00:00", "script": "q3329_verify", "ctx": "active", "position": 240, "raw_value": -308.486824216819}
+{"ts": "2026-04-19T02:33:51.128968+00:00", "script": "q3329_verify", "ctx": "full", "position": 240, "raw_value": -308.486824216819}
