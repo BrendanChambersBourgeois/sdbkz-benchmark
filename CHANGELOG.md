@@ -28,30 +28,34 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
-### Deferred (tracked design)
-- **Portfolio presentation pass (planned `portfolio-presentation` branch).**
-  Recruiter-facing positioning over the existing repo: README rewrite,
-  ARCHITECTURE.md, SECURITY.md + fplll disclosure write-up,
-  CONTRIBUTING.md, ROADMAP.md, 5 ADRs in `docs/decisions/`, Makefile,
-  pipeline-log query cookbook, q=3329 incident post-mortem narrative,
-  mermaid architecture diagram. All ADDITIVE — zero changes to
-  paper, seeds, scripts, or CI gates. Hard invariant: SHA-256 of
-  every paper-cited file preserved. Audience priority: cyber/PQC
-  recruiters → research PM recruiters → paper reviewers →
-  collaborators. Full design + commit plan + paper-safety gates in
-  `backlog/2026-04-18_portfolio_presentation_plan.md`. Targets
-  `v1.4.0` post-v1.3.1.
-- **Campaign config file (`config/sweep.toml`)** — parked, not scheduled.
-  Replaces hardcoded `BETAS`/`NS`/`TOURS_BY_BETA` constants across
-  sweep scripts with a single TOML-defined campaign registry. Only
-  worth doing if sweep-authoring cadence picks up (≥2 new runners
-  per month, or cross-script constant drift, or a future seed-index
-  rev that wants per-campaign provenance in seed JSONs). Full
-  design + explicit trigger conditions in
-  `backlog/2026-04-18_config_file_sweep_campaigns.md`. Today the
-  hardcoded-constants-per-script pattern is stable and self-documenting;
-  the consolidation wins would be retroactive on a paper-final
-  dataset and the up-front migration cost is not justified.
+### In progress
+- **Reader-facing documentation pass (`v1.4-docs` branch).** README
+  rewrite, SECURITY.md + `docs/disclosure/fplll_gso_kahan_findings.md`,
+  CONTRIBUTING.md, ROADMAP.md, `docs/design_decisions.md` (2 ADRs),
+  Makefile, `docs/pipeline_log_queries.md`, `docs/incident_q3329_post_mortem.md`,
+  `docs/seed_manifest_schema.md`, CHANGELOG in-repo. All ADDITIVE —
+  zero changes to paper, seeds, scripts, Docker, or CI gates. Hard
+  invariant: SHA-256 of every paper-cited file preserved (14/14
+  figures byte-identical vs v1.3.1 baseline). Targets `v1.4.0`
+  post-v1.3.1.
+
+### Deferred
+- **Campaign config file (`config/sweep.toml`)** — parked, not
+  scheduled. Replaces hardcoded `BETAS` / `NS` / `TOURS_BY_BETA`
+  constants across sweep scripts with a single TOML-defined
+  campaign registry. Revisit trigger: ≥2 new runners per month,
+  cross-script constant drift, or a future seed-index rev that
+  wants per-campaign provenance in seed JSONs. Today the hardcoded-
+  constants-per-script pattern is stable and self-documenting; the
+  migration cost is not justified.
+- **Legacy-path symlink drop (v2.0.0).** Post-v1.3 the canonical
+  seed tree is `results/seeds/<campaign>/...` but backwards-compat
+  symlinks at pre-v1.3 paths (`results/raw/`, `results/cloud/`,
+  `results/q3329/`, ...) are preserved for one release cycle so
+  paper-era SHA-256 receipts keep resolving. v2.0.0 drops those
+  symlinks with coordinated paper §9 + CI + analysis argparse edits;
+  `results/seed_path_crosswalk.csv` becomes the permanent old→new
+  reconciler.
 
 ## [1.3.1] — 2026-04-19
 
@@ -180,10 +184,10 @@ failures).
   `pyproject.toml` (line-length=100, F/W codes + I001, scripts/ +
   analysis/ scope). New `build-and-verify.yml` step fails on any drift
   (a4b3e61, 1c96e71).
-- **`scripts/lint_logging.py`** + CI step enforcing CLAUDE.md §16: every
-  entry-point script under `scripts/` and `analysis/` must import
-  `scripts/log.py:get_logger` so events flow to `logs/pipeline.jsonl`
-  (3a12c77, bf70300).
+- **`scripts/lint_logging.py`** + CI step enforcing the centralised-
+  logging policy: every entry-point script under `scripts/` and
+  `analysis/` must import `scripts/log.py:get_logger` so events flow
+  to `logs/pipeline.jsonl` (3a12c77, bf70300).
 
 ### Changed
 - `sweep_parallel.py`, `sweep_cloud.py`, `q3329_verify.py`,
