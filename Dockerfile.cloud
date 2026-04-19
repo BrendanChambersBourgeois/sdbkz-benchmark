@@ -13,11 +13,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Pin Python packages to exact versions used in the experiment
 # fpylll 0.6.4 bundles fplll 5.5.0 (libfplll.so.9.0.0) as a vendored library
+# matplotlib + scipy + pytest match the main Dockerfile so analysis +
+# tests can run inside this image if the cloud campaign is ever revived.
+# Cloud campaign decommissioned 2026-04-10; this is future-proofing.
 RUN pip install --no-cache-dir \
         fpylll==0.6.4 \
         cysignals==1.12.6 \
         numpy==2.4.4 \
-        boto3
+        boto3 \
+        matplotlib \
+        scipy \
+        pytest
 
 WORKDIR /experiment
 # Copy the full scripts/ directory so sweep_cloud.py can import its
