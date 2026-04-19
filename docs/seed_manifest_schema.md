@@ -6,6 +6,8 @@ ADR-002 ([`docs/design_decisions.md`](design_decisions.md)) covers *why* the man
 
 ## Top-level layout
 
+Example (illustrative; `generated_utc` and per-entry timestamps drift on every rebuild and carry no scientific meaning):
+
 ```json
 {
   "schema_version": 1,
