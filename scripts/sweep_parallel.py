@@ -50,7 +50,6 @@ RESULTS_DIR = os.path.join(BASE, "results")
 MAIN_SEEDS_DIR = os.path.join(BASE, "results", "seeds", "main", "q97")
 FAILED_FILE = os.path.join(RESULTS_DIR, "failed.json")
 SUMMARY_FILE = os.path.join(RESULTS_DIR, "summary.json")
-LOG_FILE = os.path.join(RESULTS_DIR, "progress.log")
 CLAMP_LOG_FILE = os.path.join(RESULTS_DIR, "clamp_events.jsonl")
 
 
@@ -428,10 +427,6 @@ def setup_logging():
     logger = logging.getLogger("sweep")
     logger.setLevel(logging.INFO)
     fmt = logging.Formatter("%(asctime)s  %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-
-    fh = logging.FileHandler(LOG_FILE)
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
 
     sh = logging.StreamHandler(sys.stdout)
     sh.setFormatter(fmt)
