@@ -1,7 +1,6 @@
 # Per-seed result JSONs are now published — only exclude truly transient
 # files (backups, health logs, the convergence test which is still running).
 results/backups/
-results/health.log
 results/failed.json
 
 # Old result directories (pre-restructure)
@@ -16,6 +15,8 @@ results_cloud_q3329_corrupted_500bit/
 __pycache__/
 *.pyc
 *.pyo
+.ruff_cache/
+.pytest_cache/
 
 # Logs
 logs/*
