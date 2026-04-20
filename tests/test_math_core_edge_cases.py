@@ -95,8 +95,6 @@ def test_ln_fixed_point_shape_unimodal():
     coefficients."""
     p = ln_fixed_point(100, 30)
     diffs = [p[i + 1] - p[i] for i in range(len(p) - 1)]
-    peak_idx = diffs.index(min(diffs, key=lambda d: 1 if d >= 0 else 0))
-    # Actually: find the rightmost positive diff = tour before peak
     rising = [i for i, d in enumerate(diffs) if d > 0]
     falling = [i for i, d in enumerate(diffs) if d < 0]
     # All rising indices precede all falling indices (unimodal)
