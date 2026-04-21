@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this benchmark, please cite both the accompanying technical report and this software artifact."
+title: "SD-BKZ vs. BKZ: A Reproducible Lattice-Reduction Benchmark via the Li-Nguyen Rankin Profile"
+abstract: >-
+  The Root Hermite Factor (RHF), the dominant quality metric for
+  lattice basis reduction, is structurally blind to meaningful
+  differences between reduced bases. Comparing BKZ against self-dual
+  BKZ (SD-BKZ) across more than 4,500 seeds on LWE-Kannan embedding
+  lattices, RHF differences are below 1e-6 in all groups without
+  outlier seeds, while the Li-Nguyen Rankin profile distance d(LN)
+  reveals statistically significant gaps (Cohen's d up to 9.4). This
+  repository ships the containerised benchmark, seed manifest,
+  analysis pipeline, and accompanying technical report as a single
+  reproducible artifact.
+type: software
+authors:
+  - family-names: "Chambers-Bourgeois"
+    given-names: "Brendan"
+    email: "brendanchambersbou@gmail.com"
+version: "1.5.0"
+date-released: "2026-04-22"
+repository-code: "https://github.com/BrendanChambersBourgeois/sdbkz-benchmark"
+license: MIT
+# doi: 10.5281/zenodo.XXXXXXX
+# ^ Concept DOI amended after the first Zenodo ingest (see
+#   /mnt/hgfs/Research/backlog/2026-04-19_public_flip_checklist.md §9c).
+keywords:
+  - lattice-reduction
+  - BKZ
+  - SD-BKZ
+  - self-dual-BKZ
+  - Rankin-profile
+  - Li-Nguyen
+  - reproducibility
+  - benchmark
+  - cryptanalysis
+  - post-quantum-cryptography

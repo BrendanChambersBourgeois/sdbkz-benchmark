@@ -28,6 +28,14 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
+### Added
+- **`CITATION.cff`** (new file) — machine-readable citation metadata
+  at the repo root. GitHub auto-renders the "Cite this repository"
+  button with BibTeX + APA output from this file. Zenodo concept-DOI
+  field left as a placeholder comment; populated post first release
+  ingest (`10.5281/zenodo.XXXXXXX`). Validates against cff-version
+  1.2.0 schema.
+
 ### Changed
 - **Paper content refresh (LaTeX + HTML + rebuilt PDF).** Four
   targeted additions bringing the paper up to the 2026-04-22 data
