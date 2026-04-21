@@ -21,9 +21,11 @@ version: "1.5.0"
 date-released: "2026-04-22"
 repository-code: "https://github.com/BrendanChambersBourgeois/sdbkz-benchmark"
 license: MIT
-# doi: 10.5281/zenodo.XXXXXXX
-# ^ Concept DOI amended after the first Zenodo ingest (see
-#   /mnt/hgfs/Research/backlog/2026-04-19_public_flip_checklist.md §9c).
+doi: 10.5281/zenodo.19686928
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.19686928
+    description: "Zenodo concept DOI (resolves to the latest version)"
 keywords:
   - lattice-reduction
   - BKZ

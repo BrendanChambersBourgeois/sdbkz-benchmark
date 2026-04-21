@@ -26,9 +26,19 @@ Versions follow loose SemVer. Bump on:
 - **Minor** — new features, new sweep dimensions, new analysis scripts
 - **Patch** — bug fixes, infra tweaks, doc updates
 
-## Unreleased
+## [1.5.0] — 2026-04-22
+
+Tag: `v1.5.0`. Repo flipped private → public. First Zenodo DOI:
+`10.5281/zenodo.19686928` (concept DOI, resolves to latest
+version). Release notes at
+https://github.com/BrendanChambersBourgeois/sdbkz-benchmark/releases/tag/v1.5.0.
 
 ### Added
+- **Zenodo concept DOI** `10.5281/zenodo.19686928` minted on the
+  first public release. `CITATION.cff` `doi:` + `identifiers:`
+  populated. README DOI badge (Zenodo) added alongside CI,
+  license, Python badges. "Cite this repository" button now
+  renders BibTeX + APA on the GitHub landing page.
 - **`CITATION.cff`** (new file) — machine-readable citation metadata
   at the repo root. GitHub auto-renders the "Cite this repository"
   button with BibTeX + APA output from this file. Zenodo concept-DOI

@@ -1,6 +1,7 @@
 # BKZ Dynamical Systems Benchmark: Empirical Evaluation of Lattice Reduction via the Li–Nguyen Rankin Profile
 
 [![CI](https://github.com/BrendanChambersBourgeois/sdbkz-benchmark/actions/workflows/build-and-verify.yml/badge.svg)](https://github.com/BrendanChambersBourgeois/sdbkz-benchmark/actions)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19686928.svg)](https://doi.org/10.5281/zenodo.19686928)
 [![License: MIT](https://img.shields.io/badge/Code-MIT-blue.svg)](LICENSE)
 [![License: CC-BY-4.0](https://img.shields.io/badge/Paper%20%26%20data-CC--BY--4.0-brightgreen.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg)](https://www.python.org/)
