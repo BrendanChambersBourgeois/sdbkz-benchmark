@@ -29,6 +29,32 @@ Versions follow loose SemVer. Bump on:
 ## Unreleased
 
 ### Changed
+- **Paper content refresh (LaTeX + HTML + rebuilt PDF).** Four
+  targeted additions bringing the paper up to the 2026-04-22 data
+  state ahead of the Zenodo public-flip DOI snapshot:
+  - Abstract + §1 seed-count bump "more than 4,000" → "more than
+    4,500" (manifest at 4,541 with the variance-fill and convergence
+    extensions landed).
+  - §Limitations 1000-tour convergence extension paragraph. n=90
+    β=30 20-seed run at t=1000 shows SD-BKZ has not plateaued: mean
+    advantage grows from +1.331 at t=500 to +1.581 at t=1000 (win
+    rate 20/20 at both horizons), meaning the paper's 70-tour and
+    500-tour numbers understate the asymptotic advantage at
+    favourable dimensions by ~1.7×.
+  - §Reproducibility fresh-VM install-surface paragraph + variance-
+    check paragraph. 100-seed bit-identity confirmed on a cold-clone
+    fresh-Ubuntu install. Four groups (n=100 β=30, n=100 β=40,
+    n=110 β=40, n=130 β=40) reported at 122 seeds instead of 100 —
+    qualitative picture unchanged.
+  - §8.2 q=3329 seed 101 post-sample probe sentence. +0.834 nats
+    clean classification, outside the 1-100 sampled range, lands
+    inside the clean-subset distribution tail.
+  - HTML abstract: dropped "(code available upon publication)"
+    dangler — code IS available at the GitHub URL, and repo-link is
+    already in §Reproducibility.
+  - PDF regenerated (31 pages, was 30).
+
+### Changed
 - **README paper framing.** Kept `## Paper and patches` heading —
   the repo ships a paper, prepublished via the Zenodo DOI that the
   public flip mints. Dropped the IACR ePrint badge (will be
