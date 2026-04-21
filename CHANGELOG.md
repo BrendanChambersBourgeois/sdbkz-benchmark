@@ -28,6 +28,23 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
+### Added
+- **`.dockerignore`** (new file) — trims the Docker build context by
+  excluding raw seed data (`results/seeds/`, `results/cloud/`,
+  `results/raw/`, campaign symlink dirs, sensitivity trees, etc.),
+  rendered paper artifacts (`paper/*.pdf/html/png`,
+  `analysis/figures/*.png`), runtime caches (`logs/`, `_archives/`,
+  `.git/`, `__pycache__`, `.ruff_cache`, `.pytest_cache`), and
+  local-only files (`.claude/`, `CLAUDE.md`, `*.original.md`).
+  Fresh-VM reproducibility test (2026-04-20) observed 557.7 MB build
+  context — shrinks to <50 MB. No image content change (all four
+  Dockerfiles still `COPY scripts/` only).
+- **README `Troubleshooting` subsection** under 90-second quickstart
+  covering the three friction points surfaced by the fresh-Ubuntu
+  cold-clone test: `docker: permission denied` (missing docker
+  group), `pytest: collected 0 items` (wrong `$(pwd)` from a subdir),
+  and "run pytest / paper_figures.py inside the image, not host-side".
+
 ### Changed
 - **Single source of truth for run logs — `logs/pipeline.jsonl`.**
   Removed the dual-write `FileHandler` path in `scripts/sweep_parallel.py`

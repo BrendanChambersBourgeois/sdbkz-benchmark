@@ -1,0 +1,61 @@
+# Big raw data — reproduced from scratch inside the container via verify.sh
+# or the sweep scripts. No benefit to shipping it in the build context.
+results/seeds/
+results/cloud/
+results/raw/
+results/3x_tours/
+results/3x_tours_extended/
+results/convergence/
+results/convergence_test/
+results/q3329/
+results/q3329_degenerate/
+results/q3329_n70_beta30/
+results/q3329_n80_beta30/
+results/q3329_n90_beta30/
+results/cliff_500bit/
+results/fplll54_sensitivity/
+results/fplll543_sensitivity/
+results/fplll544_sensitivity/
+results/backups/
+results/analysis/
+
+# Append-only audit chain / path translation table — not used in the image
+results/clamp_events.jsonl
+results/seed_path_crosswalk.csv
+
+# Rendered paper artifacts — regenerated from LaTeX source / analysis scripts
+paper/*.pdf
+paper/*.html
+paper/*.png
+paper/latex/figs/*.png
+analysis/figures/*.png
+figures/*.png
+
+# Runtime / local caches / VCS
+logs/
+_archives/
+.git/
+.github/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+.ruff_cache/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Claude Code local config + caveman backups — not for the image
+.claude/
+CLAUDE.md
+*.original.md
+.tags
+tags
+.ctags.d/
+compile_paper_findings.sh
+
+# Example outputs (generated PNGs)
+examples/output/
+
+# OS / editor
+.DS_Store
+*.swp
+*~
