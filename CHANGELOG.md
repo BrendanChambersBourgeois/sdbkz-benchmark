@@ -28,6 +28,17 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
+### Changed
+- **README paper framing.** Kept `## Paper and patches` heading —
+  the repo ships a paper, prepublished via the Zenodo DOI that the
+  public flip mints. Dropped the IACR ePrint badge (will be
+  replaced by a Zenodo DOI badge at flip time). Added a one-line
+  preamble under the section heading clarifying `paper/` is
+  generated from `paper/latex/` via `make`. Table row for
+  `.tex` source dropped "iacrj LaTeX port (ePrint submission
+  format, canonical source)" → "LaTeX source (canonical)" since
+  submission is to Zenodo not ePrint.
+
 ### Added
 - **`.dockerignore`** (new file) — trims the Docker build context by
   excluding raw seed data (`results/seeds/`, `results/cloud/`,
