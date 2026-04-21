@@ -37,6 +37,7 @@ examples/output/
 CLAUDE.md
 .claude/
 compile_paper_findings.sh
+*.original.md
 
 # Editor / navigation artifacts
 .tags

@@ -28,6 +28,44 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
+### Changed
+- **Single source of truth for run logs — `logs/pipeline.jsonl`.**
+  Removed the dual-write `FileHandler` path in `scripts/sweep_parallel.py`
+  (`results/progress.log`) and the `results/health.log` emit path
+  (via `.gitignore` entry drop; `health_check.sh` dormant since
+  2026-04-07 so writes are inactive). Pipeline.jsonl via
+  `scripts/log.py` is now the only authoritative machine-readable
+  event stream; human-readable output stays on stdout. Per-script CI
+  lint (`scripts/lint_logging.py`) already prevents new violations.
+  (commits 8f6aa5e, 91de44a)
+
+### Removed
+- **Legacy `.log`/`.pid`/`.out` debris from `logs/` + tracked
+  `results/progress.log` (173K) + untracked `results/health.log`
+  (24K).** All 19 files archived to
+  `_archives/logs_legacy_2026-04-20.tar.gz` with SHA-256 in
+  `_archives/CHECKSUMS.sha256` before rm. `logs/` retains
+  `pipeline.jsonl` + `.gitkeep` + active stdout captures only.
+- **Empty dir `results/3x_tours_extended/`** — scaffold never
+  populated, rmdir.
+- **Byte-identical duplicate `results/paper_claims/profile_decomposition.json`**
+  (paper-cited canonical is `results/profile_decomposition.json`).
+  Archived dup at `_archives/profile_decomposition_paper_claims_dup_2026-04-20.tar.gz`.
+
+### Fixed
+- **`.gitignore`** now tracks `.ruff_cache/` + `.pytest_cache/`
+  explicitly (were untracked by accident); dropped stale
+  `results/health.log` entry post-rm.
+- **`tests/test_math_core_edge_cases.py:98`** — removed dead
+  `peak_idx` local (ruff F841); assertion logic unchanged.
+- **GHA Node.js 20 deprecation warning silenced** via
+  `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'` env on
+  `.github/workflows/build-and-verify.yml`. Low-risk quick patch
+  ahead of the 2026-06-02 "forced Node 24 by default" cutover and
+  2026-09-16 Node 20 removal. Canonical action-version bumps
+  (checkout@v4→v5, etc.) deferred until availability verified
+  to avoid mid-sweep CI breakage.
+
 ### In progress
 - **Reader-facing documentation pass (`v1.4-docs` branch).** README
   rewrite, SECURITY.md + `docs/disclosure/fplll_gso_kahan_findings.md`,
