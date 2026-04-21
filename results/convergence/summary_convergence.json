@@ -1,14 +1,14 @@
 {
   "experiment": "convergence_test",
-  "n": 140,
+  "n": 90,
   "beta": 30,
-  "max_tours": 500,
+  "max_tours": 1000,
   "seeds": 20,
-  "bkz_mean_dln_70": 5.606492319617869,
-  "bkz_mean_dln_500": 5.4848094576308695,
-  "sdbkz_mean_dln_70": 5.658060648811851,
-  "sdbkz_mean_dln_500": 5.559464115882805,
-  "mean_advantage_500": -0.07465465825193496,
-  "win_rate_500": 0.2,
-  "timestamp": "2026-04-08T21:52:47.779478+00:00"
+  "bkz_mean_dln_70": 4.885675535501202,
+  "bkz_mean_dln_500": 4.872001875543305,
+  "sdbkz_mean_dln_70": 3.9608966759301127,
+  "sdbkz_mean_dln_500": 3.291392561424322,
+  "mean_advantage_500": 1.5806093141189836,
+  "win_rate_500": 1.0,
+  "timestamp": "2026-04-21T01:31:16.225697+00:00"
 }
