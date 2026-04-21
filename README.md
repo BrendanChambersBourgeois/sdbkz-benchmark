@@ -22,6 +22,19 @@ docker run --rm -e NUM_SEEDS=1 sdbkz-benchmark:ci bash scripts/verify.sh
 
 `verify.sh` regenerates one paper-reference seed from scratch inside the pinned container and compares the output against hardcoded reference values to 4 decimal places. Exits 1 on any numerical divergence.
 
+### Troubleshooting
+
+**`docker: permission denied while trying to connect to the Docker daemon socket`** — user not in `docker` group after install. Run once:
+
+```bash
+sudo usermod -aG docker $USER
+newgrp docker    # or log out + back in
+```
+
+**`pytest: collected 0 items`** — `$(pwd)` expanded from a subdirectory. `cd` to the repo root before `docker run -v $(pwd)/...`.
+
+**Fresh Ubuntu VM runs:** `pytest` and `analysis/paper_figures.py` should be invoked **inside the Docker image**, not host-side. The image pins all dependency versions (fpylll, numpy, MPFR) to the exact revisions used in the paper; system Python on a bare Ubuntu install has none of them.
+
 ## Engineering TL;DR
 
 This repo is (a) the empirical data + paper for a 4,432-seed lattice-reduction benchmark, and (b) a case study in defensive engineering for numerical experiments. The headline finding is a **catastrophic-cancellation bug in fplll's Gram–Schmidt recurrence** (`fplll/gso_interface.cpp:147–151`) that corrupts 38% of bases at q=3329 n=100 β=30 with 1000-bit MPFR. A 30-line Kahan-compensated patch drops the rate to 0/55, passes all 15 fplll regression tests, and reproduces bit-identical across Intel 13900K and AMD 9950X3D. The bug is a new instance of fpylll #272 / fplll #237 — not a new class, but a concrete reproducer and fix. See paper §8 and `patches/fplll_gso_kahan.patch`.
