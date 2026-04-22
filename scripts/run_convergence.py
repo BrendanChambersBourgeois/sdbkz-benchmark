@@ -32,6 +32,11 @@ import argparse
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from log import get_logger, new_run_id, get_run_id
+
+PIPELINE = get_logger("run_convergence")
+
 
 def main():
     ap = argparse.ArgumentParser(
@@ -49,8 +54,15 @@ def main():
                     help="pool size (default: inherit from run_convergence_test)")
     args = ap.parse_args()
 
-    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-    sys.path.insert(0, SCRIPT_DIR)
+    if not get_run_id():
+        new_run_id()
+
+    PIPELINE.info(
+        "dispatch",
+        cat="sweep",
+        n=args.n, beta=args.beta, max_tours=args.max_tours,
+        seeds=args.seeds, workers=args.workers,
+    )
 
     import run_convergence_test
 
