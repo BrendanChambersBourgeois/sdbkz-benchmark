@@ -17,7 +17,7 @@ from multiprocessing import Pool
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from log import get_logger
+from log import get_logger, new_run_id, get_run_id
 from _math_core import build_lwe_kannan, log_clamp, ln_fixed_point
 from _seed_paths import seed_path_for, seed_dir_for
 PIPELINE = get_logger("run_convergence_test")
@@ -125,18 +125,15 @@ def run_seed(seed):
 
 
 def main():
-    print("=" * 70)
-    print("HIGH TOUR COUNT CONVERGENCE TEST")
-    print(f"  n={N}, β={BETA}, tours={MAX_TOURS}, seeds={NUM_SEEDS}")
-    print(f"  Workers: {NUM_WORKERS}")
-    print(f"  Output: {OUTPUT_DIR}")
-    print("=" * 70)
-    print()
+    if not get_run_id():
+        new_run_id()
 
     PIPELINE.info(
         "convergence start",
         cat="sweep",
-        n=N, beta=BETA, tours=MAX_TOURS, n_seeds=NUM_SEEDS, workers=NUM_WORKERS,
+        n=N, beta=BETA, tours=MAX_TOURS, n_seeds=NUM_SEEDS,
+        workers=NUM_WORKERS, q=Q, precision=PRECISION,
+        output_dir=OUTPUT_DIR,
     )
     _t_start = time.time()
 
@@ -153,10 +150,14 @@ def main():
                 completed[seed] = json.load(f)
 
     pending = [s for s in range(1, NUM_SEEDS + 1) if s not in completed]
-    print(f"  Completed: {len(completed)}, Pending: {len(pending)}")
+    PIPELINE.info(
+        "seed scan",
+        cat="sweep",
+        completed=len(completed), pending=len(pending),
+    )
 
     if not pending:
-        print("  All seeds done.")
+        PIPELINE.info("all seeds done", cat="sweep", seeds=len(completed))
         all_results = [completed[s] for s in sorted(completed)]
     else:
         all_results = list(completed.values())
@@ -178,37 +179,25 @@ def main():
 
                 elapsed = time.time() - t_start
                 rate = (done_count - len(completed)) / elapsed if elapsed > 0 else 0
-                eta = (NUM_SEEDS - done_count) / rate if rate > 0 else 0
+                eta_s = int((NUM_SEEDS - done_count) / rate) if rate > 0 else 0
 
-                print(f"  [{done_count}/{NUM_SEEDS}] seed={seed:>3}  "
-                      f"BKZ@500={result['bkz_final_dln']:.4f}  "
-                      f"SDBKZ@500={result['sdbkz_final_dln']:.4f}  "
-                      f"adv={result['advantage']:+.4f}  "
-                      f"BKZ Δ(70→500)={result['bkz_improvement_70_to_500']:.4f}  "
-                      f"SDBKZ Δ(70→500)={result['sdbkz_improvement_70_to_500']:.4f}  "
-                      f"ETA={datetime.timedelta(seconds=int(eta))}", flush=True)
-
-    # Summary
-    print()
-    print("=" * 70)
-    print(f"CONVERGENCE TEST SUMMARY ({len(all_results)} seeds)")
-    print("=" * 70)
+                PIPELINE.info(
+                    "seed done",
+                    cat="sweep",
+                    done=done_count, total=NUM_SEEDS, seed=seed,
+                    bkz_final=round(result["bkz_final_dln"], 4),
+                    sdbkz_final=round(result["sdbkz_final_dln"], 4),
+                    advantage=round(result["advantage"], 4),
+                    bkz_improvement_70_to_final=round(result["bkz_improvement_70_to_500"], 4),
+                    sdbkz_improvement_70_to_final=round(result["sdbkz_improvement_70_to_500"], 4),
+                    eta_s=eta_s,
+                )
 
     bkz_final = np.array([r["bkz_final_dln"] for r in all_results])
     sd_final = np.array([r["sdbkz_final_dln"] for r in all_results])
     bkz_70 = np.array([r["bkz_dln_at_70"] for r in all_results])
     sd_70 = np.array([r["sdbkz_dln_at_70"] for r in all_results])
     advs = np.array([r["advantage"] for r in all_results])
-
-    print(f"  BKZ d(LN) at tour 70:   {np.mean(bkz_70):.4f} ± {np.std(bkz_70,ddof=1):.4f}")
-    print(f"  BKZ d(LN) at tour 500:  {np.mean(bkz_final):.4f} ± {np.std(bkz_final,ddof=1):.4f}")
-    print(f"  BKZ improvement 70→500: {np.mean(bkz_70)-np.mean(bkz_final):.4f} nats")
-    print()
-    print(f"  SDBKZ d(LN) at tour 70:   {np.mean(sd_70):.4f} ± {np.std(sd_70,ddof=1):.4f}")
-    print(f"  SDBKZ d(LN) at tour 500:  {np.mean(sd_final):.4f} ± {np.std(sd_final,ddof=1):.4f}")
-    print(f"  SDBKZ improvement 70→500: {np.mean(sd_70)-np.mean(sd_final):.4f} nats")
-    print()
-    print(f"  Advantage at tour 500:  {np.mean(advs):+.4f} (win={np.mean(advs>0)*100:.0f}%)")
 
     summary = {
         "experiment": "convergence_test",
@@ -224,6 +213,24 @@ def main():
     }
     with open(os.path.join(OUTPUT_DIR, "summary_convergence.json"), "w") as f:
         json.dump(summary, f, indent=2)
+
+    PIPELINE.info(
+        "convergence summary",
+        cat="sweep",
+        n=N, beta=BETA, tours=MAX_TOURS, seeds=len(all_results),
+        bkz_mean_dln_70=round(float(np.mean(bkz_70)), 4),
+        bkz_std_dln_70=round(float(np.std(bkz_70, ddof=1)), 4),
+        bkz_mean_dln_final=round(float(np.mean(bkz_final)), 4),
+        bkz_std_dln_final=round(float(np.std(bkz_final, ddof=1)), 4),
+        bkz_improvement_70_to_final=round(float(np.mean(bkz_70) - np.mean(bkz_final)), 4),
+        sdbkz_mean_dln_70=round(float(np.mean(sd_70)), 4),
+        sdbkz_std_dln_70=round(float(np.std(sd_70, ddof=1)), 4),
+        sdbkz_mean_dln_final=round(float(np.mean(sd_final)), 4),
+        sdbkz_std_dln_final=round(float(np.std(sd_final, ddof=1)), 4),
+        sdbkz_improvement_70_to_final=round(float(np.mean(sd_70) - np.mean(sd_final)), 4),
+        mean_advantage=round(float(np.mean(advs)), 4),
+        win_rate=round(float(np.mean(advs > 0)), 4),
+    )
 
     PIPELINE.info(
         "convergence complete",
