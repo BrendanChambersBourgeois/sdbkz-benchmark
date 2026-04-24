@@ -35,6 +35,12 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXEMPT = {
     "scripts/log.py",
     "scripts/lint_logging.py",
+    # scripts/seed_timing.py: pure library, no main entry. Imported by
+    # estimate_sweep_time.py (CLI) and run_convergence.py (dispatcher).
+    # Both of those callers are entry points and import their own logger.
+    # Listed explicitly (not relying on `_` prefix) so the public-API
+    # naming intent is preserved.
+    "scripts/seed_timing.py",
     "analysis/__init__.py",
     "analysis/diagnostics.py",
     "analysis/tables.py",

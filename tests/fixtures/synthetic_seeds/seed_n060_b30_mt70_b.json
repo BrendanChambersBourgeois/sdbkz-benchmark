@@ -1,0 +1,10 @@
+{
+  "beta": 30,
+  "bkz_time": 540.0,
+  "bkz_tours_run": 70,
+  "max_tours": 70,
+  "n": 60,
+  "sdbkz_time": 1380.0,
+  "sdbkz_tours_run": 70,
+  "seed": 2
+}

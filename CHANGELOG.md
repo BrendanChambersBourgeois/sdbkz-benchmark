@@ -26,6 +26,36 @@ Versions follow loose SemVer. Bump on:
 - **Minor** — new features, new sweep dimensions, new analysis scripts
 - **Patch** — bug fixes, infra tweaks, doc updates
 
+## Unreleased
+
+### Added
+- **`scripts/seed_timing.py`** (new library) — sweep wall-time
+  estimator with two prediction methods (naive per-tour-cost and
+  anchored to a completed reference run) and a recommendation
+  between them. Returns a `SweepEstimate` dataclass carrying both
+  predictions, p95 + median-absolute-deviation spread, anchor
+  metadata (`(n,β,max_tours)`, age in days, source paths, last
+  numerical-hotspot commit SHA), and a `notes` tuple of caveats.
+  Anchor staleness gate: if the youngest anchor seed is older than
+  the configurable threshold (default 7 d), the recommendation
+  flips to naive and a warning enumerating the age + last commit
+  SHA touching `scripts/_bkz_core.py` / `scripts/_math_core.py`
+  is appended to `notes`. Cache-aware
+  (`results/paper_claims/per_tour_cost_table.json`, mtime-validated;
+  silently rebuilt on stale). Library-only — no main entry; added
+  to `scripts/lint_logging.py` EXEMPT with inline justification.
+  Foundational commit; CLI wrapper, cache-write integration into
+  `build_seed_manifest.py`, and dispatcher hook in
+  `run_convergence.py` ship in follow-up commits.
+- **`tests/test_seed_timing.py`** (new) — 16 pytest cases covering
+  table parsing, cache round-trip + freshness gate, anchor selection,
+  age-warning behaviour, naive arithmetic, pool oversubscribe scaling,
+  and graceful degradation on missing data. Synthetic fixtures only;
+  never reads `results/seeds/`.
+- **`tests/fixtures/synthetic_seeds/`** (new dir) — 5 minimal valid
+  seed JSONs used by `test_seed_timing`. Two `(50, 20, 70)` plus two
+  `(60, 30, 70)` plus one `(90, 30, 500)` anchor candidate.
+
 ## [1.5.0] — 2026-04-22
 
 Tag: `v1.5.0`. Repo flipped private → public. First Zenodo DOI:
