@@ -41,6 +41,13 @@ EXEMPT = {
     # Listed explicitly (not relying on `_` prefix) so the public-API
     # naming intent is preserved.
     "scripts/seed_timing.py",
+    # scripts/check_new_top_level_dirs.py: git pre-commit / CI guard
+    # script (INC-39 follow-up). Runs in contexts (pre-commit hook, CI
+    # step) where the pipeline.jsonl writer is either unavailable or
+    # adds noise per-commit. Stdout-only by design — the guard is
+    # itself an engineering audit signal, surfaced via exit code +
+    # stderr, not a research event.
+    "scripts/check_new_top_level_dirs.py",
     "analysis/__init__.py",
     "analysis/diagnostics.py",
     "analysis/tables.py",

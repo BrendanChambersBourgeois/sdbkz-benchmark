@@ -16,6 +16,14 @@ If verify.sh passes you have a numerically-correct build. If it fails, open an i
 
 Host-side install (no Docker) is supported for analysis/docs work; use the Docker image for anything that runs BKZ.
 
+If you intend to commit anything back, install the local git hooks so the pre-commit guards run on your machine:
+
+```bash
+bash scripts/install_git_hooks.sh
+```
+
+Currently installs a single hook (`pre-commit` → `scripts/check_new_top_level_dirs.py`) that refuses commits introducing un-allowlisted new top-level directories — guards the public-vs-internal-archive boundary that produced INC-39 (2026-04-25). The same check runs in CI, so a missed install only delays the warning; it does not let a violation slip into `main`.
+
 ## Where to start reading
 
 The execution path for a single seed:

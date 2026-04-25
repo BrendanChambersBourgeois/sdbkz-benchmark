@@ -80,6 +80,23 @@ jobs:
           # auto-exempt; everything else must be wired.
           python3 scripts/lint_logging.py
 
+      - name: Guard — no un-allowlisted new top-level directories (INC-39)
+        run: |
+          # Refuses any push that introduces a top-level directory not
+          # in the ALLOWED_TOP_LEVEL set in the script. Public-vs-internal
+          # boundary check — the local pre-commit hook catches this on
+          # the author's machine, and this CI step catches the case
+          # where the author bypassed or did not install the hook
+          # (postmortem action item #2 from INC-39, 2026-04-25).
+          # Compare against the merge base with main; on push to main,
+          # github.event.before is the previous tip.
+          BASE="${{ github.event.before }}"
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            BASE="HEAD~1"
+          fi
+          python3 scripts/check_new_top_level_dirs.py "$BASE" || \
+            (echo "::error::New top-level directory rejected. See script output above." && exit 1)
+
       - name: Lint (ruff) — style + dead-import drift guard
         run: |
           # Config in pyproject.toml [tool.ruff]; conservative rule set
