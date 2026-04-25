@@ -411,7 +411,13 @@ def test_cli_writes_manifest_and_is_idempotent(tmp_path):
         m2 = json.load(open(out))
     finally:
         sys.argv = old_argv
-    # generated_utc differs between runs but the seed array is stable.
-    assert m1["seeds"] == m2["seeds"]
+    # generated_utc differs between runs (top-level field) and so does
+    # per-entry verified_at_utc (re-stamped on every walk), so strip both
+    # before content comparison. The remaining fields — n, beta, sha256,
+    # mtime_utc (file mtime, not walk time), advantage, etc. — are
+    # deterministic for an unchanged seed file.
+    def _strip_volatile(seeds):
+        return [{k: v for k, v in s.items() if k != "verified_at_utc"} for s in seeds]
+    assert _strip_volatile(m1["seeds"]) == _strip_volatile(m2["seeds"])
     assert m1["campaigns"] == m2["campaigns"]
     assert m1["schema_version"] == bsm.SCHEMA_VERSION
