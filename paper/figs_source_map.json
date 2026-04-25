@@ -1,0 +1,21 @@
+{
+  "$schema_note": "Maps paper/fig{N}_<name>.png (HTML manuscript bundle) to its canonical analysis/figures/<source>.png. Used by scripts/sync_paper_figures.py (one-shot copy) and scripts/verify_paper_figures_parity.py (CI gate). Audit-doc origin: Research/backlog/_shipped/2026-04-20_repo_dir_organization_audit.md F1 option 4. Adding a figure: append a row here, run sync_paper_figures.py, commit both. Removing: delete row + paper/<name>.png. Renaming: edit the key, re-sync.",
+  "pairs": [
+    {"paper": "fig1_dimension_scaling.png",        "source": "dimension_scaling.png"},
+    {"paper": "fig2_advantage_histograms.png",     "source": "advantage_histograms.png"},
+    {"paper": "fig3_convergence_trajectories.png", "source": "convergence_trajectories.png"},
+    {"paper": "fig4_3x_tour_test.png",             "source": "tour_test_3x.png"},
+    {"paper": "fig5_spatial_decomposition.png",    "source": "spatial_decomposition.png"},
+    {"paper": "fig6_absolute_dln.png",             "source": "absolute_dln.png"},
+    {"paper": "fig7_beta_n_scatter.png",           "source": "beta_n_scatter.png"},
+    {"paper": "fig8_dln_vs_rhf.png",               "source": "dln_vs_rhf.png"},
+    {"paper": "fig9_basis_profiles.png",           "source": "basis_profiles.png"},
+    {"paper": "fig10_gso_profiles.png",            "source": "gso_profiles.png"},
+    {"paper": "fig11_convergence_500_tours.png",   "source": "convergence_500_tours.png"},
+    {"paper": "fig12_q3329_degeneracy.png",        "source": "q3329_degeneracy.png"}
+  ],
+  "supplementary_only": [
+    "peak_dip_trajectory.png",
+    "per_position_landscape.png"
+  ]
+}

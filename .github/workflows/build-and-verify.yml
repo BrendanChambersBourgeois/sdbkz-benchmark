@@ -176,6 +176,19 @@ jobs:
             sdbkz-benchmark:ci python3 scripts/validate_seeds.py \
             --sha-check results/3x_tours/
 
+      - name: Paper figure parity gate (paper/fig*.png ↔ analysis/figures/)
+        run: |
+          # Enforces paper/fig{N}_<name>.png byte-identity with the
+          # canonical analysis/figures/<source>.png mapping declared in
+          # paper/figs_source_map.json. Catches the silent drift that
+          # was discovered during 2026-04-25 audit follow-up: 11 of 12
+          # paper figures had fallen out of parity with their sources
+          # since the variance-fill SHA refresh in commit a34122e.
+          # Mounting the workspace read-only because the script never
+          # writes in --check mode.
+          docker run --rm -v "${{ github.workspace }}:/repo:ro" -w /repo \
+            sdbkz-benchmark:ci python3 scripts/sync_paper_figures.py --check
+
       - name: Figure SHA-256 byte-identity gate (paper-safety invariant)
         run: |
           # Regenerates every paper figure inside the pinned container
