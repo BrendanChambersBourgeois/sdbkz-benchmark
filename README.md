@@ -308,7 +308,6 @@ q=3329 verification:
 Cloud / submission / ops:
 - **`scripts/submit_jobs.py`** — AWS Batch job submission. Flags: `--n`, `--beta`, `--q`, `--precision`, `--vcpus`, `--single-seed`, `--seeds-per-job`, `--dry-run`.
 - **`scripts/cloud_watchdog.sh`** — External watchdog for Batch jobs, Q-aware timeouts (decommissioned with the cloud campaign; retained for future use).
-- **`scripts/health_check.sh`** — Local VM health probe used by the sweep runner.
 - **`scripts/overnight_experiments.py`** — Orchestrates multi-group runs on a single machine.
 
 Data hygiene and logging:
