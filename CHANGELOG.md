@@ -55,6 +55,14 @@ Versions follow loose SemVer. Bump on:
 - **`tests/fixtures/synthetic_seeds/`** (new dir) — 5 minimal valid
   seed JSONs used by `test_seed_timing`. Two `(50, 20, 70)` plus two
   `(60, 30, 70)` plus one `(90, 30, 500)` anchor candidate.
+- **`scripts/estimate_sweep_time.py`** (new CLI) — argparse wrapper
+  around `seed_timing` for ad-hoc sweep planning. Required:
+  `--n --beta --max-tours`. Optional: `--seeds`, `--workers`,
+  `--cache-path`, `--no-cache`, `--anchor-age-warn-days`. Pretty
+  human report to stderr + a single structured `estimate` event to
+  `logs/pipeline.jsonl` under `cat="estimator"` (filterable via
+  `jq 'select(.cat == "estimator")'`). Always exits 0 — advisory,
+  never blocks anything.
 
 ## [1.5.0] — 2026-04-22
 
