@@ -1,6 +1,20 @@
+# Pass HOST_UID + HOST_GID through to the build so the container's
+# runtime user matches the host invoker — bind-mounted ./results +
+# ./logs receive host-owned files instead of root-owned ones (backlog
+# /mnt/hgfs/Research/backlog/2026-04-20_v3_dockerfile_scope.md §8;
+# Incident #32 recurrence pattern). Defaults match a typical Linux
+# desktop; expanded from `${UID:-1000}`/`${GID:-1000}` so a Linux user
+# on a non-1000 UID, or a WSL user, can override via shell env.
+
+x-build: &build
+  context: .
+  args:
+    HOST_UID: "${UID:-1000}"
+    HOST_GID: "${GID:-1000}"
+
 services:
   sweep:
-    build: .
+    build: *build
     volumes:
       - ./results:/experiment/results
       - ./logs:/experiment/logs
@@ -13,7 +27,7 @@ services:
     # time with "range of CPUs is from 0.01 to N.00").
 
   verify:
-    build: .
+    build: *build
     volumes:
       - ./results:/experiment/results
       - ./logs:/experiment/logs

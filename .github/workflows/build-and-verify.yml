@@ -47,6 +47,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Capture runner UID/GID for non-root image build
+        id: runner_ids
+        run: |
+          # The image bakes a non-root user matching the runner so that
+          # bind-mounted ${{ github.workspace }} files inside containers
+          # are readable + writable without root-owned drift on the
+          # host filesystem. github.workspace is owned by the `runner`
+          # user (typically UID 1001 on ubuntu-latest), but we resolve
+          # it dynamically rather than hardcode in case GHA bumps.
+          echo "uid=$(id -u)" >> "$GITHUB_OUTPUT"
+          echo "gid=$(id -g)" >> "$GITHUB_OUTPUT"
+
       - name: Build image (with GHA layer cache)
         uses: docker/build-push-action@v5
         with:
@@ -56,6 +68,9 @@ jobs:
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            HOST_UID=${{ steps.runner_ids.outputs.uid }}
+            HOST_GID=${{ steps.runner_ids.outputs.gid }}
 
       - name: Lint centralised logging coverage (CLAUDE.md §16)
         run: |

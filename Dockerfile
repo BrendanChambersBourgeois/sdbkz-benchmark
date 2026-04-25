@@ -38,6 +38,24 @@ RUN pip install --no-cache-dir \
         scipy \
         pytest
 
+# Non-root runtime — match host UID/GID so bind-mounted ./results +
+# ./logs do not produce root-owned host files (Incident #32 recurrence
+# pattern; backlog
+# /mnt/hgfs/Research/backlog/2026-04-20_v3_dockerfile_scope.md §8).
+# Defaults match the most common Linux desktop UID/GID; override at
+# build time with --build-arg HOST_UID=$(id -u) --build-arg
+# HOST_GID=$(id -g) on systems where they differ. The `getent` guards
+# tolerate base images that already ship a user/group at the requested
+# numeric ID.
+ARG HOST_UID=1000
+ARG HOST_GID=1000
+RUN if ! getent group ${HOST_GID} >/dev/null; then \
+        groupadd -g ${HOST_GID} runner; \
+    fi && \
+    if ! getent passwd ${HOST_UID} >/dev/null; then \
+        useradd --no-log-init -u ${HOST_UID} -g ${HOST_GID} -m runner; \
+    fi
+
 WORKDIR /experiment
 # Copy the full scripts/ directory so wrapper scripts (run_q3329_n100_local,
 # run_q3329_intermediate, run_3x_extended, etc.) can find their imports
@@ -47,7 +65,7 @@ WORKDIR /experiment
 # individual files at the old top-level paths and was silently broken
 # for everything else until a fresh build attempt by a collaborator
 # surfaced it on 2026-04-09.
-COPY scripts/ scripts/
+COPY --chown=${HOST_UID}:${HOST_GID} scripts/ scripts/
 
 # Self-contained image: ship analysis/, tests/, and paper-cited results
 # JSONs so a reviewer can run `pytest tests/` or
@@ -57,13 +75,21 @@ COPY scripts/ scripts/
 # + claim ledger reference directly. Per backlog
 # /mnt/hgfs/Research/backlog/2026-04-20_v3_dockerfile_scope.md §1
 # (fresh-VM reproducibility, INC-36).
-COPY analysis/ analysis/
-COPY tests/ tests/
-COPY results/paper_claims/ results/paper_claims/
-COPY results/summary.json results/runtime_table.json \
+COPY --chown=${HOST_UID}:${HOST_GID} analysis/ analysis/
+COPY --chown=${HOST_UID}:${HOST_GID} tests/ tests/
+COPY --chown=${HOST_UID}:${HOST_GID} results/paper_claims/ results/paper_claims/
+COPY --chown=${HOST_UID}:${HOST_GID} \
+     results/summary.json results/runtime_table.json \
      results/profile_decomposition.json results/convergence_headroom.json \
      results/dGSA_summary.json results/seed_manifest.json \
      results/hash_verification.txt results/
+
+# Ensure /experiment + the to-be-created results/ + logs/ subdirs are
+# writable by the runtime user (verify.sh writes results/, sweep
+# scripts write logs/).
+RUN chown -R ${HOST_UID}:${HOST_GID} /experiment
+
+USER ${HOST_UID}:${HOST_GID}
 
 # Default: run the full local sweep
 CMD ["python3", "scripts/sweep_parallel.py"]

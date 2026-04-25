@@ -35,6 +35,14 @@ newgrp docker    # or log out + back in
 
 **Fresh Ubuntu VM runs:** `pytest` and `analysis/paper_figures.py` should be invoked **inside the Docker image**, not host-side. The image pins all dependency versions (fpylll, numpy, MPFR) to the exact revisions used in the paper; system Python on a bare Ubuntu install has none of them.
 
+**Bind-mounted files owned by root after a Docker run:** the image bakes a non-root user at UID/GID 1000:1000 by default (matches the most common Linux desktop). If your host UID/GID differs, override at build time:
+
+```bash
+docker build --build-arg HOST_UID=$(id -u) --build-arg HOST_GID=$(id -g) -t sdbkz-benchmark:ci .
+```
+
+Or with `docker compose`, export the env first (compose expands `${UID}`/`${GID}` automatically): `UID=$(id -u) GID=$(id -g) docker compose run --rm verify`. WSL users typically need this; native Linux on a default install usually does not.
+
 ## Engineering TL;DR
 
 This repo is (a) the empirical data + paper for a 4,432-seed lattice-reduction benchmark, and (b) a case study in defensive engineering for numerical experiments. The headline finding is a **catastrophic-cancellation bug in fplll's Gram–Schmidt recurrence** (`fplll/gso_interface.cpp:147–151`) that corrupts 38% of bases at q=3329 n=100 β=30 with 1000-bit MPFR. A 30-line Kahan-compensated patch drops the rate to 0/55, passes all 15 fplll regression tests, and reproduces bit-identical across Intel 13900K and AMD 9950X3D. The bug is a new instance of fpylll #272 / fplll #237 — not a new class, but a concrete reproducer and fix. See paper §8 and `patches/fplll_gso_kahan.patch`.

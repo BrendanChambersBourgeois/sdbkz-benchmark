@@ -25,6 +25,21 @@ RUN pip install --no-cache-dir \
         scipy \
         pytest
 
+# Non-root runtime — match host UID/GID so bind-mounted volumes don't
+# produce root-owned host files (Incident #32; backlog
+# /mnt/hgfs/Research/backlog/2026-04-20_v3_dockerfile_scope.md §8).
+# Cloud campaign decommissioned 2026-04-10; the USER directive is
+# included for parity with the main Dockerfile so a future revival
+# inherits the same hygiene.
+ARG HOST_UID=1000
+ARG HOST_GID=1000
+RUN if ! getent group ${HOST_GID} >/dev/null; then \
+        groupadd -g ${HOST_GID} runner; \
+    fi && \
+    if ! getent passwd ${HOST_UID} >/dev/null; then \
+        useradd --no-log-init -u ${HOST_UID} -g ${HOST_GID} -m runner; \
+    fi
+
 WORKDIR /experiment
 # Copy the full scripts/ directory so sweep_cloud.py can import its
 # siblings (log.py, q3329_verify, etc.) via the same scripts/-relative
@@ -32,6 +47,9 @@ WORKDIR /experiment
 # copied, which silently broke any import once the repo restructure
 # moved helpers into scripts/ (see main Dockerfile for the 2026-04-09
 # commentary on the parallel bug).
-COPY scripts/ scripts/
+COPY --chown=${HOST_UID}:${HOST_GID} scripts/ scripts/
+RUN chown -R ${HOST_UID}:${HOST_GID} /experiment
+
+USER ${HOST_UID}:${HOST_GID}
 
 ENTRYPOINT ["python3", "scripts/sweep_cloud.py"]

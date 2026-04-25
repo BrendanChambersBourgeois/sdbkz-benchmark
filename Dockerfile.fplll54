@@ -37,12 +37,29 @@ RUN pip install --no-cache-dir \
         "numpy<2.0"
 RUN pip install --no-cache-dir --no-binary=:all: fpylll==0.6.0
 
-WORKDIR /experiment
-COPY scripts/ scripts/
+# Non-root runtime — match host UID/GID so bind-mounted volumes don't
+# produce root-owned host files (Incident #32 was triggered specifically
+# by these fplll-sensitivity Docker builds; backlog
+# /mnt/hgfs/Research/backlog/2026-04-20_v3_dockerfile_scope.md §8).
+ARG HOST_UID=1000
+ARG HOST_GID=1000
+RUN if ! getent group ${HOST_GID} >/dev/null; then \
+        groupadd -g ${HOST_GID} runner; \
+    fi && \
+    if ! getent passwd ${HOST_UID} >/dev/null; then \
+        useradd --no-log-init -u ${HOST_UID} -g ${HOST_GID} -m runner; \
+    fi
 
-# Verify at build time that the backend really is fplll 5.4.5
+WORKDIR /experiment
+COPY --chown=${HOST_UID}:${HOST_GID} scripts/ scripts/
+RUN chown -R ${HOST_UID}:${HOST_GID} /experiment
+
+# Verify at build time that the backend really is fplll 5.4.5 (still
+# as root so /usr/local/lib reads succeed without group fuss).
 RUN python3 -c "import fpylll; print('fpylll version:', fpylll.__version__)" \
     && find / -name 'libfplll.so*' 2>/dev/null \
     && (strings /usr/local/lib/libfplll.so* 2>/dev/null | grep -oE 'fplll-[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)
+
+USER ${HOST_UID}:${HOST_GID}
 
 CMD ["python3", "-c", "import fpylll; print('fpylll 0.6.0 against fplll 5.4.5 ready')"]
