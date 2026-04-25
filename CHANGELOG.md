@@ -102,13 +102,6 @@ Versions follow loose SemVer. Bump on:
   Action versions use semver tags initially; Scorecard's own
   Pinned-Dependencies check will recommend exact commit SHAs in
   the first report (re-pin in a follow-up to those verified hashes).
-- **`_archives/logs_legacy_2026-04-25.tar.gz`** + **`_archives/CHECKSUMS.sha256`**
-  — initial archive of legacy stdout captures retired from `logs/`
-  (n=90, n=140, n=150 mt1000 sweep stdout + one `.pre_refactor`
-  scratch). 4 files, 3,080 bytes; SHA-256 logged. The active
-  n=130 β=40 mt1000 sweep stdout stays in `logs/` until that sweep
-  completes. Establishes the `_archives/` convention scoped in
-  Research/backlog/_shipped/2026-04-20_legacy_log_cleanup.md.
 
 ### Changed
 - **Docker images now run as non-root.** All four Dockerfiles
@@ -136,26 +129,28 @@ Versions follow loose SemVer. Bump on:
   reproducibility audit. Also adds an MPFR-version comment near the
   base image line so an auditor sees that 4.2.0 vs 4.2.1 drift
   across reference environments is accounted for, not silent.
-- **`scripts/health_check.sh`** routes log events through
-  `scripts/log.py` (`cat=health`) instead of the retired
-  `results/health.log`. Stdout still emits the human-readable
-  timestamped line for cron-mailer capture. Script remains dormant
-  per its 2026-04-07 cron retirement; cleanup matches the
-  centralised-logging policy so a future re-enable inherits the
-  pipeline.jsonl audit trail. The `tee -a "$HEALTH_LOG"` pattern
-  is gone; messages travel via `HC_MSG` env var to a small Python
-  one-liner so embedded quotes/apostrophes can never escape into
-  Python source.
 
 ### Removed
+- **`scripts/health_check.sh`** — dormant cron probe retired
+  2026-04-07 when the local sweep finished and the cloud took over
+  (per the script's own header). No callers anywhere in the repo;
+  README §scripts entry dropped alongside. Backup retained offline
+  at `/mnt/hgfs/Research/archive/health_check.sh.dormant_2026-04-25.bak`
+  per the never-delete-without-backup rule. INC-39.
 - **`logs/convergence_n{90,140,150}_mt1000_stdout.log`** +
   **`logs/convergence_n150_mt1000_stdout.log.pre_refactor`** —
-  legacy stdout captures from completed sweeps. Archived to
-  `_archives/logs_legacy_2026-04-25.tar.gz` (3,080 bytes,
-  SHA-256 in `_archives/CHECKSUMS.sha256`) before deletion.
-  `logs/` now contains only `pipeline.jsonl` (authoritative),
-  `.gitkeep` (placeholder), and the in-flight n=130 β=40 mt1000
-  sweep stdout (which will be archived after that sweep completes).
+  legacy stdout captures from completed sweeps. Tarball + SHA-256
+  manifest retained offline at
+  `/mnt/hgfs/Research/archive/legacy_logs/` (audit chain stays out
+  of the public repo per INC-39). `logs/` now contains only
+  `pipeline.jsonl` (authoritative), `.gitkeep` (placeholder), and
+  the in-flight n=130 β=40 mt1000 sweep stdout (which will be
+  archived to the same offline location after that sweep completes).
+- **`_archives/`** directory — added then reverted in the same
+  Unreleased window (commits `0c85b5f` → `d541129`). Internal audit
+  chain belongs offline, not in the public-facing reproducibility
+  surface. Now `.gitignore`d so future archive tarballs stay local
+  by default. INC-39.
 
 ## [1.5.0] — 2026-04-22
 
