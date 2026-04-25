@@ -16,11 +16,13 @@ The fix is a 30-line Kahan-compensated subtraction in `fplll/gso_interface.cpp`.
 2. The side-log (`results/clamp_events.jsonl`) is never truncated.
 3. A `lint_seed_manifest` CI gate catches orphan files and on-disk SHA-256 drift so the next surprise can't hide for 9 days.
 
-The incident cost ~9 days of debugging time, prompted a substantive Section 8 rewrite, and directly shaped the defensive-engineering sections of [`SECURITY.md`](../SECURITY.md).
+The incident cost ~9 days of debugging time (absolute dates: 2026-04-02 → 2026-04-10), prompted a substantive Section 8 rewrite, and directly shaped the defensive-engineering sections of [`SECURITY.md`](../SECURITY.md).
 
 ---
 
 ## Day 0: the symptom
+
+(Day 0 = 2026-04-02; Day 9 = 2026-04-10. Numbered headings below stay relative for narrative flow; absolute mapping is one-to-one from this anchor.)
 
 The paper's main sweep runs at q=97 (a small non-cryptographic modulus, chosen to keep per-seed runtime minutes rather than days). To strengthen generalisability, a 20-seed verification run at q=3329 (the ML-KEM modulus) was added at n=50, β=30. Result: 100% SD-BKZ win rate, mean advantage +0.437 nats — consistent with q=97 behaviour. Paper §3 gained a one-liner pointing at the q=3329 result as evidence that the main finding is not a small-modulus artifact.
 

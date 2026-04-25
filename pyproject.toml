@@ -1,6 +1,6 @@
 [project]
 name = "sdbkz-benchmark"
-version = "1.4.0"
+version = "1.5.0"
 description = "Empirical evaluation of SD-BKZ vs BKZ via the Li-Nguyen Rankin profile"
 readme = "README.md"
 license = {text = "MIT"}

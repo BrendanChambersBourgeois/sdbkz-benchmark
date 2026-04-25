@@ -123,7 +123,8 @@ The full patch is a single 30-line hunk at [`patches/fplll_gso_kahan.patch`](../
 | 2026-04-10 | Kahan patch drafted and verified: 38% → 0% on 55-seed rerun, 15/15 `make check` pass  |
 | 2026-04-15 | Patch shipped in repo as `patches/fplll_gso_kahan.patch` with README                  |
 | 2026-04-18 | Draft upstream issue text prepared (maintained internally pre-filing)                 |
-| TBD (gated on ePrint publication clearance)        | Upstream issue filed on fplll/fplll repo; target filing window is 7–14 days pre-publication    |
+| 2026-04-22 | Repo flipped public; Zenodo concept DOI `10.5281/zenodo.19686928` minted (per-version DOI for v1.5.0: `10.5281/zenodo.19686929`). Patch + README + this findings doc all published as part of the Zenodo-archived v1.5.0 ZIP. |
+| TBD (deferred per maintainer 2026-04-22)           | Upstream issue filed on fplll/fplll repo. Original gating on "ePrint publication clearance" lapsed when the publication route flipped from ePrint to Zenodo (no embargo); maintainer has reserved the option to file separately when bandwidth allows. The patch + reproducer are already public and citable via the Zenodo DOI. |
 | TBD (gated on upstream issue + reviewer feedback)  | CVE status evaluated (likely N/A — numerical-correctness finding, not an exploitable vulnerability) |
 
 Timeline entries are appended, never revised in place. Revision means a new row with `(revised YYYY-MM-DD: …)` annotation.
