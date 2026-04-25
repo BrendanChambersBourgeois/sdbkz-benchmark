@@ -89,6 +89,73 @@ Versions follow loose SemVer. Bump on:
   `logs/pipeline.jsonl` under `cat="estimator"` (filterable via
   `jq 'select(.cat == "estimator")'`). Always exits 0 — advisory,
   never blocks anything.
+- **`.github/dependabot.yml`** — Dependabot config covering pip
+  (pyproject.toml), docker (4 Dockerfiles), and github-actions
+  (workflow versions). Weekly Monday cadence; minor + patch updates
+  grouped per ecosystem. Numerical-core pins (`fpylll`, `cysignals`,
+  `numpy`) explicitly ignored — paper-safety SHA chain forbids
+  silent bumps; bumps must be manual + paired with `verify.sh` re-anchor.
+- **`.github/workflows/scorecard.yml`** — OpenSSF Scorecard workflow.
+  Weekly Mon 06:00 UTC + push to main + branch-protection events +
+  manual dispatch. SARIF upload to GitHub Security tab + public
+  viewer at `securityscorecards.dev/viewer/?uri=github.com/...`.
+  Action versions use semver tags initially; Scorecard's own
+  Pinned-Dependencies check will recommend exact commit SHAs in
+  the first report (re-pin in a follow-up to those verified hashes).
+- **`_archives/logs_legacy_2026-04-25.tar.gz`** + **`_archives/CHECKSUMS.sha256`**
+  — initial archive of legacy stdout captures retired from `logs/`
+  (n=90, n=140, n=150 mt1000 sweep stdout + one `.pre_refactor`
+  scratch). 4 files, 3,080 bytes; SHA-256 logged. The active
+  n=130 β=40 mt1000 sweep stdout stays in `logs/` until that sweep
+  completes. Establishes the `_archives/` convention scoped in
+  Research/backlog/_shipped/2026-04-20_legacy_log_cleanup.md.
+
+### Changed
+- **Docker images now run as non-root.** All four Dockerfiles
+  (`Dockerfile`, `Dockerfile.cloud`, `Dockerfile.fplll54`,
+  `Dockerfile.fplll_legacy`) create a `runner` user matching host
+  UID/GID via `--build-arg HOST_UID=$(id -u) --build-arg
+  HOST_GID=$(id -g)` (defaults `1000:1000` for the common Linux
+  desktop case). `COPY --chown` and a final `chown -R` ensure
+  bind-mounted `./results` + `./logs` no longer produce root-owned
+  host files (Incident #32 closed). `docker-compose.yml` injects
+  `${UID:-1000}` / `${GID:-1000}` automatically;
+  `.github/workflows/build-and-verify.yml` resolves runner UID/GID
+  dynamically and feeds it as build-args. README Troubleshooting
+  section gains a non-root override hint for non-1000 UID/GID hosts.
+- **`Dockerfile`** main image is now self-contained: ships
+  `analysis/`, `tests/`, `results/paper_claims/`, and the seven
+  paper-cited `results/*.json` files (`summary`, `runtime_table`,
+  `profile_decomposition`, `convergence_headroom`, `dGSA_summary`,
+  `seed_manifest`, `hash_verification.txt`). A reviewer can now
+  `docker run sdbkz-benchmark:ci python3 -m pytest tests/` or
+  `docker run sdbkz-benchmark:ci python3 analysis/paper_figures.py`
+  without bind-mounting the host repo. Bulk seed data stays out of
+  the image via `.dockerignore`. Image size delta ~11 MB (well under
+  the 50 MB budget). Closes INC-36 from the 2026-04-20 fresh-VM
+  reproducibility audit. Also adds an MPFR-version comment near the
+  base image line so an auditor sees that 4.2.0 vs 4.2.1 drift
+  across reference environments is accounted for, not silent.
+- **`scripts/health_check.sh`** routes log events through
+  `scripts/log.py` (`cat=health`) instead of the retired
+  `results/health.log`. Stdout still emits the human-readable
+  timestamped line for cron-mailer capture. Script remains dormant
+  per its 2026-04-07 cron retirement; cleanup matches the
+  centralised-logging policy so a future re-enable inherits the
+  pipeline.jsonl audit trail. The `tee -a "$HEALTH_LOG"` pattern
+  is gone; messages travel via `HC_MSG` env var to a small Python
+  one-liner so embedded quotes/apostrophes can never escape into
+  Python source.
+
+### Removed
+- **`logs/convergence_n{90,140,150}_mt1000_stdout.log`** +
+  **`logs/convergence_n150_mt1000_stdout.log.pre_refactor`** —
+  legacy stdout captures from completed sweeps. Archived to
+  `_archives/logs_legacy_2026-04-25.tar.gz` (3,080 bytes,
+  SHA-256 in `_archives/CHECKSUMS.sha256`) before deletion.
+  `logs/` now contains only `pipeline.jsonl` (authoritative),
+  `.gitkeep` (placeholder), and the in-flight n=130 β=40 mt1000
+  sweep stdout (which will be archived after that sweep completes).
 
 ## [1.5.0] — 2026-04-22
 

@@ -12,11 +12,24 @@ BASE="$HOME/Desktop/lattice"
 SCRIPTS_DIR="$BASE/scripts"
 RAW_DIR="$BASE/results/raw"
 BACKUP_BASE="$BASE/results/backups"
-HEALTH_LOG="$BASE/results/health.log"
 MAX_BACKUPS=3
 
+# Logging policy (per Research/backlog/_shipped legacy_log_cleanup):
+# - Terminal output stays on stdout (this script is cron-driven; the
+#   cron mailer captures stdout if a maintainer wants email per run)
+# - Machine-readable events flow through scripts/log.py to
+#   logs/pipeline.jsonl with cat=health, so jq queries can filter
+#   `select(.cat=="health")` for the dormant-script audit trail.
+# The dual emission used to write to results/health.log via `tee -a`;
+# that file was retired 2026-04-20 (see commit dropping it).
 log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S')  $1" | tee -a "$HEALTH_LOG"
+    local msg="$1"
+    echo "$(date '+%Y-%m-%d %H:%M:%S')  $msg"
+    HC_MSG="$msg" PYTHONPATH="$SCRIPTS_DIR" python3 -c "
+import os
+from log import get_logger
+get_logger('health_check').info(os.environ['HC_MSG'], cat='health')
+" 2>/dev/null || true
 }
 
 log "=== Health check started ==="
