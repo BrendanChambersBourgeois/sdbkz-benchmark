@@ -68,11 +68,28 @@ def _added_files(*, base: str | None = None) -> list[str]:
 
     If ``base`` is provided, compares ``base..HEAD`` (CI mode). Else
     inspects the staging area (pre-commit hook mode).
+
+    If the requested base is unreachable from the local clone (the
+    common CI case where ``actions/checkout@v4`` does a shallow
+    ``fetch-depth: 1`` and the previous tip isn't in history), falls
+    back to scanning every top-level directory currently in HEAD —
+    less precise but still catches any un-allowlisted directory and
+    avoids erroring the build for a benign reason.
     """
     if base:
         cmd = ["git", "diff", "--name-only", "--diff-filter=A", f"{base}..HEAD"]
-    else:
-        cmd = ["git", "diff", "--cached", "--name-only", "--diff-filter=A"]
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        if proc.returncode == 0:
+            return [line for line in proc.stdout.splitlines() if line.strip()]
+        # Base unreachable in shallow clone — scan all tracked files
+        # at HEAD as a conservative fallback. Filters down to one path
+        # per top-level directory so the violation list is concise.
+        ls = subprocess.run(
+            ["git", "ls-tree", "-r", "--name-only", "HEAD"],
+            check=True, capture_output=True, text=True,
+        ).stdout
+        return [line for line in ls.splitlines() if line.strip() and "/" in line]
+    cmd = ["git", "diff", "--cached", "--name-only", "--diff-filter=A"]
     out = subprocess.run(cmd, check=True, capture_output=True, text=True).stdout
     return [line for line in out.splitlines() if line.strip()]
 
