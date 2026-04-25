@@ -534,6 +534,64 @@ def summarise(entries: list[dict]) -> dict:
     return per_campaign
 
 
+def _refresh_per_tour_cost_cache(results_root: str) -> None:
+    """Rebuild the per-(n, β) cost cache consumed by ``scripts/seed_timing``.
+
+    Side-effect helper called once after a successful manifest write.
+    Failure modes are isolated: any exception here is caught, logged
+    as a WARNING under ``cat="manifest"``, and swallowed so the
+    manifest rebuild path stays clean. The cache is purely an estimator
+    accelerator — its absence forces the estimator to fall back to a
+    full seed-corpus scan (~3-5 s) on next call, never blocks anything.
+
+    Cache path: ``<results_root>/paper_claims/per_tour_cost_table.json``.
+    Atomic write (tmp file + ``os.replace``).
+    """
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    cache_dir = os.path.join(results_root, "paper_claims")
+    cache_path = os.path.join(cache_dir, "per_tour_cost_table.json")
+    try:
+        # Lazy import: keep manifest build runnable even if seed_timing
+        # is broken or absent. Estimator is a downstream luxury; manifest
+        # is paper-safety load-bearing.
+        import seed_timing  # noqa: WPS433
+        cost_table = seed_timing.per_tour_cost_table(
+            seed_glob_patterns=(
+                os.path.join(repo_root, "results", "seeds", "main", "q97", "*", "seed*.json"),
+                os.path.join(repo_root, "results", "seeds", "convergence", "q97", "*", "seed*.json"),
+            ),
+            cache_path=None,  # always rebuild fresh from seeds
+        )
+        if not cost_table:
+            PIPELINE.warning(
+                "per-tour cost cache refresh skipped — empty cost table",
+                cat="manifest",
+                cache_path=cache_path,
+            )
+            return
+        os.makedirs(cache_dir, exist_ok=True)
+        payload = seed_timing.per_tour_cost_table_to_dict(cost_table)
+        tmp_path = cache_path + ".tmp"
+        with open(tmp_path, "w") as f:
+            json.dump(payload, f, indent=2, sort_keys=True)
+        os.replace(tmp_path, cache_path)
+        PIPELINE.info(
+            "per-tour cost cache refreshed",
+            cat="manifest",
+            cache_path=cache_path,
+            entries=len(cost_table),
+        )
+    except (FileNotFoundError, OSError, json.JSONDecodeError,
+            KeyError, ValueError, TypeError, ImportError) as exc:
+        PIPELINE.warning(
+            "per-tour cost cache refresh failed; estimator will rescan corpus on next call",
+            cat="manifest",
+            cache_path=cache_path,
+            error=type(exc).__name__,
+            detail=str(exc)[:200],
+        )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--results-root", default="results")
@@ -584,6 +642,13 @@ def main() -> int:
         campaigns=len(per_campaign),
         elapsed_s=round(elapsed, 2),
     )
+
+    # Optional side-effect: refresh the per-tour-cost cache used by
+    # scripts/seed_timing for sweep wall-time estimation. Strictly
+    # post-manifest-write so any failure here cannot affect the
+    # paper-safety SHA chain. Cache failures degrade the estimator
+    # only — never block the manifest.
+    _refresh_per_tour_cost_cache(args.results_root)
 
     print(f"Wrote {args.output}")
     print(f"  {len(entries)} seeds across {len(per_campaign)} campaigns "

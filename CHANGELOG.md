@@ -55,6 +55,18 @@ Versions follow loose SemVer. Bump on:
 - **`tests/fixtures/synthetic_seeds/`** (new dir) — 5 minimal valid
   seed JSONs used by `test_seed_timing`. Two `(50, 20, 70)` plus two
   `(60, 30, 70)` plus one `(90, 30, 500)` anchor candidate.
+- **`scripts/build_seed_manifest.py`** — added
+  `_refresh_per_tour_cost_cache()` side-effect helper called once
+  after a successful manifest write. Computes the per-(n, β)
+  median per-tour cost from the seed corpus and writes
+  `results/paper_claims/per_tour_cost_table.json` for fast
+  consumption by `scripts/seed_timing`. Strictly post-manifest and
+  isolated under narrow `try/except (FileNotFoundError, OSError,
+  json.JSONDecodeError, KeyError, ValueError, TypeError, ImportError)`
+  with a `WARNING` log on failure — cache failures degrade the
+  estimator only, never block the manifest write or paper-safety
+  SHA chain. `seed_timing` is lazy-imported inside the helper so a
+  broken/absent estimator can never propagate to manifest rebuild.
 - **`scripts/estimate_sweep_time.py`** (new CLI) — argparse wrapper
   around `seed_timing` for ad-hoc sweep planning. Required:
   `--n --beta --max-tours`. Optional: `--seeds`, `--workers`,
