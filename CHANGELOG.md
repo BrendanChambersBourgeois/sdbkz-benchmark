@@ -147,10 +147,16 @@ Versions follow loose SemVer. Bump on:
   the in-flight n=130 β=40 mt1000 sweep stdout (which will be
   archived to the same offline location after that sweep completes).
 - **`_archives/`** directory — added then reverted in the same
-  Unreleased window (commits `0c85b5f` → `d541129`). Internal audit
-  chain belongs offline, not in the public-facing reproducibility
-  surface. Now `.gitignore`d so future archive tarballs stay local
-  by default. INC-39.
+  Unreleased window, then **scrubbed from git history via
+  `git-filter-repo` + force-push** (INC-39 escalated to critical;
+  bounded scrub preserved v1.5.0 / Zenodo correspondence intact).
+  Originally added in the commit now `90d118d` (was `0c85b5f`
+  pre-rewrite); reverted in the commit now `09b6e81` (was `d541129`).
+  Internal audit chain belongs offline, not in the public-facing
+  reproducibility surface. Now `.gitignore`d so future archive
+  tarballs stay local by default. Pre-rewrite repo bundle preserved
+  offline at `/mnt/hgfs/Research/archive/sdbkz_pre_inc39_rewrite_2026-04-25/`.
+  INC-39.
 
 ## [1.5.0] — 2026-04-22
 
