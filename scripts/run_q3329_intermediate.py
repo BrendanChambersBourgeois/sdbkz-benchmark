@@ -1,31 +1,46 @@
 #!/usr/bin/env python3
-"""q=3329 verification at intermediate dimensions n=70 and n=80, β=30.
+"""[DEPRECATED] q=3329 verification at intermediate dimensions n=70 and n=80, β=30.
 
-Reviewer pre-emption: the q=3329 instability we observed at n=100 with
-1000-bit MPFR (50% degenerate at the 70-tour budget) raises a fair
-concern about whether the SD-BKZ effect at q=3329 holds at all. n=50 is
-clean (100% win, 20 seeds) but small. This script samples two
-intermediate dimensions where 250-bit precision is plenty and the
-degenerate attractor has not been observed, demonstrating the effect
-across the gap between n=50 and n=100.
+**Status:** dormant. This script pre-dates the v1.3 physical-layout
+migration (commit ``adf280b``) and writes seed JSONs to **pre-v1.3
+paths** (``results/q3329_n70_beta30/`` + ``results/q3329_n80_beta30/``)
+that are no longer the canonical destination — the v1.3 manifest
+walker treats files written by this script as orphans until they are
+either symlinked into the new tree or migrated.
 
-Configuration:
+**Use the supersession path instead:**
+
+- For 1000-bit MPFR runs at intermediate q=3329 dimensions, use
+  ``scripts/run_overnight_q3329_intermediate_1000bit.py``, which
+  writes via ``_seed_paths.seed_path_for(...)`` and lands in the
+  canonical ``results/seeds/q3329/...`` tree.
+
+- For 250-bit MPFR runs (the original use case here) the q=3329
+  intermediate-dimension data was already collected and committed
+  pre-v1.3. Re-running this script today is not recommended — it
+  produces orphan seeds the manifest walker will not pick up.
+
+This module is kept in the tree because the v1.4.0 audit (item §1.5)
+deprecate-vs-migrate decision landed on **deprecate**: no live caller,
+no paper-extension need for the 250-bit q=3329 path that justified the
+migration cost. If a future paper extension does need it, see
+``Research/backlog/2026-04-25_q3329_intermediate_runner_migration.md``
+option A (migrate to ``seed_path_for``) for the design notes.
+
+The original docstring follows for historical reference — but the
+``Usage`` block has been removed so a copy-paste reader does not
+accidentally launch the deprecated path.
+
+Original configuration:
     Dimensions:  n=70, n=80
     Block size:  β=30
     Modulus:     q=3329 (Kyber's ML-KEM modulus)
     Precision:   250-bit MPFR (sufficient for n ≤ 90 at q=3329)
     Tours:       70 (standard budget)
     Seeds:       20 per dimension
-    Output:      results/q3329_n70_beta30/  (n=70 seed JSONs)
-                 results/q3329_n80_beta30/  (n=80 seed JSONs)
-
-Usage:
-    nohup python3 scripts/run_q3329_intermediate.py \
-        > logs/q3329_intermediate.log 2>&1 &
-
-DO NOT launch while another q=3329 wrapper or sweep is using the
-workers. Check first:
-    pgrep -af 'run_q3329|run_convergence'
+    Original output (NON-CANONICAL post-v1.3):
+                 results/q3329_n70_beta30/
+                 results/q3329_n80_beta30/
 """
 import os
 import sys
