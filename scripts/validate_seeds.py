@@ -18,14 +18,19 @@ Exit codes:
     1   One or more errors (or warnings in --strict mode)
 
 Examples:
-    # Check committed seeds in the repo
-    python3 scripts/validate_seeds.py results/raw/ results/q3329/ results/3x_tours/
+    # Check committed seeds in the repo (canonical v1.3+ path)
+    python3 scripts/validate_seeds.py --strict --sha-check results/seeds/
 
-    # Full Research backup audit (pre-publication)
-    python3 scripts/validate_seeds.py --strict --sha-check /mnt/hgfs/Research/data/
+    # Check a specific campaign's subtree
+    python3 scripts/validate_seeds.py --strict results/seeds/main/ results/seeds/q3329/
 
-    # CI: check repo seeds only (no Research mount)
-    python3 scripts/validate_seeds.py --strict results/
+    # Cover legacy + canonical paths in one invocation (works pre-v2)
+    python3 scripts/validate_seeds.py --strict --sha-check \
+        results/seeds/ results/raw/ results/q3329/ results/3x_tours/
+
+    # Maintainer-only: full out-of-repo backup audit (path is local;
+    # not on a fresh clone — replace with your own backup mirror path).
+    # python3 scripts/validate_seeds.py --strict --sha-check $BACKUP_ROOT
 """
 import argparse
 import glob

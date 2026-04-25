@@ -1,1 +1,20 @@
+# Paper manuscript bundle (HTML + LaTeX + figures + bib).
 paper/** linguist-documentation
+
+# Top-level reader-facing prose. Keeps the GitHub language bar
+# focused on the actual code (Python) instead of weighting it toward
+# Markdown that grew through v1.4.x reader-facing docs work.
+CHANGELOG.md         linguist-documentation
+ROADMAP.md           linguist-documentation
+CONTRIBUTING.md      linguist-documentation
+SECURITY.md          linguist-documentation
+COOKBOOK.md          linguist-documentation
+
+# Engineering docs subtree (ADRs, post-mortems, schema refs, query
+# recipes). All prose; should not be counted as code.
+docs/** linguist-documentation
+
+# Patch files: source-quoted prose + diff hunks; not first-class code
+# in this repo's language ratio (the actual Python implementation
+# lives elsewhere).
+patches/** linguist-documentation
