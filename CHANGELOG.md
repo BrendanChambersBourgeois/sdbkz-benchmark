@@ -67,6 +67,20 @@ Versions follow loose SemVer. Bump on:
   estimator only, never block the manifest write or paper-safety
   SHA chain. `seed_timing` is lazy-imported inside the helper so a
   broken/absent estimator can never propagate to manifest rebuild.
+- **`scripts/run_convergence.py`** — dispatcher now emits an ETA
+  prediction at sweep launch. After argparse + run_id assignment,
+  the runner lazy-imports `seed_timing`, calls `estimate_sweep_wall`
+  with the resolved pool shape, and folds
+  `predicted_wall_h_naive`, `predicted_wall_h_anchored`,
+  `predicted_wall_h_p95`, `method_recommended`, `anchor_used`, and
+  `anchor_age_days` into the existing `dispatch` event ctx in
+  `logs/pipeline.jsonl`. Operators see the ETA in the launch log
+  line; jq queries can later reconcile predicted-vs-actual after
+  the sweep completes. Estimator failure is non-fatal — narrow
+  `try/except (ImportError, FileNotFoundError, OSError, KeyError,
+  ValueError, TypeError)` logs a WARNING and the sweep launches
+  with the dispatch event minus the ETA fields. Currently-running
+  sweeps are unaffected (forked bytecode).
 - **`scripts/estimate_sweep_time.py`** (new CLI) — argparse wrapper
   around `seed_timing` for ad-hoc sweep planning. Required:
   `--n --beta --max-tours`. Optional: `--seeds`, `--workers`,

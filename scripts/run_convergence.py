@@ -57,11 +57,50 @@ def main():
     if not get_run_id():
         new_run_id()
 
+    # Resolve effective pool shape so the estimator sees the same
+    # values that run_convergence_test will use. None → inherit from
+    # the underlying module's defaults (NUM_SEEDS=20, NUM_WORKERS=22).
+    effective_seeds = args.seeds if args.seeds is not None else 20
+    effective_workers = args.workers if args.workers is not None else 22
+
+    # Optional: emit a wall-time prediction in the dispatch event so
+    # operators can see the ETA at launch and so jq queries over
+    # pipeline.jsonl can reconcile predicted vs actual after the sweep
+    # completes. Estimator failure must NEVER block sweep launch — it
+    # is advisory only. Lazy-imported + narrow-exception guarded so a
+    # broken/absent seed_timing has zero impact on dispatch.
+    eta_ctx: dict = {}
+    try:
+        import seed_timing  # noqa: WPS433
+        est = seed_timing.estimate_sweep_wall(
+            n=args.n,
+            beta=args.beta,
+            max_tours=args.max_tours,
+            num_seeds=effective_seeds,
+            num_workers=effective_workers,
+        )
+        eta_ctx = {
+            "predicted_wall_h_naive": est.predicted_wall_h_naive,
+            "predicted_wall_h_anchored": est.predicted_wall_h_anchored,
+            "predicted_wall_h_p95": est.predicted_wall_h_p95,
+            "method_recommended": est.method_recommended,
+            "anchor_used": list(est.anchor_used) if est.anchor_used else None,
+            "anchor_age_days": est.anchor_age_days,
+        }
+    except (ImportError, FileNotFoundError, OSError, KeyError, ValueError, TypeError) as exc:
+        PIPELINE.warning(
+            "ETA estimator unavailable; sweep launch proceeds without prediction",
+            cat="sweep",
+            error=type(exc).__name__,
+            detail=str(exc)[:200],
+        )
+
     PIPELINE.info(
         "dispatch",
         cat="sweep",
         n=args.n, beta=args.beta, max_tours=args.max_tours,
         seeds=args.seeds, workers=args.workers,
+        **eta_ctx,
     )
 
     import run_convergence_test
