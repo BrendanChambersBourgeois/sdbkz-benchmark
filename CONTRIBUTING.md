@@ -14,6 +14,8 @@ docker run --rm sdbkz-benchmark:ci bash scripts/verify.sh        # ~3 min, 5 see
 
 If verify.sh passes you have a numerically-correct build. If it fails, open an issue with the output — the reference values are hardcoded in `scripts/verify.sh` and any mismatch indicates a real divergence.
 
+If you cloned before 2026-04-25 (INC-32 non-root `runner` user fix), rebuild the local image — the layered cache still runs as root and produces root-owned bind mounts. Pull, then `docker build --build-arg HOST_UID=$(id -u) --build-arg HOST_GID=$(id -g) -t sdbkz-benchmark:ci .` (omit build-args if your host UID/GID is `1000:1000`). See README Troubleshooting for the WSL / non-1000 UID path.
+
 Host-side install (no Docker) is supported for analysis/docs work; use the Docker image for anything that runs BKZ.
 
 If you intend to commit anything back, install the local git hooks so the pre-commit guards run on your machine:
