@@ -1,6 +1,11 @@
+# Base image ships MPFR 4.2.0 via Debian bookworm. Measured bit-identical
+# to MPFR 4.2.1 at 250-bit precision across Intel 13900K / AWS Batch /
+# AMD 9950X3D (paper §3.5; hash_verification.txt). Listed here so that a
+# reader auditing the reproducibility chain can see the version drift is
+# accounted for, not silent.
 FROM python:3.12.3-bookworm
 
-# MPFR 4.2.1 — required by fplll for arbitrary-precision floating point.
+# MPFR — required by fplll for arbitrary-precision floating point.
 # Previously pinned to libmpfr-dev=4.2.1-1 for reproducibility, but Debian
 # Bookworm bumped the package revision (still upstream MPFR 4.2.1, just a
 # Debian packaging update) and the old apt version is no longer available
@@ -43,6 +48,22 @@ WORKDIR /experiment
 # for everything else until a fresh build attempt by a collaborator
 # surfaced it on 2026-04-09.
 COPY scripts/ scripts/
+
+# Self-contained image: ship analysis/, tests/, and paper-cited results
+# JSONs so a reviewer can run `pytest tests/` or
+# `python3 analysis/paper_figures.py` against the image with no host
+# bind-mount. Bulk seed data stays out of the image (excluded via
+# .dockerignore); these are the small artifacts that the paper figures
+# + claim ledger reference directly. Per backlog
+# /mnt/hgfs/Research/backlog/2026-04-20_v3_dockerfile_scope.md §1
+# (fresh-VM reproducibility, INC-36).
+COPY analysis/ analysis/
+COPY tests/ tests/
+COPY results/paper_claims/ results/paper_claims/
+COPY results/summary.json results/runtime_table.json \
+     results/profile_decomposition.json results/convergence_headroom.json \
+     results/dGSA_summary.json results/seed_manifest.json \
+     results/hash_verification.txt results/
 
 # Default: run the full local sweep
 CMD ["python3", "scripts/sweep_parallel.py"]
