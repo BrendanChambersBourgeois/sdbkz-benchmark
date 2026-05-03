@@ -11,19 +11,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Pin Python packages to exact versions used in the experiment
-# fpylll 0.6.4 bundles fplll 5.5.0 (libfplll.so.9.0.0) as a vendored library
-# matplotlib + scipy + pytest match the main Dockerfile so analysis +
-# tests can run inside this image if the cloud campaign is ever revived.
-# Cloud campaign decommissioned 2026-04-10; this is future-proofing.
+# Pin Python packages to exact versions used in the experiment.
+# fpylll 0.6.4 bundles fplll 5.5.0 (libfplll.so.9.0.0) as a vendored library.
+# matplotlib + render-touching transitive deps pinned to match the main
+# Dockerfile (figure-SHA-byte-identity-gate sensitivity, see Dockerfile
+# comment 2026-05-03). Cloud campaign decommissioned 2026-04-10; pins kept
+# in parity so a future revival inherits the same reproducibility chain.
 RUN pip install --no-cache-dir \
         fpylll==0.6.4 \
         cysignals==1.12.6 \
         numpy==2.4.4 \
-        boto3 \
-        matplotlib \
-        scipy \
-        pytest
+        scipy==1.17.1 \
+        matplotlib==3.10.8 \
+        pillow==12.2.0 \
+        fonttools==4.62.1 \
+        contourpy==1.3.3 \
+        kiwisolver==1.5.0 \
+        pyparsing==3.3.2 \
+        cycler==0.12.1 \
+        pytest==9.0.3 \
+        boto3
 
 # Non-root runtime — match host UID/GID so bind-mounted volumes don't
 # produce root-owned host files (Incident #32; backlog

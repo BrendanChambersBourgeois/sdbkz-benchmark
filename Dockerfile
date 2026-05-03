@@ -23,20 +23,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Pin Python packages to exact versions used in the experiment
-# fpylll 0.6.4 bundles fplll 5.5.0 (libfplll.so.9.0.0) as a vendored library
-# matplotlib + scipy needed by the analysis package (imported at
-# tests/test_analysis_data_loader.py collection time via
-# analysis/__init__.py's matplotlib.use("Agg")); pytest ships so the
-# CI "Unit tests" step can run inside this image rather than on the
-# host runner (host runner python has no numpy/matplotlib).
+# Pin Python packages to exact versions used in the experiment.
+# fpylll 0.6.4 bundles fplll 5.5.0 (libfplll.so.9.0.0) as a vendored library.
+# matplotlib + render-touching transitive deps (pillow, fonttools, contourpy,
+# kiwisolver, pyparsing, cycler) are pinned because the figure-SHA-byte-
+# identity gate compares regen-PNG bytes against committed baseline; even
+# patch-level matplotlib bumps (3.10.8 → 3.10.9) drift the SHA. Discovered
+# 2026-05-03 when CI failed on commit ccc9674 against a baseline produced
+# under matplotlib 3.10.8. scipy + pytest pinned for completeness.
 RUN pip install --no-cache-dir \
         fpylll==0.6.4 \
         cysignals==1.12.6 \
         numpy==2.4.4 \
-        matplotlib \
-        scipy \
-        pytest
+        scipy==1.17.1 \
+        matplotlib==3.10.8 \
+        pillow==12.2.0 \
+        fonttools==4.62.1 \
+        contourpy==1.3.3 \
+        kiwisolver==1.5.0 \
+        pyparsing==3.3.2 \
+        cycler==0.12.1 \
+        pytest==9.0.3
 
 # Non-root runtime — match host UID/GID so bind-mounted ./results +
 # ./logs do not produce root-owned host files (Incident #32 recurrence
