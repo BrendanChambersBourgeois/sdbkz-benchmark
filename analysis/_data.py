@@ -16,6 +16,8 @@ The leading underscore on _load_convergence_files / _group_advantages /
 _decompose_seed marks them as package-internal helpers (no stable API
 guarantee for external callers).
 """
+from __future__ import annotations
+
 import os
 import json
 import glob
@@ -23,8 +25,13 @@ import math
 import re
 import warnings
 from collections import defaultdict
+from typing import Any
 
 import numpy as np
+
+SeedDict = dict[str, Any]
+GroupKey = tuple[int, int]
+Groups = dict[GroupKey, list[SeedDict]]
 
 DEFAULT_MANIFEST_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -37,7 +44,7 @@ _MANIFEST_CACHE: dict = {}
 # Lattice math (kept in sync with sweep_parallel.py / sweep_cloud.py)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def ln_fixed_point(size, beta):
+def ln_fixed_point(size: int, beta: int) -> list[float]:
     """Compute the Li-Nguyen fixed-point Rankin profile.
 
     Args:
@@ -60,7 +67,7 @@ def ln_fixed_point(size, beta):
     return [p + log_v_beta for p in profile]
 
 
-def gsa_fixed_point(size, beta):
+def gsa_fixed_point(size: int, beta: int) -> list[float]:
     """Compute the GSA (Geometric Series Assumption) Rankin profile.
 
     GSA uses log_delta = log(β/(2πe)) / (2β), differing from Li-Nguyen
@@ -101,11 +108,11 @@ def _load_manifest(manifest_path: str) -> dict:
 
 def _manifest_entry_matches(
     entry: dict,
-    campaign,
-    n, beta, q,
-    precision, max_tours,
-    include_fat, include_unverified,
-    fplll_version,
+    campaign: str | None,
+    n: int | None, beta: int | None, q: int | None,
+    precision: int | None, max_tours: int | None,
+    include_fat: bool, include_unverified: bool,
+    fplll_version: str | None,
 ) -> bool:
     if campaign is not None and entry["campaign"] != campaign:
         return False
@@ -131,16 +138,16 @@ def _manifest_entry_matches(
 
 def _manifest_load_groups(
     *,
-    campaign="main",
-    n=None, beta=None, q=97,
-    precision=None, max_tours=None,
-    fplll_version=None,
-    include_fat=False,
-    include_unverified=False,
-    min_seeds=1,
-    load_json=True,
-    manifest_path=None,
-) -> dict:
+    campaign: str | None = "main",
+    n: int | None = None, beta: int | None = None, q: int | None = 97,
+    precision: int | None = None, max_tours: int | None = None,
+    fplll_version: str | None = None,
+    include_fat: bool = False,
+    include_unverified: bool = False,
+    min_seeds: int = 1,
+    load_json: bool = True,
+    manifest_path: str | None = None,
+) -> Groups:
     """v1.3 manifest-driven loader. Dedup by (campaign, n, β, seed);
     within each key, prefer the non-cloud copy so that paper-era
     figures remain byte-identical to their legacy globber output
@@ -218,7 +225,7 @@ def _manifest_load_groups(
     return filtered
 
 
-def load_all_seeds(*args, **kwargs):
+def load_all_seeds(*args: Any, **kwargs: Any) -> Groups:
     """Load seeds grouped by (n, beta). Dual-mode.
 
     Legacy (pre-v1.3) — positional directory args::
@@ -253,7 +260,7 @@ def load_all_seeds(*args, **kwargs):
     return _manifest_load_groups(*args, **kwargs)
 
 
-def _legacy_load_all_seeds(*dirs, min_seeds=1):
+def _legacy_load_all_seeds(*dirs: str, min_seeds: int = 1) -> Groups:
     """Legacy globber kept verbatim so pre-v1.3 callers stay
     byte-identical through the back-compat symlinks at old paths.
     New code should pass `campaign=...` kwargs to the public
@@ -321,7 +328,10 @@ def _legacy_load_all_seeds(*dirs, min_seeds=1):
     return filtered
 
 
-def load_3x_tour_data(tour_dir=None, manifest_path=None):
+def load_3x_tour_data(
+    tour_dir: str | None = None,
+    manifest_path: str | None = None,
+) -> list[SeedDict]:
     """Load 3x tour experiment seed JSONs.
 
     Prefers the v1.3 seed_manifest.json (campaign="tours3x") when
@@ -370,11 +380,12 @@ def load_3x_tour_data(tour_dir=None, manifest_path=None):
 
 
 def _load_convergence_files(
-    convergence_dir=None,
+    convergence_dir: str | None = None,
     *,
-    n=None, beta=None, max_tours=None,
-    manifest_path=None,
-):
+    n: int | None = None, beta: int | None = None,
+    max_tours: int | None = None,
+    manifest_path: str | None = None,
+) -> tuple[np.ndarray | None, np.ndarray | None, int | None, int | None, int]:
     """Load all convergence test seed JSONs.
 
     Prefers the v1.3 seed_manifest.json (campaign="convergence"); the
@@ -462,7 +473,7 @@ def _load_convergence_files(
             n_val, beta_val, len(bkz_trajs))
 
 
-def _group_advantages(groups):
+def _group_advantages(groups: Groups) -> dict[GroupKey, np.ndarray]:
     """Extract advantages as numpy arrays per group."""
     return {
         k: np.array([d["advantage"] for d in v])
@@ -470,7 +481,7 @@ def _group_advantages(groups):
     }
 
 
-def _per_position_improvement(seed_data):
+def _per_position_improvement(seed_data: SeedDict) -> np.ndarray | None:
     """Per-position |BKZ−R*| − |SDBKZ−R*| for a single seed.
 
     Returns:
@@ -494,7 +505,9 @@ def _per_position_improvement(seed_data):
     return np.abs(np.array(rp_bkz) - fp_arr) - np.abs(np.array(rp_sd) - fp_arr)
 
 
-def _per_position_group_stats(seeds):
+def _per_position_group_stats(
+    seeds: list[SeedDict],
+) -> tuple[np.ndarray | None, np.ndarray | None, int]:
     """Aggregate per-position improvement across seeds.
 
     Returns:
@@ -511,7 +524,9 @@ def _per_position_group_stats(seeds):
     return stacked.mean(axis=0), stacked.std(axis=0), len(arrays)
 
 
-def _decompose_seed(seed_data):
+def _decompose_seed(
+    seed_data: SeedDict,
+) -> tuple[float, float, float] | None:
     """Compute head/mid/tail improvement for a single seed.
 
     Used by fig_spatial_decomposition and table_spatial.

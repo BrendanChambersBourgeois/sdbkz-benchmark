@@ -50,10 +50,10 @@ import time
 import datetime
 import traceback
 from multiprocessing import Pool
-from typing import Callable, Iterable
+from typing import Any, Callable, Iterable
 
 
-def _worker(args):
+def _worker(args: tuple[Callable, int, int, int, str, bool]) -> dict[str, Any]:
     run_single, n, beta, seed, out_path, store_per_tour = args
     t0 = time.time()
     try:
@@ -120,12 +120,12 @@ def run_pool(
     os.makedirs(output_dir, exist_ok=True)
     seeds = list(seeds)
 
-    def _path(d, seed):
+    def _path(d: str, seed: int) -> str:
         return os.path.join(
             d, out_name_pattern.format(n=n, beta=beta, q=q, seed=seed)
         )
 
-    def _already_done(seed):
+    def _already_done(seed: int) -> bool:
         if os.path.exists(_path(output_dir, seed)):
             return True
         if alt_done_dir and os.path.exists(_path(alt_done_dir, seed)):

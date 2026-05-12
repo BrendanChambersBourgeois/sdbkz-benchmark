@@ -19,12 +19,15 @@ Usage:
 
 Log file: results/logs/pipeline.jsonl (append-only, one JSON object per line)
 """
+from __future__ import annotations
+
 import datetime
 import json
 import logging
 import os
 import sys
 import uuid
+from typing import Any
 
 # JSONL log file location
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -46,7 +49,7 @@ logging.addLevelName(INCIDENT, "INCIDENT")
 _RUN_ID = os.environ.get("BKZ_RUN_ID") or None
 
 
-def new_run_id():
+def new_run_id() -> str:
     """Generate a fresh 12-hex-char run id, set it module-globally
     AND export to the environment so any subprocess inherits it.
     Returns the new id."""
@@ -56,11 +59,11 @@ def new_run_id():
     return _RUN_ID
 
 
-def get_run_id():
+def get_run_id() -> str | None:
     return _RUN_ID
 
 
-def set_run_id(rid):
+def set_run_id(rid: str | None) -> None:
     """Override the run id (used by tests or by code that wants to
     join a previously-launched chain). Pass None to clear."""
     global _RUN_ID
@@ -74,12 +77,12 @@ def set_run_id(rid):
 class JsonlHandler(logging.Handler):
     """Append structured JSON lines to a file."""
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str) -> None:
         super().__init__()
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         self.filepath = filepath
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         entry = {
             "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(
                 timespec="milliseconds"
@@ -114,7 +117,7 @@ class ConsoleFormatter(logging.Formatter):
         "CRITICAL": "  CRT ",
     }
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         prefix = self.PREFIXES.get(record.levelname, "  ??? ")
         ts = datetime.datetime.now().strftime("%H:%M:%S")
         cat = getattr(record, "cat", "")
@@ -135,7 +138,7 @@ class PipelineLogger:
     by logging failures.
     """
 
-    def __init__(self, script_name):
+    def __init__(self, script_name: str) -> None:
         self.script = script_name
         try:
             self.logger = logging.getLogger(f"pipeline.{script_name}")
@@ -156,7 +159,7 @@ class PipelineLogger:
         except Exception:
             self.logger = None  # silently disable logging if init fails
 
-    def _log(self, level, msg, cat="general", **ctx):
+    def _log(self, level: int, msg: str, cat: str = "general", **ctx: Any) -> None:
         if self.logger is None:
             return
         try:
@@ -165,22 +168,23 @@ class PipelineLogger:
         except Exception:
             pass  # logging must never fail the calling script
 
-    def debug(self, msg, cat="general", **ctx):
+    def debug(self, msg: str, cat: str = "general", **ctx: Any) -> None:
         self._log(logging.DEBUG, msg, cat=cat, **ctx)
 
-    def info(self, msg, cat="general", **ctx):
+    def info(self, msg: str, cat: str = "general", **ctx: Any) -> None:
         self._log(logging.INFO, msg, cat=cat, **ctx)
 
-    def warning(self, msg, cat="general", **ctx):
+    def warning(self, msg: str, cat: str = "general", **ctx: Any) -> None:
         self._log(logging.WARNING, msg, cat=cat, **ctx)
 
-    def error(self, msg, cat="general", **ctx):
+    def error(self, msg: str, cat: str = "general", **ctx: Any) -> None:
         self._log(logging.ERROR, msg, cat=cat, **ctx)
 
-    def critical(self, msg, cat="general", **ctx):
+    def critical(self, msg: str, cat: str = "general", **ctx: Any) -> None:
         self._log(logging.CRITICAL, msg, cat=cat, **ctx)
 
-    def incident(self, msg, id=None, cat="incident", **ctx):
+    def incident(self, msg: str, id: int | None = None,
+                 cat: str = "incident", **ctx: Any) -> None:
         """Log a known incident — severity between WARNING and ERROR."""
         if id is not None:
             ctx["incident_id"] = id
@@ -189,15 +193,15 @@ class PipelineLogger:
 
 class _NoopLogger:
     """Fallback logger that swallows all calls. Used if PipelineLogger fails."""
-    def debug(self, *a, **k): pass
-    def info(self, *a, **k): pass
-    def warning(self, *a, **k): pass
-    def error(self, *a, **k): pass
-    def critical(self, *a, **k): pass
-    def incident(self, *a, **k): pass
+    def debug(self, *a: Any, **k: Any) -> None: pass
+    def info(self, *a: Any, **k: Any) -> None: pass
+    def warning(self, *a: Any, **k: Any) -> None: pass
+    def error(self, *a: Any, **k: Any) -> None: pass
+    def critical(self, *a: Any, **k: Any) -> None: pass
+    def incident(self, *a: Any, **k: Any) -> None: pass
 
 
-def get_logger(script_name):
+def get_logger(script_name: str) -> PipelineLogger | _NoopLogger:
     """Get a PipelineLogger for the given script.
 
     Always returns a logger object — if construction fails for any reason,
