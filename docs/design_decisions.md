@@ -196,4 +196,16 @@ Cohen's d alone is insufficient as an effect-size companion: it assumes the dist
 
 - `analysis/_stats_helpers.py` — `cliffs_delta()` + `holm_bonferroni()` with module docstring citing this ADR.
 - `tests/test_stats.py` — 19 pytest cases: Cliff's δ edge cases (all-win, all-loss, all-tie, empty, balanced, majority, ties, sign-match, range bound) + Holm correctness (monotonicity, input-order preservation, smallest-equals-Bonferroni-for-rank-1, cap-at-one, equal-p case, strict-dominance over Bonferroni, `None` pass-through, all-`None`, empty, family-of-one).
-- `results/paper_claims/full_stats_33groups.txt` — regenerated with raw + Holm columns. Pre-correction p-values bit-identical to v1.5.0 within the baseline TXT rendering precision (verified 10/10 cells on the `results/raw/` subset).
+- `results/paper_claims/full_stats_33groups.txt` — regenerated with raw + Holm columns + Cliff's δ.
+
+### Bit-identity gate vs v1.5.0 baseline
+
+The v1.5.1 phase-1 task brief required *zero diff in pre-correction p-values vs v1.5.0*. Gate result:
+
+- **29 of 33 cells**: pre-correction `mean`, `Cohen's d`, and `p_ttest` reproduce the v1.5.0 baseline within the baseline TXT rendering precision (3 decimal places on mean, 2 decimal places on Cohen's d, 3 significant figures on p). These are the cells whose seed count is unchanged at 100.
+- **4 of 33 cells grew**: `n=100 β=30` (100 → 122 seeds), `n=100 β=40` (100 → 122), `n=110 β=40` (100 → 122), `n=130 β=40` (100 → 122). The +22 seeds per cell entered via the cliff-localisation sweeps that landed post-v1.5.0; the seed JSONs themselves are bit-identical to v1.5.0 *for the 100 seeds the baseline saw*, but the cell aggregate has shifted proportional to the added data (`Δmean ≤ 0.01`, `Δp` shifts strictly downward in significance — every grown cell remains `p < 1e-50`). This is corpus growth, not a code regression.
+- **Precision caveat**: "bit-identical within baseline TXT rendering precision" is display-identity, not floating-point identity. The v1.5.0 paper-claims artefact was rendered with `f"{:.6f}"` for means, `f"{:.2f}"` for d, and `format_p()` which truncates p to a decade boundary below `1e-10`. The full-precision floats are not preserved in the v1.5.0 artefact, so a stricter byte-identity test is not possible against that file. A future v2-tier change would emit raw floats to a side JSON for round-tripable identity tests; out of scope here.
+
+### Scope-creep note
+
+The v1.5.1 phase-1 brief specified Cliff's δ + Holm columns. Mid-phase the script also gained a `--campaign <name>` argparse flag (default `main`) so that `stats_analysis.py` reads the v1.3 seed manifest by default rather than the legacy `results/raw/` directory. This was required because the v1.5.0 `full_stats_33groups.txt` artefact was generated from manifest-mode data (33 cells × ~100 seeds = 3300+), not from the `results/raw/` 22-cell subset. The legacy `--results-dir` flag continues to function unchanged. No paper claim or downstream consumer depends on the default-path change; the flag is additive and the prior call-form remains valid. Documented here so a future reader doesn't trip on the difference.
