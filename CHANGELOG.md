@@ -130,6 +130,84 @@ Versions follow loose SemVer. Bump on:
   base image line so an auditor sees that 4.2.0 vs 4.2.1 drift
   across reference environments is accounted for, not silent.
 
+### Added (post-flip continuation)
+- **β=40 1000-tour bracket — six dimensions** at q=97 250-bit MPFR,
+  20 seeds each: `n ∈ {110, 120, 122, 125, 130, 140}` under
+  `results/seeds/convergence/q97/n{n}_beta40_mt1000/`. Mean
+  advantages at t=1000 are +2.101, +0.159, −0.328, −1.038, −1.857,
+  −2.420 — a 4.52-nat swing across Δn=30. Crossover dimension
+  localised to the interval (n=120, n=122) (Δn=2 bound; win rate
+  drops 19/20 → 0/20 in two dimension steps). n=122 is invariant
+  to tour budget (advantage at t=70 and t=1000 coincide within
+  noise). The cliff deepens monotonically past n=130 (BKZ per-tour
+  improvement +0.18 at n=125, +0.49 at n=130, +1.06 at n=140 nats
+  over t=70→t=1000; SD-BKZ plateaus or slightly degrades at all
+  three). The bracket data confirms the β=40 cliff is a structural
+  dimension-dependent regime change, not a finite-tour or
+  fixed-magnitude artifact. Manifest grew 4,432 → 4,701 entries
+  across the v1.5.x window (+269 follow-up seeds since paper-frozen
+  v1.5.0). Commits `ccc9674` + `dec8a1b`.
+- **fplll upstream PR `#550`** filed 2026-05-08. Single-commit
+  patch (`ebcedf53`) on branch `fix/gso-kahan-cancellation` in the
+  `BrendanChambersBourgeois/fplll` fork. Passes 15/15 `make check`;
+  `make check-style` clean under clang-format 18 (matching the apt
+  version on `ubuntu-latest`). PR body cites the Zenodo DOI for
+  per-seed evidence + reproducer. Doc updates synchronise the
+  status across `ROADMAP.md` (External waits: ⏸ → ✅),
+  `docs/disclosure/fplll_gso_kahan_findings.md` (timeline gains a
+  2026-05-08 row), and `patches/README.md` (Status section).
+  Commit `c9882b4`.
+
+### Paper
+- **§Limitations rework** — extends the existing post-v1.5.0
+  1000-tour paragraph with two new data blocks: (a) a β=30 trio
+  (n=90 mt1000 already covered; adds n=140 deficit-dissolves and
+  n=150 deficit-deepens), and (b) the β=40 six-dimension mt1000
+  bracket with the 4.52-nat swing and the Δn=2 crossover
+  localisation. Also updates §8.3 *Mitigation and Upstream Context*
+  to recontextualise the fplll #237 reference (meta-issue on
+  numerical-stability test coverage, not the cancellation locus
+  itself) and to cite the new fplll PR `#550`. LaTeX source +
+  rebuilt PDF; HTML stale until next sync. Commit `bedf1be`.
+
+### Type-hint coverage (audit A20 — library tier)
+- **`analysis/_data.py`, `scripts/_runner_core.py`, `scripts/log.py`**
+  fully annotated. Public-API named aliases (`SeedDict`, `GroupKey`,
+  `Groups`) in `analysis/_data.py`. Commit `e338ead`.
+- **`scripts/sweep_parallel.py`, `scripts/validate_seeds.py`** —
+  worker pool + seed validator fully annotated. Commit `06ebe34`.
+- **`scripts/sweep_cloud.py`** — cloud worker pool fully annotated
+  (decommissioned but kept for reproducibility). Commit `935be8b`.
+  Library tier reaches 100% annotated; entry-point + test tiers
+  remain `opportunistic on touch` per the audit disposition.
+
+### Fixed
+- **Docker image dependency pinning** — `matplotlib==3.10.8` plus
+  PNG-render transitive deps (`pillow==12.2.0`, `fonttools==4.62.1`,
+  `contourpy==1.3.3`, `kiwisolver==1.5.0`, `pyparsing==3.3.2`,
+  `cycler==0.12.1`) pinned in `Dockerfile` and `Dockerfile.cloud`
+  alongside the existing `fpylll`/`cysignals`/`numpy`/`scipy` pins.
+  Root cause: figure-SHA byte-identity gate failed in CI on commit
+  `ccc9674` because the fresh-build matplotlib bumped 3.10.8 →
+  3.10.9 and PNG byte output drifts at patch level (text rendering,
+  anti-alias, metadata). `verify.sh` and the paper-figure parity
+  gate stayed green throughout — only the regen-vs-baseline gate
+  catches matplotlib drift. Local validation: rebuilt image
+  produces baseline-matching SHAs across all 14 figures (sorted
+  diff empty). Closes the unflagged pip-side counterpart to audit
+  A27's apt-side commentary. Commit `e7936c5`.
+
+### Closed audit items (v1.5.x doc-only group)
+- **A31** — `scorecard.yml` actions re-pinned from semver tags to
+  commit SHAs (`actions/checkout`, `actions/upload-artifact`,
+  `ossf/scorecard-action`, `github/codeql-action`); header comment
+  rewritten with refresh-on-bump instructions. Commit `a4a0843`.
+- **A33** — `CONTRIBUTING.md` onboarding gains a pre-INC-32
+  rebuild note: stale local images still run as root and produce
+  root-owned bind mounts; rebuild with
+  `--build-arg HOST_UID=$(id -u) --build-arg HOST_GID=$(id -g)`
+  after pulling INC-32 fix. Commit `49890db`.
+
 ### Removed
 - **`scripts/health_check.sh`** — dormant cron probe retired
   2026-04-07 when the local sweep finished and the cloud took over
