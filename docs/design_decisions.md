@@ -146,3 +146,54 @@ A CI gate (`scripts/lint_seed_manifest.py`) enforces three invariants on every p
 - `tests/test_lint_seed_manifest.py` — 10 tests: clean tree, orphan, ghost, drift (--sha-check only), manifest missing (exit 2), parse error (exit 2), symlink skip, allowlist, summary_ prefix, quiet mode.
 
 Total manifest-related test surface: 79 tests; part of the 96-test suite that runs on every commit.
+
+---
+
+## ADR-003 — Multiple-comparison correction over the 33-cell main grid (v1.5.1)
+
+**Status**: accepted, shipped 2026-05-14 on branch `phase1/holm-cliff`.
+
+### Context
+
+The v1.5.0 paper-claims artefact `results/paper_claims/full_stats_33groups.txt` reports per-group paired t-test and Wilcoxon p-values across the 33 (n, β) cells of the q=97 main sweep. Pre-v1.5.1 the table prints raw p-values only; no multiple-comparison correction is applied.
+
+The 33-cell family is a paper headline table. A reviewer-grade reading wants strict family-wise error control: "given the 33 tests reported, what is the worst-case probability of at least one false positive at α = 0.05?" Without correction the bound is `1 − (1 − 0.05)^33 ≈ 0.81`, which is not defensible at the level of paper Section 4.
+
+Two standard corrections are candidates:
+
+- **Bonferroni / Holm step-down** — strict family-wise error rate (FWER) control. Holm dominates Bonferroni uniformly at no additional assumption.
+- **Benjamini–Hochberg (BH)** — false discovery rate (FDR) control. Strictly less conservative; admissible when the cost of a false positive is symmetric with the cost of a false negative.
+
+### Decision
+
+Apply Holm step-down across the 33-cell family. Report both the raw and Holm-adjusted columns side-by-side in the paper headline table and in `analysis/stats_analysis.py` and `analysis/tables.py`.
+
+The justification has three layers:
+
+1. **Small family.** 33 tests is small enough that the Holm conservativeness penalty is bounded: even the worst-case Bonferroni factor of 33× barely moves cells with `p < 1e-30` (the median main-grid cell), while protecting the borderline cells (`p ≈ 1e-2` at n=120 β=20 and n=120 β=40) where the question genuinely matters.
+2. **Asymmetric cost.** A false positive in a paper headline table is more expensive than an over-correction: the table is cited downstream, the over-correction column merely sits adjacent to the raw column, and any reader who prefers BH can derive it from the raw p-values they retain.
+3. **No additional assumption.** Holm imposes no dependence-structure assumption on the p-values. BH requires independence or positive dependence; the (n, β) cells are computed from disjoint seed sets but the BKZ trajectories share the deterministic LWE-Kannan construction, so dependence is not provably benign.
+
+Cohen's d alone is insufficient as an effect-size companion: it assumes the distribution is symmetric enough that mean / std is well-defined, which fails for cells where the advantage is sign-flipping (n=120, n=130 at β=20 sit near zero). Cliff's δ — `(#wins − #losses) / n_total` — is added alongside as the distribution-free counterpart. The two disagree when tail outliers inflate Cohen's d without moving the median; the paper now reports both so the asymmetry is visible.
+
+### Consequences
+
+**Intended**:
+- The paper Section 4 table now carries a defensible α = 0.05 family-wise bound.
+- Reviewer questions about multiple comparisons collapse to "the column is right there in the table."
+- Cliff's δ surfaces effect-size sign and magnitude robustly even where Cohen's d is misleading.
+
+**Accepted costs**:
+- Table width grows by two columns. Acceptable.
+- The Holm correction at this family size is conservative for cells with `p ≪ 0.01`. Acceptable — the cost is only in cells where the question is already settled.
+- Cliff's δ requires interpretation against a different scale than Cohen's d (Romano et al.: negligible <0.147, small <0.33, medium <0.474, large otherwise). The script labels this inline.
+
+**Not in scope**:
+- Per-comparison correction over the full multi-campaign corpus (cliff500, q3329, convergence). The 33-cell family is the headline; the secondary campaigns are reported as standalone groups with their own significance discussions.
+- Replacing Cohen's d. The two effect sizes are complementary, not redundant.
+
+### Verification artefacts
+
+- `analysis/_stats_helpers.py` — `cliffs_delta()` + `holm_bonferroni()` with module docstring citing this ADR.
+- `tests/test_stats.py` — 19 pytest cases: Cliff's δ edge cases (all-win, all-loss, all-tie, empty, balanced, majority, ties, sign-match, range bound) + Holm correctness (monotonicity, input-order preservation, smallest-equals-Bonferroni-for-rank-1, cap-at-one, equal-p case, strict-dominance over Bonferroni, `None` pass-through, all-`None`, empty, family-of-one).
+- `results/paper_claims/full_stats_33groups.txt` — regenerated with raw + Holm columns. Pre-correction p-values bit-identical to v1.5.0 within the baseline TXT rendering precision (verified 10/10 cells on the `results/raw/` subset).
