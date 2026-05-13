@@ -29,6 +29,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
 from analysis._data import load_all_seeds  # noqa: E402
+from analysis._stats_helpers import cliffs_delta, holm_bonferroni  # noqa: E402
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
 from log import get_logger  # noqa: E402
@@ -66,6 +67,11 @@ def compute_stats(advantages):
         result['cohens_d'] = result['mean'] / result['std']
     else:
         result['cohens_d'] = float('inf')
+
+    # ── Cliff's δ (non-parametric one-sample effect size vs 0) ──
+    # Distribution-free counterpart to Cohen's d; less sensitive to
+    # tail outliers. Range [-1, +1]; sign matches mean advantage.
+    result['cliffs_delta'] = cliffs_delta(adv)
 
     # ── Paired t-test: H0: mean advantage = 0 ──
     if n_seeds >= 2:
@@ -124,18 +130,27 @@ def format_p(p):
 
 def main():
     PIPELINE.info("stats_analysis start", cat="analysis")
-    raw_dir = DEFAULT_RAW_DIR
+    raw_dir = None
+    campaign = "main"
     if len(sys.argv) > 1 and sys.argv[1] == '--results-dir':
         raw_dir = sys.argv[2]
+    elif len(sys.argv) > 1 and sys.argv[1] == '--campaign':
+        campaign = sys.argv[2]
 
     print("=" * 80)
     print("SDBKZ vs BKZ — Statistical Analysis")
-    print(f"Reading from: {raw_dir}")
+    if raw_dir is None:
+        print(f"Reading from manifest: campaign={campaign}, q=97")
+    else:
+        print(f"Reading from: {raw_dir}")
     print("This script is READ-ONLY. Safe to run alongside sweep_parallel.py.")
     print("=" * 80)
     print()
 
-    groups = load_all_seeds(raw_dir)
+    if raw_dir is None:
+        groups = load_all_seeds(campaign=campaign, q=97)
+    else:
+        groups = load_all_seeds(raw_dir)
     if not groups:
         print(f"ERROR: No seed files found in {raw_dir}")
         print("Check --results-dir or run from the right location.")
@@ -152,26 +167,47 @@ def main():
     out(f"Generated from {sum(len(v) for v in groups.values())} seeds across {len(groups)} groups")
     out("=" * 100)
 
+    # ── Per-group stats, pre-correction ──
+    sorted_keys = sorted(groups.keys())
+    per_group: dict[tuple[int, int], dict] = {}
+    for (n, beta) in sorted_keys:
+        entries = groups[(n, beta)]
+        advantages = [e['advantage'] for e in entries]
+        per_group[(n, beta)] = compute_stats(advantages)
+
+    # ── Family-wise Holm-Bonferroni correction across the whole grid ──
+    # t-test and Wilcoxon are corrected as two independent families so
+    # each headline column tracks strict FWER over the same row set.
+    # See docs/design_decisions.md ADR-003 for the Holm-vs-BH rationale.
+    t_pvals = [per_group[k].get('p_ttest') for k in sorted_keys]
+    w_pvals = [per_group[k].get('p_wilcoxon') for k in sorted_keys]
+    t_holm = holm_bonferroni(t_pvals)
+    w_holm = holm_bonferroni(w_pvals)
+    for k, p_t, p_w in zip(sorted_keys, t_holm, w_holm):
+        per_group[k]['p_ttest_holm'] = p_t
+        per_group[k]['p_wilcoxon_holm'] = p_w
+
     # ── Summary Table ──
     out()
     out("TABLE FOR PAPER — Section 4 (add to methodology paragraph)")
-    out("-" * 100)
+    out("Multiple-comparison correction: Holm-Bonferroni step-down over "
+        f"the {len(sorted_keys)}-cell family. ADR-003 records the choice.")
+    out("-" * 130)
     out(f"{'Group':<12} {'Seeds':>5} {'Mean':>7} {'95% CI':>18} {'Median':>7} "
-        f"{'Cohen d':>8} {'t-test p':>12} {'Wilcoxon p':>12} {'Win%':>6}")
-    out("-" * 100)
+        f"{'Cohen d':>8} {'Cliff δ':>8} {'t-test p':>12} {'t Holm p':>12} "
+        f"{'Wilcox p':>12} {'W Holm p':>12} {'Win%':>6}")
+    out("-" * 130)
 
-    for (n, beta) in sorted(groups.keys()):
-        entries = groups[(n, beta)]
-        advantages = [e['advantage'] for e in entries]
-        s = compute_stats(advantages)
-
+    for (n, beta) in sorted_keys:
+        s = per_group[(n, beta)]
         ci_str = f"[{s['ci_lower']:.3f}, {s['ci_upper']:.3f}]"
-
         out(f"n={n} β={beta:<4} {s['n_seeds']:>5} {s['mean']:>7.3f} {ci_str:>18} {s['median']:>7.3f} "
-            f"{s['cohens_d']:>8.2f} {format_p(s['p_ttest']):>12} {format_p(s['p_wilcoxon']):>12} "
+            f"{s['cohens_d']:>8.2f} {s['cliffs_delta']:>+8.3f} "
+            f"{format_p(s['p_ttest']):>12} {format_p(s['p_ttest_holm']):>12} "
+            f"{format_p(s['p_wilcoxon']):>12} {format_p(s['p_wilcoxon_holm']):>12} "
             f"{s['win_rate']*100:>5.1f}%")
 
-    out("-" * 100)
+    out("-" * 130)
 
     # ── Detailed per-group analysis ──
     out()
@@ -179,10 +215,9 @@ def main():
     out("DETAILED PER-GROUP ANALYSIS")
     out("=" * 100)
 
-    for (n, beta) in sorted(groups.keys()):
-        entries = groups[(n, beta)]
-        advantages = [e['advantage'] for e in entries]
-        s = compute_stats(advantages)
+    for (n, beta) in sorted_keys:
+        s = per_group[(n, beta)]
+        advantages = [e['advantage'] for e in groups[(n, beta)]]
 
         out()
         out(f"── n={n}, β={beta} ({s['n_seeds']} seeds) " + "─" * 50)
@@ -194,8 +229,13 @@ def main():
         out(f"  95% CI:             [{s['ci_lower']:.4f}, {s['ci_upper']:.4f}]")
         out(f"  Win rate:           {s['win_rate']*100:.1f}%")
         out(f"  Cohen's d:          {s['cohens_d']:.2f}  ({'large' if abs(s['cohens_d']) >= 0.8 else 'medium' if abs(s['cohens_d']) >= 0.5 else 'small'})")
-        out(f"  Paired t-test:      t={s['t_stat']:.2f}, p={format_p(s['p_ttest'])}" if s['t_stat'] else "  Paired t-test:      N/A")
-        out(f"  Wilcoxon signed-rank: W={s['w_stat']:.0f}, p={format_p(s['p_wilcoxon'])}" if s['w_stat'] else "  Wilcoxon signed-rank: N/A (need ≥10 seeds)")
+        cd_mag = abs(s['cliffs_delta'])
+        cd_label = ('large' if cd_mag >= 0.474 else
+                    'medium' if cd_mag >= 0.33 else
+                    'small' if cd_mag >= 0.147 else 'negligible')
+        out(f"  Cliff's δ:          {s['cliffs_delta']:+.3f}  ({cd_label})")
+        out(f"  Paired t-test:      t={s['t_stat']:.2f}, p={format_p(s['p_ttest'])}, Holm p={format_p(s['p_ttest_holm'])}" if s['t_stat'] else "  Paired t-test:      N/A")
+        out(f"  Wilcoxon signed-rank: W={s['w_stat']:.0f}, p={format_p(s['p_wilcoxon'])}, Holm p={format_p(s['p_wilcoxon_holm'])}" if s['w_stat'] else "  Wilcoxon signed-rank: N/A (need ≥10 seeds)")
         out(f"  Shapiro-Wilk normality: p={format_p(s['p_shapiro'])}" if s['p_shapiro'] else "  Shapiro-Wilk: N/A")
 
         # Percentiles
