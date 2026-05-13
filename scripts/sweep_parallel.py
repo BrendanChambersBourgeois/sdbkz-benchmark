@@ -10,8 +10,11 @@ Usage:
     python3 sweep_parallel.py --migrate    # only migrate old sweep_seed files
     python3 sweep_parallel.py --summary    # only regenerate summary.json
 """
+from __future__ import annotations
+
 import subprocess, sys, os, json, math, time, glob, signal, logging, datetime
 import traceback as tb
+from typing import Any
 import numpy as np
 from multiprocessing import Pool
 
@@ -53,14 +56,14 @@ SUMMARY_FILE = os.path.join(RESULTS_DIR, "summary.json")
 CLAMP_LOG_FILE = os.path.join(RESULTS_DIR, "clamp_events.jsonl")
 
 
-def _log_clamp(ctx, position, raw_value):
+def _log_clamp(ctx: str, position: int, raw_value: float) -> None:
     log_clamp(ctx, position, raw_value,
               script_name="sweep_parallel", log_path=CLAMP_LOG_FILE)
 
 # ---------------------------------------------------------------------------
 # Install deps (idempotent)
 # ---------------------------------------------------------------------------
-def install_deps():
+def install_deps() -> None:
     reqs = os.path.join(BASE, "requirements.txt")
     try:
         subprocess.check_call(
@@ -77,7 +80,10 @@ def install_deps():
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 
-def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
+def _metrics_from_gso(
+    M: Any, dim: int, m: int, ln_profile: list[float],
+    full: bool = False, clamp_ctx: str = "",
+) -> dict[str, Any]:
     return metrics_from_gso(
         M, dim, m, ln_profile, full=full, clamp_ctx=clamp_ctx,
         log_clamp_fn=_log_clamp,
@@ -87,11 +93,11 @@ def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
 # ---------------------------------------------------------------------------
 # File path helpers
 # ---------------------------------------------------------------------------
-def result_path(n, beta, seed):
+def result_path(n: int, beta: int, seed: int) -> str:
     return seed_path_for("main", n=n, beta=beta, seed=seed, base=BASE)
 
 
-def scan_completed():
+def scan_completed() -> set[tuple[int, int, int]]:
     """Return set of (n, beta, seed) tuples already completed.
 
     Walks the v1.3 layout first (results/seeds/main/q97/...) and falls
@@ -135,7 +141,7 @@ def scan_completed():
 # ---------------------------------------------------------------------------
 # Migrate old sweep_seed*.json files
 # ---------------------------------------------------------------------------
-def migrate_old_results():
+def migrate_old_results() -> int:
     """Convert old sweep_seed{N}.json -> individual results/raw/ files."""
     old_files = sorted(glob.glob(os.path.join(BASE, "sweep_seed*.json")))
     if not old_files:
@@ -204,7 +210,9 @@ STORE_PER_TOUR = False
 from _bkz_core import run_single as _bkz_core_run_single
 
 
-def run_single(n, beta, seed, store_per_tour=False):
+def run_single(
+    n: int, beta: int, seed: int, store_per_tour: bool = False,
+) -> dict[str, Any]:
     """Thin wrapper: feeds the canonical BKZ driver with sweep_parallel
     conventions (Q=97, PRECISION=250, TOURS_BY_BETA, plain floor metric)."""
     return _bkz_core_run_single(
@@ -224,11 +232,13 @@ class _Timeout(Exception):
     pass
 
 
-def _alarm_handler(signum, frame):
+def _alarm_handler(signum: int, frame: Any) -> None:
     raise _Timeout()
 
 
-def worker(args):
+def worker(
+    args: tuple[int, int, int],
+) -> tuple[tuple[int, int, int], str, str]:
     """Process one (n, beta, seed) with timeout. Returns (key, status, path_or_error)."""
     n, beta, seed = args
     key = (n, beta, seed)
@@ -265,7 +275,7 @@ def worker(args):
 # ---------------------------------------------------------------------------
 # Failed results tracker
 # ---------------------------------------------------------------------------
-def log_failure(key, reason):
+def log_failure(key: tuple[int, int, int], reason: str) -> None:
     """Append a failure to results/failed.json."""
     n, beta, seed = key
     entry = {
@@ -284,7 +294,7 @@ def log_failure(key, reason):
 # ---------------------------------------------------------------------------
 # Summary generator
 # ---------------------------------------------------------------------------
-def generate_summary():
+def generate_summary() -> dict[str, Any] | None:
     """Read all raw results, produce results/summary.json."""
     raw_files = glob.glob(os.path.join(RAW_DIR, "n*_beta*_seed*.json"))
     if not raw_files:
@@ -422,7 +432,7 @@ def generate_summary():
 # ---------------------------------------------------------------------------
 # Logging setup
 # ---------------------------------------------------------------------------
-def setup_logging():
+def setup_logging() -> logging.Logger:
     os.makedirs(RESULTS_DIR, exist_ok=True)
     logger = logging.getLogger("sweep")
     logger.setLevel(logging.INFO)
@@ -438,7 +448,7 @@ def setup_logging():
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
-def main():
+def main() -> None:
     summary_only = "--summary" in sys.argv
     if "--store-per-tour" in sys.argv:
         global STORE_PER_TOUR

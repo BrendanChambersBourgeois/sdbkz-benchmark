@@ -32,6 +32,8 @@ Examples:
     # not on a fresh clone — replace with your own backup mirror path).
     # python3 scripts/validate_seeds.py --strict --sha-check $BACKUP_ROOT
 """
+from __future__ import annotations
+
 import argparse
 import glob
 import hashlib
@@ -40,6 +42,7 @@ import math
 import os
 import sys
 from collections import defaultdict
+from typing import Any, Iterator
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
@@ -78,7 +81,7 @@ SHA_EXCLUDE_KEYS = {"bkz_time", "sdbkz_time", "timestamp", "status"}
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-def detect_schema(filepath, tag):
+def detect_schema(filepath: str, tag: str) -> set[str]:
     """Return the appropriate required-key set for a seed file."""
     fname = os.path.basename(filepath)
     if "q3329" in fname or "q3329" in tag:
@@ -90,7 +93,7 @@ def detect_schema(filepath, tag):
     return REQUIRED_SWEEP
 
 
-def seed_files(directory):
+def seed_files(directory: str) -> Iterator[str]:
     """Yield seed JSON paths, excluding _fat.json per-tour logs and summaries."""
     for f in sorted(glob.glob(os.path.join(directory, "*.json"))):
         fname = os.path.basename(f)
@@ -101,7 +104,7 @@ def seed_files(directory):
         yield f
 
 
-def parse_filename(fname):
+def parse_filename(fname: str) -> dict[str, int]:
     """Extract expected n, beta, seed from filename convention."""
     parts = fname.replace(".json", "").replace("_fat", "").split("_")
     expected = {}
@@ -119,7 +122,8 @@ def parse_filename(fname):
 # Core validator
 # ---------------------------------------------------------------------------
 class SeedValidator:
-    def __init__(self, strict=False, sha_check=False, quiet=False):
+    def __init__(self, strict: bool = False,
+                 sha_check: bool = False, quiet: bool = False) -> None:
         self.strict = strict
         self.sha_check = sha_check
         self.quiet = quiet
@@ -131,22 +135,23 @@ class SeedValidator:
         self.roots = []  # CLI args actually walked
         self.per_tag_counts = defaultdict(int)  # tag -> files checked
 
-    def _err(self, msg, cat="schema", **ctx):
+    def _err(self, msg: str, cat: str = "schema", **ctx: Any) -> None:
         self.errors.append(msg)
         log.error(msg, cat=cat, **ctx)
 
-    def _warn(self, msg, cat="schema", **ctx):
+    def _warn(self, msg: str, cat: str = "schema", **ctx: Any) -> None:
         self.warnings.append(msg)
         log.warning(msg, cat=cat, **ctx)
 
-    def _incident(self, msg, id=None, cat="incident", **ctx):
+    def _incident(self, msg: str, id: int | None = None,
+                  cat: str = "incident", **ctx: Any) -> None:
         # Incidents are documented known issues — kept separate from warnings
         # so --strict mode doesn't promote them to errors. They're tracked
         # by the centralized log via log.incident().
         self.incidents.append(msg)
         log.incident(msg, id=id, cat=cat, **ctx)
 
-    def check_seed(self, filepath, tag):
+    def check_seed(self, filepath: str, tag: str) -> None:
         self.checked += 1
         self.per_tag_counts[tag] += 1
         fname = os.path.basename(filepath)
@@ -311,14 +316,14 @@ class SeedValidator:
             else:
                 log.info(f"SHA-256 spot-check {fname}: OK", cat="integrity", file=fname)
 
-    def check_directory(self, directory, tag=None):
+    def check_directory(self, directory: str, tag: str | None = None) -> None:
         """Check all seed files in a directory."""
         if tag is None:
             tag = os.path.basename(directory.rstrip("/"))
         for f in seed_files(directory):
             self.check_seed(f, tag)
 
-    def check_tree(self, root):
+    def check_tree(self, root: str) -> None:
         """Check a parent directory containing experiment subdirs."""
         root = root.rstrip("/")
         # If root itself contains seed JSONs, check them
@@ -335,7 +340,7 @@ class SeedValidator:
                     continue
                 self.check_directory(subdir, tag=entry)
 
-    def report(self):
+    def report(self) -> int:
         """Print results and return exit code."""
         roots_str = ", ".join(self.roots) if self.roots else "(none)"
         tag_breakdown = dict(sorted(self.per_tag_counts.items()))
@@ -377,7 +382,7 @@ class SeedValidator:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Validate seed JSON files for schema and data integrity."
     )
