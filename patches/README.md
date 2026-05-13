@@ -35,6 +35,6 @@ Rebuild fpylll against the patched fplll afterwards.
 
 ### Status
 
-This is a **new instance** of an already-open failure family in fpylll/fplll (related: fpylll #272, fplll #237). It is **not upstreamed** — the paper author has reserved the option to file upstream separately. If you ship the patch in a downstream distribution, cite the paper.
+This is a **new instance** of an already-open failure family in fpylll/fplll (related: fpylll #272). **Filed upstream** on 2026-05-08 as [`fplll/fplll#550`](https://github.com/fplll/fplll/pull/550) — single-commit patch on branch `BrendanChambersBourgeois:fix/gso-kahan-cancellation`, passes 15/15 `make check`, clang-format 18 clean. Maintainer review pending as of filing; this patch file in the repo will continue to track the local-applied form regardless of upstream merge cadence. If you ship the patch in a downstream distribution, cite the paper.
 
 All `q=97` results in the paper are unaffected and do not require this patch. Only `q=3329` (and presumably other cryptographic moduli at `n≥100`) trigger the cancellation.

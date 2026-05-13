@@ -124,7 +124,7 @@ The full patch is a single 30-line hunk at [`patches/fplll_gso_kahan.patch`](../
 | 2026-04-15 | Patch shipped in repo as `patches/fplll_gso_kahan.patch` with README                  |
 | 2026-04-18 | Draft upstream issue text prepared (maintained internally pre-filing)                 |
 | 2026-04-22 | Repo flipped public; Zenodo concept DOI `10.5281/zenodo.19686928` minted (per-version DOI for v1.5.0: `10.5281/zenodo.19686929`). Patch + README + this findings doc all published as part of the Zenodo-archived v1.5.0 ZIP. |
-| TBD (deferred per maintainer 2026-04-22)           | Upstream issue filed on fplll/fplll repo. Original gating on "ePrint publication clearance" lapsed when the publication route flipped from ePrint to Zenodo (no embargo); maintainer has reserved the option to file separately when bandwidth allows. The patch + reproducer are already public and citable via the Zenodo DOI. |
+| 2026-05-08 | Upstream filing complete — pull request `fplll/fplll#550` ("gso: Kahan-compensated subtraction in update_gso_row") opened from branch `BrendanChambersBourgeois:fix/gso-kahan-cancellation`. Single commit `ebcedf53`; passes 15/15 `make check`; `make check-style` clean under clang-format 18 (CI's apt version). PR body cites Zenodo DOI for the per-seed evidence + reproducer. |
 | TBD (gated on upstream issue + reviewer feedback)  | CVE status evaluated (likely N/A — numerical-correctness finding, not an exploitable vulnerability) |
 
 Timeline entries are appended, never revised in place. Revision means a new row with `(revised YYYY-MM-DD: …)` annotation.

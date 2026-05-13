@@ -32,11 +32,11 @@ See [`CHANGELOG.md`](CHANGELOG.md) for per-release details (Keep-a-Changelog for
 
 ## External waits
 
-All v1.x-era external gates are resolved as of 2026-04-22 / 2026-04-25. The Zenodo DOI is the citation anchor; ePrint moderation is no longer on the path.
+All v1.x-era external gates are resolved as of 2026-05-08. The Zenodo DOI is the citation anchor; ePrint moderation is no longer on the path; upstream fplll PR is filed.
 
 - ✅ **Paper publication** — Resolved 2026-04-22 via Zenodo DOI `10.5281/zenodo.19686928`. The disclosure doc [`docs/disclosure/fplll_gso_kahan_findings.md`](docs/disclosure/fplll_gso_kahan_findings.md) timeline now records the Zenodo mint event in place of the previous "TBD (gated on ePrint publication clearance)" row.
 - ✅ **Public-repo visibility flip** — Resolved 2026-04-22.
-- ⏸ **fplll upstream issue filing** — Deferred per maintainer (the patch + reproducer + README are already publicly available via the Zenodo-archived v1.5.0 ZIP, so the upstream filing is no longer on the publication critical path). [`patches/README.md`](patches/README.md) status field will update if and when upstream filing happens.
+- ✅ **fplll upstream issue filing** — Resolved 2026-05-08 via pull request [`fplll/fplll#550`](https://github.com/fplll/fplll/pull/550) ("gso: Kahan-compensated subtraction in update_gso_row"). Single-commit patch on branch `BrendanChambersBourgeois:fix/gso-kahan-cancellation`; passes 15/15 `make check`; `make check-style` clean under clang-format 18 (CI's apt version). PR body cites the Zenodo DOI for per-seed evidence. Maintainer-side review cadence is theirs to set; no follow-up nudges planned from our side. [`docs/disclosure/fplll_gso_kahan_findings.md`](docs/disclosure/fplll_gso_kahan_findings.md) timeline records the filing event.
 
 ## Parked with trigger conditions
 
