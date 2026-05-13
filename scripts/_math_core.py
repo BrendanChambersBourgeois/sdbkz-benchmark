@@ -17,16 +17,24 @@ Roadmap (each phase is its own commit on `v1.2-consolidation`):
                     copies (all six were already byte-identical per
                     SHA-256 check) out for `from _math_core import
                     build_lwe_kannan`. Same verify.sh gate.
-  Phase 4 (TODO)  — `_metrics_from_gso` is not extract-clean: the
-                    four legacy copies diverge materially. sweep_cloud
-                    uses a distinct `_log_clamp_cloud` log target;
-                    q3329_verify adds a nonlocal `n_clamped` counter;
-                    overnight_experiments differs only cosmetically.
-                    Extraction requires an interface parameter for the
-                    log sink and a return for the clamp counter.
-                    Deferred until the interface is designed — do not
-                    bulk-move in its current form. `_log_clamp`,
-                    `_safe_log_r` move with this phase.
+  Phase 4 (DONE)  — `metrics_from_gso` lives below; the interface
+                    accepts a `log_clamp_fn` callback (binds each
+                    caller's log sink), a `clamp_ctx` tag, a
+                    `warn_on_clamp` opt-in (q=3329 verification path),
+                    and the `n_clamped` counter is folded into the
+                    callback rather than returned. Four legacy callers
+                    now hold 3–7 line wrappers that delegate here:
+                      sweep_parallel.py        → _log_clamp
+                      sweep_cloud.py           → _log_clamp_cloud
+                      q3329_verify.py          → _log_clamp + warn_on_clamp
+                      overnight_experiments.py → _log_clamp
+                    `_bkz_core.py` uses the canonical form directly.
+                    `run_3x_extended.py` and `run_convergence_test.py`
+                    retain inline `_safe_log_r` closures (active-block
+                    rankin only, no full-dict return) for SHA-256
+                    stability of their paper-cited seed JSONs; migrate
+                    opportunistically only if those scripts ever need
+                    a behaviour change.
 
 CLAUDE.md §3 (q=3329 lessons): "check raw values, not derived metrics"
 — if this module's output ever disagrees with a legacy copy, trust the
