@@ -14,8 +14,11 @@ Usage:
 Environment variables (set by AWS Batch automatically):
     AWS_DEFAULT_REGION    (or pass --region)
 """
+from __future__ import annotations
+
 import sys, os, json, math, time, datetime, argparse, signal, threading
 import traceback as tb
+from typing import Any
 import numpy as np
 from multiprocessing import Pool, cpu_count
 
@@ -47,7 +50,7 @@ MAX_SEED_TIME_Q3329 = {20: 7200, 30: 57600, 40: 86400}  # 2h, 16h, 24h
 # ---------------------------------------------------------------------------
 # SIGTERM handler: clean exit on Batch termination / spot reclaim
 # ---------------------------------------------------------------------------
-def _sigterm_handler(signum, frame):
+def _sigterm_handler(signum: int, frame: Any) -> None:
     print("\nSIGTERM received. Flushing and exiting.", flush=True)
     sys.stdout.flush()
     sys.stderr.flush()
@@ -66,14 +69,14 @@ _watchdog_lock = threading.Lock()
 _last_completion = time.time()
 
 
-def watchdog_ping():
+def watchdog_ping() -> None:
     """Call after each seed completion to reset the watchdog timer."""
     global _last_completion
     with _watchdog_lock:
         _last_completion = time.time()
 
 
-def _watchdog_thread(timeout):
+def _watchdog_thread(timeout: float) -> None:
     """Background thread that force-exits if no seed completes within timeout."""
     while True:
         time.sleep(60)
@@ -89,20 +92,23 @@ def _watchdog_thread(timeout):
 # ---------------------------------------------------------------------------
 # S3 helpers
 # ---------------------------------------------------------------------------
-def s3_key(n, beta, seed, q=97):
+def s3_key(n: int, beta: int, seed: int, q: int = 97) -> str:
     if q != 97:
         return f"results/raw/n{n}_beta{beta}_q{q}_seed{seed}.json"
     return f"results/raw/n{n}_beta{beta}_seed{seed}.json"
 
 
-def s3_upload(local_path, bucket, key):
+def s3_upload(local_path: str, bucket: str, key: str) -> None:
     """Upload a file to S3."""
     import boto3
     s3 = boto3.client("s3")
     s3.upload_file(local_path, bucket, key)
 
 
-def s3_validate(bucket, key, expected_keys=("n", "beta", "seed", "advantage")):
+def s3_validate(
+    bucket: str, key: str,
+    expected_keys: tuple[str, ...] = ("n", "beta", "seed", "advantage"),
+) -> bool:
     """Read back an S3 object and validate it's valid JSON with expected keys.
     Returns True if valid, False if corrupt. Deletes corrupt files."""
     import boto3
@@ -125,7 +131,9 @@ def s3_validate(bucket, key, expected_keys=("n", "beta", "seed", "advantage")):
         return False
 
 
-def s3_list_completed(bucket, n, beta, q=97):
+def s3_list_completed(
+    bucket: str, n: int, beta: int, q: int = 97,
+) -> set[int]:
     """Check S3 for already-completed seeds. Returns set of seed numbers."""
     import boto3, re
     s3 = boto3.client("s3")
@@ -149,7 +157,7 @@ def s3_list_completed(bucket, n, beta, q=97):
     return done
 
 
-def local_list_completed(output_dir, n, beta):
+def local_list_completed(output_dir: str, n: int, beta: int) -> set[int]:
     """Check local dir for completed seeds."""
     import glob, re
     pattern = re.compile(rf"^n{n}_beta{beta}_seed(\d+)\.json$")
@@ -167,7 +175,7 @@ def local_list_completed(output_dir, n, beta):
 from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
 
 
-def _log_clamp_cloud(ctx, position, raw_value):
+def _log_clamp_cloud(ctx: str, position: int, raw_value: float) -> None:
     """Cloud-container wrapper — writes to /tmp/clamp_events.jsonl
     inside the AWS Batch Docker container; the entrypoint uploads it
     alongside each per-seed result."""
@@ -175,7 +183,10 @@ def _log_clamp_cloud(ctx, position, raw_value):
               script_name="sweep_cloud", log_path="/tmp/clamp_events.jsonl")
 
 
-def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
+def _metrics_from_gso(
+    M: Any, dim: int, m: int, ln_profile: list[float],
+    full: bool = False, clamp_ctx: str = "",
+) -> dict[str, Any]:
     return metrics_from_gso(
         M, dim, m, ln_profile, full=full, clamp_ctx=clamp_ctx,
         log_clamp_fn=_log_clamp_cloud,
@@ -193,7 +204,11 @@ STORE_PER_TOUR = False
 from _bkz_core import run_single as _bkz_core_run_single
 
 
-def run_single(n, beta, seed, q=None, precision=None, store_per_tour=False):
+def run_single(
+    n: int, beta: int, seed: int,
+    q: int | None = None, precision: int | None = None,
+    store_per_tour: bool = False,
+) -> dict[str, Any]:
     """Thin wrapper: feeds the canonical BKZ driver with sweep_cloud
     conventions (q/precision overridable, TOURS_BY_BETA, safe floor)."""
     return _bkz_core_run_single(
@@ -210,7 +225,9 @@ def run_single(n, beta, seed, q=None, precision=None, store_per_tour=False):
 # ---------------------------------------------------------------------------
 # Worker
 # ---------------------------------------------------------------------------
-def worker(args):
+def worker(
+    args: tuple[int, int, int, str | None, str | None, int, int, bool],
+) -> tuple[tuple[int, int, int], str, Any]:
     n, beta, seed, bucket, output_dir, q, precision, store_per_tour = args
     key = (n, beta, seed)
 
@@ -253,7 +270,7 @@ def worker(args):
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
-def main():
+def main() -> None:
     if not get_run_id():
         new_run_id()
     parser = argparse.ArgumentParser(description="Cloud BKZ benchmark runner")
