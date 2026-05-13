@@ -1,7 +1,8 @@
 """Paper-ready text tables for the SD-BKZ benchmark.
 
 table_main_results — Table 2: per-group means, std, win rate, β/n
-table_statistics   — Table 3: 95% CIs, Cohen's d, t-test/Wilcoxon p-values
+table_statistics   — Table 3: 95% CIs, Cohen's d, Cliff's δ, t-test /
+                     Wilcoxon p-values + Holm-Bonferroni adjusted p-values
 table_spatial      — Table 4: head/mid/tail Rankin profile decomposition
 
 Each function takes the output of analysis._data.load_all_seeds() and
@@ -11,6 +12,7 @@ import numpy as np
 from scipy import stats as scipy_stats
 
 from ._data import _decompose_seed
+from ._stats_helpers import cliffs_delta, holm_bonferroni
 
 
 def table_main_results(groups, min_seeds=10):
@@ -43,50 +45,74 @@ def table_main_results(groups, min_seeds=10):
 
 
 def table_statistics(groups, min_seeds=10):
-    """Print Table 3 from the paper: CIs, Cohen's d, p-values.
+    """Print Table 3: CIs, Cohen's d, Cliff's δ, raw + Holm-adjusted p-values.
+
+    Holm-Bonferroni correction is applied across the rendered row set
+    (one family for the t-test column, one for the Wilcoxon column) so
+    the family-wise error rate is bounded at the conventional 0.05
+    threshold for the entire table.
 
     Returns:
         list of dicts for each row.
     """
-    rows = []
-    print(f"{'n':>4} {'β':>3} {'95% CI':>18} {'Cohen d':>8} "
-          f"{'t-test p':>12} {'Wilcoxon p':>12}")
-    print("-" * 65)
+    eligible = [
+        (n, beta, seeds) for (n, beta), seeds in sorted(groups.items())
+        if len(seeds) >= min_seeds
+    ]
 
-    for (n, beta), seeds in sorted(groups.items()):
-        if len(seeds) < min_seeds:
-            continue
+    raw_rows: list[dict] = []
+    for n, beta, seeds in eligible:
         advs = np.array([s["advantage"] for s in seeds])
-        se = np.std(advs, ddof=1) / np.sqrt(len(advs))
+        std = np.std(advs, ddof=1)
+        se = std / np.sqrt(len(advs))
         t_crit = scipy_stats.t.ppf(0.975, df=len(advs) - 1)
         ci_lo = np.mean(advs) - t_crit * se
         ci_hi = np.mean(advs) + t_crit * se
-        d = np.mean(advs) / np.std(advs, ddof=1) if np.std(advs, ddof=1) > 0 else 0
+        d = np.mean(advs) / std if std > 0 else 0
+        delta = cliffs_delta(advs)
         _, p_t = scipy_stats.ttest_1samp(advs, 0)
         try:
             _, p_w = scipy_stats.wilcoxon(advs, alternative="greater")
         except Exception:
             p_w = None
-
-        def _fmt_p(p):
-            if p is None: return "N/A"
-            if p < 1e-50: return "< 1e-50"
-            if p < 1e-20: return "< 1e-20"
-            if p < 1e-10: return "< 1e-10"
-            return f"{p:.2e}"
-
-        row = {
+        raw_rows.append({
             "n": n, "beta": beta,
             "ci_lo": float(ci_lo), "ci_hi": float(ci_hi),
             "cohens_d": float(d),
+            "cliffs_delta": float(delta),
             "p_ttest": float(p_t),
             "p_wilcoxon": float(p_w) if p_w is not None else None,
-        }
-        rows.append(row)
-        print(f"{n:>4} {beta:>3} [{ci_lo:.3f}, {ci_hi:.3f}]   "
-              f"{d:>8.2f} {_fmt_p(p_t):>12} {_fmt_p(p_w):>12}")
+        })
 
-    return rows
+    p_ttest_holm = holm_bonferroni([r["p_ttest"] for r in raw_rows])
+    p_wilcoxon_holm = holm_bonferroni([r["p_wilcoxon"] for r in raw_rows])
+    for row, p_t_h, p_w_h in zip(raw_rows, p_ttest_holm, p_wilcoxon_holm):
+        row["p_ttest_holm"] = float(p_t_h) if p_t_h is not None else None
+        row["p_wilcoxon_holm"] = (
+            float(p_w_h) if p_w_h is not None else None
+        )
+
+    def _fmt_p(p):
+        if p is None: return "N/A"
+        if p < 1e-50: return "< 1e-50"
+        if p < 1e-20: return "< 1e-20"
+        if p < 1e-10: return "< 1e-10"
+        return f"{p:.2e}"
+
+    print(f"{'n':>4} {'β':>3} {'95% CI':>18} {'Cohen d':>8} {'Cliff δ':>8} "
+          f"{'t-test p':>12} {'t Holm p':>12} {'Wilcox p':>12} {'W Holm p':>12}")
+    print("-" * 110)
+    for row in raw_rows:
+        print(
+            f"{row['n']:>4} {row['beta']:>3} "
+            f"[{row['ci_lo']:.3f}, {row['ci_hi']:.3f}]   "
+            f"{row['cohens_d']:>8.2f} {row['cliffs_delta']:>+8.3f} "
+            f"{_fmt_p(row['p_ttest']):>12} {_fmt_p(row['p_ttest_holm']):>12} "
+            f"{_fmt_p(row['p_wilcoxon']):>12} "
+            f"{_fmt_p(row['p_wilcoxon_holm']):>12}"
+        )
+
+    return raw_rows
 
 
 def table_spatial(groups, min_seeds=10):

@@ -29,6 +29,40 @@ Versions follow loose SemVer. Bump on:
 ## Unreleased
 
 ### Added
+- **`analysis/_stats_helpers.py`** (new module) — `cliffs_delta()` and
+  `holm_bonferroni()` helpers backing the v1.5.1 paper-table refresh.
+  `cliffs_delta` returns the one-sample distribution-free effect size
+  `(#wins − #losses) / n` against the constant zero; `holm_bonferroni`
+  applies the Holm step-down adjustment over a p-value family while
+  preserving input order and passing `None` entries through. Pure-
+  input pure-output; no SHA-256 schema mutation. ADR-003 in
+  `docs/design_decisions.md` records the choice of Holm over BH.
+- **`docs/design_decisions.md` ADR-003** — "Multiple-comparison
+  correction over the 33-cell main grid (v1.5.1)". Justifies Holm vs
+  BH on small-family + asymmetric-cost + no-dependence-assumption
+  grounds; explains why Cliff's δ is added alongside Cohen's d rather
+  than replacing it.
+- **`tests/test_stats.py`** (new) — 19 pytest cases covering Cliff's δ
+  edge cases (all-win, all-loss, all-tie, empty, balanced, majority,
+  ties dilute, sign matches mean direction, range bound) and Holm
+  correctness (monotonicity, input-order preservation, smallest-equals-
+  Bonferroni for rank 1, cap-at-one, equal-p case, strict-dominance
+  over Bonferroni in the mixed case, `None` pass-through, all-`None`,
+  empty, family-of-one).
+- `analysis/stats_analysis.py` + `analysis/tables.py` — both now compute
+  and render Cliff's δ alongside Cohen's d and raw + Holm-adjusted
+  p-values alongside the raw t-test and Wilcoxon columns. The
+  correction families are the rendered row set (33 cells for the main
+  campaign), corrected independently per p-value column.
+- `analysis/stats_analysis.py` — gains a `--campaign <name>` argparse
+  flag (default `main`); the default invocation now reads the v1.3
+  manifest in manifest mode rather than the legacy `results/raw/` dir,
+  matching the v1.5.0 paper-claims file generation path.
+- **`results/paper_claims/full_stats_33groups.txt`** — regenerated with
+  raw + Holm-adjusted p-value columns and a Cliff's δ column. Bit-
+  identity gate: pre-correction p-values match v1.5.0 within the
+  baseline TXT rendering precision (10/10 cells on the `results/raw/`
+  subset verified post-change).
 - **`scripts/seed_timing.py`** (new library) — sweep wall-time
   estimator with two prediction methods (naive per-tour-cost and
   anchored to a completed reference run) and a recommendation
