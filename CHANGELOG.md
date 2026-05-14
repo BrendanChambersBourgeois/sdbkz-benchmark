@@ -29,6 +29,32 @@ Versions follow loose SemVer. Bump on:
 ## Unreleased
 
 ### Added
+- **Dockerfile digest pinning + apt via snapshot.debian.org** (ADR-004,
+  `docs/design_decisions.md`). All four Dockerfiles (`Dockerfile`,
+  `Dockerfile.cloud`, `Dockerfile.fplll54`, `Dockerfile.fplll_legacy`)
+  now pin the base image to
+  `python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c`
+  and rewrite `/etc/apt/sources.list.d/debian.sources` to
+  `snapshot.debian.org/archive/debian/20240614T000000Z/` before the
+  libmpfr-dev / libgmp-dev / build-essential install. Together the
+  two anchors guarantee that a future rebuild resolves to the same
+  byte set as the v1.5.x reference environment regardless of upstream
+  tag reflows or Debian revision rolls. `scripts/verify.sh` header
+  records the digest + snapshot date so the reproducibility chain is
+  self-describing. Dry-run gate: `docker build -t sdbkz:phase2-test .`
+  → `docker run --rm -e NUM_SEEDS=1 sdbkz:phase2-test bash
+  scripts/verify.sh` returns `VERIFICATION PASSED` with seed 1
+  advantage=0.211363 matching reference.
+- **`docs/audits/2026-05-14_zenodo_v1.5.0_contents.md`** — Zenodo
+  concept DOI `10.5281/zenodo.19686928` deposit content audit.
+  Confirms `results/seeds/` (4,541 JSONs, all >100 bytes),
+  `results/seed_manifest.json` (matching count),
+  `results/seed_path_crosswalk.csv`, and `sdbkz_paper_latex.pdf` are
+  intact. Documents the literal threshold drift (tasking gate cited
+  4,701; deposit has 4,541 because the additional ~160 post-flip
+  seeds landed after the 2026-04-22 archival snapshot) and the
+  inconclusive OpenAIRE index probe at 22 days post-publish.
+  Non-blocker for v1.5.1 tag.
 - **`analysis/_stats_helpers.py`** (new module) — `cliffs_delta()` and
   `holm_bonferroni()` helpers backing the v1.5.1 paper-table refresh.
   `cliffs_delta` returns the one-sample distribution-free effect size

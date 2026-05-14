@@ -209,3 +209,56 @@ The v1.5.1 phase-1 task brief required *zero diff in pre-correction p-values vs 
 ### Scope-creep note
 
 The v1.5.1 phase-1 brief specified Cliff's δ + Holm columns. Mid-phase the script also gained a `--campaign <name>` argparse flag (default `main`) so that `stats_analysis.py` reads the v1.3 seed manifest by default rather than the legacy `results/raw/` directory. This was required because the v1.5.0 `full_stats_33groups.txt` artefact was generated from manifest-mode data (33 cells × ~100 seeds = 3300+), not from the `results/raw/` 22-cell subset. The legacy `--results-dir` flag continues to function unchanged. No paper claim or downstream consumer depends on the default-path change; the flag is additive and the prior call-form remains valid. Documented here so a future reader doesn't trip on the difference.
+
+---
+
+## ADR-004 — Docker base-image digest pinning + apt via snapshot.debian.org (v1.5.1)
+
+**Status**: accepted, shipped 2026-05-14 on branch `phase2/docker-pins`.
+
+### Context
+
+The v1.5.0 reproducibility chain depends on two unanchored references in every Dockerfile:
+
+1. **Base image** — `FROM python:3.12.3-bookworm`. Docker Hub stores the tag as a mutable pointer to a manifest digest; nothing prevents the upstream `python` image maintainers from republishing the tag with a new sha256 (security backports, glibc updates, etc.).
+2. **apt-installed `libmpfr-dev` + `libgmp-dev`** — resolved against the *current* `deb.debian.org/debian` index at build time. Debian rolls package revisions independently of upstream-version changes; the original Dockerfile had pinned `libmpfr-dev=4.2.1-1` explicitly but had to drop the pin because Debian Bookworm bumped the package revision and the old apt version vanished from current mirrors. Re-pinning to a specific revision string sets up the same trap.
+
+Either reference drifting silently invalidates the v1.5.x reproducibility claim without breaking the build — the seed SHA-256s would shift the next time someone rebuilt the image, and `verify.sh` would catch it only at the next CI cycle.
+
+### Decision
+
+Two complementary anchors:
+
+1. **Digest-pin the base image** in all four Dockerfiles (`Dockerfile`, `Dockerfile.cloud`, `Dockerfile.fplll54`, `Dockerfile.fplll_legacy`) to `python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c`. Resolved from the Docker Hub registry v2 API on 2026-05-14; tag `last_updated` 2024-05-14T18:08:59Z. The digest covers libmpfr6 4.2.0, libgmp10, glibc, Python 3.12.3, and every other runtime layer baked into the image.
+2. **Pin apt via snapshot.debian.org** at date `20240614T000000Z` (one month after the base-image `last_updated`, ensuring the package set in apt matches the runtime libs the digest pin bakes in). Each Dockerfile's `RUN apt-get` step rewrites `/etc/apt/sources.list.d/debian.sources` to the snapshot mirror before the install. `Acquire::Check-Valid-Until=false` is set because snapshot archives serve expired `Valid-Until` headers by design (the snapshot index is frozen in time).
+
+### Rejected option: vendor MPFR 4.2.1 source tarball + SHA-256
+
+Considered: download `mpfr-4.2.1.tar.xz` from `https://www.mpfr.org/mpfr-current/`, verify against the upstream SHA-256, `./configure --prefix=/usr/local && make && make install` in the Dockerfile, set `LD_LIBRARY_PATH=/usr/local/lib` so fpylll links against the vendored MPFR.
+
+Rejected because:
+- The `fpylll==0.6.4` wheel on PyPI is pre-built and ships with its own libmpfr link (`libmpfr.so.6` from the wheel-build environment). A vendored `/usr/local/lib/libmpfr.so.6` is only used by the legacy variants (`Dockerfile.fplll54`, `Dockerfile.fplll_legacy`) that source-build fplll. For the main + cloud Dockerfiles the wheel never recompiles.
+- Adds 5-10 min build time on every CI run for negligible benefit on the paper-cited image.
+- The `libmpfr6` runtime that the wheel actually links against is already locked by the base-image digest pin in option 1.
+
+### Consequences
+
+**Intended**:
+- A reviewer can byte-replay the base layer from the digest alone, without trusting that Docker Hub kept the tag stable. `docker pull python@sha256:25dee...` resolves identically across years.
+- apt installs are reproducible against a fixed Debian archive snapshot regardless of mirror revision rolls.
+- The `libmpfr-dev` / `libgmp-dev` install path is now reproducibility-anchored even for the source-built legacy variants (where the headers genuinely matter).
+
+**Accepted costs**:
+- `snapshot.debian.org` is rate-limited; CI builds may slow by ~30 s on the apt step.
+- The Dockerfile comment block is longer; a reader needs to follow the digest provenance back to this ADR.
+- Re-pinning to a new digest (e.g. for a Python 3.13 bump) becomes a two-step coordinated edit (digest + snapshot date), not a one-line tag change. Documented in `CONTRIBUTING.md` (out of scope here; deferred to opportunistic touch).
+
+**Not in scope**:
+- Vendor-tarball MPFR build (rejected above).
+- Pinning `fpylll==0.6.4` to an upstream wheel sha256. Numerical-core pins (`fpylll`, `cysignals`, `numpy`) are off-limits per Phase 2 tasking; their pin path lives in `pyproject.toml` and is already version-locked. Adding a wheel-sha256 pin is a v2-tier concern.
+
+### Verification artefacts
+
+- `Dockerfile`, `Dockerfile.cloud`, `Dockerfile.fplll54`, `Dockerfile.fplll_legacy` — all four carry the digest pin + snapshot.debian.org sources rewrite at the same canonical date.
+- `scripts/verify.sh` — header block records the digest + snapshot date so the reproducibility chain is self-describing.
+- Dry-run gate: `docker build -t sdbkz:phase2-test .` against the modified Dockerfile, then `docker run --rm -e NUM_SEEDS=1 sdbkz:phase2-test bash scripts/verify.sh` returns `VERIFICATION PASSED` matching the 5 reference advantage values within the 1e-4 tolerance encoded in `verify.sh`.
