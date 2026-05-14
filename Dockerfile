@@ -3,18 +3,28 @@
 # AMD 9950X3D (paper §3.5; hash_verification.txt). Listed here so that a
 # reader auditing the reproducibility chain can see the version drift is
 # accounted for, not silent.
-FROM python:3.12.3-bookworm
+#
+# Digest-pinned per ADR-004 (docs/design_decisions.md). The sha256 below
+# was resolved from the Docker Hub registry on 2026-05-14; the tag
+# python:3.12.3-bookworm last_updated 2024-05-14T18:08:59Z. Re-resolve
+# from `curl -sL https://hub.docker.com/v2/repositories/library/python/tags/3.12.3-bookworm`
+# if a future build needs verification.
+FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c
 
 # MPFR — required by fplll for arbitrary-precision floating point.
-# Previously pinned to libmpfr-dev=4.2.1-1 for reproducibility, but Debian
-# Bookworm bumped the package revision (still upstream MPFR 4.2.1, just a
-# Debian packaging update) and the old apt version is no longer available
-# on current mirrors. The cloud Dockerfile has always been unpinned and
-# produces SHA-256-bit-identical results to the locally-built image, so
-# unpinning here is safe in practice. The verify.sh reproducibility check
-# is the safety net — any new build that diverges will be caught there
-# before real seeds are computed.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Previously pinned to libmpfr-dev=4.2.1-1 explicitly, but Debian Bookworm
+# rolled the package revision and the old apt version vanished from
+# current mirrors. Re-pinning via snapshot.debian.org (ADR-004) freezes
+# the apt resolution to a dated snapshot of the Debian archive rather
+# than chasing per-package revision strings.
+#
+# Snapshot date 20240614T000000Z chosen one month after the base-image
+# last_updated to ensure the libmpfr6 4.2.0 runtime that the digest pin
+# bakes in matches the headers/dev package resolved from apt.
+RUN printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20240614T000000Z/\nSuites: bookworm bookworm-updates\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: http://snapshot.debian.org/archive/debian-security/20240614T000000Z/\nSuites: bookworm-security\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n' \
+        > /etc/apt/sources.list.d/debian.sources \
+    && apt-get -o Acquire::Check-Valid-Until=false update \
+    && apt-get install -y --no-install-recommends \
         libmpfr-dev \
         libgmp-dev \
         build-essential \

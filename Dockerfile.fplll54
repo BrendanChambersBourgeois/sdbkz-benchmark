@@ -1,4 +1,6 @@
-FROM python:3.12.3-bookworm
+# Digest-pinned per ADR-004; see Dockerfile (main) for the digest
+# resolution provenance.
+FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c
 
 # fplll 5.4.x sensitivity variant: source-build fplll 5.4.5 and fpylll
 # 0.6.0 against it, in place of the fpylll 0.6.4 wheel (which bundles
@@ -7,7 +9,11 @@ FROM python:3.12.3-bookworm
 # sweep entry points as Dockerfile, so only the GSO/BKZ C++ backend
 # differs between this image and Dockerfile.
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Apt pinned via snapshot.debian.org (ADR-004) — see Dockerfile.
+RUN printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20240614T000000Z/\nSuites: bookworm bookworm-updates\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: http://snapshot.debian.org/archive/debian-security/20240614T000000Z/\nSuites: bookworm-security\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n' \
+        > /etc/apt/sources.list.d/debian.sources \
+    && apt-get -o Acquire::Check-Valid-Until=false update \
+    && apt-get install -y --no-install-recommends \
         libmpfr-dev \
         libgmp-dev \
         build-essential \

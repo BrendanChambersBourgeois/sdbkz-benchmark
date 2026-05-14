@@ -1,4 +1,5 @@
-FROM python:3.12.3-bookworm
+# Digest-pinned per ADR-004; see Dockerfile (main) for digest provenance.
+FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c
 
 # Parameterised fplll legacy-version sensitivity image.
 # Builds an fplll version from source and fpylll from sdist against
@@ -34,7 +35,11 @@ ARG FPYLLL_VERSION=0.6.0
 # can override this to empty for newer tags that don't need it.
 ARG EXTRA_CXXFLAGS=""
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Apt pinned via snapshot.debian.org (ADR-004) — see Dockerfile.
+RUN printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20240614T000000Z/\nSuites: bookworm bookworm-updates\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: http://snapshot.debian.org/archive/debian-security/20240614T000000Z/\nSuites: bookworm-security\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n' \
+        > /etc/apt/sources.list.d/debian.sources \
+    && apt-get -o Acquire::Check-Valid-Until=false update \
+    && apt-get install -y --no-install-recommends \
         libmpfr-dev libgmp-dev build-essential \
         autoconf automake libtool libtool-bin pkg-config git \
     && rm -rf /var/lib/apt/lists/*

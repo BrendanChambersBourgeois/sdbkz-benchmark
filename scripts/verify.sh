@@ -10,6 +10,13 @@ set -euo pipefail
 #   NUM_SEEDS=1 bash verify.sh  # fast mode (1 seed) — used by CI to save
 #                                 runner minutes; still detects any build,
 #                                 import, or numerical regression.
+#
+# Container reproducibility chain (v1.5.1, ADR-004):
+#   FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb
+#                                       81954b6f06f519fcc348b67f6483d3c
+#   apt mirror: snapshot.debian.org/archive/debian/20240614T000000Z/
+#   Digest + snapshot date resolved 2026-05-14 from Docker Hub registry
+#   v2 API + snapshot.debian.org index.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE="$(cd "$SCRIPT_DIR/.." && pwd)"
