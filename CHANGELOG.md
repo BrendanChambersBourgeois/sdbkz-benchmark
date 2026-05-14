@@ -28,6 +28,24 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
+<!--
+v1.5.1 pre-draft below. Move this comment up + flip the heading to
+"## [1.5.1] — YYYY-MM-DD" at tag time. Pending entries:
+  - n=150 β=40 mt1000 cell summary (mean adv, win rate, Δ vs t=70/t=500,
+    per-tour BKZ improvement). Source: results/seeds/convergence/q97/
+    n150_beta40_mt1000/seedNNNN.json once the in-flight sweep PID 532201
+    completes ~2026-05-15 14:00. Add a dim-bracket line update to
+    paper/sdbkz_paper_latex.tex §Limitations + LaTeX PDF rebuild + HTML
+    resync if the cell shifts the (120, 122) crossover characterisation
+    or per-tour-asymmetry claim.
+  - Anything else that lands between bc3dc9c and the tag (figure-SHA
+    refresh, README seed-count bump, etc.).
+At tag time: cut "git tag -s v1.5.1 -m '...'" signed; push tag separately
+from main; Zenodo webhook mints the version DOI.
+-->
+
+## [1.5.1] — YYYY-MM-DD
+
 ### Added
 - **Dockerfile digest pinning + apt via snapshot.debian.org** (ADR-004,
   `docs/design_decisions.md`). All four Dockerfiles (`Dockerfile`,
