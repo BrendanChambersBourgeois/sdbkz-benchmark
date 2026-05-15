@@ -14,6 +14,7 @@ A visible project-management artefact. Tracks what's shipped, what's next, what'
 | `v1.4.0`  | 2026-04-19 | Reader-facing documentation pass: SECURITY.md + disclosure docs, CONTRIBUTING.md, ROADMAP.md, ADRs, Makefile, pipeline-log cookbook, q=3329 post-mortem. All additive — zero numerical drift on paper-cited files. |
 | `v1.4.1`  | 2026-04-21 | Pre-flip polish: `pyproject.toml` version pin sync, README seed-count refresh, fresh-VM reproducibility incident docs (INC-33..38), Dockerfile self-containment + non-root USER directive prep, log-cleanup follow-through (`progress.log` retired, `pipeline.jsonl` consolidation). |
 | `v1.5.0`  | 2026-04-22 | Public flip: repo flipped private → public + Zenodo concept DOI `10.5281/zenodo.19686928` minted (per-version v1.5.0 `10.5281/zenodo.19686929`); CITATION.cff + README badges (CI / DOI / MIT / CC-BY / Python); ePrint route abandoned in favour of Zenodo as the citation anchor. |
+| `v1.5.1`  | 2026-05-16 | Phase 1: Holm-Bonferroni adjusted p-values + Cliff's δ added alongside Cohen's d across the 33-cell main grid; ADR-003; `analysis/_stats_helpers.py` (88 LOC) + 19 pytest cases. Phase 2: Dockerfile base-image digest pinned to `python:3.12.3-bookworm@sha256:25dee7f1...3d3c` across all 4 Dockerfiles + apt rewritten to `snapshot.debian.org/.../20240614T000000Z/`; ADR-004; Zenodo v1.5.0 deposit content audit (`docs/audits/2026-05-14_zenodo_v1.5.0_contents.md`). Data: n=150 β=40 mt1000 (20 seeds) — material finding that the cliff is non-monotone past n=140 (cliff bottoms in the n=130–140 band; n=150 shallower by 0.36 nats). Paper §Limitations rewritten in LaTeX + HTML; PDF 31→32 pages; bracket count six→seven dimensions. Manifest 4,701 → 4,721. |
 
 See [`CHANGELOG.md`](CHANGELOG.md) for per-release details (Keep-a-Changelog format, append-only).
 
@@ -21,13 +22,14 @@ See [`CHANGELOG.md`](CHANGELOG.md) for per-release details (Keep-a-Changelog for
 
 | target | scope |
 |--------|-------|
-| Unreleased | Post-flip operational hardening: dependabot config (pip + docker + GHA), OpenSSF Scorecard workflow, pre-commit guard for new top-level directories (INC-39 follow-up), self-contained Docker image (analysis + tests + paper-cited results JSONs ship with image), non-root `runner` user via `HOST_UID`/`HOST_GID` build-args (Incident #32 closed), GHA actions bumped to Node 24 majors, paper-figure parity gate (`paper/fig*.png` ↔ `analysis/figures/`), seed_timing wall-time estimator (lib + CLI + cache + dispatcher hook). Cumulative since `v1.5.0`. Tag will be `v1.5.1` when the next bundle (β=30 mt1000 trio + β=40 mt1000 first run) lands. |
+| Unreleased | Empty. v1.5.1 just shipped (2026-05-16). Next bundle lands when the n=160 β=40 mt1000 sweep (PID 534702 at write time) completes — see `v1.5.2` row below. |
 
 ## Planned next
 
 | target   | scope                                                                  |
 |----------|------------------------------------------------------------------------|
-| `v1.5.1` | Convergence trio: n=90 / n=140 / n=150 β=30 mt1000 (all shipped); n=130 β=40 mt1000 (in-flight, completes ~2026-04-26 to -28). Paper §Limitations rework batched with these data points. |
+| `v1.5.2` | n=160 β=40 mt1000 cliff-bracket extension (20 seeds, in flight). Pure data bundle; no Phase 1 / Phase 2 code or doc additions. Paper §Limitations sentence will be re-tuned only if the n=160 cell shifts the n=130–140 cliff-bottom characterisation established at v1.5.1. |
+| Phase 4 CI gates | mypy strict on `scripts/_*_core.py`; ruff `select = ["F","W","I","B","UP"]` (231 violations to fix same-commit); pytest `--cov` with 75% floor on `_math_core` / `_bkz_core` / `_signal_utils`; figure-parity CI step. One branch (`phase4/ci-gates`) per gate. Gated on v1.5.2 land. |
 | `v2.0.0` | Breaking layout change: drop legacy-path back-compat symlinks, promote `results/seed_path_crosswalk.csv` as permanent record. Coordinated edits across paper §9, CI `validate_seeds` step, `analysis/` argparse defaults, runner path shims, examples + COOKBOOK rewrites. See [`Research/backlog/2026-04-19_v2_symlink_drop.md`](https://github.com/BrendanChambersBourgeois/sdbkz-benchmark) (offline) for the 14-step plan. |
 
 ## External waits
