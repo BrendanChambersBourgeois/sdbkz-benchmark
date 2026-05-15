@@ -28,25 +28,28 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
-<!--
-v1.5.1 pre-draft below. Move this comment up + flip the heading to
-"## [1.5.1] — YYYY-MM-DD" at tag time. Pending entries:
-  - n=150 β=40 mt1000 cell summary (mean adv, win rate, Δ vs t=70/t=500,
-    per-tour BKZ improvement). Source: results/seeds/convergence/q97/
-    n150_beta40_mt1000/seedNNNN.json once the in-flight sweep PID 532201
-    completes ~2026-05-15 14:00. Add a dim-bracket line update to
-    paper/sdbkz_paper_latex.tex §Limitations + LaTeX PDF rebuild + HTML
-    resync if the cell shifts the (120, 122) crossover characterisation
-    or per-tour-asymmetry claim.
-  - Anything else that lands between bc3dc9c and the tag (figure-SHA
-    refresh, README seed-count bump, etc.).
-At tag time: cut "git tag -s v1.5.1 -m '...'" signed; push tag separately
-from main; Zenodo webhook mints the version DOI.
--->
-
-## [1.5.1] — YYYY-MM-DD
+## [1.5.1] — 2026-05-16
 
 ### Added
+- **n=150 β=40 mt1000 cell** — 20 seeds at q=97, 250-bit MPFR, 1000
+  tours under `results/seeds/convergence/q97/n150_beta40_mt1000/`.
+  Mean advantage at t=1000 = −2.064 nats (range [−2.536, −1.703],
+  win rate 0/20). t=70 adv −1.180; t=500 adv −1.783; t=1000 adv
+  −2.064 — descent continues with tour budget but in BKZ's favour.
+  BKZ per-tour Δ d(LN) t=70→1000 = +0.918 nats; SD-BKZ = +0.034
+  (essentially flat). Material finding: cliff is **non-monotone past
+  n=140** — n=150 is shallower than n=140 (−2.420) by 0.36 nats and
+  BKZ per-tour improvement softens from +1.06 (n=140) to +0.92
+  (n=150). The cliff bottoms in the n=130–140 band within the tested
+  range. Paper §Limitations sentence rewritten in
+  `paper/latex/sdbkz_paper_latex.tex` and `paper/sdbkz_paper.html`;
+  LaTeX rebuilt to 32 pages (up from 31; ~one-paragraph extension).
+  Bracket grows from six to seven dimensions in the §Limitations
+  enumeration. Asymmetry direction (BKZ improves with tours, SD-BKZ
+  does not) holds throughout the tested range; only the magnitude
+  monotonicity claim is updated. Seed manifest 4,701 → 4,721
+  (+20 entries); convergence campaign 220 → 240 seeds. README seed
+  totals refreshed in three places (TL;DR, highlights, mermaid).
 - **Dockerfile digest pinning + apt via snapshot.debian.org** (ADR-004,
   `docs/design_decisions.md`). All four Dockerfiles (`Dockerfile`,
   `Dockerfile.cloud`, `Dockerfile.fplll54`, `Dockerfile.fplll_legacy`)
