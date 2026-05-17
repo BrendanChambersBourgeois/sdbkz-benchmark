@@ -147,6 +147,106 @@ def _seconds_to_hours(s: float) -> float:
     return s / 3600.0
 
 
+def _lookup_cost(
+    cost_table: dict[tuple[int, int], PerTourCost],
+    n: int,
+    beta: int,
+) -> tuple[Optional[PerTourCost], Optional[str]]:
+    """Look up per-tour cost for ``(n, β)`` with adjacent-dim extrapolation.
+
+    Returns ``(cost, note)`` where ``note`` is ``None`` for exact hits or
+    an explanatory string when interpolation / extrapolation kicked in.
+    Strategy:
+
+    1. **Exact hit** — return the cached row, no note.
+    2. **Interpolate** — same-β rows exist on both sides of the target
+       ``n``. Linear interpolate the BKZ and SD-BKZ per-tour costs.
+    3. **Extrapolate** — same-β rows exist only on one side. Use the two
+       closest points on that side and linearly extrapolate. If only one
+       same-β row exists on the relevant side, fall back to that single
+       row as a nearest-neighbour estimate (flagged in the note).
+    4. **No data** — no same-β row exists. Return ``(None, note)`` so
+       the caller can degrade to the unknown path.
+
+    The synthetic :class:`PerTourCost` carries ``sample_seeds=0`` so a
+    consumer can distinguish extrapolated rows from observed ones.
+    """
+    exact = cost_table.get((n, beta))
+    if exact is not None:
+        return exact, None
+
+    same_beta = sorted(
+        ((nk, row) for (nk, b), row in cost_table.items() if b == beta and nk != n),
+        key=lambda kv: kv[0],
+    )
+    if not same_beta:
+        return None, (
+            f"No per-tour cost rows exist at β={beta}; "
+            "extrapolation requires at least one same-β anchor."
+        )
+
+    below = [(nk, row) for nk, row in same_beta if nk < n]
+    above = [(nk, row) for nk, row in same_beta if nk > n]
+
+    def _blend(p1_n: int, p1: PerTourCost, p2_n: int, p2: PerTourCost) -> PerTourCost:
+        # Linear blend; works for both interpolation (n between p1_n,p2_n)
+        # and extrapolation (n outside the bracket).
+        if p2_n == p1_n:
+            t = 0.0
+        else:
+            t = (n - p1_n) / (p2_n - p1_n)
+        bkz = max(0.0, p1.bkz_seconds_per_tour + t * (p2.bkz_seconds_per_tour - p1.bkz_seconds_per_tour))
+        sdb = max(0.0, p1.sdbkz_seconds_per_tour + t * (p2.sdbkz_seconds_per_tour - p1.sdbkz_seconds_per_tour))
+        return PerTourCost(
+            n=n, beta=beta,
+            bkz_seconds_per_tour=bkz,
+            sdbkz_seconds_per_tour=sdb,
+            sample_seeds=0,
+        )
+
+    if below and above:
+        p1_n, p1 = below[-1]
+        p2_n, p2 = above[0]
+        cost = _blend(p1_n, p1, p2_n, p2)
+        return cost, (
+            f"Per-tour cost for (n={n}, β={beta}) linearly interpolated "
+            f"from anchors at n={p1_n} and n={p2_n}."
+        )
+
+    if len(below) >= 2:
+        p1_n, p1 = below[-2]
+        p2_n, p2 = below[-1]
+        cost = _blend(p1_n, p1, p2_n, p2)
+        return cost, (
+            f"Per-tour cost for (n={n}, β={beta}) linearly extrapolated "
+            f"from anchors at n={p1_n} and n={p2_n} (below-target, "
+            "no observed n≥target at this β)."
+        )
+
+    if len(above) >= 2:
+        p1_n, p1 = above[0]
+        p2_n, p2 = above[1]
+        cost = _blend(p1_n, p1, p2_n, p2)
+        return cost, (
+            f"Per-tour cost for (n={n}, β={beta}) linearly extrapolated "
+            f"from anchors at n={p1_n} and n={p2_n} (above-target, "
+            "no observed n≤target at this β)."
+        )
+
+    nk, only_row = same_beta[0]
+    nn = PerTourCost(
+        n=n, beta=beta,
+        bkz_seconds_per_tour=only_row.bkz_seconds_per_tour,
+        sdbkz_seconds_per_tour=only_row.sdbkz_seconds_per_tour,
+        sample_seeds=0,
+    )
+    return nn, (
+        f"Per-tour cost for (n={n}, β={beta}) approximated from the only "
+        f"available same-β anchor (n={nk}); single-point nearest-neighbour "
+        "fallback, treat the prediction as a rough lower bound."
+    )
+
+
 def _read_seed_json(path: str) -> Optional[dict]:
     """Read a seed JSON, return None on any read or parse failure.
 
@@ -491,7 +591,9 @@ def estimate_sweep_wall(
     parallel_factor = max(1, math.ceil(num_seeds / max(1, num_workers)))
 
     naive_wall_h: Optional[float]
-    target_cost = cost_table.get((n, beta))
+    target_cost, target_note = _lookup_cost(cost_table, n, beta)
+    if target_note is not None:
+        notes.append(target_note)
     if target_cost is None:
         naive_wall_h = None
         notes.append(f"No per-tour cost data for (n={n}, β={beta}); naive method unavailable.")
@@ -518,7 +620,9 @@ def estimate_sweep_wall(
         anchor_source_paths = anchor.paths
         anchor_age_days = (time.time() - anchor.youngest_mtime) / 86400.0
 
-        anchor_cost = cost_table.get((anchor.n, anchor.beta))
+        anchor_cost, anchor_note = _lookup_cost(cost_table, anchor.n, anchor.beta)
+        if anchor_note is not None:
+            notes.append(anchor_note)
         if anchor_cost is None or target_cost is None:
             notes.append(
                 "Anchor selected but per-tour cost lookup failed for either "

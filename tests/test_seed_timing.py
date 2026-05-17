@@ -292,3 +292,116 @@ def test_anchor_selection_no_anchor_returns_unknown_or_naive(tmp_path):
     assert est.predicted_wall_h_anchored is None
     assert est.method_recommended == "naive"
     assert any("no suitable anchor" in note.lower() for note in est.notes)
+
+
+# ---------------------------------------------------------------------------
+# Adjacent-dim extrapolation helper (v1.5.2 addition)
+# ---------------------------------------------------------------------------
+
+def _make_cost(n, beta, bkz, sdb):
+    return seed_timing.PerTourCost(
+        n=n, beta=beta,
+        bkz_seconds_per_tour=bkz,
+        sdbkz_seconds_per_tour=sdb,
+        sample_seeds=10,
+    )
+
+
+def test_lookup_cost_exact_hit_returns_no_note():
+    table = {(100, 30): _make_cost(100, 30, 5.0, 10.0)}
+    cost, note = seed_timing._lookup_cost(table, 100, 30)
+    assert cost is table[(100, 30)]
+    assert note is None
+
+
+def test_lookup_cost_interpolate_between_two_neighbours():
+    table = {
+        (100, 40): _make_cost(100, 40, 10.0, 20.0),
+        (140, 40): _make_cost(140, 40, 30.0, 60.0),
+    }
+    cost, note = seed_timing._lookup_cost(table, 120, 40)
+    assert cost is not None
+    assert note is not None and "interpolat" in note.lower()
+    assert cost.bkz_seconds_per_tour == pytest.approx(20.0)
+    assert cost.sdbkz_seconds_per_tour == pytest.approx(40.0)
+    assert cost.sample_seeds == 0
+
+
+def test_lookup_cost_extrapolate_above_target():
+    table = {
+        (140, 40): _make_cost(140, 40, 80.0, 200.0),
+        (150, 40): _make_cost(150, 40, 80.0, 190.0),
+    }
+    cost, note = seed_timing._lookup_cost(table, 160, 40)
+    assert cost is not None
+    assert note is not None and "extrapolat" in note.lower()
+    assert cost.bkz_seconds_per_tour == pytest.approx(80.0)
+    assert cost.sdbkz_seconds_per_tour == pytest.approx(180.0)
+    assert cost.sample_seeds == 0
+
+
+def test_lookup_cost_extrapolate_below_target():
+    table = {
+        (100, 40): _make_cost(100, 40, 50.0, 130.0),
+        (110, 40): _make_cost(110, 40, 60.0, 150.0),
+    }
+    cost, note = seed_timing._lookup_cost(table, 80, 40)
+    assert cost is not None
+    assert note is not None and "extrapolat" in note.lower()
+    assert cost.bkz_seconds_per_tour == pytest.approx(30.0)
+    assert cost.sdbkz_seconds_per_tour == pytest.approx(90.0)
+
+
+def test_lookup_cost_extrapolation_clamps_negative_to_zero():
+    table = {
+        (100, 40): _make_cost(100, 40, 10.0, 30.0),
+        (110, 40): _make_cost(110, 40, 60.0, 150.0),
+    }
+    cost, note = seed_timing._lookup_cost(table, 50, 40)
+    assert cost is not None
+    assert cost.bkz_seconds_per_tour >= 0.0
+    assert cost.sdbkz_seconds_per_tour >= 0.0
+
+
+def test_lookup_cost_single_neighbour_returns_nearest():
+    table = {(140, 40): _make_cost(140, 40, 80.0, 200.0)}
+    cost, note = seed_timing._lookup_cost(table, 160, 40)
+    assert cost is not None
+    assert note is not None and "nearest-neighbour" in note.lower()
+    assert cost.bkz_seconds_per_tour == pytest.approx(80.0)
+    assert cost.sdbkz_seconds_per_tour == pytest.approx(200.0)
+    assert cost.sample_seeds == 0
+
+
+def test_lookup_cost_no_same_beta_returns_none():
+    table = {(100, 30): _make_cost(100, 30, 5.0, 10.0)}
+    cost, note = seed_timing._lookup_cost(table, 100, 40)
+    assert cost is None
+    assert note is not None and "no per-tour cost rows" in note.lower()
+
+
+def test_lookup_cost_different_beta_does_not_contaminate():
+    table = {
+        (100, 30): _make_cost(100, 30, 5.0, 10.0),
+        (150, 40): _make_cost(150, 40, 80.0, 200.0),
+    }
+    cost, note = seed_timing._lookup_cost(table, 160, 40)
+    assert cost is not None
+    # Only one β=40 row → nearest-neighbour fallback path.
+    assert "nearest-neighbour" in note.lower()
+    assert cost.bkz_seconds_per_tour == pytest.approx(80.0)
+
+
+def test_estimator_extrapolates_when_target_row_missing():
+    table = {
+        (140, 40): _make_cost(140, 40, 80.0, 200.0),
+        (150, 40): _make_cost(150, 40, 80.0, 190.0),
+    }
+    est = seed_timing.estimate_sweep_wall(
+        n=160, beta=40, max_tours=1000,
+        cost_table=table,
+        seed_glob_patterns=(),
+    )
+    # Naive method should now succeed via extrapolation.
+    assert est.predicted_wall_h_naive is not None
+    assert any("extrapolat" in note.lower() for note in est.notes)
