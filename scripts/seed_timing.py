@@ -283,26 +283,59 @@ def _read_seed_json(path: str) -> Optional[dict]:
     """Read a seed JSON, return None on any read or parse failure.
 
     Narrow exception list — never swallow numpy / OOM / KeyboardInterrupt.
+    Forces UTF-8 because JSON is UTF-8 by spec and the default open mode
+    is locale-dependent; defensive against future cross-machine drift.
     """
     try:
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
-    except (FileNotFoundError, OSError, json.JSONDecodeError):
+    except (FileNotFoundError, OSError, json.JSONDecodeError, UnicodeDecodeError):
         return None
+
+
+def _seed_tours_run(d: dict, key: str, array_key: str) -> int:
+    """Resolve the actual tours-run count for one algorithm side.
+
+    Preference order (most accurate first):
+      1. Explicit ``bkz_tours_run`` / ``sdbkz_tours_run`` field (main-sweep
+         schema; reflects AUTO_ABORT termination).
+      2. Length of ``bkz_dln_per_tour`` / ``sdbkz_dln_per_tour`` array
+         (convergence schema; reflects actual tours executed).
+      3. ``max_tours`` field (last-resort fallback for legacy schemas).
+
+    Returns 0 on missing data so the caller can drop the seed.
+    """
+    val = d.get(key)
+    if val is not None:
+        try:
+            return int(val)
+        except (ValueError, TypeError):
+            pass
+    arr = d.get(array_key)
+    if isinstance(arr, (list, tuple)) and arr:
+        return len(arr)
+    mt = d.get("max_tours")
+    try:
+        return int(mt) if mt is not None else 0
+    except (ValueError, TypeError):
+        return 0
 
 
 def _per_tour_from_seed(d: dict) -> Optional[tuple[float, float]]:
     """Extract ``(bkz_per_tour, sdbkz_per_tour)`` seconds from one seed dict.
 
     Returns None if any required field is missing or zero (avoids div-by-zero).
+    Tour-count resolution prefers the per-side ``tours_run`` field, then
+    the per-tour array length, then ``max_tours``; this matters for runs
+    that AUTO_ABORTed before their nominal max budget.
     """
     try:
         bkz_t = float(d["bkz_time"])
         sd_t = float(d["sdbkz_time"])
-        bkz_tr = int(d.get("bkz_tours_run") or d.get("max_tours") or 0)
-        sd_tr = int(d.get("sdbkz_tours_run") or d.get("max_tours") or 0)
     except (KeyError, ValueError, TypeError):
         return None
+    bkz_tr = _seed_tours_run(d, "bkz_tours_run", "bkz_dln_per_tour")
+    sd_tr = _seed_tours_run(d, "sdbkz_tours_run", "sdbkz_dln_per_tour")
     if bkz_tr <= 0 or sd_tr <= 0:
         return None
     return bkz_t / bkz_tr, sd_t / sd_tr
@@ -410,7 +443,7 @@ def per_tour_cost_table(
             cache_mtime = os.path.getmtime(abs_cache)
             seed_max_mtime = _max_mtime(seed_paths)
             cache_age_s = time.time() - cache_mtime
-            if cache_mtime >= seed_max_mtime and cache_age_s <= max_cache_age_seconds:
+            if cache_mtime > seed_max_mtime and cache_age_s <= max_cache_age_seconds:
                 cached = _read_seed_json(abs_cache)
                 if cached is not None:
                     table = per_tour_cost_table_from_dict(cached)
@@ -455,9 +488,18 @@ def per_tour_cost_table_to_dict(table: dict[tuple[int, int], PerTourCost]) -> di
 
 
 def per_tour_cost_table_from_dict(payload: dict) -> dict[tuple[int, int], PerTourCost]:
-    """Inverse of :func:`per_tour_cost_table_to_dict`. Tolerant of unknown keys."""
+    """Inverse of :func:`per_tour_cost_table_to_dict`. Tolerant of unknown keys.
+
+    Rejects payloads whose ``schema_version`` is unrecognised so a future
+    v2 cache format does not silently load as v1 and quietly corrupt the
+    cost table. Missing ``schema_version`` is tolerated for backwards
+    compatibility with pre-versioned cache writes.
+    """
     out: dict[tuple[int, int], PerTourCost] = {}
     if not isinstance(payload, dict):
+        return out
+    schema_version = payload.get("schema_version", 1)
+    if schema_version != 1:
         return out
     for entry in payload.get("entries", []) or []:
         try:
@@ -620,6 +662,25 @@ def estimate_sweep_wall(
             cache_path=cache_path,
         )
 
+    if num_seeds <= 0:
+        # Empty pool: no work, no wall. Return a "0-wall, unknown method"
+        # estimate rather than predicting a single-seed wall by accident
+        # (max(1, ceil(0/w)) === 1).
+        return SweepEstimate(
+            n=n, beta=beta, max_tours=max_tours,
+            num_seeds=num_seeds, num_workers=num_workers,
+            predicted_wall_h_naive=0.0,
+            predicted_wall_h_anchored=0.0,
+            predicted_wall_h_p95=0.0,
+            mad_h=0.0,
+            anchor_used=None,
+            anchor_age_days=None,
+            anchor_source_paths=(),
+            last_numerical_commit_sha=_last_relevant_commit_sha(),
+            method_recommended="unknown",
+            notes=("num_seeds is zero; pool is empty.",),
+        )
+
     parallel_factor = max(1, math.ceil(num_seeds / max(1, num_workers)))
 
     naive_wall_h: Optional[float]
@@ -693,6 +754,13 @@ def estimate_sweep_wall(
             if last_sha:
                 stamp += f" Last commit touching numerical hotspots: {last_sha[:12]}."
             notes.append(stamp)
+            # Suppress the anchored numbers so a consumer reading the
+            # fields directly doesn't bypass the staleness warning. The
+            # anchor metadata (used / age / paths) is preserved for
+            # audit purposes.
+            anchored_wall_h = None
+            p95_wall_h = None
+            mad_wall_h = None
             method = "naive" if naive_wall_h is not None else "unknown"
         elif anchored_wall_h is not None:
             method = "anchored"

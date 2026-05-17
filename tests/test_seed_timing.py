@@ -419,3 +419,113 @@ def test_estimator_extrapolates_when_target_row_missing():
     # Naive method should now succeed via extrapolation.
     assert est.predicted_wall_h_naive is not None
     assert any("extrapolat" in note.lower() for note in est.notes)
+
+
+# ---------------------------------------------------------------------------
+# Self-review followups
+# ---------------------------------------------------------------------------
+
+def test_seed_tours_run_prefers_explicit_field():
+    d = {"bkz_tours_run": 47, "bkz_dln_per_tour": [0.0] * 100, "max_tours": 1000}
+    assert seed_timing._seed_tours_run(d, "bkz_tours_run", "bkz_dln_per_tour") == 47
+
+
+def test_seed_tours_run_falls_back_to_array_length():
+    d = {"bkz_dln_per_tour": [0.0] * 123, "max_tours": 1000}
+    assert seed_timing._seed_tours_run(d, "bkz_tours_run", "bkz_dln_per_tour") == 123
+
+
+def test_seed_tours_run_last_resort_max_tours():
+    d = {"max_tours": 500}
+    assert seed_timing._seed_tours_run(d, "bkz_tours_run", "bkz_dln_per_tour") == 500
+
+
+def test_seed_tours_run_zero_when_no_signal():
+    d = {}
+    assert seed_timing._seed_tours_run(d, "bkz_tours_run", "bkz_dln_per_tour") == 0
+
+
+def test_per_tour_uses_array_length_when_tours_run_absent(tmp_path):
+    # Synthetic convergence-style seed: no tours_run field, has the array.
+    (tmp_path / "conv.json").write_text(json.dumps({
+        "n": 50, "beta": 20,
+        "bkz_time": 200.0, "sdbkz_time": 500.0,
+        "bkz_dln_per_tour": [0.0] * 100,
+        "sdbkz_dln_per_tour": [0.0] * 100,
+        "max_tours": 1000,
+    }))
+    table = seed_timing.per_tour_cost_table(seed_glob_patterns=(str(tmp_path / "*.json"),))
+    # 200/100 = 2 s/tour (array length wins over max_tours=1000)
+    assert table[(50, 20)].bkz_seconds_per_tour == pytest.approx(2.0)
+    assert table[(50, 20)].sdbkz_seconds_per_tour == pytest.approx(5.0)
+
+
+def test_schema_version_mismatch_rejects_payload():
+    payload = {
+        "schema_version": 999,
+        "entries": [
+            {"n": 100, "beta": 30, "bkz_seconds_per_tour": 5.0,
+             "sdbkz_seconds_per_tour": 10.0, "sample_seeds": 100}
+        ],
+    }
+    assert seed_timing.per_tour_cost_table_from_dict(payload) == {}
+
+
+def test_schema_version_missing_treated_as_v1():
+    # Backwards compat: pre-versioned cache files lacked the field.
+    payload = {
+        "entries": [
+            {"n": 100, "beta": 30, "bkz_seconds_per_tour": 5.0,
+             "sdbkz_seconds_per_tour": 10.0, "sample_seeds": 100}
+        ],
+    }
+    table = seed_timing.per_tour_cost_table_from_dict(payload)
+    assert (100, 30) in table
+
+
+def test_estimator_zero_seeds_returns_zero_wall():
+    table = {(100, 30): _make_cost(100, 30, 5.0, 10.0)}
+    est = seed_timing.estimate_sweep_wall(
+        n=100, beta=30, max_tours=70,
+        num_seeds=0, num_workers=22,
+        cost_table=table,
+        seed_glob_patterns=(),
+    )
+    assert est.predicted_wall_h_naive == 0.0
+    assert est.predicted_wall_h_anchored == 0.0
+    assert est.method_recommended == "unknown"
+    assert any("zero" in n.lower() for n in est.notes)
+
+
+def test_estimator_stale_anchor_clears_anchored_field(tmp_path):
+    # Build an anchor seed that's older than the staleness threshold.
+    fx_dir = tmp_path / "stale_seeds"
+    fx_dir.mkdir()
+    seed_path = fx_dir / "seed_old.json"
+    seed_path.write_text(json.dumps({
+        "n": 60, "beta": 30, "max_tours": 500, "seed": 1,
+        "bkz_time": 4000.0, "sdbkz_time": 10000.0,
+        "bkz_tours_run": 500, "sdbkz_tours_run": 500,
+    }))
+    old_mtime = time.time() - 30 * 86400  # 30 days stale
+    os.utime(seed_path, (old_mtime, old_mtime))
+
+    est = seed_timing.estimate_sweep_wall(
+        n=60, beta=30, max_tours=500,
+        seed_glob_patterns=(str(fx_dir / "*.json"),),
+        anchor_age_warn_days=7.0,
+    )
+    # Method flips to naive; anchored field must be cleared so consumers
+    # reading it directly don't bypass the warning.
+    assert est.method_recommended == "naive"
+    assert est.predicted_wall_h_anchored is None
+    assert est.predicted_wall_h_p95 is None
+    assert est.mad_h is None
+    assert est.anchor_used == (60, 30, 500)  # metadata preserved for audit
+
+
+def test_read_seed_json_handles_non_utf8_safely(tmp_path):
+    # A file with invalid UTF-8 bytes must not crash the reader.
+    bad = tmp_path / "bad.json"
+    bad.write_bytes(b'{"n": 50, "beta": 20, "note": "\xff\xfe"}')
+    assert seed_timing._read_seed_json(str(bad)) is None
