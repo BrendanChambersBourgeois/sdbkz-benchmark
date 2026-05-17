@@ -176,7 +176,7 @@ def _lookup_cost(
         return exact, None
 
     same_beta = sorted(
-        ((nk, row) for (nk, b), row in cost_table.items() if b == beta and nk != n),
+        ((nk, row) for (nk, b), row in cost_table.items() if b == beta),
         key=lambda kv: kv[0],
     )
     if not same_beta:
@@ -217,20 +217,49 @@ def _lookup_cost(
         p1_n, p1 = below[-2]
         p2_n, p2 = below[-1]
         cost = _blend(p1_n, p1, p2_n, p2)
-        return cost, (
-            f"Per-tour cost for (n={n}, β={beta}) linearly extrapolated "
-            f"from anchors at n={p1_n} and n={p2_n} (below-target, "
-            "no observed n≥target at this β)."
+        # BKZ per-tour cost is physically monotone-non-decreasing in n
+        # at fixed β. Local dips in the anchor curve (sampling noise)
+        # can drive linear extrapolation below the last observed
+        # anchor; clamp the extrapolated total to be no smaller than
+        # the highest-n below-target anchor so the estimator does not
+        # under-predict wall time on dimension extensions.
+        below_max_total = max(
+            r.bkz_seconds_per_tour + r.sdbkz_seconds_per_tour for _, r in below
         )
+        target_total = cost.bkz_seconds_per_tour + cost.sdbkz_seconds_per_tour
+        clamped = False
+        if target_total < below_max_total and below_max_total > 0:
+            scale = below_max_total / max(target_total, 1e-12)
+            cost = PerTourCost(
+                n=n, beta=beta,
+                bkz_seconds_per_tour=cost.bkz_seconds_per_tour * scale,
+                sdbkz_seconds_per_tour=cost.sdbkz_seconds_per_tour * scale,
+                sample_seeds=0,
+            )
+            clamped = True
+        gap = n - p2_n
+        note = (
+            f"Per-tour cost for (n={n}, β={beta}) linearly extrapolated "
+            f"from anchors at n={p1_n} and n={p2_n} ({gap} dim past last "
+            "below-target anchor; no observed n≥target at this β)."
+        )
+        if clamped:
+            note += (
+                f" Extrapolation produced a total per-tour cost below the "
+                f"max observed below-target anchor ({below_max_total:.1f}s); "
+                "clamped to that floor on monotone-cost grounds."
+            )
+        return cost, note
 
     if len(above) >= 2:
         p1_n, p1 = above[0]
         p2_n, p2 = above[1]
         cost = _blend(p1_n, p1, p2_n, p2)
+        gap = p1_n - n
         return cost, (
             f"Per-tour cost for (n={n}, β={beta}) linearly extrapolated "
-            f"from anchors at n={p1_n} and n={p2_n} (above-target, "
-            "no observed n≤target at this β)."
+            f"from anchors at n={p1_n} and n={p2_n} ({gap} dim below first "
+            "above-target anchor; no observed n≤target at this β)."
         )
 
     nk, only_row = same_beta[0]
@@ -240,10 +269,13 @@ def _lookup_cost(
         sdbkz_seconds_per_tour=only_row.sdbkz_seconds_per_tour,
         sample_seeds=0,
     )
+    direction = "below" if nk < n else "above"
+    bound = "lower" if direction == "below" else "upper"
     return nn, (
         f"Per-tour cost for (n={n}, β={beta}) approximated from the only "
-        f"available same-β anchor (n={nk}); single-point nearest-neighbour "
-        "fallback, treat the prediction as a rough lower bound."
+        f"available same-β anchor (n={nk}, {direction} target); single-point "
+        f"nearest-neighbour fallback, treat the prediction as a rough "
+        f"{bound} bound."
     )
 
 

@@ -329,15 +329,29 @@ def test_lookup_cost_interpolate_between_two_neighbours():
 
 def test_lookup_cost_extrapolate_above_target():
     table = {
+        (130, 40): _make_cost(130, 40, 75.0, 170.0),
         (140, 40): _make_cost(140, 40, 80.0, 200.0),
-        (150, 40): _make_cost(150, 40, 80.0, 190.0),
+    }
+    cost, note = seed_timing._lookup_cost(table, 150, 40)
+    assert cost is not None
+    assert note is not None and "extrapolat" in note.lower()
+    assert cost.bkz_seconds_per_tour == pytest.approx(85.0)
+    assert cost.sdbkz_seconds_per_tour == pytest.approx(230.0)
+    assert cost.sample_seeds == 0
+
+
+def test_lookup_cost_extrapolate_above_clamps_to_monotone_floor():
+    # Anchor curve dips between n=140 and n=150; linear extrapolation
+    # would put n=160 below the n=140 observation, which is unphysical
+    # for BKZ cost. Estimator must clamp to the below-target max.
+    table = {
+        (140, 40): _make_cost(140, 40, 83.0, 203.0),   # total 286
+        (150, 40): _make_cost(150, 40, 81.0, 193.0),   # total 274 (dip)
     }
     cost, note = seed_timing._lookup_cost(table, 160, 40)
     assert cost is not None
-    assert note is not None and "extrapolat" in note.lower()
-    assert cost.bkz_seconds_per_tour == pytest.approx(80.0)
-    assert cost.sdbkz_seconds_per_tour == pytest.approx(180.0)
-    assert cost.sample_seeds == 0
+    assert (cost.bkz_seconds_per_tour + cost.sdbkz_seconds_per_tour) == pytest.approx(286.0)
+    assert "clamped" in note.lower()
 
 
 def test_lookup_cost_extrapolate_below_target():
