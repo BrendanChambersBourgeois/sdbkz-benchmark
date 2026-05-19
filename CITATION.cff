@@ -17,8 +17,8 @@ authors:
   - family-names: "Chambers-Bourgeois"
     given-names: "Brendan"
     email: "brendanchambersbou@gmail.com"
-version: "1.5.1"
-date-released: "2026-05-16"
+version: "1.5.2"
+date-released: "2026-05-19"
 repository-code: "https://github.com/BrendanChambersBourgeois/sdbkz-benchmark"
 license: MIT
 doi: 10.5281/zenodo.19686928

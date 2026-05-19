@@ -15,6 +15,7 @@ A visible project-management artefact. Tracks what's shipped, what's next, what'
 | `v1.4.1`  | 2026-04-21 | Pre-flip polish: `pyproject.toml` version pin sync, README seed-count refresh, fresh-VM reproducibility incident docs (INC-33..38), Dockerfile self-containment + non-root USER directive prep, log-cleanup follow-through (`progress.log` retired, `pipeline.jsonl` consolidation). |
 | `v1.5.0`  | 2026-04-22 | Public flip: repo flipped private → public + Zenodo concept DOI `10.5281/zenodo.19686928` minted (per-version v1.5.0 `10.5281/zenodo.19686929`); CITATION.cff + README badges (CI / DOI / MIT / CC-BY / Python); ePrint route abandoned in favour of Zenodo as the citation anchor. |
 | `v1.5.1`  | 2026-05-16 | Phase 1: Holm-Bonferroni adjusted p-values + Cliff's δ added alongside Cohen's d across the 33-cell main grid; ADR-003; `analysis/_stats_helpers.py` (88 LOC) + 19 pytest cases. Phase 2: Dockerfile base-image digest pinned to `python:3.12.3-bookworm@sha256:25dee7f1...3d3c` across all 4 Dockerfiles + apt rewritten to `snapshot.debian.org/.../20240614T000000Z/`; ADR-004; Zenodo v1.5.0 deposit content audit (`docs/audits/2026-05-14_zenodo_v1.5.0_contents.md`). Data: n=150 β=40 mt1000 (20 seeds) — material finding that the cliff is non-monotone past n=140 (cliff bottoms in the n=130–140 band; n=150 shallower by 0.36 nats). Paper §Limitations rewritten in LaTeX + HTML; PDF 31→32 pages; bracket count six→seven dimensions. Manifest 4,701 → 4,721. |
+| `v1.5.2`  | 2026-05-19 | Data-only bundle: n=160 β=40 mt1000 (20 seeds, q=97, 250-bit MPFR, 1000 tours). Mean advantage at t=1000 = −1.788 nats (range [−2.225, −1.542], 0/20 win); BKZ per-tour Δ = +0.741, SD-BKZ = +0.048. Confirms the v1.5.1 "cliff bottoms in n=130–140 band" framing: bracket now eight dims +2.101 / +0.159 / −0.328 / −1.038 / −1.857 / −2.420 / −2.064 / −1.788; BKZ per-tour improvement +1.06 / +0.92 / +0.74 at n=140 / 150 / 160 (monotone softening past the bottom). Estimator extrapolation + monotone clamp from the v1.5.1→v1.5.2 cycle also folded in (predicted 80h vs observed 83.5h — within 4%). Manifest 4,721 → 4,741. No paper §Limitations text edit; bracket sentence in LaTeX + HTML remains accurate at seven-dim. |
 
 See [`CHANGELOG.md`](CHANGELOG.md) for per-release details (Keep-a-Changelog format, append-only).
 
@@ -22,14 +23,13 @@ See [`CHANGELOG.md`](CHANGELOG.md) for per-release details (Keep-a-Changelog for
 
 | target | scope |
 |--------|-------|
-| Unreleased | Empty. v1.5.1 just shipped (2026-05-16). Next bundle lands when the n=160 β=40 mt1000 sweep (PID 534702 at write time) completes — see `v1.5.2` row below. |
+| Unreleased | Empty. v1.5.2 just shipped (2026-05-19). |
 
 ## Planned next
 
 | target   | scope                                                                  |
 |----------|------------------------------------------------------------------------|
-| `v1.5.2` | n=160 β=40 mt1000 cliff-bracket extension (20 seeds, in flight). Pure data bundle; no Phase 1 / Phase 2 code or doc additions. Paper §Limitations sentence will be re-tuned only if the n=160 cell shifts the n=130–140 cliff-bottom characterisation established at v1.5.1. |
-| Phase 4 CI gates | mypy strict on `scripts/_*_core.py`; ruff `select = ["F","W","I","B","UP"]` (231 violations to fix same-commit); pytest `--cov` with 75% floor on `_math_core` / `_bkz_core` / `_signal_utils`; figure-parity CI step. One branch (`phase4/ci-gates`) per gate. Gated on v1.5.2 land. |
+| Phase 4 CI gates | mypy strict on `scripts/_*_core.py`; ruff `select = ["F","W","I","B","UP"]` (~231 violations to fix same-commit); pytest `--cov` with 75% floor on `_math_core` / `_bkz_core` / `_signal_utils`; figure-parity CI step. One branch (`phase4/ci-gates`) per gate. v1.5.2 land triggered this row; now actionable. |
 | `v2.0.0` | Breaking layout change: drop legacy-path back-compat symlinks, promote `results/seed_path_crosswalk.csv` as permanent record. Coordinated edits across paper §9, CI `validate_seeds` step, `analysis/` argparse defaults, runner path shims, examples + COOKBOOK rewrites. See [`Research/backlog/2026-04-19_v2_symlink_drop.md`](https://github.com/BrendanChambersBourgeois/sdbkz-benchmark) (offline) for the 14-step plan. |
 
 ## External waits

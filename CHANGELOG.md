@@ -28,6 +28,44 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
+## [1.5.2] — 2026-05-19
+
+### Added
+- **n=160 β=40 mt1000 cell** — 20 seeds at q=97, 250-bit MPFR, 1000
+  tours under `results/seeds/convergence/q97/n160_beta40_mt1000/`.
+  Mean advantage at t=1000 = −1.788 nats (range [−2.225, −1.542],
+  win rate 0/20). t=70 adv −1.095; t=500 adv −1.585; t=1000 adv
+  −1.788 — descent continues with tour budget in BKZ's favour.
+  BKZ per-tour Δ d(LN) t=70→1000 = +0.741 nats; SD-BKZ = +0.048
+  (essentially flat). The cliff trajectory at t=1000 across the
+  full eight-dimension bracket now reads
+  +2.101 / +0.159 / −0.328 / −1.038 / −1.857 / −2.420 / −2.064 /
+  −1.788 across n ∈ {110, 120, 122, 125, 130, 140, 150, 160} —
+  cliff bottom firmly localised to the n=130–140 band, with n=150
+  and n=160 both shallower (BKZ per-tour improvement also
+  decreases monotonically: +1.06 / +0.92 / +0.74 at n=140 / 150 /
+  160). n=160 confirms the v1.5.1 "bounded-extent cliff" framing
+  rather than extending the claim. Per the v1.5.1 → v1.5.2 task
+  plan this is a **data-only bundle**: no paper §Limitations text
+  edit, no LaTeX PDF rebuild, no analysis-code touch. Manifest
+  4,721 → 4,741 (+20 entries); convergence campaign 240 → 260.
+  README seed totals bumped in three places.
+- **Estimator extrapolation + monotone clamp** (carried over from
+  the v1.5.1 → v1.5.2 cycle since it landed on `main` after the
+  v1.5.1 tag was cut) — `scripts/seed_timing._lookup_cost` now
+  interpolates / extrapolates per-tour cost from adjacent-dim
+  same-β anchors, with a monotone-non-decreasing floor in the
+  extrapolate-above case. Sweeps at dimensions absent from the
+  per-tour cost cache no longer return `predicted_wall_h=None`.
+  Two follow-up commits tighten the implementation: a self-review
+  pass adds the monotone clamp + improves the note wording; a
+  deeper review pass closes UTF-8 encoding (`bug 5`), tours-run
+  fallback (`bug 6`), stale-anchor field leakage (`bug 9`),
+  zero-seed pool (`imp 13`), cache-mtime equality (`imp 16`),
+  and schema_version validation (`imp 17`). Estimator predicted
+  80h for n=160; observed 83.5h (within 4%). 10 new pytest cases
+  on top of the original 16 (full suite 144 → 164).
+
 ## [1.5.1] — 2026-05-16
 
 ### Added

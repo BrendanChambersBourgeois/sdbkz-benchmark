@@ -45,7 +45,7 @@ Or with `docker compose`, export the env first (compose expands `${UID}`/`${GID}
 
 ## Engineering TL;DR
 
-This repo is (a) the empirical data + paper for a 4,721-seed lattice-reduction benchmark (paper-frozen reference set: 4,432 seeds at v1.5.0; +289 follow-up seeds since), and (b) a case study in defensive engineering for numerical experiments. The headline finding is a **catastrophic-cancellation bug in fplll's Gram–Schmidt recurrence** (`fplll/gso_interface.cpp:147–151`) that corrupts 38% of bases at q=3329 n=100 β=30 with 1000-bit MPFR. A 30-line Kahan-compensated patch drops the rate to 0/55, passes all 15 fplll regression tests, and reproduces bit-identical across Intel 13900K and AMD 9950X3D. The bug is a new instance of the cancellation family in fpylll #272; the patch was filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08. See paper §8 and `patches/fplll_gso_kahan.patch`.
+This repo is (a) the empirical data + paper for a 4,741-seed lattice-reduction benchmark (paper-frozen reference set: 4,432 seeds at v1.5.0; +309 follow-up seeds since), and (b) a case study in defensive engineering for numerical experiments. The headline finding is a **catastrophic-cancellation bug in fplll's Gram–Schmidt recurrence** (`fplll/gso_interface.cpp:147–151`) that corrupts 38% of bases at q=3329 n=100 β=30 with 1000-bit MPFR. A 30-line Kahan-compensated patch drops the rate to 0/55, passes all 15 fplll regression tests, and reproduces bit-identical across Intel 13900K and AMD 9950X3D. The bug is a new instance of the cancellation family in fpylll #272; the patch was filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08. See paper §8 and `patches/fplll_gso_kahan.patch`.
 
 The rest of the repo is the infrastructure that made finding it possible: pinned Docker builds, SHA-256-verified seed manifest (4,432 entries, lint-gated in CI), byte-identical numerical output across three environments, per-claim evidence ledger, and 96 unit tests covering clamp semantics, file-identity dedup, and manifest integrity invariants.
 
@@ -53,7 +53,7 @@ The rest of the repo is the infrastructure that made finding it possible: pinned
 
 - **fplll cancellation bug + Kahan patch.** Paper §8.3 isolates a never-flagged numerical pathology in fplll's GSO computation triggered at cryptographic moduli. Full chain: diagnostic script → raw `get_r()` capture → cross-machine reproduction → algorithm-level root cause → 30-line patch → 55-seed regression rerun. `patches/fplll_gso_kahan.patch` is drop-in on fplll HEAD (commit `1987472`); filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08.
 
-- **Verify-gated seed manifest.** `results/seed_manifest.json` indexes every seed file with SHA-256, size, mtime, verified flag, per-seed advantage. `scripts/lint_seed_manifest.py` checks three invariants on every CI run — no orphan files, no ghost entries, no hash drift. 4,721 entries (4,432 paper-frozen + 289 post-paper additions); 0 violations across the v1.3.x → v1.5.x release chain.
+- **Verify-gated seed manifest.** `results/seed_manifest.json` indexes every seed file with SHA-256, size, mtime, verified flag, per-seed advantage. `scripts/lint_seed_manifest.py` checks three invariants on every CI run — no orphan files, no ghost entries, no hash drift. 4,741 entries (4,432 paper-frozen + 309 post-paper additions); 0 violations across the v1.3.x → v1.5.x release chain.
 
 - **Bit-identical reproducibility across 3 environments.** Intel 13900K / AWS Batch / AMD 9950X3D all produce byte-identical seed JSONs (SHA-256 hash of 100 seeds verified in `hash_verification.txt`). Different MPFR minor versions (4.2.0 vs 4.2.1), different CPU vendors, different container runtimes — no drift.
 
@@ -68,7 +68,7 @@ The rest of the repo is the infrastructure that made finding it possible: pinned
 ```mermaid
 flowchart LR
   A[runners<br/>sweep_parallel · q3329_verify<br/>run_cliff_500bit · ...] -->|writes| B[results/seeds/<br/>&lt;campaign&gt;/]
-  B -->|indexed by| C[results/seed_manifest.json<br/>4721 entries · SHA-256]
+  B -->|indexed by| C[results/seed_manifest.json<br/>4741 entries · SHA-256]
   C -->|read by| D[analysis/_data.py<br/>load_all_seeds campaign=...]
   D -->|renders| E[paper figures<br/>stats tables<br/>runtime tables]
   B -->|validated by| F[lint_seed_manifest<br/>validate_seeds]
