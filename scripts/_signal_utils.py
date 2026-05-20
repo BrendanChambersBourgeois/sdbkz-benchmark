@@ -69,10 +69,13 @@ def managed_pool(
 
     def _handler(signum: int, frame: Optional[FrameType]) -> None:
         if aborted["signal"] is not None:
-            # Second signal — escalate to immediate exit.
+            # Second signal — escalate to immediate exit. The
+            # explicit return after os._exit defends against mocked
+            # os._exit in tests (real os._exit doesn't return).
             print(f"\n  {label}: second signal received, hard-exiting",
                   flush=True)
             os._exit(128 + signum)
+            return
         aborted["signal"] = signum
         sig_name = signal.Signals(signum).name
         print(f"\n  {label}: {sig_name} received, terminating pool "

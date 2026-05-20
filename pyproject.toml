@@ -45,6 +45,30 @@ ignore = [
 "scripts/test_math_core_parity.py" = ["E402"]
 "scripts/test_log_clamp_wrappers.py" = ["E402"]
 
+[tool.pytest.ini_options]
+# Pytest discovery + coverage defaults. The --cov gate in the CI
+# workflow uses the same target list as [tool.mypy] above; keep
+# both lists in sync. PYTHONPATH includes scripts/ so the bare
+# `_math_core` / `_bkz_core` / `_signal_utils` imports inside the
+# test modules resolve without sys.path hackery (the prod scripts
+# add their own sys.path tweak, but pytest invokes Python with
+# its own working dir).
+pythonpath = ["scripts"]
+
+[tool.coverage.run]
+# Bare module names (not file paths) — pytest's pythonpath setting
+# above puts scripts/ on sys.path so the tests import these as
+# top-level modules. coverage tracks-by-module rather than by-file.
+source = ["_math_core", "_bkz_core", "_signal_utils"]
+relative_files = true
+
+[tool.coverage.report]
+# Fail under 75% per the Phase 4 task plan. Numerical-core files
+# only; analysis/ and experimental wrapper scripts are out of scope.
+fail_under = 75
+show_missing = true
+skip_covered = false
+
 [tool.mypy]
 # Strict mypy is enforced only on the load-bearing numerical-core modules
 # that the paper's SHA-256 reproducibility chain pivots on. Wider
