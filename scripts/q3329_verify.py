@@ -41,11 +41,17 @@ def parse_args():
     parser.add_argument("--seeds", type=int, default=20, help="Number of seeds (default: 20)")
     parser.add_argument("--precision", type=int, default=None,
                         help="MPFR precision in bits (default: 500 for q=3329)")
+    # `--q` lets scripts/run_campaign.py route main / cliff500 (q=97)
+    # campaigns through this runner without monkey-patching the module
+    # global post-import. Default = 3329 preserves the historical CLI
+    # behaviour for anyone calling q3329_verify.py standalone.
+    parser.add_argument("--q", type=int, default=3329,
+                        help="LWE modulus (default: 3329; pass 97 for main/cliff500)")
     return parser.parse_args()
 
 _args = parse_args()
 
-Q = 3329          # ML-KEM modulus (main sweep uses 97)
+Q = _args.q          # ML-KEM modulus (main sweep uses 97; default 3329)
 N = _args.n
 BETA = _args.beta
 TOURS_BY_BETA = {20: 50, 30: 70, 40: 100}
