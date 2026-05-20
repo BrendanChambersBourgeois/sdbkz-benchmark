@@ -1,0 +1,121 @@
+# SD-BKZ benchmark — campaign configuration
+#
+# Single source of truth for the (n, β, q, precision, tours, num_seeds)
+# tuples that each `scripts/run_*.py` or `scripts/sweep_*.py` runner
+# currently hardcodes at module scope. Captured here for cross-script
+# audit and future migration — see `docs/design_decisions.md` ADR
+# (TBD) for the migration plan.
+#
+# Schema is validated by `scripts/_config.py::load_campaign`; unknown
+# keys are rejected in strict mode so a typo can't silently land a
+# wrong-precision sweep. Round-trip + schema tests live in
+# `tests/test_config.py`.
+#
+# Out of scope for this file (per the backlog design doc):
+#   - worker counts (deployment-specific)
+#   - S3 buckets, output dirs, file paths (conventions)
+#   - timeouts (tuning knobs)
+#   - Docker image choice (CI-level)
+#
+# Inheritance: a campaign block may set `inherits = "<base>"` to start
+# from another campaign's full settings and override individual fields.
+# Cycles are rejected; depth is capped at 8 levels to bound resolution
+# cost on pathological inputs.
+
+config_version = 1
+
+[default]
+q = 97
+precision = 250
+num_seeds = 100
+store_per_tour = false
+
+# -- Main paper sweep -------------------------------------------------------
+# q=97, β ∈ {20, 30, 40} × n ∈ {50..150 step 10}. 33 cells × 100 seeds
+# = 3,300 reference seeds frozen for the paper.
+[campaigns.main]
+description = "Paper main sweep, q=97 across the n×β grid"
+beta_grid = [20, 30, 40]
+n_grid = [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
+tours_by_beta = { "20" = 50, "30" = 70, "40" = 100 }
+num_seeds = 100
+store_per_tour = false
+
+# -- q=3329 ML-KEM verification --------------------------------------------
+# Same n / β grid but at the ML-KEM modulus + 1000-bit MPFR. Triggered
+# the §8 fplll cancellation finding. 100-seed n=100 set is the
+# headline; smaller intermediate n=70/80/90 fills are archived too.
+[campaigns.q3329]
+description = "q=3329 ML-KEM modulus, 1000-bit MPFR"
+inherits = "main"
+q = 3329
+precision = 1000
+n_grid = [50, 60, 70, 80, 90, 100]
+beta_grid = [30]
+tours_by_beta = { "30" = 70 }
+num_seeds = 100
+store_per_tour = true
+
+# -- β=40 cliff precision robustness ---------------------------------------
+# 20-seed re-run at n=130, β=40 at 500-bit MPFR (double the main-sweep
+# 250-bit) to confirm the cliff is structural rather than a precision
+# artefact. Paper §6.3 cites this set explicitly.
+[campaigns.cliff500]
+description = "β=40 cliff precision robustness at n=130, 500-bit MPFR"
+inherits = "main"
+beta_grid = [40]
+n_grid = [130]
+precision = 500
+num_seeds = 20
+store_per_tour = true
+
+# -- β=40 1000-tour convergence bracket ------------------------------------
+# Eight-dimension cliff bracket extending to n=160 (v1.5.2). 20 seeds
+# each at q=97, 250-bit MPFR. The cliff bottoms in the n=130–140 band
+# and softens at n=150 / n=160; see paper §Limitations.
+[campaigns.convergence_beta40_mt1000]
+description = "β=40 1000-tour cliff bracket, q=97"
+inherits = "main"
+beta_grid = [40]
+n_grid = [110, 120, 122, 125, 130, 140, 150, 160]
+tours_by_beta = { "40" = 1000 }
+num_seeds = 20
+store_per_tour = true
+
+# -- β=30 1000-tour convergence trio ---------------------------------------
+# n=90 / n=140 / n=150 mt1000 (each 20 seeds). Established the
+# tour-depth-dependent crossover at n=140 vs persistence at n=150 in
+# the v1.5.1 §Limitations text.
+[campaigns.convergence_beta30_mt1000]
+description = "β=30 1000-tour convergence trio, q=97"
+inherits = "main"
+beta_grid = [30]
+n_grid = [90, 140, 150]
+tours_by_beta = { "30" = 1000 }
+num_seeds = 20
+store_per_tour = true
+
+# -- 3× tours capability test -----------------------------------------------
+# β=30 with 3× tour budget (BKZ @ 210, SD-BKZ @ 70). Paper §5.3
+# capability gap at β≥30 finding (0/400 gaps closed).
+[campaigns.tours3x]
+description = "3× tour capability test, β=30 q=97"
+inherits = "main"
+beta_grid = [30]
+n_grid = [50, 60, 70, 80]
+tours_by_beta = { "30" = 210 }
+num_seeds = 100
+store_per_tour = false
+
+# -- fplll version sensitivity ---------------------------------------------
+# Reviewer-defensive: paper results should not depend on the specific
+# fplll version inside the vendored fpylll 0.6.4 wheel. 5 seeds × 3
+# versions (5.4.3 / 5.4.4 / 5.4.5) at the canonical (n=100, β=30) cell.
+[campaigns.fplll_sensitivity]
+description = "fplll legacy-version sensitivity at (n=100, β=30, q=97)"
+inherits = "main"
+beta_grid = [30]
+n_grid = [100]
+tours_by_beta = { "30" = 70 }
+num_seeds = 5
+store_per_tour = false

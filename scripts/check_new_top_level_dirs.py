@@ -45,6 +45,7 @@ import sys
 ALLOWED_TOP_LEVEL = frozenset({
     # Source + paper artifacts (paper-grade, deliberate).
     "analysis",
+    "config",
     "docs",
     "examples",
     "paper",

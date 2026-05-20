@@ -28,6 +28,42 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
+### Added
+- **`config/sweep.toml`** (new top-level file) — single-source TOML
+  capture of every campaign's `(n_grid, beta_grid, q, precision,
+  tours_by_beta, num_seeds, store_per_tour)` tuple. Seven campaigns
+  declared: `main` (paper sweep, 33-cell q=97 grid), `q3329`
+  (ML-KEM modulus 1000-bit MPFR), `cliff500` (β=40 precision
+  robustness at n=130, 500-bit), `convergence_beta40_mt1000`
+  (eight-dim cliff bracket n=110..160), `convergence_beta30_mt1000`
+  (β=30 trio), `tours3x` (3× tour budget capability test),
+  `fplll_sensitivity` (5 seeds × 3 fplll versions). `inherits` keys
+  let campaigns share base settings (e.g. all q=97 sets inherit
+  from `main`).
+- **`scripts/_config.py`** (new module) — TOML loader with strict
+  validator. Returns a frozen `Campaign` dataclass per name; unknown
+  keys, missing required fields, inheritance cycles, negative
+  numerics, and a `tours_by_beta` mapping that fails to cover the
+  `beta_grid` are all rejected with explicit `ConfigError`. Module
+  docstring spells out the migration plan: this is a foundation
+  surface; existing runner scripts continue to use their hardcoded
+  constants until a future opportunistic touch migrates them. The
+  per-seed JSON `campaign` + `config_version` provenance fields
+  proposed in the backlog design doc are explicitly deferred (would
+  break SHA-256 reproducibility chain).
+- **`tests/test_config.py`** (new) — 22 pytest cases. Real-file
+  layer round-trips the committed `config/sweep.toml` against the
+  existing hardcoded constants in `sweep_parallel` / `q3329_verify`;
+  synthetic layer exercises every validation branch (missing file,
+  parse error, unknown root key, unknown campaign key, missing
+  required, version mismatch, unknown campaign name, inheritance
+  resolution, inheritance cycle, tours_by_beta coverage of
+  beta_grid, negative q / precision / tours, empty grids,
+  non-table default, load_all coverage). Full suite 181 → 203 cases.
+- **`scripts/check_new_top_level_dirs.py`** allowlist gains
+  `"config"` so the INC-39 pre-commit / CI guard accepts the new
+  top-level directory.
+
 ### Changed
 - **Paper §Limitations bracket sentence extended to eight dimensions.**
   Folds n=160 into the β=40 1000-tour bracket text that previously
