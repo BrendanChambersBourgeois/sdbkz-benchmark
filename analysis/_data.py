@@ -444,11 +444,15 @@ def _load_convergence_files(
         for entry in entries:
             abs_path = os.path.join(repo_root, entry["path"])
             try:
-                d = json.load(open(abs_path))
-            except (FileNotFoundError, json.JSONDecodeError):
+                with open(abs_path) as _fh:
+                    d = json.load(_fh)
+            except (FileNotFoundError, json.JSONDecodeError, KeyError, OSError):
                 continue
-            bkz_trajs.append(d["bkz_dln_per_tour"])
-            sd_trajs.append(d["sdbkz_dln_per_tour"])
+            try:
+                bkz_trajs.append(d["bkz_dln_per_tour"])
+                sd_trajs.append(d["sdbkz_dln_per_tour"])
+            except KeyError:
+                continue
             if n_val is None:
                 n_val, beta_val = d["n"], d["beta"]
         if bkz_trajs:
@@ -464,9 +468,16 @@ def _load_convergence_files(
         return None, None, None, None, 0
 
     for f in files:
-        d = json.load(open(f))
-        bkz_trajs.append(d["bkz_dln_per_tour"])
-        sd_trajs.append(d["sdbkz_dln_per_tour"])
+        try:
+            with open(f) as _fh:
+                d = json.load(_fh)
+        except (FileNotFoundError, json.JSONDecodeError, OSError):
+            continue
+        try:
+            bkz_trajs.append(d["bkz_dln_per_tour"])
+            sd_trajs.append(d["sdbkz_dln_per_tour"])
+        except KeyError:
+            continue
         if n_val is None:
             n_val, beta_val = d["n"], d["beta"]
 

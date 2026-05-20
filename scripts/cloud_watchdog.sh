@@ -178,11 +178,22 @@ print(f'{name}|{started}|{n}|{beta}|{seed_start}|{seed_end}|{q}')
     # If seed range is available, only count seeds in that range so
     # sibling jobs in the same group don't mask a hung job by producing
     # fresh S3 keys in the shared prefix.
-    # S3 prefix: q=3329 files use n{N}_beta{B}_q{Q}_seed, q=97 use n{N}_beta{B}_seed
+    #
+    # v2.0.0: prefix tracks the v1.3 campaign tree
+    # (`results/seeds/<campaign>/...` — same layout as the on-disk
+    # tree post-symlink-drop). Cloud campaign is decommissioned
+    # (2026-04-10); on any future restart the cloud-side writer
+    # (sweep_cloud.s3_key) lands seeds at the same prefix the watchdog
+    # now scans. Filenames end with `_cloud.json` on the cloud side
+    # (per `_seed_paths._leaf_name` cloud=True suffix).
     if [ "$Q_VAL" != "97" ] && [ -n "$Q_VAL" ]; then
-        S3_PREFIX="results/raw/n${N}_beta${BETA}_q${Q_VAL}_seed"
+        N_PAD=$(printf "%03d" "$N")
+        BETA_PAD=$(printf "%02d" "$BETA")
+        S3_PREFIX="results/seeds/q3329/p${PRECISION:-1000}_mt${MAX_TOURS:-70}/n${N_PAD}_beta${BETA_PAD}/seed"
     else
-        S3_PREFIX="results/raw/n${N}_beta${BETA}_seed"
+        N_PAD=$(printf "%03d" "$N")
+        BETA_PAD=$(printf "%02d" "$BETA")
+        S3_PREFIX="results/seeds/main/q97/n${N_PAD}_beta${BETA_PAD}/seed"
     fi
     S3_LIST=$(aws s3api list-objects-v2 \
         --bucket "$BUCKET" \

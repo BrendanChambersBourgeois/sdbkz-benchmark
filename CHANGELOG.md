@@ -217,10 +217,14 @@ prior to this paragraph; merged to main 2026-05-20 via `5b5c2c4`)
   decreases monotonically: +1.06 / +0.92 / +0.74 at n=140 / 150 /
   160). n=160 confirms the v1.5.1 "bounded-extent cliff" framing
   rather than extending the claim. Per the v1.5.1 → v1.5.2 task
-  plan this is a **data-only bundle**: no paper §Limitations text
-  edit, no LaTeX PDF rebuild, no analysis-code touch. Manifest
-  4,721 → 4,741 (+20 entries); convergence campaign 240 → 260.
-  README seed totals bumped in three places.
+  plan this was originally scoped as a **data-only bundle** with no
+  paper §Limitations edit. The bracket-text update was folded in
+  post-v1.5.2 in commit `d79584a` ("paper: §Limitations bracket
+  extended to eight dims (n=160 fold-in)") and carried forward into
+  the v2.0.0 candidate; the original "no paper text edit" claim
+  reflected the v1.5.2 cut point only. Manifest 4,721 → 4,741 (+20
+  entries); convergence campaign 240 → 260. README seed totals
+  bumped in three places.
 - **Estimator extrapolation + monotone clamp** (carried over from
   the v1.5.1 → v1.5.2 cycle since it landed on `main` after the
   v1.5.1 tag was cut) — `scripts/seed_timing._lookup_cost` now

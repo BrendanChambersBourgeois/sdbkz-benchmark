@@ -83,6 +83,9 @@ ALLOWLIST_BASENAMES = frozenset({
     "convergence_headroom.json",
     "hash_verification.txt",
     "failed.json",
+    # Preserved at v2.0.0 from the deleted `results/q3329_degenerate/`
+    # legacy dir; documents the q=3329 degenerate-seed subset.
+    "q3329_degenerate_README.md",
 })
 
 ALLOWLIST_PREFIXES = ("summary_",)  # summary_n50_beta30.json etc.

@@ -5,6 +5,10 @@
 #   Local VM:  Ubuntu 24.04, Python 3.12.3, fpylll 0.6.4, MPFR 4.2.1
 #   AWS Batch: Debian Bookworm, Python 3.12.3, fpylll 0.6.4, MPFR 4.2.0
 #
+# Additional ad-hoc verifications (full per-seed columns not appended):
+#   AMD 9950X3D (Dylan, 2026-04-09): spot-checked, byte-identical to Local VM
+#   Fresh Ubuntu VM (2026-04-20):     spot-checked, byte-identical to Local VM
+#
 # Hash computed over all deterministic result fields (sorted JSON).
 # Excludes: bkz_time, sdbkz_time, timestamp, status (environment-dependent).
 #
