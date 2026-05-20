@@ -3,13 +3,15 @@
 Statistical analysis for SDBKZ vs BKZ paper.
 READ-ONLY on results directory. Safe to run while sweep_parallel.py is active.
 
-Computes: paired t-test, Wilcoxon signed-rank, Cohen's d, 95% CIs, skewness.
-Reads from: <repo>/results/raw/*.json
+Computes: paired t-test, Wilcoxon signed-rank, Cohen's d, Cliff's δ,
+95% CIs, Holm-Bonferroni adjusted p-values, skewness.
+Reads from: results/seed_manifest.json (campaign-keyed, default `main`).
 Writes to:  <repo>/logs/stats_output.txt (and prints to stdout)
 
 Usage:
     python3 stats_analysis.py
-    python3 stats_analysis.py --results-dir /path/to/results/raw
+    python3 stats_analysis.py --campaign cliff500
+    python3 stats_analysis.py --results-dir /path/to/legacy/dir  # opt-in
 
 Data loading is delegated to analysis._data.load_all_seeds so this script
 shares the q=97 filtering, the file deduplication, and the schema-tolerant

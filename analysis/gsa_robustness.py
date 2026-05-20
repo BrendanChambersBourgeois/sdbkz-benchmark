@@ -70,9 +70,12 @@ def main():
     )
     parser.add_argument(
         "--seed-dirs", nargs="+",
-        default=["results/raw", "results/cloud"],
-        help="Legacy override: directories containing seed JSONs. Used "
-        "only when --campaign is empty.",
+        default=[],
+        help="Legacy override: directories containing seed JSONs. The "
+        "pre-v1.3 `results/raw` + `results/cloud` directories were "
+        "removed at v2.0.0 along with the back-compat symlinks; the "
+        "default is now empty. Pass explicit dirs only for off-tree "
+        "seed sets. Used only when --campaign is empty.",
     )
     args = parser.parse_args()
 

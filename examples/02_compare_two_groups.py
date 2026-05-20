@@ -13,32 +13,31 @@ Expected output: ~30 lines with summary statistics for both groups.
 Runtime: ~2 seconds (loads ~200 JSON files).
 """
 import argparse
-import glob
-import json
 import os
 import sys
 
 import numpy as np
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, REPO_ROOT)
+
+from analysis._data import load_all_seeds  # noqa: E402
+
+# Cached lazily on first lookup; load_all_seeds scans the whole
+# manifest once for the entire campaign which is cheaper than two
+# separate dispatches for two groups.
+_GROUPS_CACHE: dict[str, dict] = {}
 
 
-def load_group(n, beta):
-    """Load all seeds for one (n, beta) group from raw or cloud directories."""
-    patterns = [
-        os.path.join(REPO_ROOT, "results", "raw", f"n{n}_beta{beta}_seed*.json"),
-        os.path.join(REPO_ROOT, "results", "cloud", f"n{n}_beta{beta}_seed*.json"),
-    ]
-    files = []
-    for pat in patterns:
-        files.extend(f for f in glob.glob(pat) if "q3329" not in f)
-    seen, unique = set(), []
-    for f in sorted(files):
-        name = os.path.basename(f)
-        if name not in seen:
-            seen.add(name)
-            unique.append(f)
-    return [json.load(open(f)) for f in unique]
+def load_group(n, beta, campaign="main"):
+    """Return the list of seed dicts for one (n, beta) cell in `campaign`.
+
+    Empty list on miss — matches the legacy glob-returns-empty semantics
+    so downstream `summarize` still prints "NO DATA" instead of crashing.
+    """
+    if campaign not in _GROUPS_CACHE:
+        _GROUPS_CACHE[campaign] = load_all_seeds(campaign=campaign, q=97)
+    return _GROUPS_CACHE[campaign].get((n, beta), [])
 
 
 def summarize(seeds, label):

@@ -19,6 +19,7 @@ import os
 import sys
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, REPO_ROOT)
 
 
 def main():
@@ -26,25 +27,26 @@ def main():
     parser.add_argument("--n", type=int, default=100, help="Lattice dimension")
     parser.add_argument("--beta", type=int, default=30, help="Block size")
     parser.add_argument("--seed", type=int, default=1, help="Seed number")
+    parser.add_argument("--campaign", default="main",
+                        help="Manifest campaign to query (default: main)")
     args = parser.parse_args()
 
-    # Look in both raw (local sweep) and cloud (AWS sweep) directories
-    candidates = [
-        os.path.join(REPO_ROOT, "results", "raw",
-                     f"n{args.n}_beta{args.beta}_seed{args.seed}.json"),
-        os.path.join(REPO_ROOT, "results", "cloud",
-                     f"n{args.n}_beta{args.beta}_seed{args.seed}.json"),
-    ]
-    path = next((p for p in candidates if os.path.isfile(p)), None)
-    if path is None:
-        print(f"ERROR: no result for n={args.n}, beta={args.beta}, seed={args.seed}")
-        print("Tried:")
-        for p in candidates:
-            print(f"  {p}")
-        sys.exit(1)
+    from analysis._data import load_all_seeds  # noqa: E402
 
-    with open(path) as f:
-        d = json.load(f)
+    groups = load_all_seeds(campaign=args.campaign, q=97)
+    key = (args.n, args.beta)
+    if key not in groups:
+        print(f"ERROR: no (n={args.n}, beta={args.beta}) group in "
+              f"campaign={args.campaign}")
+        sys.exit(1)
+    match = next(
+        (s for s in groups[key] if s.get("seed") == args.seed), None,
+    )
+    if match is None:
+        print(f"ERROR: no seed={args.seed} in (n={args.n}, beta={args.beta}) "
+              f"under campaign={args.campaign}")
+        sys.exit(1)
+    d = match
 
     print("=" * 60)
     print(f"  n={d['n']}, beta={d['beta']}, seed={d['seed']}, q={d.get('q', 97)}")
@@ -70,7 +72,7 @@ def main():
         ratio = d["sdbkz_time"] / d["bkz_time"]
         print(f"  → SD-BKZ runtime ratio: {ratio:.2f}x")
     print()
-    print(f"Source: {os.path.relpath(path, REPO_ROOT)}")
+    print(f"Source: results/seed_manifest.json (campaign={args.campaign})")
 
 
 if __name__ == "__main__":
