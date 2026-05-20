@@ -83,16 +83,16 @@ Two duplicate findings dropped: BUG-V2-002 ≡ BUG-DATA-003 (verify.sh RAW_DIR m
 - **DRIFT-DOC-002** — CHANGELOG v1.5.2 entry says "No paper §Limitations text edit; bracket sentence remains accurate at seven-dim." Reality: LaTeX + HTML already contain the eight-dim bracket (landed in commit `d79584a` outside the v1.5.2 cut). Internal contradiction.
 
 ### CI / Docker
-- **BUG-CI-001** — `cysignals` pinned to `==1.12.6` in Dockerfile + Dockerfile.cloud, `==1.11.4` in Dockerfile.fplll54 + Dockerfile.fplll_legacy. Numerical-core dependency split risks runtime symbol mismatches if shared code crosses image boundaries.
-- **BUG-CI-002** — `numpy` pinned to `==2.4.4` in main/cloud, `<2.0` in fplll54/legacy. Documented reason (fpylll 0.6.0 sdist incompatible with numpy 2.x), but reproducibility-parity claim across images is violated.
+- **BUG-CI-001** — `cysignals` pinned to `==1.12.6` in Dockerfile + Dockerfile.cloud, `==1.11.4` in Dockerfile.fplll54 + Dockerfile.fplll_legacy. Numerical-core dependency split risks runtime symbol mismatches if shared code crosses image boundaries. **CLOSED 2026-05-20 (commit 3faf423)** — split is structural (fpylll 0.6.0 era stack vs main); commented in-file.
+- **BUG-CI-002** — `numpy` pinned to `==2.4.4` in main/cloud, `<2.0` in fplll54/legacy. Documented reason (fpylll 0.6.0 sdist incompatible with numpy 2.x), but reproducibility-parity claim across images is violated. **CLOSED 2026-05-20 (commit 3faf423)** — range pin `numpy<2.0` upgraded to exact `numpy==1.26.4` so the sensitivity-image stack matches ADR-004's exact-pin discipline.
 
 ---
 
 ## MEDIUM findings (14)
 
 ### Python correctness
-- **BUG-PY-002** — `analysis/_data.load_3x_tour_data` has a tautological condition (`if manifest_path or tour_dir is None` is always true after the preceding `if tour_dir is None: manifest_path = manifest_path or DEFAULT_MANIFEST_PATH`).
-- **BUG-PY-004** — `scripts/_seed_paths._require` lacks a return annotation; mypy --strict likely flags (currently shielded by `--ignore-missing-imports` + `follow_imports=silent`).
+- **BUG-PY-002** — `analysis/_data.load_3x_tour_data` has a tautological condition (`if manifest_path or tour_dir is None` is always true after the preceding `if tour_dir is None: manifest_path = manifest_path or DEFAULT_MANIFEST_PATH`). **CLOSED 2026-05-20 (commit 511e61a)** — collapsed to a single branch.
+- **BUG-PY-004** — `scripts/_seed_paths._require` lacks a return annotation; mypy --strict likely flags (currently shielded by `--ignore-missing-imports` + `follow_imports=silent`). **CLOSED 2026-05-20 (commit 511e61a)** — `value: object` + `-> object`.
 - **BUG-PY-006** — `analysis/_data.py` uses bare `print()` at five sites instead of the centralised `log.get_logger()` convention. CLAUDE.md "Every committed script emit through scripts/log.py to pipeline.jsonl" violation.
 
 ### Data integrity
@@ -102,7 +102,7 @@ Two duplicate findings dropped: BUG-V2-002 ≡ BUG-DATA-003 (verify.sh RAW_DIR m
 - **GAP-TEST-013** — `analysis/gsa_robustness.py` (full file) has NO unit tests. Computes correlation_with_dLN via scipy; NaN propagation + empty-group edge cases uncovered.
 - **GAP-TEST-014** — `analysis/runtime_table.py` (entire module) has NO test file. HTML escaping + missing-manifest paths untested.
 - **GAP-TEST-015** — `lint_seed_manifest._is_allowlisted` prefix/basename overlap edge cases untested.
-- **GAP-TEST-016** — `q3329_verify.py` post-v2 fixup (SUMMARY_DIR redirect to `results/seeds/q3329/summary/`) untested.
+- **GAP-TEST-016** — `q3329_verify.py` post-v2 fixup (SUMMARY_DIR redirect to `results/seeds/q3329/summary/`) untested. **CLOSED 2026-05-20 (commit 511e61a)** — static-scan test in `tests/test_v2_path_migration.py`.
 - **GAP-TEST-017** — `_math_core.ln_fixed_point` + `log_clamp` at boundary dimensions (n=1, β=2, n>200) untested.
 - **GAP-TEST-018** — `analysis/plots/_orchestrator.py` (figure-pipeline driver) has NO tests.
 
@@ -111,9 +111,9 @@ Two duplicate findings dropped: BUG-V2-002 ≡ BUG-DATA-003 (verify.sh RAW_DIR m
 - **DRIFT-DOC-005** — Seed count framing "4,432 paper-frozen + 309 post-paper additions" misleading. Per `docs/audits/2026-05-14_zenodo_v1.5.0_contents.md`, the Zenodo v1.5.0 deposit contained 4,541 seeds at flip; the 4,432 figure is the reference-runs subset, not the published deposit.
 
 ### CI / Docker
-- **BUG-CI-003** — `Dockerfile.cloud` ships scipy + pytest unpinned while main `Dockerfile` pins them. Documented reason (cloud decommissioned) but unpin contradicts the "kept in parity" comment.
-- **ISSUE-CI-005** — fplll54 + fplll_legacy Dockerfiles omit scipy + pytest entirely. Likely intentional (sensitivity-variant scope) but undocumented.
-- **ISSUE-CI-006** — GHA action pinning inconsistent: `scorecard.yml` uses SHA pins; `build-and-verify.yml` uses semver tags. ADR-004 philosophy favours SHA pinning.
+- **BUG-CI-003** — `Dockerfile.cloud` ships scipy + pytest unpinned while main `Dockerfile` pins them. Documented reason (cloud decommissioned) but unpin contradicts the "kept in parity" comment. **FALSE ALARM 2026-05-20** — re-grep shows both files do pin `scipy==1.17.1` + `pytest==9.0.3`.
+- **ISSUE-CI-005** — fplll54 + fplll_legacy Dockerfiles omit scipy + pytest entirely. Likely intentional (sensitivity-variant scope) but undocumented. **CLOSED 2026-05-20 (commit 3faf423)** — in-file comment explaining the intentional omission added to both Dockerfiles.
+- **ISSUE-CI-006** — GHA action pinning inconsistent: `scorecard.yml` uses SHA pins; `build-and-verify.yml` uses semver tags. ADR-004 philosophy favours SHA pinning. **CLOSED 2026-05-20 (commit 3faf423)** — all three action `uses:` lines in build-and-verify.yml moved to SHA pins.
 
 ---
 
@@ -128,7 +128,7 @@ Two duplicate findings dropped: BUG-V2-002 ≡ BUG-DATA-003 (verify.sh RAW_DIR m
 
 ### Docs
 - **DRIFT-DOC-003** — false alarm on re-read (COOKBOOK §I want to add a new dimension is correct).
-- **DRIFT-DOC-006** — COOKBOOK AWS Batch sections still present as active; cloud campaign decommissioned 2026-04-10.
+- **DRIFT-DOC-006** — COOKBOOK AWS Batch sections still present as active; cloud campaign decommissioned 2026-04-10. **CLOSED 2026-05-20 (commit 511e61a)** — two live-cloud sections collapsed to a single "decommissioned 2026-04-10" block.
 - **DRIFT-DOC-007** — false alarm; no LaTeX/HTML inter-format drift.
 
 ### v2 migration
@@ -137,10 +137,10 @@ Two duplicate findings dropped: BUG-V2-002 ≡ BUG-DATA-003 (verify.sh RAW_DIR m
 ### CI / Docker
 - **ISSUE-CI-004** — pyproject `[tool.mypy] files` list coupling to CI step is implicit; comment refers to "pinned in .github/workflows/build-and-verify.yml" but CI doesn't pass `--select`.
 - **ISSUE-CI-007** — ruff `[tool.ruff.lint] select` includes W; per-file-ignores adds E501 (E-class); cross-rule note absent.
-- **ISSUE-CI-008** — dependabot correctly ignores fpylll/cysignals/numpy; no cross-reference in pyproject.toml explaining why.
-- **ISSUE-CI-009** — `.dockerignore` references 8 deleted legacy result directories. Benign (already excluded files don't matter) but stale.
+- **ISSUE-CI-008** — dependabot correctly ignores fpylll/cysignals/numpy; no cross-reference in pyproject.toml explaining why. **CLOSED 2026-05-20 (commit 3faf423)** — in-file comment added to dependabot.yml above the ignore-list.
+- **ISSUE-CI-009** — `.dockerignore` references 8 deleted legacy result directories. Benign (already excluded files don't matter) but stale. **CLOSED 2026-05-20 (commit 3faf423)** — 14 stale entries stripped; replaced with single v1.3 canonical-tree comment block.
 - **ISSUE-CI-010** — scorecard.yml lacks `pull_request` trigger (likely intentional — runs weekly/on-main).
-- **ISSUE-CI-011** — Neither workflow defines a `concurrency:` group; overlapping runs not cancelled.
+- **ISSUE-CI-011** — Neither workflow defines a `concurrency:` group; overlapping runs not cancelled. **CLOSED 2026-05-20 (commit 3faf423)** — concurrency group added to build-and-verify.yml with cancel-in-progress.
 
 ---
 
