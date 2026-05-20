@@ -289,22 +289,18 @@ fig_dimension_scaling(groups, output_dir="./figures")
 
 ## Experiment scripts
 
-Main sweep:
-- **`scripts/sweep_parallel.py`** — Local VM sweep runner (multiprocessing pool).
-- **`scripts/sweep_cloud.py`** — Cloud sweep runner (S3-backed, Docker). Includes in-process watchdog.
-- **`scripts/run_sweep_fill.py`** — Top-off runner that fills partially complete groups up to the target seed count.
-- **`scripts/run_n100_beta40.py`** — Standalone runner for the n=100 β=40 group (used during the campaign).
+Canonical entry point (v2.0.0 consolidation):
+- **`scripts/run_campaign.py`** — Single-entry dispatcher driven by `config/sweep.toml`. Routes by campaign name to the right underlying runner (q3329_verify for main/cliff500/q3329, run_convergence for convergence_*, run_3x_extended for tours3x, Docker-image instructions for fplll_sensitivity). Usage: `python3 scripts/run_campaign.py --campaign <name> [--n N] [--beta B] [--start S] [--end E] [--seeds N] [--workers W] [--dry-run]`. Replaces six per-cell launcher scripts (`run_cliff_500bit.py`, `run_n100_beta40.py`, `run_q3329_n90.py`, `run_q3329_n100_local.py`, `run_overnight_q3329_intermediate_1000bit.py`, and the dispatch surface of `run_fplll54_sensitivity.py`) deleted at v2.0.0 consolidation.
 
-Extended / capability experiments:
-- **`scripts/run_3x_extended.py`** — 100-seed 3× tour count experiments. Default GROUPS list at module top is (n=50–80 at β=30 and n=60 at β=20); to target a single cell (e.g. n=80 β=30) launch via the parametrised path: `python3 -c "import sys; sys.path.insert(0, 'scripts'); import run_3x_extended; run_3x_extended.GROUPS = [{'n': 80, 'beta': 30, 'normal_tours': 70, 'triple_tours': 210}]; run_3x_extended.main()"`.
-- **`scripts/run_convergence_test.py`** — 500-tour convergence test (module-level knobs N / BETA / MAX_TOURS).
-- **`scripts/run_convergence.py`** — Generic argparse wrapper for `run_convergence_test`. Use `python3 scripts/run_convergence.py --n N --beta B --max-tours T` for any (n, β, max_tours) cell. Replaced four per-cell launcher scripts at v2.0.0 consolidation.
-
-q=3329 verification:
-- **`scripts/q3329_verify.py`** — Generic q=3329 verification. Flags: `--n`, `--beta`, `--seeds`, `--precision`.
-- **`scripts/run_q3329_n100_local.py`** — q=3329 n=100 β=30 characterisation (1000-bit MPFR).
-- **`scripts/run_overnight_q3329_intermediate_1000bit.py`** — q=3329 n=70 / n=80 1000-bit MPFR fill. Successor to the deprecated `run_q3329_intermediate.py` (pre-v1.3, deleted at v2.0.0 consolidation).
-- **`scripts/run_q3329_n90.py`** — q=3329 n=90 verification wrapper.
+Workhorses (called by the dispatcher; also usable standalone):
+- **`scripts/sweep_parallel.py`** — Local VM q=97 sweep workhorse (multiprocessing pool). Walks the canonical `results/seeds/main/q97/` tree.
+- **`scripts/q3329_verify.py`** — q-aware sweep workhorse (handles main, cliff500, q3329 via `--q` / `--precision` overrides). Writes to the campaign tree via `_seed_paths.seed_path_for`.
+- **`scripts/sweep_cloud.py`** — Cloud sweep runner (S3-backed, Docker). Includes in-process watchdog. Cloud decommissioned 2026-04-10; preserved for reproducibility of the cloud-half of the paper sweep.
+- **`scripts/run_sweep_fill.py`** — Argparse fill runner for partial cells (`--n --beta --start --end`).
+- **`scripts/run_3x_extended.py`** — 3× tour capability test (GROUPS list overridable).
+- **`scripts/run_convergence_test.py`** — Convergence test (module-level N/BETA/MAX_TOURS).
+- **`scripts/run_convergence.py`** — Argparse wrapper around `run_convergence_test` (`--n --beta --max-tours --seeds --workers`).
+- **`scripts/run_fplll54_sensitivity.py`** — Cross-image sensitivity check (5 seeds at the canonical n=100 β=30 cell under a Dockerfile.fplll54 build that source-builds fplll 5.4.x against numpy<2).
 
 Cloud / submission / ops:
 - **`scripts/submit_jobs.py`** — AWS Batch job submission. Flags: `--n`, `--beta`, `--q`, `--precision`, `--vcpus`, `--single-seed`, `--seeds-per-job`, `--dry-run`.
