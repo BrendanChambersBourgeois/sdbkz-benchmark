@@ -9,7 +9,8 @@ converge to a different fixed point than the Li-Nguyen BKZ fixed point.
 Usage:
     nohup python3 scripts/run_convergence_test.py > logs/convergence_stdout.log 2>&1 &
 
-Output: results/convergence/
+Output: results/seeds/convergence/q97/n{N:03d}_beta{BETA:02d}_mt{MAX_TOURS}/
+        (resolved via `_seed_paths.seed_dir_for`, post-v2.0.0 layout)
 """
 import datetime
 import json

@@ -47,7 +47,7 @@ Or with `docker compose`, export the env first (compose expands `${UID}`/`${GID}
 
 This repo is (a) the empirical data + paper for a 4,741-seed lattice-reduction benchmark (v1.5.0 Zenodo deposit: 4,541 seeds; +200 follow-up seeds across post-flip cliff-bracket extensions), and (b) a case study in defensive engineering for numerical experiments. The headline finding is a **catastrophic-cancellation bug in fplll's Gram–Schmidt recurrence** (`fplll/gso_interface.cpp:147–151`) that corrupts 38% of bases at q=3329 n=100 β=30 with 1000-bit MPFR. A 30-line Kahan-compensated patch drops the rate to 0/55, passes all 15 fplll regression tests, and reproduces bit-identical across Intel 13900K and AMD 9950X3D. The bug is a new instance of the cancellation family in fpylll #272; the patch was filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08. See paper §8 and `patches/fplll_gso_kahan.patch`.
 
-The rest of the repo is the infrastructure that made finding it possible: pinned Docker builds, SHA-256-verified seed manifest (4,741 entries, lint-gated in CI), byte-identical numerical output across three environments, per-claim evidence ledger, and 211 unit tests covering clamp semantics, file-identity dedup, manifest integrity, path migration, statistical helpers, and the v2.0.0 symlink-drop regression guard.
+The rest of the repo is the infrastructure that made finding it possible: pinned Docker builds, SHA-256-verified seed manifest (4,741 entries, lint-gated in CI), byte-identical numerical output across three environments, per-claim evidence ledger, and 214 unit tests covering clamp semantics, file-identity dedup, manifest integrity, path migration, statistical helpers, and the v2.0.0 symlink-drop regression guard.
 
 ## Engineering highlights
 
@@ -59,7 +59,7 @@ The rest of the repo is the infrastructure that made finding it possible: pinned
 
 - **Append-only audit chain.** `results/clamp_events.jsonl` logs every defensive clamp fire (non-positive `get_r` value) with timestamp, script name, seed context. Never truncated per policy. `logs/pipeline.jsonl` receives structured events from every committed script (enforced by `scripts/lint_logging.py`).
 
-- **CI-gated numerical reproducibility.** `.github/workflows/build-and-verify.yml` runs on every push: Docker build from scratch → import smoke tests → 96-test pytest suite → `verify.sh` regenerating one seed in a fresh container and comparing SHA-256 → `validate_seeds.py` schema + volume-drift checks → `lint_seed_manifest.py`. Any regression in any of these fails the build; ~5 min end-to-end.
+- **CI-gated numerical reproducibility.** `.github/workflows/build-and-verify.yml` runs on every push: Docker build from scratch → import smoke tests → 214-test pytest suite (mypy strict on numerical-core, ruff F/W/I/B/UP, pytest --cov 75% floor) → `verify.sh` regenerating one seed in a fresh container and comparing SHA-256 → `validate_seeds.py` schema + volume-drift checks → `lint_seed_manifest.py` + paper-figure parity gate. Any regression in any of these fails the build.
 
 - **Incident-driven hardening.** Repo policies are written against real operational incidents, not conjectured ones. Defensive clamps must log raw values before substituting (introduced after a clamp hid the real `get_r` return for 9 days and produced a wrong Section 8 in a draft paper — see [`docs/incident_q3329_post_mortem.md`](docs/incident_q3329_post_mortem.md)). Data is never deleted without backup. `sudo` paths require explicit opt-in.
 
@@ -67,7 +67,7 @@ The rest of the repo is the infrastructure that made finding it possible: pinned
 
 ```mermaid
 flowchart LR
-  A[runners<br/>sweep_parallel · q3329_verify<br/>run_cliff_500bit · ...] -->|writes| B[results/seeds/<br/>&lt;campaign&gt;/]
+  A[runners<br/>run_campaign · sweep_parallel · q3329_verify<br/>run_3x_extended · run_convergence · ...] -->|writes| B[results/seeds/<br/>&lt;campaign&gt;/]
   B -->|indexed by| C[results/seed_manifest.json<br/>4741 entries · SHA-256]
   C -->|read by| D[analysis/_data.py<br/>load_all_seeds campaign=...]
   D -->|renders| E[paper figures<br/>stats tables<br/>runtime tables]
@@ -314,12 +314,12 @@ Data hygiene and logging:
 
 ## Data format
 
-Each per-seed result is written as two JSON files next to each other in `results/raw/` (or `results/cloud/`):
+Each per-seed result is written as two JSON files next to each other under the canonical campaign tree (e.g. `results/seeds/main/q97/n100_beta30/`):
 
-- **`nN_betaB_seedS.json` (lean)** — the canonical record: inputs, final d(LN) for BKZ and SD-BKZ, initial Rankin profile, termination reason, wall-clock time, SHA-256 inputs. This file defines the seed's identity and is what reproducibility verification hashes against.
-- **`nN_betaB_seedS_fat.json` (companion)** — optional per-tour trajectories and full Gram–Schmidt log-norm profiles. Present for groups where the sweep was run with `store_per_tour=True`. Absent fat files never invalidate a seed.
+- **`seedNNNN.json` (lean)** — the canonical record: inputs, final d(LN) for BKZ and SD-BKZ, initial Rankin profile, termination reason, wall-clock time, SHA-256 inputs. This file defines the seed's identity and is what reproducibility verification hashes against. Cloud-half copies carry the `_cloud` suffix; per-tour fat companions carry `_fat`.
+- **`seedNNNN_fat.json` (companion)** — optional per-tour trajectories and full Gram–Schmidt log-norm profiles. Present for groups where the sweep was run with `store_per_tour=True`. Absent fat files never invalidate a seed.
 
-`scripts/split_fat_seeds.py` performs the split when a run produced a single combined file. Downstream analysis code in `analysis/_data.py` tolerates either layout.
+`scripts/archive/split_fat_seeds.py` (one-shot, kept for audit chain) performs the split when a legacy run produced a single combined file. Downstream analysis code in `analysis/_data.py` tolerates either layout.
 
 ### Supplementary artifacts
 

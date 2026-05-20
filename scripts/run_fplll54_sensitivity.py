@@ -7,8 +7,8 @@ This script runs 5 seeds of the main-sweep canonical point (n=100,
 β=30, q=97, 250-bit MPFR) against fplll 5.4.5 (the last 5.4 release,
 libfplll.so.8.0.1) via the Dockerfile.fplll54 image, and compares the
 resulting per-seed advantages against the matching seeds from the
-paper's main sweep (results/raw/n100_beta30_seed{1..5}.json produced
-under fplll 5.5.0).
+paper's main sweep (`results/seeds/main/q97/n100_beta30/seed000{1..5}.json`
+produced under fplll 5.5.0; post-v2.0.0 layout).
 
 If the mean advantage and per-seed signs agree within statistical
 noise, paper results are fplll-version-robust. If they disagree, the
@@ -20,7 +20,8 @@ Usage:
     # Q=97 / PRECISION=250 / MAX_TOURS=100.
     python3 scripts/run_fplll54_sensitivity.py
 
-Output: results/fplll54_sensitivity/n100_beta30_q97_seed{1..5}.json
+Output: results/seeds/fplll_sensitivity/v5_4_5/q97/n100_beta30/seed000{1..5}.json
+        (resolved via `_seed_paths.seed_dir_for("fplll_sensitivity", ...)`)
 """
 import datetime
 import json

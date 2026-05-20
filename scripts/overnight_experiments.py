@@ -5,12 +5,12 @@ Two overnight experiments wrapped for unattended runs:
 EXPERIMENT 1: 3x tour count test (paper §5.3)
   - 10 seeds, n=60, beta=30, BKZ at 210 tours vs SD-BKZ at 70 tours
   - Question: can BKZ close the gap with 3x more computation?
-  - Output: results/3x_tours/
+  - Output: results/seeds/tours3x/q97/n060_beta30/ (post-v2.0.0 layout)
 
-EXPERIMENT 2: Profile-position decomposition (all 822 seeds)
+EXPERIMENT 2: Profile-position decomposition (all completed main-sweep seeds)
   - For each completed seed, split Rankin profile into head/mid/tail thirds
   - Measure where in the profile SD-BKZ improves most
-  - Output: profile_decomposition.json
+  - Output: results/profile_decomposition.json
 
 Run with:
     nice -n 19 python3 scripts/overnight_experiments.py &

@@ -39,7 +39,7 @@ scripts/sweep_parallel.py::worker(n, beta, seed)
           └─ scripts/_math_core.py::log_clamp        # defensive-clamp side-log
 ```
 
-Every reduction variant (`sweep_cloud`, `q3329_verify`, `run_cliff_500bit`, `run_fplll54_sensitivity`) wraps the same `_bkz_core.run_single` with campaign-specific constants. Reading one wrapper teaches you the others.
+Every reduction variant (`sweep_parallel`, `sweep_cloud`, `q3329_verify`, `run_3x_extended`, `run_convergence_test`, `run_fplll54_sensitivity`) wraps the same `_bkz_core.run_single` with campaign-specific constants. The single-entry dispatcher `scripts/run_campaign.py` reads `config/sweep.toml` and routes each named campaign to one of these workhorses. Reading one wrapper teaches you the others.
 
 The analysis path is similarly layered:
 
@@ -90,9 +90,10 @@ prior commit 2b5365c). lint_seed_manifest --sha-check: 0 orphan /
 Before every commit:
 
 ```bash
-python3 -m pytest tests/                                  # ~1s, 96 tests
+python3 -m pytest tests/                                  # ~10s, 214 tests
 python3 scripts/lint_seed_manifest.py                     # ~0.1s
 python3 -m ruff check scripts/ analysis/                  # ~0.2s
+python3 -m mypy                                           # ~3s, strict on _*_core
 bash scripts/verify.sh --check-only                       # ~0.5s
 ```
 

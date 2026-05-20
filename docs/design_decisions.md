@@ -145,7 +145,7 @@ A CI gate (`scripts/lint_seed_manifest.py`) enforces three invariants on every p
 - `tests/test_analysis_data_loader.py` — 10 tests: manifest filter combos, fat-skip default, non-cloud preference on collision, manifest-missing error, legacy dirs shim, min_seeds filter, load_json=False, cache invalidation on mtime change.
 - `tests/test_lint_seed_manifest.py` — 10 tests: clean tree, orphan, ghost, drift (--sha-check only), manifest missing (exit 2), parse error (exit 2), symlink skip, allowlist, summary_ prefix, quiet mode.
 
-Total manifest-related test surface: 79 tests; part of the 96-test suite that runs on every commit.
+Total manifest-related test surface: 79 tests; part of the 214-test suite that runs on every commit.
 
 ---
 

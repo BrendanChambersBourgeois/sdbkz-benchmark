@@ -32,9 +32,16 @@ jq -r --arg d "$(date -u +%Y-%m-%d)" '
 
 ### Which run_id emitted the cliff-500-bit events?
 
+The pre-v2.0.0 `run_cliff_500bit.py` launcher was retired in favour of
+`run_campaign.py --campaign cliff500`; historical log entries (the
+ones the original cliff-500-bit run produced) still carry
+`script: "run_cliff_500bit"`. New invocations carry
+`script: "run_campaign"` with `ctx.campaign == "cliff500"`. Query both:
+
 ```bash
-jq -r 'select(.script == "run_cliff_500bit") | .run_id' logs/pipeline.jsonl \
-  | sort -u
+jq -r 'select(.script == "run_cliff_500bit"
+              or (.script == "run_campaign" and .ctx.campaign == "cliff500")
+       ) | .run_id' logs/pipeline.jsonl | sort -u
 ```
 
 ### How many clamp events at q=3329 across the whole campaign?

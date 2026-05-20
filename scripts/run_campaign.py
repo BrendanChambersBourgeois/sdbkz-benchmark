@@ -3,8 +3,12 @@
 
 Replaces the per-cell launcher scripts (`run_cliff_500bit.py`,
 `run_n100_beta40.py`, `run_q3329_n90.py`, `run_q3329_n100_local.py`,
-`run_overnight_q3329_intermediate_1000bit.py`,
-`run_fplll54_sensitivity.py`, ...) with one parametrised driver.
+`run_overnight_q3329_intermediate_1000bit.py`) with one parametrised
+driver. The fplll-sensitivity campaign still lives at
+`scripts/run_fplll54_sensitivity.py` because its cross-image
+baseline-comparison logic is not parametrically dispatchable; this
+dispatcher prints the Docker build + invoke recipe for that
+campaign and exits.
 
 Usage examples (every campaign declared in `config/sweep.toml` is
 dispatchable):

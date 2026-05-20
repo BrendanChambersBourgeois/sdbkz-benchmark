@@ -1,12 +1,25 @@
 #!/usr/bin/env python3
-"""
-q=3329 verification run — matches sweep_parallel.py exactly.
+"""q=3329 verification runner — q-aware sweep workhorse.
 
-Run with:
+Generic over (q, precision, max_tours): handles the q=3329 ML-KEM
+characterisation (default), q=97 cliff500 precision robustness, and
+q=97 main-grid cells when called by `scripts/run_campaign.py`.
+Same `_bkz_core.run_single` chain as `sweep_parallel.py`; differs only
+in defaults + per-seed output dir resolution.
+
+Run direct (uses the script's defaults: q=3329, n=50, β=30, seeds=20):
     nice -n 19 python3 scripts/q3329_verify.py &
 
-Safe to run alongside the main sweep. Single-threaded, lowest priority.
-Outputs to <repo_root>/results/q3329/.
+Override via argparse:
+    python3 scripts/q3329_verify.py --n 100 --beta 30 \\
+        --seeds 100 --precision 1000 --q 3329
+
+Safe to run alongside the main sweep. Single-threaded by default;
+the dispatcher path may run multiple instances in parallel.
+
+Output path (resolved via `_seed_paths.seed_dir_for`):
+    results/seeds/q3329/p{PRECISION}_mt{MAX_TOURS}/n{N:03d}_beta{BETA:02d}/seed{seed:04d}.json
+    results/seeds/main/q97/n{N:03d}_beta{BETA:02d}/seed{seed:04d}.json   (with --q 97)
 """
 import datetime
 import json

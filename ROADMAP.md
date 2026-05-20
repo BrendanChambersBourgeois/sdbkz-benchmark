@@ -23,7 +23,7 @@ See [`CHANGELOG.md`](CHANGELOG.md) for per-release details (Keep-a-Changelog for
 
 | target | scope |
 |--------|-------|
-| Unreleased | v2.0.0 candidate, local-only on `main`. Six commits since v1.5.2: Phase 4 CI gates (mypy / ruff / cov / figure-parity), paper §Limitations eight-dim fold, estimator extrapolation + monotone clamp, TOML campaign config foundation (`config/sweep.toml` + `scripts/_config.py`), v2.0.0 layout drop (4,387 back-compat symlinks deleted across 14 dirs; canonical `results/seeds/<campaign>/...` is the sole source of truth; `results/seed_path_crosswalk.csv` is the permanent old→new reconciler). Paper §Reproducibility extended; CI validate_seeds step rewritten to walk the campaign tree. Held local pending end-of-cycle bug+value audit. |
+| Unreleased | v2.0.0 candidate, local-only on `main`. Twenty unpushed commits since v1.5.2: Phase 4 CI gates (mypy / ruff / cov / figure-parity), paper §Limitations eight-dim fold, estimator extrapolation + monotone clamp, TOML campaign config foundation (`config/sweep.toml` + `scripts/_config.py`), v2.0.0 layout drop (4,387 back-compat symlinks deleted across 14 dirs; canonical `results/seeds/<campaign>/...` is the sole source of truth; `results/seed_path_crosswalk.csv` is the permanent old→new reconciler), 6-subagent pre-tag audit + Tier 1/2 fixes, script consolidation (`scripts/run_*.py` 15 → 6; single dispatcher `scripts/run_campaign.py`), 5 one-shot verification scripts moved to `scripts/archive/`, q=3329 §8 clamp regression gate (3 new tests). Paper §Reproducibility extended; CI validate_seeds step rewritten to walk the campaign tree. Held local pending end-of-cycle bug+value audit and push cue. |
 
 ## Planned next
 
