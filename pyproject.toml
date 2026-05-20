@@ -42,3 +42,20 @@ ignore = [
 "scripts/confirm_v1_2.py" = ["E501", "F841"]
 "scripts/test_math_core_parity.py" = ["E402"]
 "scripts/test_log_clamp_wrappers.py" = ["E402"]
+
+[tool.mypy]
+# Strict mypy is enforced only on the load-bearing numerical-core modules
+# that the paper's SHA-256 reproducibility chain pivots on. Wider
+# coverage is deferred to v2 (see `feedback_type_hints_opportunistic.md`
+# memory record + ROADMAP Phase 4). The four targets below are pinned in
+# `.github/workflows/build-and-verify.yml`; any expansion should land in
+# a follow-up commit so revert is single-step if a new gate misfires.
+files = [
+    "scripts/_math_core.py",
+    "scripts/_bkz_core.py",
+    "scripts/_runner_core.py",
+    "scripts/_signal_utils.py",
+]
+strict = true
+follow_imports = "silent"
+ignore_missing_imports = true

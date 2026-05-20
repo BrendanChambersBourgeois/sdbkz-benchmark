@@ -38,6 +38,9 @@ import sys
 import time
 from contextlib import contextmanager
 from multiprocessing import Pool
+from multiprocessing.pool import Pool as PoolT
+from types import FrameType
+from typing import Any, Iterator, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger  # noqa: E402
@@ -50,16 +53,20 @@ TERMINATE_GRACE_S: float = 2.0
 
 
 @contextmanager
-def managed_pool(*pool_args, label: str = "pool", **pool_kwargs):
+def managed_pool(
+    *pool_args: Any,
+    label: str = "pool",
+    **pool_kwargs: Any,
+) -> Iterator[PoolT]:
     """Context manager: Pool with SIGINT / SIGTERM handling.
 
     `label` shows up in the abort log message; pass the runner's
     name (e.g. "cliff_500bit") for easy correlation.
     """
     pool = Pool(*pool_args, **pool_kwargs)
-    aborted = {"signal": None}
+    aborted: dict[str, Optional[int]] = {"signal": None}
 
-    def _handler(signum, frame):
+    def _handler(signum: int, frame: Optional[FrameType]) -> None:
         if aborted["signal"] is not None:
             # Second signal — escalate to immediate exit.
             print(f"\n  {label}: second signal received, hard-exiting",

@@ -53,7 +53,7 @@ from multiprocessing import Pool
 from typing import Any, Callable, Iterable
 
 
-def _worker(args: tuple[Callable, int, int, int, str, bool]) -> dict[str, Any]:
+def _worker(args: tuple[Callable[..., Any], int, int, int, str, bool]) -> dict[str, Any]:
     run_single, n, beta, seed, out_path, store_per_tour = args
     t0 = time.time()
     try:
@@ -81,7 +81,7 @@ def _worker(args: tuple[Callable, int, int, int, str, bool]) -> dict[str, Any]:
 def run_pool(
     *,
     label: str,
-    run_single: Callable,
+    run_single: Callable[..., Any],
     n: int,
     beta: int,
     seeds: Iterable[int],
@@ -92,8 +92,8 @@ def run_pool(
     precision: int = 250,
     store_per_tour: bool = False,
     alt_done_dir: str | None = None,
-    extra_banner: dict | None = None,
-    logger=None,
+    extra_banner: dict[str, Any] | None = None,
+    logger: Any = None,
 ) -> None:
     """Run ``run_single`` over ``seeds`` in parallel workers.
 

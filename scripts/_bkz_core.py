@@ -107,7 +107,7 @@ def run_single(
     L, _, _ = build_lwe_kannan(n, m, q, seed=seed)
     ln_p = ln_fixed_point(n + 1, beta)
 
-    result = {
+    result: dict[str, Any] = {
         "n": n, "beta": beta, "seed": seed, "q": q, "max_tours": max_tours,
         "precision": precision, "dim": dim, "m": m, "status": "completed",
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -120,7 +120,7 @@ def run_single(
     if store_per_tour or always_emit_store_per_tour:
         result["store_per_tour"] = bool(store_per_tour)
 
-    def _metrics(M, full):
+    def _metrics(M: Any, full: bool) -> dict[str, Any]:
         return metrics_from_gso(M, dim, m, ln_p, full=full,
                                 log_clamp_fn=log_clamp_fn,
                                 warn_on_clamp=warn_on_clamp)

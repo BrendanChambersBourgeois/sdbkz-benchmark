@@ -107,6 +107,16 @@ jobs:
           python3 -m pip install --upgrade ruff
           ruff check scripts/ analysis/
 
+      - name: Type check (mypy --strict) — numerical core modules
+        run: |
+          # Strict mypy is gated only on the four numerical-core files
+          # the paper's SHA-256 reproducibility chain pivots on; see
+          # pyproject.toml [tool.mypy]. Wider coverage is intentionally
+          # deferred — `feedback_type_hints_opportunistic.md` documents
+          # the on-touch policy for the rest of the tree.
+          python3 -m pip install --upgrade mypy
+          python3 -m mypy
+
       - name: Unit tests (pytest) — fast edge-case coverage
         run: |
           # tests/ covers _math_core + _bkz_core corner cases, manifest
