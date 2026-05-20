@@ -10,7 +10,7 @@ import json
 import os
 import sys
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(REPO, "scripts"))
 from _seed_paths import seed_path_for  # noqa: E402
 from log import get_logger  # noqa: E402

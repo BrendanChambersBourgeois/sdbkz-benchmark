@@ -43,7 +43,7 @@ import subprocess
 import sys
 import time
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SCRIPTS = os.path.join(REPO, "scripts")
 sys.path.insert(0, SCRIPTS)
 

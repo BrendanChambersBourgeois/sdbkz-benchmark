@@ -19,7 +19,7 @@ Usage: python3 scripts/test_math_core_parity.py
 import os
 import sys
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(REPO, "scripts"))
 
 from log import get_logger  # noqa: E402

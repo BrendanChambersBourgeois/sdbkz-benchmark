@@ -40,10 +40,10 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # Test + confirmation scripts build inline Python source strings; keep
-# lenient.
-"scripts/confirm_v1_2.py" = ["E501", "F841"]
-"scripts/test_math_core_parity.py" = ["E402"]
-"scripts/test_log_clamp_wrappers.py" = ["E402"]
+# lenient. Live under scripts/archive/ post-v2.0.0 consolidation.
+"scripts/archive/confirm_v1_2.py" = ["E501", "F841"]
+"scripts/archive/test_math_core_parity.py" = ["E402"]
+"scripts/archive/test_log_clamp_wrappers.py" = ["E402"]
 
 [tool.pytest.ini_options]
 # Pytest discovery + coverage defaults. The --cov gate in the CI
