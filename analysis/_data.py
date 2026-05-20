@@ -230,12 +230,13 @@ def load_all_seeds(*args: Any, **kwargs: Any) -> Groups:
 
     Legacy (pre-v1.3) — positional directory args::
 
-        groups = load_all_seeds("results/raw", "results/cloud", min_seeds=1)
+        groups = load_all_seeds("/some/external/dir", min_seeds=1)
 
-    Globs every `n*_beta*_seed*.json` under each dir, dedup by basename
-    (raw/ wins over cloud/ on collision), skips non-q=97 files. Still
-    supported — works transparently through the v1.3 back-compat
-    symlinks at the old paths.
+    Globs every `n*_beta*_seed*.json` under each dir, dedup by basename,
+    skips non-q=97 files. Still supported for off-tree datasets. The
+    pre-v1.3 `results/raw/` + `results/cloud/` directories were deleted
+    at v2.0.0 alongside the back-compat symlinks; pass explicit paths
+    only for one-off external seed sets.
 
     v1.3 manifest mode — keyword args::
 

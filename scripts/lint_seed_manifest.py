@@ -87,11 +87,15 @@ ALLOWLIST_BASENAMES = frozenset({
 
 ALLOWLIST_PREFIXES = ("summary_",)  # summary_n50_beta30.json etc.
 
-# 10 legacy 3x_tours pilot seeds (missing `q` field) that were
-# superseded by the 500-seed extended run. They remain on disk for
-# history and are intentionally not in the manifest.
-ALLOWLIST_LEGACY_PATHS = frozenset({
-    os.path.join("results", "3x_tours", f"n60_beta30_seed{i}.json")
+# 10 legacy 3x_tours pilot seeds (missing `q` field) preserved at
+# `results/seeds/tours3x/pilot/` after the v2.0.0 symlink drop relocated
+# them from the deleted `results/3x_tours/` back-compat tree. They are
+# intentionally not in the manifest (the schema requires `q` and would
+# reject these stubs) but stay on disk per the never-delete-experimental-
+# data convention.
+ALLOWLIST_LEGACY_PATHS: frozenset[str] = frozenset({
+    os.path.join("results", "seeds", "tours3x", "pilot",
+                 f"n60_beta30_seed{i}.json")
     for i in range(1, 11)
 })
 

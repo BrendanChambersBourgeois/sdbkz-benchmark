@@ -28,7 +28,100 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
+**Pre-draft for v2.0.0** — the entries below mark the next release as
+a major version bump because the seed layout is a hard break with
+v1.5.x. Move this block to `## [2.0.0] — YYYY-MM-DD` at tag time and
+restore an empty `## Unreleased` above it.
+
+**Breaking layout change.** The v1.3-era back-compat symlink tree at
+`results/{raw,cloud,q3329,q3329_n*_beta*,q3329_degenerate,cliff_500bit,
+fplll5*_sensitivity,3x_tours,3x_tours_extended,convergence,
+convergence_test}/` has been deleted. The canonical seed layout is now
+`results/seeds/<campaign>/...` exclusively. `results/seed_path_crosswalk.csv`
+(committed) is the permanent old→new reconciler for any external
+citation that references a pre-v2 path.
+
+### Removed
+- 4,387 back-compat symlinks across 14 legacy top-level directories.
+  All pointed into the v1.3 canonical tree; removing them is a layout
+  change only (no per-seed JSON deleted; the underlying data lives
+  at `results/seeds/<campaign>/<...>/seedNNNN.json` as before).
+- `scripts/lint_seed_manifest.ALLOWLIST_LEGACY_PATHS` legacy entries
+  retired; the allowlist now points only at the 10 3x_tours pilot
+  seeds (`results/seeds/tours3x/pilot/`) which were physically
+  relocated from the deleted `results/3x_tours/` legacy dir.
+- Legacy `--seed-dirs` default of `["results/raw", "results/cloud"]`
+  on `analysis/gsa_robustness.py` and the matching docstring on
+  `analysis/_data.load_all_seeds`.
+
+### Changed
+- **`analysis/_data.load_all_seeds`** — pre-v1.3 positional `(raw_dir,
+  cloud_dir, ...)` mode is now an off-tree-only escape hatch. The
+  canonical call form is `load_all_seeds(campaign="<name>", q=97)`
+  against `results/seed_manifest.json`.
+- **`scripts/sweep_parallel.scan_completed`** — legacy `results/raw/`
+  glob fallback retired. Resumability now walks the v1.3 tree only.
+- **`scripts/sweep_cloud.s3_key` + `scripts/submit_jobs.check_completed`** —
+  S3 prefixes routed through `_seed_paths.seed_path_for`. Cloud
+  campaign is decommissioned (since 2026-04-10); these are dead code
+  paths today but will land seeds at the campaign-tree prefix on any
+  future restart, matching on-disk layout byte-for-byte.
+- **`scripts/confirm_extra_compare.GROUPS`** — archive paths rewritten
+  to thread per-seed kwargs through `_seed_paths.seed_path_for` at
+  comparison time (cloud + q3329 + cliff500 variants).
+- **`scripts/confirm_v1_2._q3329_n90_group` + `_cliff_500_group`** —
+  archive locations routed through `_seed_paths.seed_path_for` against
+  `results/seeds/q3329/p1000_mt70/n090_beta30/` and
+  `results/seeds/cliff500/q97/n130_beta40/` respectively.
+- **`scripts/q3329_verify.SUMMARY_DIR`** — write target moved from the
+  deleted `results/q3329/` to `results/seeds/q3329/summary/`.
+- **`scripts/q3329_verify` q=97 baseline comparison** — glob-fallback
+  chain replaced with a single `load_all_seeds(campaign="main")` call.
+- **`examples/01_inspect_one_seed.py`**, **`examples/02_compare_two_groups.py`**,
+  **`examples/03_plot_basis_profile.py`** — argparse gains `--campaign`
+  (default `main`); inline `results/raw + results/cloud` fallback
+  replaced with `load_all_seeds(campaign=, q=97)` manifest queries.
+- **`paper/latex/sdbkz_paper_latex.tex` + `paper/sdbkz_paper.html` §Reproducibility** —
+  one-paragraph addition documenting the seed-layout convention and
+  pointing readers at `results/seed_path_crosswalk.csv` for pre-v2
+  citation reconciliation. LaTeX rebuilt to 32 pages.
+- **`COOKBOOK.md`** — three recipes rewritten to use
+  `load_all_seeds(campaign=, q=97)` against the manifest instead of
+  the deleted `glob.glob("results/raw/...")` pattern.
+- **`.github/workflows/build-and-verify.yml`** — `Validate committed
+  seed files` step rewritten to walk `results/seeds/<campaign>/` dirs
+  rather than the deleted top-level legacy dirs.
+- **`hash_verification.txt`** (both repo-root + `results/`) — footer
+  block documents the canonical v2.0.0 seed path and the crosswalk CSV
+  as the pre-v2 reconciler. SHA-256 hashes themselves are content-
+  derived and remain bit-identical.
+
+### Preserved (moved, not deleted, per CLAUDE.md never-delete rule)
+- 10 pilot seeds `results/3x_tours/n60_beta30_seed{1..10}.json` →
+  `results/seeds/tours3x/pilot/n60_beta30_seed{N}.json`.
+- 8 summary JSONs from `results/3x_tours/` →
+  `results/seeds/tours3x/summary/`.
+- `results/q3329/summary_q3329.json` →
+  `results/seeds/q3329/summary/summary_q3329.json`.
+- `results/q3329_degenerate/README.md` →
+  `results/seeds/q3329/q3329_degenerate_README.md`.
+- `results/convergence/summary_convergence.json` →
+  `results/seeds/convergence/summary/summary_convergence.json`.
+- `results/convergence_test/summary_convergence.json` →
+  `results/seeds/convergence/summary/summary_convergence_test.json`.
+
 ### Added
+- **`tests/test_v2_path_migration.py`** (new, 8 cases) — static scan
+  rejects any future `glob.glob` / `open` / `os.path.exists` /
+  `os.listdir` / `os.scandir` reference to the 14 deleted directories;
+  `_seed_paths.seed_path_for` contract assertions for the four
+  campaign × (n, β) tuples touched in this migration; subprocess
+  smoke against the three migrated example scripts.
+
+### Added (pre-v2 changes that accumulated under the Unreleased
+heading before the v2.0.0 layout work landed; carried over verbatim
+into the v2.0.0 bundle since they ship in the same tag)
+
 - **`config/sweep.toml`** (new top-level file) — single-source TOML
   capture of every campaign's `(n_grid, beta_grid, q, precision,
   tours_by_beta, num_seeds, store_per_tour)` tuple. Seven campaigns

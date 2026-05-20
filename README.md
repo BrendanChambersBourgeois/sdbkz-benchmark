@@ -79,6 +79,8 @@ flowchart LR
 
 Every writer routes through `scripts/_seed_paths.py::seed_path_for()`. Every reader queries the manifest. Cross-validation via SHA-256 on read. The campaign tree (`main`, `q3329`, `cliff500`, `fplll_sensitivity`, `tours3x`, `convergence`) is the single source of truth post-v1.3.
 
+**v2.0.0 layout change.** The pre-v1.3 top-level seed directories (`results/raw/`, `results/cloud/`, `results/q3329/`, `results/cliff_500bit/`, `results/3x_tours/`, `results/convergence/`, `results/convergence_test/`, `results/fplll5*_sensitivity/`, etc.) lived as back-compat symlinks from v1.3 through v1.5.2 to give external citations time to re-path. They were retired at v2.0.0; `results/seed_path_crosswalk.csv` (4,387 rows, committed) is the permanent old→new reconciler. Any paper-era reference to a pre-v2 path resolves through that crosswalk to the canonical `results/seeds/<campaign>/...` location.
+
 ## License
 
 - **Code** (scripts, analysis, Docker, patches): [MIT](LICENSE)

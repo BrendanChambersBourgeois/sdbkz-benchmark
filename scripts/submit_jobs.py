@@ -74,7 +74,6 @@ def check_completed(n, beta, q=97):
     S3 tree matches the on-disk one byte-for-byte.
     """
     import re
-
     import sys as _sys
     _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from _seed_paths import seed_dir_for

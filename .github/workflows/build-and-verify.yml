@@ -180,25 +180,32 @@ jobs:
 
       - name: Validate committed seed files (schema + integrity)
         run: |
-          # Runs validate_seeds.py in --strict mode against all seed
-          # directories committed to the repo. Catches: invalid JSON,
-          # missing schema keys, incomplete status, filename/content
-          # mismatch, non-finite advantages, within-dataset duplicates,
-          # and SHA-256 spot-check against 3 reference seeds.
-          # Mount the checkout so committed seed files are visible inside
-          # the container. The image only ships scripts/, not results/.
-          # Sweep + q3329 + convergence: strict (no known warnings)
+          # Runs validate_seeds.py in --strict mode across the v1.3
+          # campaign tree. Catches: invalid JSON, missing schema keys,
+          # incomplete status, filename/content mismatch, non-finite
+          # advantages, within-dataset duplicates, and SHA-256 spot-check
+          # against 3 reference seeds. Mount the checkout so committed
+          # seed files are visible inside the container.
+          #
+          # v2.0.0: pre-drop the step iterated 5+1 legacy top-level dirs
+          # (results/raw, results/cloud, results/q3329, ...) that were
+          # symlinks into the v1.3 tree. The destructive `rm -rf` step
+          # deleted those legacy dirs and the crosswalk CSV
+          # (results/seed_path_crosswalk.csv) is the permanent old→new
+          # reconciler. Validation now walks the campaign tree directly.
           docker run --rm -v "${{ github.workspace }}:/repo" -w /repo \
             sdbkz-benchmark:ci python3 scripts/validate_seeds.py \
             --strict --sha-check \
-            results/raw/ results/q3329/ \
-            results/convergence/ results/convergence_test/ \
-            results/q3329_degenerate/
-          # 3x_tours: non-strict (10 known legacy duplicate warnings from
-          # original seeds co-existing with extended seeds at same n/beta/seed)
+            results/seeds/main/ results/seeds/q3329/ \
+            results/seeds/cliff500/ results/seeds/convergence/ \
+            results/seeds/fplll_sensitivity/
+          # tours3x: non-strict (legacy duplicate warnings carried over
+          # from the pre-v1.3 pilot seeds co-existing with extended seeds
+          # at the same (n, β, seed); preserved offline at
+          # results/seeds/tours3x/ alongside the pilot manifest entries).
           docker run --rm -v "${{ github.workspace }}:/repo" -w /repo \
             sdbkz-benchmark:ci python3 scripts/validate_seeds.py \
-            --sha-check results/3x_tours/
+            --sha-check results/seeds/tours3x/
 
       - name: Paper figure parity gate (paper/fig*.png ↔ analysis/figures/)
         run: |

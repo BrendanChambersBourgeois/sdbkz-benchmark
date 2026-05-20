@@ -12,8 +12,8 @@ import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO, "scripts"))
-from log import get_logger  # noqa: E402
 from _seed_paths import seed_path_for  # noqa: E402
+from log import get_logger  # noqa: E402
 
 PIPELINE = get_logger("confirm_extra_compare")
 

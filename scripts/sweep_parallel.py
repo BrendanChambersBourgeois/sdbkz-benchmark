@@ -3,7 +3,7 @@
 Parallel multi-seed BKZ vs SDBKZ dimension sweep.
 
 Experiment: 11 dimensions x 3 block sizes x 100 seeds = 3300 runs
-Fully resumable — scans results/raw/ at startup and skips completed work.
+Fully resumable — scans results/seeds/main/q97/ at startup and skips completed work.
 
 Usage:
     python3 sweep_parallel.py              # run full sweep

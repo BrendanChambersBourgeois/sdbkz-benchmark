@@ -112,3 +112,10 @@
 
 # Matched: 100/100
 # Verification: PASSED — all seeds bit-identical across environments
+
+# v2.0.0 path convention (2026-05-20):
+# Canonical seed location is now `results/seeds/main/q97/n100_beta20/seedNNNN.json`.
+# Pre-v1.3 paths (`results/raw/n100_beta20_seedN.json` /
+# `results/cloud/n100_beta20_seedN.json`) were deleted alongside the
+# v2.0.0 symlink drop; `results/seed_path_crosswalk.csv` is the
+# permanent old→new reconciler for paper-era citations.
