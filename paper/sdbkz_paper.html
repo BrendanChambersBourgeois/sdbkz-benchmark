@@ -593,6 +593,8 @@ The Root Hermite Factor (RHF), the dominant quality metric for lattice basis red
 
 <p>A variance-check fill added 22 extra seeds (indices 101&ndash;122) to the four groups where the paper&rsquo;s statistical claims are most load-bearing: n&nbsp;=&nbsp;100 &beta;&nbsp;=&nbsp;30 (peak of the &beta;&nbsp;=&nbsp;30 trajectory), n&nbsp;=&nbsp;100 &beta;&nbsp;=&nbsp;40, n&nbsp;=&nbsp;110 &beta;&nbsp;=&nbsp;40 (peak of the &beta;&nbsp;=&nbsp;40 trajectory), and n&nbsp;=&nbsp;130 &beta;&nbsp;=&nbsp;40 (depth of the &beta;&nbsp;=&nbsp;40 cliff). Reported means, confidence intervals, and win rates at these groups are computed from 122 seeds rather than the baseline 100; the qualitative picture (peak locations, cliff structure, sign of the advantage) is unchanged, and point estimates shift by less than the original 100-seed standard error.</p>
 
+<p>Seed-layout note: per-seed JSONs live under <code>results/seeds/&lt;campaign&gt;/...</code> in the v2.0.0 layout, with one campaign per (data-intent, modulus, precision, tour-budget) combination. The pre-v1.3 <code>results/raw/</code>, <code>results/cloud/</code>, and <code>results/q3329_*/</code> top-level directories were back-compat symlinks during v1.3&ndash;v1.5 and were retired at v2.0.0; <code>results/seed_path_crosswalk.csv</code> (committed) is the permanent old&rarr;new reconciler for any external citation that references a pre-v2 path.</p>
+
 <!-- ═══════════════════ 10. CONCLUSION ═══════════════════ -->
 
 <h2>10. Conclusion</h2>

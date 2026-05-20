@@ -3,7 +3,7 @@
 Parallel multi-seed BKZ vs SDBKZ dimension sweep.
 
 Experiment: 11 dimensions x 3 block sizes x 100 seeds = 3300 runs
-Fully resumable — scans results/raw/ at startup and skips completed work.
+Fully resumable — scans results/seeds/main/q97/ at startup and skips completed work.
 
 Usage:
     python3 sweep_parallel.py              # run full sweep
@@ -114,12 +114,12 @@ def result_path(n: int, beta: int, seed: int) -> str:
 def scan_completed() -> set[tuple[int, int, int]]:
     """Return set of (n, beta, seed) tuples already completed.
 
-    Walks the v1.3 layout first (results/seeds/main/q97/...) and falls
-    back to the legacy results/raw/ scan so resumability works during
-    the transition window (until the old-path symlinks are dropped at
-    v2). Seeds under `_cloud` suffixes are treated as the same (n, β,
-    seed) triple — the paper §3.7 dual-copy preservation means one
-    completion is enough to skip re-running.
+    Walks the v1.3 layout (results/seeds/main/q97/...). The legacy
+    results/raw/ glob fallback was retired at v2.0.0 alongside the
+    symlink drop; the back-compat tree no longer exists. Seeds under
+    `_cloud` suffixes are treated as the same (n, β, seed) triple —
+    the paper §3.7 dual-copy preservation means one completion is
+    enough to skip re-running.
     """
     done = set()
     # v1.3 layout: results/seeds/main/q97/n{n:03d}_beta{beta:02d}/seed{seed:04d}[_cloud].json
@@ -132,20 +132,6 @@ def scan_completed() -> set[tuple[int, int, int]]:
             beta = int(parent.split("_")[1][4:])
             seed_digits = leaf.replace(".json", "").replace("_cloud", "")
             seed = int(seed_digits[4:])  # drop "seed" prefix
-            done.add((n, beta, seed))
-        except (IndexError, ValueError):
-            continue
-    # Legacy scan for any seeds not yet migrated (should be empty
-    # post-ac52379, but keeps resumability honest on partial trees).
-    for fp in glob.glob(os.path.join(RAW_DIR, "n*_beta*_seed*.json")):
-        if os.path.islink(fp):
-            continue  # already counted via the seeds/ walk above
-        fname = os.path.basename(fp)
-        try:
-            parts = fname.replace(".json", "").split("_")
-            n = int(parts[0][1:])
-            beta = int(parts[1][4:])
-            seed = int(parts[2][4:])
             done.add((n, beta, seed))
         except (IndexError, ValueError):
             continue

@@ -14,19 +14,19 @@ Expected output: PNG saved to examples/output/single_seed_profile.png.
 Runtime: ~2 seconds.
 """
 import argparse
-import json
 import math
 import os
 import sys
 
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import numpy as np
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+sys.path.insert(0, REPO_ROOT)
 
 
 def main():
@@ -34,21 +34,22 @@ def main():
     parser.add_argument("--n", type=int, default=100)
     parser.add_argument("--beta", type=int, default=30)
     parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument("--campaign", default="main",
+                        help="Manifest campaign to query (default: main)")
     args = parser.parse_args()
 
-    candidates = [
-        os.path.join(REPO_ROOT, "results", "raw",
-                     f"n{args.n}_beta{args.beta}_seed{args.seed}.json"),
-        os.path.join(REPO_ROOT, "results", "cloud",
-                     f"n{args.n}_beta{args.beta}_seed{args.seed}.json"),
-    ]
-    path = next((p for p in candidates if os.path.isfile(p)), None)
-    if path is None:
-        print(f"ERROR: no result for n={args.n}, beta={args.beta}, seed={args.seed}")
-        sys.exit(1)
+    from analysis._data import load_all_seeds  # noqa: E402
 
-    with open(path) as f:
-        d = json.load(f)
+    groups = load_all_seeds(campaign=args.campaign, q=97)
+    key = (args.n, args.beta)
+    if key not in groups:
+        print(f"ERROR: no (n={args.n}, beta={args.beta}) group in "
+              f"campaign={args.campaign}")
+        sys.exit(1)
+    d = next((s for s in groups[key] if s.get("seed") == args.seed), None)
+    if d is None:
+        print(f"ERROR: no seed={args.seed} in (n={args.n}, beta={args.beta})")
+        sys.exit(1)
 
     gs_bkz = np.array(d["gs_lognorms_bkz"])
     gs_sd = np.array(d["gs_lognorms_sdbkz"])

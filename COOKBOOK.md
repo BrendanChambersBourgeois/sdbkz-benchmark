@@ -50,7 +50,7 @@ NS = [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160]
 #                                                          ^ new
 ```
 
-Then run `nohup python3 scripts/sweep_parallel.py > logs/nohup.out 2>&1 &`. The script is resumable — it skips seeds already in `results/raw/`.
+Then run `nohup python3 scripts/sweep_parallel.py > logs/nohup.out 2>&1 &`. The script is resumable — it skips seeds already present under `results/seeds/main/q97/`.
 
 ---
 
@@ -101,15 +101,19 @@ python3 scripts/submit_jobs.py --n 100 --beta 30 --q 3329 --precision 1000
 3. Register it in `generate_all()` near the other `print("--- Figure N ...")` lines
 4. Run `python3 analysis/paper_figures.py` to regenerate
 
-The `groups` argument is a `dict[(n, beta)] -> list[seed_dict]` produced by `load_all_seeds()`. Each `seed_dict` has the keys you'd see in any `results/raw/*.json` file (advantage, bkz_dln_per_tour, rankin_profile_bkz, etc.).
+The `groups` argument is a `dict[(n, beta)] -> list[seed_dict]` produced by `load_all_seeds()`. Each `seed_dict` has the keys you'd see in any per-seed JSON under `results/seeds/main/q97/...` (advantage, bkz_dln_per_tour, rankin_profile_bkz, etc.).
 
 ---
 
 ## I want to inspect what fields are in a result file
 
 ```python
-import json
-d = json.load(open("results/raw/n100_beta30_seed1.json"))
+import sys
+sys.path.insert(0, ".")
+from analysis._data import load_all_seeds
+
+groups = load_all_seeds(campaign="main", q=97)
+d = groups[(100, 30)][0]   # first seed in the (n=100, β=30) cell
 print(sorted(d.keys()))
 ```
 
@@ -120,13 +124,14 @@ Or just run `python3 examples/01_inspect_one_seed.py` which pretty-prints the mo
 ## I want to compute statistics for a custom group selection
 
 ```python
-import sys, glob, json, numpy as np
-sys.path.insert(0, "analysis")
-from stats_analysis import paired_test_against_zero
+import sys, numpy as np
+sys.path.insert(0, ".")
+from analysis._data import load_all_seeds
 
-# Load whatever subset you want
-files = glob.glob("results/raw/n100_beta30_seed*.json")
-advs = np.array([json.load(open(f))["advantage"] for f in files])
+# Load whatever subset you want via the manifest (campaign-keyed
+# since v1.3; the legacy `results/raw/`-style glob is gone post-v2).
+groups = load_all_seeds(campaign="main", q=97)
+advs = np.array([s["advantage"] for s in groups[(100, 30)]])
 
 print(f"mean: {advs.mean():+.4f}, std: {advs.std(ddof=1):.4f}")
 print(f"win rate: {(advs > 0).mean()*100:.0f}%")
@@ -141,7 +146,7 @@ Don't delete experimental data — even if it's wrong. Move it to a quarantine f
 
 ```bash
 mkdir -p results/corrupted
-mv results/raw/<bad-files> results/corrupted/
+mv results/seeds/main/q97/n<bad>_beta<bad>/seed<bad>.json results/corrupted/
 ```
 
 The `results/corrupted/` folder is gitignored. See `CHANGELOG.txt` in the project notes for the q=3329 500-bit precision incidents that drove this convention.

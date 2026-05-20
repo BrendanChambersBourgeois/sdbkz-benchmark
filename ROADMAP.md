@@ -23,14 +23,13 @@ See [`CHANGELOG.md`](CHANGELOG.md) for per-release details (Keep-a-Changelog for
 
 | target | scope |
 |--------|-------|
-| Unreleased | Phase 4 CI gates landed on `phase4/ci-gates` (held local): #9 mypy strict on numerical core, #10 ruff F,W,I,B,UP with 138 violations fixed same-commit, #11 pytest `--cov` 75% floor (96.20% actual), #12 figure-parity already pre-existing in workflow at lines 203–233. Bundle to land in the next minor (v1.6.0) once additional content accrues; no rush since Phase 4 is gating-only and shipping it on its own would be release noise for the same data set as v1.5.2. |
+| Unreleased | v2.0.0 candidate, local-only on `main`. Six commits since v1.5.2: Phase 4 CI gates (mypy / ruff / cov / figure-parity), paper §Limitations eight-dim fold, estimator extrapolation + monotone clamp, TOML campaign config foundation (`config/sweep.toml` + `scripts/_config.py`), v2.0.0 layout drop (4,387 back-compat symlinks deleted across 14 dirs; canonical `results/seeds/<campaign>/...` is the sole source of truth; `results/seed_path_crosswalk.csv` is the permanent old→new reconciler). Paper §Reproducibility extended; CI validate_seeds step rewritten to walk the campaign tree. Held local pending end-of-cycle bug+value audit. |
 
 ## Planned next
 
 | target   | scope                                                                  |
 |----------|------------------------------------------------------------------------|
-| `v1.6.0` | Bundle Phase 4 CI gates (already on `phase4/ci-gates` local) with any follow-up content that lands before the cut. Gate-only release on its own is acceptable if the n=170 / β=50 / variance sweeps don't materialise within a few weeks. |
-| `v2.0.0` | Breaking layout change: drop legacy-path back-compat symlinks, promote `results/seed_path_crosswalk.csv` as permanent record. Coordinated edits across paper §9, CI `validate_seeds` step, `analysis/` argparse defaults, runner path shims, examples + COOKBOOK rewrites. See [`Research/backlog/2026-04-19_v2_symlink_drop.md`](https://github.com/BrendanChambersBourgeois/sdbkz-benchmark) (offline) for the 14-step plan. |
+| `v2.0.0` | Tag the breaking layout change when the local audit + push cue arrives. CHANGELOG `## Unreleased` block already pre-drafted as v2.0.0 with breaking-change callout, Removed/Changed/Preserved/Added sections, and a paper §Reproducibility seed-layout note pointing at `results/seed_path_crosswalk.csv` as the pre-v2 reconciler. |
 
 ## External waits
 

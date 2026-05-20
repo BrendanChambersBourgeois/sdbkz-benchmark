@@ -582,6 +582,8 @@ All source code, the Dockerfile, and verification scripts are available at \url{
 
 A variance-check fill added 22 extra seeds (indices 101--122) to the four groups where the paper's statistical claims are most load-bearing: $n=100$ $\beta=30$ (peak of the $\beta=30$ trajectory), $n=100$ $\beta=40$, $n=110$ $\beta=40$ (peak of the $\beta=40$ trajectory), and $n=130$ $\beta=40$ (depth of the $\beta=40$ cliff). Reported means, confidence intervals, and win rates at these groups are computed from 122 seeds rather than the baseline 100; the qualitative picture (peak locations, cliff structure, sign of the advantage) is unchanged, and point estimates shift by less than the original 100-seed standard error.
 
+Seed-layout note: per-seed JSONs live under \texttt{results/seeds/<campaign>/...} in the v2.0.0 layout, with one campaign per (data-intent, modulus, precision, tour-budget) combination. The pre-v1.3 \texttt{results/raw/}, \texttt{results/cloud/}, and \texttt{results/q3329\_*}/ top-level directories were back-compat symlinks during v1.3--v1.5 and were retired at v2.0.0; \texttt{results/seed\_path\_crosswalk.csv} (committed) is the permanent old$\to$new reconciler for any external citation that references a pre-v2 path.
+
 \section{Conclusion}
 \label{sec:conclusion}
 

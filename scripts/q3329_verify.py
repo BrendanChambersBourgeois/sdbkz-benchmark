@@ -65,7 +65,10 @@ OUTPUT_DIR = seed_dir_for(
     precision=PRECISION, max_tours=MAX_TOURS, base=BASE,
 )
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-SUMMARY_DIR = os.path.join(BASE, "results", "q3329")
+# Summary lands under the canonical campaign tree (post-v2.0.0 the
+# legacy results/q3329/ dir does not exist; this script's own
+# campaign root is the correct write target).
+SUMMARY_DIR = os.path.join(BASE, "results", "seeds", "q3329", "summary")
 os.makedirs(SUMMARY_DIR, exist_ok=True)
 CLAMP_LOG_FILE = os.path.join(BASE, "results", "clamp_events.jsonl")
 
@@ -174,23 +177,22 @@ def main():
         print(f"  Win rate:        {np.mean(adv > 0)*100:.1f}%")
         print(f"  Min / Max:       {np.min(adv):.4f} / {np.max(adv):.4f}")
         print()
-        # Show q=97 baseline for the same (n, beta) if available
+        # Show q=97 baseline for the same (n, beta) if available.
+        # v2.0.0: routed through the manifest instead of legacy globs.
         try:
-            import glob as _glob
-            _base_files = _glob.glob(os.path.join(BASE, "results", "raw", f"n{N}_beta{BETA}_seed*.json"))
-            if not _base_files:
-                # Post-2026-04-08 restructure: cloud results live at
-                # results/cloud/, not the legacy top-level results_cloud/
-                _base_files = _glob.glob(os.path.join(BASE, "results", "cloud", f"n{N}_beta{BETA}_seed*.json"))
-            if _base_files:
-                _base_advs = [json.load(open(f))["advantage"] for f in _base_files]
+            import sys as _sys
+            _sys.path.insert(0, os.path.join(BASE))
+            from analysis._data import load_all_seeds as _las
+            _baseline = _las(campaign="main", q=97).get((N, BETA), [])
+            if _baseline:
+                _base_advs = [s["advantage"] for s in _baseline]
                 _ba = np.array(_base_advs)
                 print(f"  q=97 baseline (n={N}, beta={BETA}, {len(_ba)} seeds):  "
                       f"mean={np.mean(_ba):.3f}, win={np.mean(_ba > 0)*100:.0f}%")
             else:
-                print(f"  q=97 baseline (n={N}, beta={BETA}):  no local data")
+                print(f"  q=97 baseline (n={N}, beta={BETA}):  no manifest data")
         except Exception:
-            print("  q=97 baseline:  could not load")
+            print("  q=97 baseline:  could not load via manifest")
         print(f"  q={Q} result:                   mean={np.mean(adv):.3f}, "
               f"win={np.mean(adv > 0)*100:.0f}%")
 

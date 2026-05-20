@@ -12,21 +12,41 @@ import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO, "scripts"))
+from _seed_paths import seed_path_for  # noqa: E402
 from log import get_logger  # noqa: E402
 
 PIPELINE = get_logger("confirm_extra_compare")
 
 STRIP = {"timestamp", "bkz_time", "sdbkz_time"}
 
+
+def _path(spec: dict, s: int) -> str:
+    """Resolve one (group, seed-id) pair to its archive path.
+
+    v2.0.0: routes through `_seed_paths.seed_path_for` so the canonical
+    v1.3 tree under `results/seeds/<campaign>/` is the single source of
+    truth. Legacy `results/cloud/...` + `results/q3329_n*_beta30/...`
+    paths were deleted alongside the symlink drop.
+    """
+    return seed_path_for(**spec, seed=s)
+
+
+# Per-group spec — kwargs forwarded to seed_path_for at lookup time.
+# Cloud seeds carry the `_cloud` suffix; main-campaign main-sweep seeds
+# do not. q3329 + cliff500 land in their own campaign trees.
 GROUPS = [
-    ("n=110 β=40", "results/cloud/n110_beta40_seed{s}.json",
+    ("n=110 β=40",
+     {"campaign": "main", "n": 110, "beta": 40, "cloud": True},
      "/tmp/confirm_v1_2/sp_n110_b40_s{s}.json"),
-    ("n=130 β=40", "results/cloud/n130_beta40_seed{s}.json",
+    ("n=130 β=40",
+     {"campaign": "main", "n": 130, "beta": 40, "cloud": True},
      "/tmp/confirm_v1_2/sp_n130_b40_s{s}.json"),
-    ("q=3329 n=90 1000-bit", "results/q3329_n90_beta30/n90_beta30_q3329_seed{s}.json",
+    ("q=3329 n=90 1000-bit",
+     {"campaign": "q3329", "n": 90, "beta": 30, "q": 3329,
+      "precision": 1000, "max_tours": 70},
      "/tmp/confirm_v1_2/q3329_n90_b30_s{s}.json"),
     ("cliff 500-bit n=130 β=40",
-     "results/cliff_500bit/n130_beta40_q97_seed{s}.json",
+     {"campaign": "cliff500", "n": 130, "beta": 40},
      "/tmp/confirm_v1_2/cliff_500_n130_b40_s{s}.json"),
 ]
 
@@ -45,11 +65,11 @@ def main():
     total_ok = 0
     total_fail = 0
     fails = []
-    for label, archive_tmpl, staging_tmpl in GROUPS:
+    for label, archive_spec, staging_tmpl in GROUPS:
         print(f"\n=== {label} ===")
         ok = 0
         for s in range(1, 6):
-            arch = os.path.join(REPO, archive_tmpl.format(s=s))
+            arch = os.path.join(REPO, _path(archive_spec, s))
             stage = staging_tmpl.format(s=s)
             if not os.path.exists(arch):
                 print(f"  seed {s}: archive missing")

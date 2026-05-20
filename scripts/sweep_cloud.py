@@ -106,9 +106,14 @@ def _watchdog_thread(timeout: float) -> None:
 # S3 helpers
 # ---------------------------------------------------------------------------
 def s3_key(n: int, beta: int, seed: int, q: int = 97) -> str:
-    if q != 97:
-        return f"results/raw/n{n}_beta{beta}_q{q}_seed{seed}.json"
-    return f"results/raw/n{n}_beta{beta}_seed{seed}.json"
+    # v2.0.0: canonical seed paths come from `_seed_paths.seed_path_for`.
+    # Cloud campaign was decommissioned 2026-04-10; this function is
+    # dead code until a future cloud restart, at which point the new
+    # S3 prefix tree will match the on-disk `results/seeds/<campaign>/`
+    # layout (no symlink fallback exists post-v2).
+    from _seed_paths import seed_path_for
+    campaign = "main" if q == 97 else "q3329"
+    return seed_path_for(campaign, n, beta, seed, q=q, cloud=True)
 
 
 def s3_upload(local_path: str, bucket: str, key: str) -> None:
@@ -152,12 +157,15 @@ def s3_list_completed(
 
     import boto3
     s3 = boto3.client("s3")
-    if q != 97:
-        prefix = f"results/raw/n{n}_beta{beta}_q{q}_seed"
-        pattern = re.compile(rf"^n{n}_beta{beta}_q{q}_seed(\d+)\.json$")
-    else:
-        prefix = f"results/raw/n{n}_beta{beta}_seed"
-        pattern = re.compile(rf"^n{n}_beta{beta}_seed(\d+)\.json$")
+    # v2.0.0: S3 prefix tracks the v1.3 on-disk layout. The cloud
+    # campaign is decommissioned; this path is exercised only by a
+    # future restart, which would land seeds under
+    # `results/seeds/<campaign>/q97/n{n}_beta{beta}/seed{seed:04d}_cloud.json`
+    # — matching the on-disk tree exactly.
+    from _seed_paths import seed_dir_for
+    campaign = "main" if q == 97 else "q3329"
+    prefix = seed_dir_for(campaign, n, beta, q=q) + "/seed"
+    pattern = re.compile(r"^seed(\d{4})_cloud\.json$")
     done = set()
     try:
         paginator = s3.get_paginator("list_objects_v2")

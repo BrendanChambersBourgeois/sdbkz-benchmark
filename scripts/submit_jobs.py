@@ -66,15 +66,22 @@ CLOUD_GROUPS = [
 
 
 def check_completed(n, beta, q=97):
-    """Count completed seeds in S3."""
+    """Count completed seeds in S3.
+
+    v2.0.0: S3 prefix tracks the v1.3 on-disk layout under
+    `results/seeds/<campaign>/...`. Cloud campaign is decommissioned;
+    this function is dead until a future restart, at which point the
+    S3 tree matches the on-disk one byte-for-byte.
+    """
     import re
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from _seed_paths import seed_dir_for
+
     s3 = boto3.client("s3")
-    if q != 97:
-        prefix = f"results/raw/n{n}_beta{beta}_q{q}_seed"
-        pattern = re.compile(rf"^n{n}_beta{beta}_q{q}_seed(\d+)\.json$")
-    else:
-        prefix = f"results/raw/n{n}_beta{beta}_seed"
-        pattern = re.compile(rf"^n{n}_beta{beta}_seed(\d+)\.json$")
+    campaign = "main" if q == 97 else "q3329"
+    prefix = seed_dir_for(campaign, n, beta, q=q) + "/seed"
+    pattern = re.compile(r"^seed(\d{4})_cloud\.json$")
     count = 0
     try:
         paginator = s3.get_paginator("list_objects_v2")
