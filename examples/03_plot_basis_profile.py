@@ -24,8 +24,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+DEFAULT_OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
 sys.path.insert(0, REPO_ROOT)
 
 
@@ -36,7 +35,13 @@ def main():
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--campaign", default="main",
                         help="Manifest campaign to query (default: main)")
+    parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR,
+                        help="Where the PNG lands (default: examples/output/). "
+                             "CI / read-only-mount callers must override.")
     args = parser.parse_args()
+
+    output_dir = args.output_dir
+    os.makedirs(output_dir, exist_ok=True)
 
     from analysis._data import load_all_seeds  # noqa: E402
 
@@ -97,7 +102,7 @@ def main():
             family="monospace",
             bbox=dict(boxstyle="round,pad=0.4", facecolor="white", alpha=0.85))
 
-    out = os.path.join(OUTPUT_DIR,
+    out = os.path.join(output_dir,
                        f"profile_n{args.n}_beta{args.beta}_seed{args.seed}.png")
     fig.tight_layout()
     fig.savefig(out, dpi=120)

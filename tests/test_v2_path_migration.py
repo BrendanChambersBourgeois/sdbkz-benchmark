@@ -164,12 +164,17 @@ def test_example_02_compare_two_groups_runs():
 @pytest.mark.skipif(not _has_manifest(),
                     reason="live manifest not present in this checkout")
 def test_example_03_plot_basis_profile_runs(tmp_path):
-    # The script writes to examples/output by default; we don't
-    # care about the artefact, only that it exits 0 + writes a PNG.
+    # Routes the PNG write to tmp_path so the test works under a
+    # read-only repo mount (CI mounts ${workspace}:/repo:ro for the
+    # smoke step; the default `examples/output/` target inherits
+    # that read-only-ness and the matplotlib savefig errnos 30).
     result = subprocess.run(
         [sys.executable, "examples/03_plot_basis_profile.py",
-         "--n", "50", "--beta", "20", "--seed", "1"],
+         "--n", "50", "--beta", "20", "--seed", "1",
+         "--output-dir", str(tmp_path)],
         cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=60,
     )
     assert result.returncode == 0, result.stderr
     assert "Saved:" in result.stdout
+    # PNG actually landed in tmp_path, not the read-only default.
+    assert (tmp_path / "profile_n50_beta20_seed1.png").exists()
