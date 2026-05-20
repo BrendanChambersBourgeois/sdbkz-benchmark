@@ -87,6 +87,14 @@ def detect_schema(filepath: str, tag: str) -> set[str]:
     fname = os.path.basename(filepath)
     if "q3329" in fname or "q3329" in tag:
         return REQUIRED_Q3329
+    # v1.3+ campaign tag is "tours3x"; pre-v1.3 directory was "3x_tours".
+    # The v1.3 canonical filenames are `seed{seed:04d}.json` (no
+    # `_3x_seed` suffix), so the pre-v1.3 EXT-vs-ORIG discriminator
+    # by filename doesn't apply. Under v1.3, the `pilot/` subdir is
+    # excluded by `seed_files()`, so every file reaching here is an
+    # EXT 100-seed run.
+    if "tours3x" in tag:
+        return REQUIRED_3X_EXT
     if "3x_tours" in tag or "3x_tour" in tag:
         return REQUIRED_3X_EXT if "_3x_seed" in fname else REQUIRED_3X_ORIG
     if "convergence" in tag:
@@ -95,8 +103,24 @@ def detect_schema(filepath: str, tag: str) -> set[str]:
 
 
 def seed_files(directory: str) -> Iterator[str]:
-    """Yield seed JSON paths, excluding _fat.json per-tour logs and summaries."""
-    for f in sorted(glob.glob(os.path.join(directory, "*.json"))):
+    """Yield seed JSON paths under `directory` (recursive, post-v2.0.0
+    canonical campaign-tree layout). Excludes:
+
+      - `_fat.json` per-tour companion logs
+      - any file under a `summary/` subdir + filenames starting with `summary`
+      - any file under a `pilot/` subdir (pre-v1.3 schema, allowlisted in
+        lint_seed_manifest via `ALLOWLIST_LEGACY_PATHS`)
+      - any file under known non-data subdirs (`analysis`, `logs`,
+        `paper_claims`, etc.)
+    """
+    non_data = {"analysis", "logs", "summaries", "backups",
+                "error_logs", "scripts", "paper", "cheatsheets",
+                "summary", "pilot", "paper_claims"}
+    for f in sorted(glob.glob(os.path.join(directory, "**", "*.json"),
+                              recursive=True)):
+        rel_parts = os.path.relpath(f, directory).split(os.sep)
+        if any(part in non_data for part in rel_parts[:-1]):
+            continue
         fname = os.path.basename(f)
         if "_fat.json" in fname:
             continue
@@ -201,16 +225,27 @@ class SeedValidator:
                     self._err(f"{label}: advantage={adv} but bkz_dln-sdbkz_dln={recomputed}",
                               cat="integrity", file=fname)
 
-        # 5b. Timing sanity
+        # 5b. Timing sanity. Threshold scales with max_tours: short-tour
+        # main-sweep runs (≤100 tours) cap at ~55h wall; long-tour
+        # convergence runs (mt500 / mt1000) take proportionally longer
+        # — the n=160 β=40 mt1000 cliff bracket averages ~80h sdbkz_time
+        # per seed and is paper-cited at that wall budget. Scale the
+        # threshold so it catches genuine outliers, not legitimately
+        # expensive long-tour runs.
+        max_tours = d.get("max_tours", 100)
+        threshold_s = max(200000, int(max_tours) * 1000)  # 1000 s/tour ceiling
         for t in ("bkz_time", "sdbkz_time"):
             if t in d:
                 v = d[t]
                 if not isinstance(v, (int, float)) or v <= 0:
                     self._err(f"{label}: {t}={v} (expected positive)",
                               cat="timing", file=fname)
-                elif v > 200000:
-                    self._warn(f"{label}: {t}={v:.0f}s (>55h)",
-                               cat="timing", file=fname)
+                elif v > threshold_s:
+                    self._warn(
+                        f"{label}: {t}={v:.0f}s ({v/3600:.1f}h) exceeds "
+                        f"{threshold_s/3600:.0f}h ceiling at max_tours={max_tours}",
+                        cat="timing", file=fname,
+                    )
 
         # 5c. Dimension consistency
         if "dim" in d and "n" in d:
@@ -297,14 +332,39 @@ class SeedValidator:
                 self._err(f"{label}: {key} type={type(d[key]).__name__}",
                           cat="schema", file=fname, field=key)
 
-        # 6. Within-dataset duplicate detection
+        # 6. Within-dataset duplicate detection.
+        # Pre-v1.3, raw/cloud layouts produced real same-name files at
+        # two paths; the warning flagged the byte-distinct dual copies.
+        # Post-v2.0.0 the canonical v1.3 tree (results/seeds/<campaign>/
+        # ...) is collision-free by construction (OS-level filename
+        # uniqueness within a directory), AND legitimate multi-version
+        # coverage like fplll_sensitivity/v5_4_{3,4,5}/ would false-
+        # positive on a same-name (n, β, seed, q) key. The dup-warning
+        # is therefore obsolete under the v1.3 layout: use the full
+        # relative path so the only collision is a literal same-file
+        # double-walk (which sorted-glob deduplication already prevents).
         q_val = d.get("q", 97)
-        dup_key = (tag, d.get("n"), d.get("beta"), d.get("seed"), q_val)
+        # Use REPO-relative path so the key is identity-bound to the
+        # file's on-disk location. The dup warning is now mostly dead
+        # but kept as a defensive double-walk detector.
+        dup_key = ("path", os.path.abspath(filepath))
         if dup_key in self.seen:
             self._warn(f"{label}: duplicate of {self.seen[dup_key]}",
                        cat="integrity", file=fname)
         else:
             self.seen[dup_key] = label
+        # Cross-reference the schema-level (tag, n, β, seed, q) tuple
+        # for completeness, but only warn if the SAME filename also
+        # appears elsewhere with a different content hash — preserves
+        # the pre-v2 raw/cloud-style detection without false-positive
+        # on intentional multi-version subdirs.
+        schema_key = (tag, d.get("n"), d.get("beta"), d.get("seed"), q_val,
+                      fname)
+        if schema_key in self.seen and self.seen[schema_key] != label:
+            self._warn(f"{label}: duplicate of {self.seen[schema_key]}",
+                       cat="integrity", file=fname)
+        else:
+            self.seen[schema_key] = label
 
         # 7. SHA-256 spot-check (if enabled and this file has a reference)
         if self.sha_check and fname in REFERENCE_HASHES:
@@ -325,21 +385,30 @@ class SeedValidator:
             self.check_seed(f, tag)
 
     def check_tree(self, root: str) -> None:
-        """Check a parent directory containing experiment subdirs."""
+        """Check every seed JSON under `root` (recursive walk).
+
+        Post-v2.0.0, `seed_files()` itself recurses through the v1.3
+        campaign tree (`results/seeds/<campaign>/q97/n{n}_beta{b}/seed*.json`).
+        This wrapper just sets the per-file tag to the leaf-campaign
+        directory name so `detect_schema()` picks the right REQUIRED
+        key set per file.
+        """
         root = root.rstrip("/")
-        # If root itself contains seed JSONs, check them
-        has_seeds = any(True for _ in seed_files(root))
-        if has_seeds:
-            self.check_directory(root)
-        # Check subdirectories
-        for entry in sorted(os.listdir(root)):
-            subdir = os.path.join(root, entry)
-            if os.path.isdir(subdir):
-                # Skip non-data dirs
-                if entry in ("analysis", "logs", "summaries", "backups",
-                             "error_logs", "scripts", "paper", "cheatsheets"):
-                    continue
-                self.check_directory(subdir, tag=entry)
+        # Campaign tag = leaf-campaign dir name. For a root like
+        # `results/seeds/main`, every recursive descendant gets tag "main";
+        # for a root like `results/seeds/`, the tag is derived per file
+        # from the path component immediately under `seeds/`.
+        root_basename = os.path.basename(root)
+        for f in seed_files(root):
+            rel = os.path.relpath(f, root)
+            parts = rel.split(os.sep)
+            # If the user pointed at `results/seeds/`, the next component
+            # is the campaign name; otherwise the root itself is the campaign.
+            if root_basename == "seeds" and parts:
+                tag = parts[0]
+            else:
+                tag = root_basename
+            self.check_seed(f, tag)
 
     def report(self) -> int:
         """Print results and return exit code."""
