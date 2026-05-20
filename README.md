@@ -296,15 +296,14 @@ Main sweep:
 - **`scripts/run_n100_beta40.py`** — Standalone runner for the n=100 β=40 group (used during the campaign).
 
 Extended / capability experiments:
-- **`scripts/run_3x_extended.py`** — 100-seed 3× tour count experiments (n=50–80 at β=30 and n=60 at β=20).
-- **`scripts/run_3x_n80_beta30.py`** — Targeted 3× tour run for n=80 β=30.
-- **`scripts/run_convergence_test.py`** — 500-tour convergence test at n=90 β=30.
-- **`scripts/run_convergence_n140_beta30.py`** — 500-tour convergence test at the crossover dimension n=140 β=30.
+- **`scripts/run_3x_extended.py`** — 100-seed 3× tour count experiments. Default GROUPS list at module top is (n=50–80 at β=30 and n=60 at β=20); to target a single cell (e.g. n=80 β=30) launch via the parametrised path: `python3 -c "import sys; sys.path.insert(0, 'scripts'); import run_3x_extended; run_3x_extended.GROUPS = [{'n': 80, 'beta': 30, 'normal_tours': 70, 'triple_tours': 210}]; run_3x_extended.main()"`.
+- **`scripts/run_convergence_test.py`** — 500-tour convergence test (module-level knobs N / BETA / MAX_TOURS).
+- **`scripts/run_convergence.py`** — Generic argparse wrapper for `run_convergence_test`. Use `python3 scripts/run_convergence.py --n N --beta B --max-tours T` for any (n, β, max_tours) cell. Replaced four per-cell launcher scripts at v2.0.0 consolidation.
 
 q=3329 verification:
 - **`scripts/q3329_verify.py`** — Generic q=3329 verification. Flags: `--n`, `--beta`, `--seeds`, `--precision`.
 - **`scripts/run_q3329_n100_local.py`** — q=3329 n=100 β=30 characterisation (1000-bit MPFR).
-- **`scripts/run_q3329_intermediate.py`** — q=3329 n=70 / n=80 verification wrapper.
+- **`scripts/run_overnight_q3329_intermediate_1000bit.py`** — q=3329 n=70 / n=80 1000-bit MPFR fill. Successor to the deprecated `run_q3329_intermediate.py` (pre-v1.3, deleted at v2.0.0 consolidation).
 - **`scripts/run_q3329_n90.py`** — q=3329 n=90 verification wrapper.
 
 Cloud / submission / ops:

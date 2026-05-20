@@ -58,13 +58,13 @@ SUMMARY_INTERVAL = 10       # regenerate summary every N completions
 # so we need TWO dirname() calls — the first goes from sweep_parallel.py
 # up to scripts/, the second goes from scripts/ up to the repo root.
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# RAW_DIR kept as a read-side shim for legacy callers + back-compat
-# symlinks left by the v1.3 migration (ac52379). Writes go via
-# _seed_paths.seed_path_for("main", ...) below.
-RAW_DIR = os.path.join(BASE, "results", "raw")
 RESULTS_DIR = os.path.join(BASE, "results")
-# v1.3: main-campaign writes land under results/seeds/main/q97/...
+# v2.0.0: writes + reads both go through results/seeds/main/q97/...
+# (pre-v1.3 results/raw/ was deleted at v2.0.0 alongside the
+# back-compat symlinks; this constant is now an alias preserved for
+# the handful of external callers that referenced sweep_parallel.RAW_DIR).
 MAIN_SEEDS_DIR = os.path.join(BASE, "results", "seeds", "main", "q97")
+RAW_DIR = MAIN_SEEDS_DIR
 FAILED_FILE = os.path.join(RESULTS_DIR, "failed.json")
 SUMMARY_FILE = os.path.join(RESULTS_DIR, "summary.json")
 CLAMP_LOG_FILE = os.path.join(RESULTS_DIR, "clamp_events.jsonl")
@@ -295,10 +295,15 @@ def log_failure(key: tuple[int, int, int], reason: str) -> None:
 # Summary generator
 # ---------------------------------------------------------------------------
 def generate_summary() -> dict[str, Any] | None:
-    """Read all raw results, produce results/summary.json."""
-    raw_files = glob.glob(os.path.join(RAW_DIR, "n*_beta*_seed*.json"))
+    """Read every committed seed under the canonical v1.3 main tree
+    and produce results/summary.json. Walks the
+    `results/seeds/main/q97/n*_beta*/seed*.json` tree (post-v2.0.0
+    canonical layout)."""
+    raw_files = glob.glob(
+        os.path.join(MAIN_SEEDS_DIR, "n*_beta*", "seed*.json")
+    )
     if not raw_files:
-        print("No raw results found.")
+        print("No seed results found under", MAIN_SEEDS_DIR)
         return
 
     # Load all results
@@ -460,9 +465,8 @@ def main() -> None:
     if not get_run_id():
         new_run_id()
 
-    # v1.3: parent for new-layout writes. Leaf dirs (n{n}_beta{beta}/)
-    # are created on-demand in worker(). RAW_DIR still exists as a
-    # transition shim holding symlinks into the new tree.
+    # Parent dir for the v1.3 main-campaign tree. Per-cell leaf dirs
+    # (n{n}_beta{beta}/) are created on-demand by worker().
     os.makedirs(MAIN_SEEDS_DIR, exist_ok=True)
     os.makedirs(RAW_DIR, exist_ok=True)
 

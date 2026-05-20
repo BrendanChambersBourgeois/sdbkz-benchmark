@@ -92,9 +92,10 @@ N = args.n
 BETA = args.beta
 SEEDS = list(range(args.start, args.end + 1))
 
-# Check both raw/ and cloud/ for existing seeds (cloud campaign wrote to cloud/)
-CLOUD_DIR = os.path.join(sweep_parallel.RESULTS_DIR, "cloud")
-os.makedirs(sweep_parallel.RAW_DIR, exist_ok=True)
+# v2.0.0: only one canonical location exists — results/seeds/main/q97/
+# under sweep_parallel.MAIN_SEEDS_DIR. The pre-v1.3 results/raw/ +
+# results/cloud/ directories were deleted alongside the symlink drop.
+os.makedirs(sweep_parallel.MAIN_SEEDS_DIR, exist_ok=True)
 
 
 def out_path(seed):
@@ -102,10 +103,17 @@ def out_path(seed):
 
 
 def seed_exists(seed):
-    """Check if seed result exists in raw/ or cloud/."""
-    fname = f"n{N}_beta{BETA}_seed{seed}.json"
-    return (os.path.exists(os.path.join(sweep_parallel.RAW_DIR, fname))
-            or os.path.exists(os.path.join(CLOUD_DIR, fname)))
+    """True iff this seed has a per-seed JSON under the canonical
+    `results/seeds/main/q97/n{N}_beta{B}/seed{seed:04d}[_cloud].json`
+    tree. Routes through `sweep_parallel.result_path` so the v1.3
+    leaf-name format (zero-padded seedNNNN) is honoured."""
+    canonical = out_path(seed)
+    if os.path.exists(canonical):
+        return True
+    # Cloud-suffixed variant lives next to the canonical leaf;
+    # filename swap is the only difference.
+    cloud_leaf = canonical.replace(".json", "_cloud.json")
+    return os.path.exists(cloud_leaf)
 
 
 # -- Worker --------------------------------------------------------------------
