@@ -16,27 +16,16 @@ from .._data import _load_convergence_files
 from .._style import COLORS
 
 
-def fig_convergence_500_tours(output_dir=".", convergence_dir=None,
-                              convergence_n140_dir=None):
+def fig_convergence_500_tours(output_dir="."):
     """Mean d(LN) over 500 tours for BKZ and SD-BKZ at n=90 AND n=140 (β=30).
 
-    Args:
-        output_dir: Where to save the PNG.
-        convergence_dir: Directory with n=90 convergence_*_seed*.json files.
-            None = <repo>/results/convergence_test
-        convergence_n140_dir: Directory with n=140 convergence_*_seed*.json
-            files. None = <repo>/results/convergence
+    Sources the two convergence regimes from the v1.3 seed manifest via
+    (campaign="convergence", n, beta=30, max_tours=500) selectors —
+    no legacy-dir args anymore, since the v2.0.0 symlink drop removed
+    `results/convergence_test/` and `results/convergence/`.
     """
-    _REPO_ROOT = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
-    if convergence_dir is None:
-        convergence_dir = os.path.join(_REPO_ROOT, "results", "convergence_test")
-    if convergence_n140_dir is None:
-        convergence_n140_dir = os.path.join(_REPO_ROOT, "results", "convergence")
-
-    n90 = _load_convergence_files(convergence_dir)
-    n140 = _load_convergence_files(convergence_n140_dir)
+    n90 = _load_convergence_files(n=90, beta=30, max_tours=500)
+    n140 = _load_convergence_files(n=140, beta=30, max_tours=500)
 
     if n90[4] == 0 and n140[4] == 0:
         print("  No convergence test data in either directory")
