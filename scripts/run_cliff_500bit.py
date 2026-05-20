@@ -35,16 +35,22 @@ Output: results/cliff_500bit/n130_beta40_q97_seed{1..20}.json (fat
 seeds — includes per-tour trajectories so per-position analysis can
 compare against the 250-bit baseline without a re-run).
 """
-import os, sys, json, time, datetime, argparse
+import argparse
+import datetime
+import json
+import os
+import sys
+import time
 from multiprocessing import Pool  # noqa: F401  (kept for API compat)
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
-from log import get_logger, new_run_id, get_run_id
+from _seed_paths import seed_dir_for, seed_path_for
 from _signal_utils import managed_pool
-from _seed_paths import seed_path_for, seed_dir_for
+from log import get_logger, get_run_id, new_run_id
+
 PIPELINE = get_logger("run_cliff_500bit")
 
 # -- CLI ---------------------------------------------------------------------
@@ -73,6 +79,7 @@ sys.argv = [
     "--precision", "500",
 ]
 import q3329_verify  # noqa: E402
+
 sys.argv = _saved_argv
 
 # Override the q=3329-specific module constants to q=97 for this run.

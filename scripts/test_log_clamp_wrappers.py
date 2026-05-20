@@ -32,19 +32,22 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO, "scripts"))
 
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("test_log_clamp_wrappers")
 
 # Pre-import modules via argv-mock so argparse doesn't choke.
 _saved = sys.argv
 sys.argv = ["dummy.py"]
-import sweep_parallel  # noqa: E402
-import sweep_cloud  # noqa: E402
 import overnight_experiments  # noqa: E402
 import run_3x_extended  # noqa: E402
 import run_convergence_test  # noqa: E402
+import sweep_cloud  # noqa: E402
+import sweep_parallel  # noqa: E402
+
 sys.argv = ["q3329_verify.py", "--n", "100", "--beta", "30",
             "--seeds", "1", "--precision", "250"]
 import q3329_verify  # noqa: E402
+
 sys.argv = _saved
 
 WRAPPERS = [

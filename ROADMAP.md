@@ -23,13 +23,13 @@ See [`CHANGELOG.md`](CHANGELOG.md) for per-release details (Keep-a-Changelog for
 
 | target | scope |
 |--------|-------|
-| Unreleased | Empty. v1.5.2 just shipped (2026-05-19). |
+| Unreleased | Phase 4 CI gates landed on `phase4/ci-gates` (held local): #9 mypy strict on numerical core, #10 ruff F,W,I,B,UP with 138 violations fixed same-commit, #11 pytest `--cov` 75% floor (96.20% actual), #12 figure-parity already pre-existing in workflow at lines 203–233. Bundle to land in the next minor (v1.6.0) once additional content accrues; no rush since Phase 4 is gating-only and shipping it on its own would be release noise for the same data set as v1.5.2. |
 
 ## Planned next
 
 | target   | scope                                                                  |
 |----------|------------------------------------------------------------------------|
-| Phase 4 CI gates | mypy strict on `scripts/_*_core.py`; ruff `select = ["F","W","I","B","UP"]` (~231 violations to fix same-commit); pytest `--cov` with 75% floor on `_math_core` / `_bkz_core` / `_signal_utils`; figure-parity CI step. One branch (`phase4/ci-gates`) per gate. v1.5.2 land triggered this row; now actionable. |
+| `v1.6.0` | Bundle Phase 4 CI gates (already on `phase4/ci-gates` local) with any follow-up content that lands before the cut. Gate-only release on its own is acceptable if the n=170 / β=50 / variance sweeps don't materialise within a few weeks. |
 | `v2.0.0` | Breaking layout change: drop legacy-path back-compat symlinks, promote `results/seed_path_crosswalk.csv` as permanent record. Coordinated edits across paper §9, CI `validate_seeds` step, `analysis/` argparse defaults, runner path shims, examples + COOKBOOK rewrites. See [`Research/backlog/2026-04-19_v2_symlink_drop.md`](https://github.com/BrendanChambersBourgeois/sdbkz-benchmark) (offline) for the 14-step plan. |
 
 ## External waits

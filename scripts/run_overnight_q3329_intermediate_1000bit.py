@@ -39,8 +39,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
+from _seed_paths import seed_dir_for, seed_path_for  # noqa: E402
 from log import get_logger  # noqa: E402
-from _seed_paths import seed_path_for, seed_dir_for  # noqa: E402
 
 PIPELINE = get_logger("run_overnight_q3329_intermediate_1000bit")
 
@@ -76,6 +76,7 @@ sys.argv = [
     "--precision", str(_args.precision),
 ]
 import q3329_verify  # noqa: E402
+
 sys.argv = _saved_argv
 
 # Clean up the empty results_q3329 dir q3329_verify creates at import

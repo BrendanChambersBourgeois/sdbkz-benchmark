@@ -8,21 +8,31 @@ Run with:
 Safe to run alongside the main sweep. Single-threaded, lowest priority.
 Outputs to <repo_root>/results/q3329/.
 """
-import os, sys, json, math, time, datetime
-import numpy as np
+import datetime
+import json
+import math
+import os
+import sys
+import time
 
-from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
+import numpy as np
+from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from log import get_logger
-from _seed_paths import seed_path_for, seed_dir_for
 from _math_core import (
-    ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
+    build_lwe_kannan,
+    ln_fixed_point,
+    log_clamp,
+    metrics_from_gso,
 )
+from _seed_paths import seed_dir_for, seed_path_for
+from log import get_logger
+
 PIPELINE = get_logger("q3329_verify")
 
 # -- Config -------------------------------------------------------------------
 import argparse
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="q=3329 verification run")
@@ -191,7 +201,7 @@ def main():
             "std_advantage": float(np.std(adv, ddof=1)),
             "win_rate": float(np.mean(adv > 0)),
             "advantages": [float(a) for a in advantages],
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         }
         sumpath = os.path.join(SUMMARY_DIR, "summary_q3329.json")
         with open(sumpath, "w") as f:

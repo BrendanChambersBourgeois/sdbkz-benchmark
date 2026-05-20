@@ -22,7 +22,11 @@ Usage:
 
 Output: results/fplll54_sensitivity/n100_beta30_q97_seed{1..5}.json
 """
-import os, sys, json, time, datetime
+import datetime
+import json
+import os
+import sys
+import time
 from multiprocessing import Pool
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,10 +37,12 @@ sys.path.insert(0, SCRIPT_DIR)
 _saved_argv = sys.argv
 sys.argv = ["sweep_parallel.py"]
 import sweep_parallel  # noqa: E402
+
 sys.argv = _saved_argv
 
+from _seed_paths import seed_dir_for, seed_path_for
 from log import get_logger
-from _seed_paths import seed_path_for, seed_dir_for
+
 PIPELINE = get_logger("run_fplll54_sensitivity")
 
 # Sanity — should match main-sweep canonical config

@@ -55,8 +55,8 @@ import os
 import statistics
 import subprocess
 import time
-from typing import Iterable, Literal, Optional, Sequence
-
+from collections.abc import Iterable, Sequence
+from typing import Literal, Optional
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -287,7 +287,7 @@ def _read_seed_json(path: str) -> Optional[dict]:
     is locale-dependent; defensive against future cross-machine drift.
     """
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f)
     except (FileNotFoundError, OSError, json.JSONDecodeError, UnicodeDecodeError):
         return None

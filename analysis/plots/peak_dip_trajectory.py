@@ -11,12 +11,12 @@ average.  At beta=40 both peak and dip collapse jointly, explaining the
 sharpness of the cliff.
 """
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 
-from .._style import BETA_LABELS, COLORS
 from .._data import _per_position_group_stats
-
+from .._style import BETA_LABELS, COLORS
 
 BETAS = [20, 30, 40]
 
@@ -49,7 +49,7 @@ def fig_peak_dip_trajectory(groups, output_dir=".", min_seeds=10):
         return
 
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
-    for ax, beta in zip(axes, BETAS):
+    for ax, beta in zip(axes, BETAS, strict=False):
         d = by_beta[beta]
         if not d["ns"]:
             ax.set_visible(False)

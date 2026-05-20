@@ -47,7 +47,8 @@ import datetime
 import json
 import math
 import os
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any, Optional
 
 import numpy as np
 
@@ -91,7 +92,7 @@ def log_clamp(
         os.makedirs(os.path.dirname(log_path), exist_ok=True)
         with open(log_path, "a") as f:
             f.write(json.dumps({
-                "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "ts": datetime.datetime.now(datetime.UTC).isoformat(),
                 "script": script_name,
                 "ctx": ctx,
                 "position": int(position),

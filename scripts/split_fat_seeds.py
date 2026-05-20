@@ -46,6 +46,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("split_fat_seeds")
 
 # Keys present ONLY in fat-schema files. Everything else is lean.

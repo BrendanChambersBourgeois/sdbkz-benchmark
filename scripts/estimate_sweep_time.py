@@ -33,9 +33,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from log import get_logger  # noqa: E402
 import seed_timing  # noqa: E402
-
+from log import get_logger  # noqa: E402
 
 PIPELINE = get_logger("estimate_sweep_time")
 

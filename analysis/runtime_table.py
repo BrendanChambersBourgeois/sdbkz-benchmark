@@ -12,10 +12,10 @@ Outputs:
     results/runtime_table.json   — full data + provenance
     results/runtime_table.html   — standalone <table> with inline styles
 """
+import datetime
+import json
 import os
 import sys
-import json
-import datetime
 
 import numpy as np
 
@@ -27,6 +27,7 @@ from analysis._data import load_all_seeds  # noqa: E402
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("runtime_table")
 
 

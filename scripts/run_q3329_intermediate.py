@@ -42,11 +42,11 @@ Original configuration:
                  results/q3329_n70_beta30/
                  results/q3329_n80_beta30/
 """
+import datetime
+import json
 import os
 import sys
-import json
 import time
-import datetime
 from multiprocessing import Pool
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -54,6 +54,7 @@ SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
 from log import get_logger
+
 PIPELINE = get_logger("run_q3329_intermediate")
 
 # q3329_verify parses argparse at import time. Mock argv so it picks up
@@ -69,6 +70,7 @@ sys.argv = [
     "--precision", "250",
 ]
 import q3329_verify  # noqa: E402
+
 sys.argv = _saved_argv
 
 # q3329_verify creates an OUTPUT_DIR at import time inside scripts/ which

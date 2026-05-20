@@ -12,19 +12,33 @@ Usage:
 """
 from __future__ import annotations
 
-import subprocess, sys, os, json, math, time, glob, signal, logging, datetime
+import datetime
+import glob
+import json
+import logging
+import math
+import os
+import signal
+import subprocess
+import sys
+import time
 import traceback as tb
-from typing import Any
-import numpy as np
 from multiprocessing import Pool
+from typing import Any
+
+import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from log import get_logger, new_run_id, get_run_id
 from _math_core import (
-    ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
+    build_lwe_kannan,
+    ln_fixed_point,
+    log_clamp,
+    metrics_from_gso,
 )
-from _signal_utils import managed_pool
 from _seed_paths import seed_path_for
+from _signal_utils import managed_pool
+from log import get_logger, get_run_id, new_run_id
+
 PIPELINE = get_logger("sweep_parallel")
 
 # ---------------------------------------------------------------------------
@@ -77,7 +91,7 @@ def install_deps() -> None:
 # ---------------------------------------------------------------------------
 # Core lattice helpers (self-contained for multiprocessing workers)
 # ---------------------------------------------------------------------------
-from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
+from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
 
 
 def _metrics_from_gso(
@@ -280,7 +294,7 @@ def log_failure(key: tuple[int, int, int], reason: str) -> None:
     n, beta, seed = key
     entry = {
         "n": n, "beta": beta, "seed": seed, "reason": reason,
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
     }
     failures = []
     if os.path.exists(FAILED_FILE):
@@ -336,7 +350,7 @@ def generate_summary() -> dict[str, Any] | None:
             "mean_bkz_dln": float(np.mean(bkz_dlns)) if bkz_dlns else None,
             "mean_sdbkz_dln": float(np.mean(sd_dlns)) if sd_dlns else None,
             "mean_runtime_ratio": float(np.mean([
-                s / max(b, 1e-9) for b, s in zip(bkz_times, sd_times)
+                s / max(b, 1e-9) for b, s in zip(bkz_times, sd_times, strict=False)
             ])) if bkz_times and sd_times else None,
         }
 
@@ -412,7 +426,7 @@ def generate_summary() -> dict[str, Any] | None:
         "meta": {
             "total_completed": total,
             "total_failed": failed_count,
-            "last_updated": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "last_updated": datetime.datetime.now(datetime.UTC).isoformat(),
             "dimensions": NS,
             "betas": BETAS,
             "tours_by_beta": TOURS_BY_BETA,

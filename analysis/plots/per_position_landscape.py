@@ -10,13 +10,13 @@ the same quantity into three segments.  The per-position view reveals
 the negative overshoot dip near the tail that the 3-bin average masks.
 """
 import os
-import numpy as np
-import matplotlib.pyplot as plt
+
 import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import numpy as np
 
-from .._style import BETA_LABELS
 from .._data import _per_position_group_stats
-
+from .._style import BETA_LABELS
 
 BETAS = [20, 30, 40]
 
@@ -48,7 +48,7 @@ def fig_per_position_landscape(groups, output_dir=".", min_seeds=10):
                   for i, n in enumerate(all_ns)}
 
     fig, axes = plt.subplots(3, 1, figsize=(9, 10.5))
-    for ax, beta in zip(axes, BETAS):
+    for ax, beta in zip(axes, BETAS, strict=False):
         ax.set_title(BETA_LABELS[beta], loc="left", fontsize=12)
         ax.axhline(0, color="#475569", lw=0.8, ls="-", alpha=0.7)
         ax.axvline(1 / 3, color="#94a3b8", lw=0.5, alpha=0.4)

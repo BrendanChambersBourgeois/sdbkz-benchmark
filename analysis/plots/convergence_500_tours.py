@@ -8,11 +8,12 @@ Together these pre-empt the "you didn't run BKZ long enough" reviewer
 objection at both ends of the dimension range.
 """
 import os
-import numpy as np
-import matplotlib.pyplot as plt
 
-from .._style import COLORS
+import matplotlib.pyplot as plt
+import numpy as np
+
 from .._data import _load_convergence_files
+from .._style import COLORS
 
 
 def fig_convergence_500_tours(output_dir=".", convergence_dir=None,

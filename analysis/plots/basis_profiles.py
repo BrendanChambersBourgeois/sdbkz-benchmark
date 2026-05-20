@@ -4,8 +4,9 @@
 averaged Rankin profile shapes across all seeds in each group.
 """
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 from .._style import COLORS
 

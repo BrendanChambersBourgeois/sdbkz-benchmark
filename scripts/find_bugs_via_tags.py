@@ -27,6 +27,7 @@ from collections import defaultdict
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO, "scripts"))
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("find_bugs_via_tags")
 
 TAGS_PATH = os.path.join(REPO, ".tags")

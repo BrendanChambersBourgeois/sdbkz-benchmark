@@ -33,7 +33,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from log import get_logger, new_run_id, get_run_id
+from log import get_logger, get_run_id, new_run_id
 
 PIPELINE = get_logger("run_convergence")
 

@@ -24,16 +24,18 @@ target-version = "py312"
 extend-exclude = ["paper", "patches", "_archives", "results", "Research"]
 
 [tool.ruff.lint]
-# Conservative rule set — style-drift-catching without being
-# opinionated. Raise F-codes (pyflakes: undef vars, unused imports),
-# W-codes (whitespace), E-codes excluding line-length (already 100),
-# and I001 (import sorting — unsorted imports are a pre-commit smell).
-select = ["F", "W", "I"]
+# Wider rule set covering pyflakes (F), warnings (W), import sorting
+# (I), bugbear (B), and pyupgrade (UP). PL (pylint) intentionally
+# skipped — its style opinions overlap with mypy strict and add noise
+# without catching unique paper-grade bugs.
+select = ["F", "W", "I", "B", "UP"]
 ignore = [
     "F401",   # unused import: some wrappers re-export math/numpy
     "F403",   # `from module import *` — not used but cheap to keep off
     "F405",   # may be undefined, or defined from star imports
-    "I001",   # import sorting: too noisy for existing layout, opt-in later
+    "B007",   # unused loop control variable: dict-iteration idiom
+    "B904",   # raise ... from err: legacy except blocks rarely chain
+    "UP045",  # Optional[X] → X | None: defer to a focused syntax pass
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -42,3 +44,44 @@ ignore = [
 "scripts/confirm_v1_2.py" = ["E501", "F841"]
 "scripts/test_math_core_parity.py" = ["E402"]
 "scripts/test_log_clamp_wrappers.py" = ["E402"]
+
+[tool.pytest.ini_options]
+# Pytest discovery + coverage defaults. The --cov gate in the CI
+# workflow uses the same target list as [tool.mypy] above; keep
+# both lists in sync. PYTHONPATH includes scripts/ so the bare
+# `_math_core` / `_bkz_core` / `_signal_utils` imports inside the
+# test modules resolve without sys.path hackery (the prod scripts
+# add their own sys.path tweak, but pytest invokes Python with
+# its own working dir).
+pythonpath = ["scripts"]
+
+[tool.coverage.run]
+# Bare module names (not file paths) — pytest's pythonpath setting
+# above puts scripts/ on sys.path so the tests import these as
+# top-level modules. coverage tracks-by-module rather than by-file.
+source = ["_math_core", "_bkz_core", "_signal_utils"]
+relative_files = true
+
+[tool.coverage.report]
+# Fail under 75% per the Phase 4 task plan. Numerical-core files
+# only; analysis/ and experimental wrapper scripts are out of scope.
+fail_under = 75
+show_missing = true
+skip_covered = false
+
+[tool.mypy]
+# Strict mypy is enforced only on the load-bearing numerical-core modules
+# that the paper's SHA-256 reproducibility chain pivots on. Wider
+# coverage is deferred to v2 (see `feedback_type_hints_opportunistic.md`
+# memory record + ROADMAP Phase 4). The four targets below are pinned in
+# `.github/workflows/build-and-verify.yml`; any expansion should land in
+# a follow-up commit so revert is single-step if a new gate misfires.
+files = [
+    "scripts/_math_core.py",
+    "scripts/_bkz_core.py",
+    "scripts/_runner_core.py",
+    "scripts/_signal_utils.py",
+]
+strict = true
+follow_imports = "silent"
+ignore_missing_imports = true

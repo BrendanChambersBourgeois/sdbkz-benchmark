@@ -13,6 +13,7 @@ Usage:
 import argparse
 import os
 import sys
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     from log import get_logger
@@ -21,8 +22,9 @@ except Exception:
     class _Noop:
         def __getattr__(self, _): return lambda *a, **k: None
     slog = _Noop()
-import boto3
 import json
+
+import boto3
 
 JOB_QUEUE = "bkz-job-queue"
 JOB_DEFINITION = "bkz-sweep-small:1"

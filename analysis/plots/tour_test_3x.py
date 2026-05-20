@@ -7,8 +7,8 @@ SD-BKZ@1x (right).
 import os
 from collections import defaultdict
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from .._style import COLORS
 
@@ -85,7 +85,7 @@ def fig_3x_tour_test(tour_seeds, output_dir="."):
 
     bp = ax1.boxplot(box_data, labels=labels, patch_artist=True, widths=0.6,
                      medianprops=dict(color="black", linewidth=1.5))
-    for patch, color in zip(bp["boxes"], colors_list):
+    for patch, color in zip(bp["boxes"], colors_list, strict=False):
         patch.set_facecolor(color)
         patch.set_alpha(0.6)
 

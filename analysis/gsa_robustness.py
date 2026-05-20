@@ -40,10 +40,11 @@ from scipy import stats as sp_stats
 
 # Use the canonical implementations from analysis/_data.py
 sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
-from _data import ln_fixed_point, gsa_fixed_point, load_all_seeds
+from _data import gsa_fixed_point, ln_fixed_point, load_all_seeds
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("gsa_robustness")
 
 
@@ -177,7 +178,7 @@ def main():
     r, p = sp_stats.pearsonr(ln_all, gsa_all)
 
     summary = {
-        "generated": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "generated": datetime.datetime.now(datetime.UTC).isoformat(),
         "metric": "mean_absolute_distance",
         "note": (
             "d(LN) = mean|profile - LN_fixed_point|, "

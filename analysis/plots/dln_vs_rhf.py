@@ -4,8 +4,9 @@ Two panels: z-score histograms of d(LN) vs RHF advantage at the n=100
 β=30 peak (left), and per-group win rate comparison across β=30 (right).
 """
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 from .._style import COLORS
 
