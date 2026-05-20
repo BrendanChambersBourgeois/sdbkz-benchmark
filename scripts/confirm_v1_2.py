@@ -166,11 +166,22 @@ with Pool(len(SEEDS)) as p:
 
 
 def _q3329_n90_group(seeds):
-    """q=3329 n=90 β=30 1000-bit seeds via q3329_verify direct call."""
+    """q=3329 n=90 β=30 1000-bit seeds via q3329_verify direct call.
+
+    v2.0.0: archive path routed through `_seed_paths.seed_path_for`
+    against the canonical `results/seeds/q3329/p1000_mt70/n090_beta30/`
+    tree. The pre-v1.3 `results/q3329_n90_beta30/` directory was
+    deleted alongside the symlink drop.
+    """
+    sys.path.insert(0, os.path.join(REPO, "scripts"))
+    from _seed_paths import seed_path_for
     targets = [
         {
-            "archive": os.path.join(REPO, "results/q3329_n90_beta30",
-                                    f"n90_beta30_q3329_seed{s}.json"),
+            "archive": os.path.join(
+                REPO,
+                seed_path_for("q3329", 90, 30, s, q=3329,
+                              precision=1000, max_tours=70),
+            ),
             "staging": os.path.join(STAGING, f"q3329_n90_b30_s{s}.json"),
         }
         for s in seeds
@@ -201,11 +212,19 @@ with Pool(len(SEEDS)) as p:
 
 
 def _cliff_500_group(seeds):
-    """Cliff 500-bit via q3329_verify with Q=97 override."""
+    """Cliff 500-bit via q3329_verify with Q=97 override.
+
+    v2.0.0: archive path routed through `_seed_paths.seed_path_for`
+    against the canonical `results/seeds/cliff500/q97/n130_beta40/`
+    tree. The pre-v1.3 `results/cliff_500bit/` directory was deleted
+    alongside the symlink drop.
+    """
+    from _seed_paths import seed_path_for
     targets = [
         {
-            "archive": os.path.join(REPO, "results/cliff_500bit",
-                                    f"n130_beta40_q97_seed{s}.json"),
+            "archive": os.path.join(
+                REPO, seed_path_for("cliff500", 130, 40, s),
+            ),
             "staging": os.path.join(STAGING, f"cliff_500_n130_b40_s{s}.json"),
         }
         for s in seeds
