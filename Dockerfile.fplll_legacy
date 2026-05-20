@@ -7,6 +7,11 @@ FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f5
 # Dockerfile. Reviewer-defensive: paper results should not depend on
 # the specific fplll version inside the vendored fpylll 0.6.4 wheel.
 #
+# Intentional omissions vs Dockerfile (main): scipy + matplotlib + pytest.
+# Same rationale as Dockerfile.fplll54 — sensitivity images emit
+# per-seed JSONs only; figure regen + tests run from the main image
+# so a single matplotlib version produces all paper figures.
+#
 # Verified build matrix (as of 2026-04-18):
 #   fplll 5.4.3 + fpylll 0.6.0  (libfplll.so.7.1.0, built)
 #   fplll 5.4.4 + fpylll 0.6.0  (libfplll.so.8.0.0, built)
@@ -53,10 +58,13 @@ RUN git clone --depth 1 --branch ${FPLLL_TAG} https://github.com/fplll/fplll.git
     && ldconfig \
     && rm -rf /tmp/fplll
 
+# See Dockerfile.fplll54 for the cysignals 1.11.4 + numpy 1.26.4 pin
+# rationale. Range pin `numpy<2.0` upgraded to exact `1.26.4` so the
+# sensitivity-image stack matches ADR-004's reproducibility discipline.
 RUN pip install --no-cache-dir \
         "Cython>=3.0,<3.1" \
-        "cysignals==1.11.4" \
-        "numpy<2.0"
+        cysignals==1.11.4 \
+        numpy==1.26.4
 # Also propagate EXTRA_CXXFLAGS to the fpylll compile — if the fplll
 # headers themselves forgot to include <cstdint>, the C++ extension
 # pulling them in needs the same -include fix.

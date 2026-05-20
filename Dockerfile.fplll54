@@ -8,6 +8,12 @@ FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f5
 # check that paper results are not fplll-version-sensitive. Runs the same
 # sweep entry points as Dockerfile, so only the GSO/BKZ C++ backend
 # differs between this image and Dockerfile.
+#
+# Intentional omissions vs Dockerfile (main): scipy + matplotlib + pytest.
+# This image's only job is to run the sweep + emit per-seed JSONs; figure
+# regen + the test suite run from the main image so a single matplotlib
+# version produces all paper figures. Adding render-touching deps here
+# would expand the byte-identity surface for no scientific gain.
 
 # Apt pinned via snapshot.debian.org (ADR-004) — see Dockerfile.
 RUN printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20240614T000000Z/\nSuites: bookworm bookworm-updates\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: http://snapshot.debian.org/archive/debian-security/20240614T000000Z/\nSuites: bookworm-security\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n' \
@@ -37,10 +43,18 @@ RUN git clone --depth 1 --branch 5.4.5 https://github.com/fplll/fplll.git /tmp/f
 
 # -- Build fpylll 0.6.0 from sdist against the system fplll 5.4.5 ----------
 # fpylll 0.6.0 sdist targets fplll 5.4.x. Cython>=3 per its setup.cfg.
+# The (cysignals, numpy) pair is intentionally older than the main
+# Dockerfile's (1.12.6, 2.4.4): fpylll 0.6.0 predates numpy 2.x and
+# its sdist `setup.py` declares `numpy<2`. Pinning the exact 1.26.4
+# release (last numpy 1.x, ABI-stable against fpylll 0.6.0) matches
+# ADR-004's "exact, not loose" reproducibility discipline — the
+# range pin `numpy<2.0` would float across the snapshot.debian.org
+# apt mirror's lifetime and silently swap ABI behaviour underneath
+# a sensitivity comparison.
 RUN pip install --no-cache-dir \
         "Cython>=3.0,<3.1" \
-        "cysignals==1.11.4" \
-        "numpy<2.0"
+        cysignals==1.11.4 \
+        numpy==1.26.4
 RUN pip install --no-cache-dir --no-binary=:all: fpylll==0.6.0
 
 # Non-root runtime — match host UID/GID so bind-mounted volumes don't

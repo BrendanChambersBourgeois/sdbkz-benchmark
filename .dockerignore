@@ -1,21 +1,10 @@
 # Big raw data — reproduced from scratch inside the container via verify.sh
 # or the sweep scripts. No benefit to shipping it in the build context.
+# Post-v2.0.0 the canonical seed tree is `results/seeds/<campaign>/...`;
+# the 14 legacy top-level directories (results/raw/, results/cloud/,
+# results/q3329/, results/cliff_500bit/, etc.) were deleted in the
+# symlink-drop migration and no longer appear in fresh checkouts.
 results/seeds/
-results/cloud/
-results/raw/
-results/3x_tours/
-results/3x_tours_extended/
-results/convergence/
-results/convergence_test/
-results/q3329/
-results/q3329_degenerate/
-results/q3329_n70_beta30/
-results/q3329_n80_beta30/
-results/q3329_n90_beta30/
-results/cliff_500bit/
-results/fplll54_sensitivity/
-results/fplll543_sensitivity/
-results/fplll544_sensitivity/
 results/backups/
 results/analysis/
 

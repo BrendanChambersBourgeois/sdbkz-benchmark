@@ -11,6 +11,13 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    # fpylll / cysignals / numpy are pinned in lockstep across the four
+    # Dockerfiles (main + cloud at 0.6.4 / 1.12.6 / 2.4.4; fplll54 +
+    # fplll_legacy at 0.6.0 / 1.11.4 / 1.26.4) and the numerical-core
+    # paper figures' SHA-256 byte-identity gate locks the version
+    # combination to the reference. Dependabot bumps must be reviewed
+    # against the figure baseline + the fpylll sdist build matrix; we
+    # opt out of automated PRs here and revisit the pin set manually.
     ignore:
       - dependency-name: "fpylll"
       - dependency-name: "cysignals"
