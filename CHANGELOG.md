@@ -28,6 +28,48 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
+### Changed
+- **Paper §Limitations bracket sentence extended to eight dimensions.**
+  Folds n=160 into the β=40 1000-tour bracket text that previously
+  documented seven dimensions ({110, 120, 122, 125, 130, 140, 150}).
+  Mean-advantage list at t=1000 grows to ${+}2.101, {+}0.159, {-}0.328,
+  {-}1.038, {-}1.857, {-}2.420, {-}2.064, {-}1.788$; BKZ per-tour
+  improvement softening trajectory grows to {+}1.06 / {+}0.92 / {+}0.74
+  at n={140, 150, 160}; concluding sentence rewritten from "saturates
+  rather than continuing to widen" to "saturates and then reverses",
+  with the cliff bottom explicitly characterised as bottoming in the
+  n=130-140 band and "unwinding toward broader convergence on either
+  side". LaTeX rebuilt to 32 pages (same length); HTML resynced
+  verbatim. Paper-figure parity gate clean. Deferred from v1.5.2 per
+  the "data-only bundle" task plan; folded here for the v1.6.0 cut.
+
+### Added (Phase 4 CI gates, held local on `phase4/ci-gates` branch
+prior to this paragraph; merged to main 2026-05-20 via `5b5c2c4`)
+- **`ci(mypy)`** strict mypy gate on `_math_core` + `_bkz_core` +
+  `_runner_core` + `_signal_utils`. Pyproject `[tool.mypy]` config
+  pins the four targets; CI step installs mypy + runs `python3 -m
+  mypy` (Phase 4 #9; commit `0115da1`).
+- **`ci(ruff)`** select expanded from `["F", "W", "I"]` to
+  `["F", "W", "I", "B", "UP"]`; 138 violations fixed same-commit
+  via `ruff check --fix` (127 safe) + `--unsafe-fixes` (11 B905
+  `strict=False` additions). PL skipped — overlap with mypy strict.
+  UP045 (Optional → X|None) deferred to a focused syntax pass.
+  (Phase 4 #10; commit `1e771c4`).
+- **`ci(coverage)`** pytest --cov 75% floor on the three
+  numerical-core files; tree sits at 96.20%. `[tool.pytest.ini_options]
+  pythonpath = ["scripts"]` so the bare module imports inside test
+  modules resolve; `[tool.coverage.run] source = ["_math_core",
+  "_bkz_core", "_signal_utils"]`. `tests/test_bkz_core_smoke.py`
+  (8 cases, n=20 β=10 mt5 ~0.7s) + `tests/test_signal_utils.py` (10
+  cases, mocked-Pool + signal-handler closure). Defensive `return`
+  added after `os._exit` in `_signal_utils._handler` for test-mock
+  flow safety. (Phase 4 #11; commit `eceeeae`).
+- **`ci(figure)`** Figure-parity workflow step (`paper/fig*.png`
+  byte-identity against `analysis/figures/`) was already in place
+  pre-Phase 4 at `.github/workflows/build-and-verify.yml` lines
+  203-233. No new step required. (Phase 4 #12; doc-only close-out
+  in commit `96e934e`).
+
 ## [1.5.2] — 2026-05-19
 
 ### Added
