@@ -39,7 +39,7 @@ def _leaf_name(seed: int, *, is_fat: bool, cloud: bool, campaign: str) -> str:
     return f"seed{seed:04d}{suffix}.json"
 
 
-def _require(value, name: str, campaign: str):
+def _require(value: object, name: str, campaign: str) -> object:
     if value is None:
         raise ValueError(
             f"{campaign} campaign requires {name}; got None"

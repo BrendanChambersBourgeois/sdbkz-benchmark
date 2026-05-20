@@ -340,9 +340,7 @@ def load_3x_tour_data(
     callers that still pass a directory. Either mode returns a
     flat list of seed dicts loaded from disk.
     """
-    if tour_dir is None:
-        manifest_path = manifest_path or DEFAULT_MANIFEST_PATH
-    if manifest_path or tour_dir is None:
+    if tour_dir is None or manifest_path:
         manifest_path = manifest_path or DEFAULT_MANIFEST_PATH
         if os.path.exists(manifest_path):
             manifest = _load_manifest(manifest_path)

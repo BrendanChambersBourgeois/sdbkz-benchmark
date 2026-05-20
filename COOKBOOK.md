@@ -66,31 +66,18 @@ Or run a single (n, beta, seed) directly via the Python REPL using `run_single()
 
 ---
 
-## I want to see what's running on AWS Batch right now
+## AWS Batch cloud campaign (decommissioned 2026-04-10)
 
-```bash
-aws batch list-jobs --job-queue bkz-job-queue --job-status RUNNING --region ap-southeast-2 --output table
-```
-
-For richer info including elapsed time, see `scripts/cloud_watchdog.sh` which iterates and reports per-job idle time.
-
----
-
-## I want to submit a new cloud job
-
-```bash
-# Always dry-run first
-python3 scripts/submit_jobs.py --n 100 --beta 30 --dry-run
-
-# Then submit
-python3 scripts/submit_jobs.py --n 100 --beta 30
-```
-
-For q=3329 with high precision:
-
-```bash
-python3 scripts/submit_jobs.py --n 100 --beta 30 --q 3329 --precision 1000
-```
+The cloud sweep is no longer live. All AWS Batch + S3 compute was torn
+down 2026-04-10 after the q=97 main campaign completed (~4,300 seeds);
+the S3 bucket was drained to local + Google Drive. The remaining cloud
+scripts (`scripts/submit_jobs.py`, `scripts/sweep_cloud.py`,
+`scripts/cloud_watchdog.sh`) are kept on `main` as the audit-chain
+record of how those seeds were produced, not as live operational
+surface. Re-enabling would require fresh AWS plumbing and a re-pinned
+container image. The reference-run path on local hardware is
+`python3 scripts/sweep_parallel.py` (see "How do I reproduce the
+paper from scratch?" below).
 
 ---
 
