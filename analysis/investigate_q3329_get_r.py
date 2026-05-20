@@ -37,11 +37,11 @@ script stops at the first tour where any position hits `r_val ≤ 0`,
 so total wall time depends on which tour first triggers the issue —
 could be minutes (if early) or hours (if late).
 """
+import datetime
+import json
 import os
 import sys
-import json
 import time
-import datetime
 
 # Resolve `from analysis...` and `import q3329_verify` from this script
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -59,12 +59,14 @@ sys.argv = [
     "--precision", "1000",
 ]
 import q3329_verify  # noqa: E402
+
 sys.argv = _argv_save
 
-from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO  # noqa: E402
+from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix  # noqa: E402
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("investigate_q3329_get_r")
 
 

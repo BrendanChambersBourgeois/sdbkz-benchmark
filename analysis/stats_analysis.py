@@ -33,6 +33,7 @@ from analysis._stats_helpers import cliffs_delta, holm_bonferroni  # noqa: E402
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("stats_analysis")
 
 # ── Config ──────────────────────────────────────────────────────────────────
@@ -183,7 +184,7 @@ def main():
     w_pvals = [per_group[k].get('p_wilcoxon') for k in sorted_keys]
     t_holm = holm_bonferroni(t_pvals)
     w_holm = holm_bonferroni(w_pvals)
-    for k, p_t, p_w in zip(sorted_keys, t_holm, w_holm):
+    for k, p_t, p_w in zip(sorted_keys, t_holm, w_holm, strict=False):
         per_group[k]['p_ttest_holm'] = p_t
         per_group[k]['p_wilcoxon_holm'] = p_w
 

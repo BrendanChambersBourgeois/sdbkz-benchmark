@@ -102,7 +102,7 @@ def _sha256(path: str, chunk: int = 1 << 16) -> str:
 
 
 def _iso_utc_from_epoch(ts: float) -> str:
-    return dt.datetime.fromtimestamp(ts, tz=dt.timezone.utc).strftime(
+    return dt.datetime.fromtimestamp(ts, tz=dt.UTC).strftime(
         "%Y-%m-%dT%H:%M:%SZ"
     )
 
@@ -444,7 +444,7 @@ def walk(results_root: str) -> tuple[list[dict], list[tuple[str, str]]]:
 
     Returns (entries, rejects).
     """
-    generated_utc = dt.datetime.now(tz=dt.timezone.utc).strftime(
+    generated_utc = dt.datetime.now(tz=dt.UTC).strftime(
         "%Y-%m-%dT%H:%M:%SZ"
     )
     rejects: list[tuple[str, str]] = []
@@ -615,7 +615,7 @@ def main() -> int:
     entries, rejects = walk(args.results_root)
     per_campaign = summarise(entries)
 
-    generated_utc = dt.datetime.now(tz=dt.timezone.utc).strftime(
+    generated_utc = dt.datetime.now(tz=dt.UTC).strftime(
         "%Y-%m-%dT%H:%M:%SZ"
     )
     manifest = {

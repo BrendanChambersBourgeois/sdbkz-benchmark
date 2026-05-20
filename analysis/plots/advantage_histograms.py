@@ -4,10 +4,11 @@
 positive advantage (peak) through crossover to negative (BKZ wins).
 """
 import os
-import numpy as np
-import matplotlib.pyplot as plt
 
-from .._style import COLORS, BETA_COLORS
+import matplotlib.pyplot as plt
+import numpy as np
+
+from .._style import BETA_COLORS, COLORS
 
 
 def fig_advantage_histograms(groups, output_dir=".", min_seeds=20):

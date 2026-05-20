@@ -4,8 +4,9 @@
 representing early advantage, peak, decline, and reversal.
 """
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 from .._style import COLORS
 
@@ -62,7 +63,7 @@ def fig_convergence_trajectories(groups, output_dir=".",
 
         # Plot individual seeds (faint)
         for i, (b, sd) in enumerate(zip(bkz_tours_all[:n_example_seeds],
-                                         sd_tours_all[:n_example_seeds])):
+                                         sd_tours_all[:n_example_seeds], strict=False)):
             tours_i = np.arange(1, len(b) + 1)
             ax.plot(tours_i, b, color=COLORS["bkz"], alpha=0.12, linewidth=0.5)
             ax.plot(tours_i, sd, color=COLORS["sdbkz"], alpha=0.12, linewidth=0.5)

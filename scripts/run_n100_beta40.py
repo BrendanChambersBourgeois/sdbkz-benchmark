@@ -20,12 +20,12 @@ Usage:
     docker compose run --rm sweep python3 scripts/run_n100_beta40.py \
         --start 1 --end 50 --workers 22
 """
+import argparse
+import datetime
+import json
 import os
 import sys
-import json
 import time
-import datetime
-import argparse
 from multiprocessing import Pool
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,6 +33,7 @@ SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
 from log import get_logger
+
 PIPELINE = get_logger("run_n100_beta40")
 
 # -- Args (parse before importing sweep_parallel to avoid conflicts) ----------

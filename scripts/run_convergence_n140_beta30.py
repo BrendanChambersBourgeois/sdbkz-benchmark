@@ -15,13 +15,15 @@ than the standard-tour benchmark suggests.
 Usage:
     nohup python3 scripts/run_convergence_n140_beta30.py > logs/convergence_n140_stdout.log 2>&1 &
 """
-import os, sys
+import os
+import sys
 
 # Patch the convergence test constants before importing main
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 
 import run_convergence_test
+
 run_convergence_test.N = 140
 run_convergence_test.BETA = 30
 # Keep MAX_TOURS = 500 (same as the n=90 baseline)

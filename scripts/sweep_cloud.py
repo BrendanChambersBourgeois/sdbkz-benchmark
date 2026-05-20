@@ -16,17 +16,30 @@ Environment variables (set by AWS Batch automatically):
 """
 from __future__ import annotations
 
-import sys, os, json, math, time, datetime, argparse, signal, threading
+import argparse
+import datetime
+import json
+import math
+import os
+import signal
+import sys
+import threading
+import time
 import traceback as tb
-from typing import Any
-import numpy as np
 from multiprocessing import Pool, cpu_count
+from typing import Any
+
+import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from log import get_logger, new_run_id, get_run_id
 from _math_core import (
-    ln_fixed_point, build_lwe_kannan, log_clamp, metrics_from_gso,
+    build_lwe_kannan,
+    ln_fixed_point,
+    log_clamp,
+    metrics_from_gso,
 )
+from log import get_logger, get_run_id, new_run_id
+
 PIPELINE = get_logger("sweep_cloud")
 
 # ---------------------------------------------------------------------------
@@ -135,7 +148,9 @@ def s3_list_completed(
     bucket: str, n: int, beta: int, q: int = 97,
 ) -> set[int]:
     """Check S3 for already-completed seeds. Returns set of seed numbers."""
-    import boto3, re
+    import re
+
+    import boto3
     s3 = boto3.client("s3")
     if q != 97:
         prefix = f"results/raw/n{n}_beta{beta}_q{q}_seed"
@@ -159,7 +174,8 @@ def s3_list_completed(
 
 def local_list_completed(output_dir: str, n: int, beta: int) -> set[int]:
     """Check local dir for completed seeds."""
-    import glob, re
+    import glob
+    import re
     pattern = re.compile(rf"^n{n}_beta{beta}_seed(\d+)\.json$")
     done = set()
     for fp in glob.glob(os.path.join(output_dir, f"n{n}_beta{beta}_seed*.json")):
@@ -172,7 +188,7 @@ def local_list_completed(output_dir: str, n: int, beta: int) -> set[int]:
 # ---------------------------------------------------------------------------
 # Core lattice helpers (copied verbatim from sweep_parallel.py)
 # ---------------------------------------------------------------------------
-from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
+from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
 
 
 def _log_clamp_cloud(ctx: str, position: int, raw_value: float) -> None:

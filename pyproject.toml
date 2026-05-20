@@ -24,16 +24,18 @@ target-version = "py312"
 extend-exclude = ["paper", "patches", "_archives", "results", "Research"]
 
 [tool.ruff.lint]
-# Conservative rule set — style-drift-catching without being
-# opinionated. Raise F-codes (pyflakes: undef vars, unused imports),
-# W-codes (whitespace), E-codes excluding line-length (already 100),
-# and I001 (import sorting — unsorted imports are a pre-commit smell).
-select = ["F", "W", "I"]
+# Wider rule set covering pyflakes (F), warnings (W), import sorting
+# (I), bugbear (B), and pyupgrade (UP). PL (pylint) intentionally
+# skipped — its style opinions overlap with mypy strict and add noise
+# without catching unique paper-grade bugs.
+select = ["F", "W", "I", "B", "UP"]
 ignore = [
     "F401",   # unused import: some wrappers re-export math/numpy
     "F403",   # `from module import *` — not used but cheap to keep off
     "F405",   # may be undefined, or defined from star imports
-    "I001",   # import sorting: too noisy for existing layout, opt-in later
+    "B007",   # unused loop control variable: dict-iteration idiom
+    "B904",   # raise ... from err: legacy except blocks rarely chain
+    "UP045",  # Optional[X] → X | None: defer to a focused syntax pass
 ]
 
 [tool.ruff.lint.per-file-ignores]

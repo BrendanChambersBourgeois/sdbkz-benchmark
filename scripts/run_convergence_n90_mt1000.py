@@ -26,7 +26,8 @@ Usage:
     nohup python3 scripts/run_convergence_n90_mt1000.py \
         > logs/convergence_n90_mt1000_stdout.log 2>&1 &
 """
-import os, sys
+import os
+import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)

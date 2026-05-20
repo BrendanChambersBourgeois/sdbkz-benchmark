@@ -18,10 +18,10 @@ guarantee for external callers).
 """
 from __future__ import annotations
 
-import os
-import json
 import glob
+import json
 import math
+import os
 import re
 import warnings
 from collections import defaultdict

@@ -162,11 +162,11 @@ Outputs:
     results/q3329_degeneracy_check.json — full data + per-seed breakdown
     stdout                              — formatted summary
 """
+import datetime
+import glob
+import json
 import os
 import sys
-import json
-import glob
-import datetime
 from collections import defaultdict
 
 import numpy as np
@@ -178,6 +178,7 @@ sys.path.insert(0, REPO_ROOT)
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("q3329_degeneracy_check")
 
 

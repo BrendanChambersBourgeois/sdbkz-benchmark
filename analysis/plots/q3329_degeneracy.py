@@ -7,8 +7,8 @@ example per-tour trajectory of one degenerate seed.
 """
 import os
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from .._data import load_all_seeds
 from .._style import COLORS

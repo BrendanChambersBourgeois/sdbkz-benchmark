@@ -5,8 +5,9 @@ contextualizing the advantage relative to total distance from the LN
 fixed point.
 """
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 from .._style import COLORS
 
@@ -24,7 +25,7 @@ def fig_absolute_dln(groups, output_dir=".", min_seeds=10):
     """
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), sharey=True)
 
-    for ax, beta in zip(axes, [20, 30, 40]):
+    for ax, beta in zip(axes, [20, 30, 40], strict=False):
         dims, bkz_means, sd_means, bkz_stds, sd_stds = [], [], [], [], []
         for (n, b), seeds in sorted(groups.items()):
             if b != beta or len(seeds) < min_seeds:

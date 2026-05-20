@@ -44,13 +44,14 @@ Example:
 """
 from __future__ import annotations
 
-import os
-import json
-import time
 import datetime
+import json
+import os
+import time
 import traceback
+from collections.abc import Callable, Iterable
 from multiprocessing import Pool
-from typing import Any, Callable, Iterable
+from typing import Any
 
 
 def _worker(args: tuple[Callable[..., Any], int, int, int, str, bool]) -> dict[str, Any]:

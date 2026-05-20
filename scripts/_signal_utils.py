@@ -36,11 +36,12 @@ import os
 import signal
 import sys
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from multiprocessing import Pool
 from multiprocessing.pool import Pool as PoolT
 from types import FrameType
-from typing import Any, Iterator, Optional
+from typing import Any, Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger  # noqa: E402

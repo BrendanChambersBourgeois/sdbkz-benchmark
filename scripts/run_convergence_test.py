@@ -11,15 +11,22 @@ Usage:
 
 Output: results/convergence/
 """
-import os, sys, json, math, time, datetime
-import numpy as np
+import datetime
+import json
+import math
+import os
+import sys
+import time
 from multiprocessing import Pool
-from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
+
+import numpy as np
+from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from log import get_logger, new_run_id, get_run_id
-from _math_core import build_lwe_kannan, log_clamp, ln_fixed_point
-from _seed_paths import seed_path_for, seed_dir_for
+from _math_core import build_lwe_kannan, ln_fixed_point, log_clamp
+from _seed_paths import seed_dir_for, seed_path_for
+from log import get_logger, get_run_id, new_run_id
+
 PIPELINE = get_logger("run_convergence_test")
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -80,7 +87,7 @@ def run_seed(seed):
         "experiment": "convergence_test",
         "n": n, "beta": beta, "seed": seed, "q": Q,
         "max_tours": MAX_TOURS, "precision": PRECISION,
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
     }
 
     # BKZ at 500 tours
@@ -209,7 +216,7 @@ def main():
         "sdbkz_mean_dln_500": float(np.mean(sd_final)),
         "mean_advantage_500": float(np.mean(advs)),
         "win_rate_500": float(np.mean(advs > 0)),
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
     }
     with open(os.path.join(OUTPUT_DIR, "summary_convergence.json"), "w") as f:
         json.dump(summary, f, indent=2)

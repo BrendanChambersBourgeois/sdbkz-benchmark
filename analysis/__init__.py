@@ -17,6 +17,8 @@ The matplotlib Agg backend is set at import time so headless invocation
 works without an X server. Plot styling is applied via _apply_style().
 """
 import matplotlib
+
 matplotlib.use("Agg")
 from ._style import _apply_style
+
 _apply_style()

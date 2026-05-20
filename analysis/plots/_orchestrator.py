@@ -6,23 +6,22 @@ whole pipeline programmatically.
 """
 import os
 
-from .._data import load_all_seeds, load_3x_tour_data
 from .. import diagnostics, tables
-
-from .dimension_scaling import fig_dimension_scaling
-from .advantage_histograms import fig_advantage_histograms
-from .convergence_trajectories import fig_convergence_trajectories
-from .tour_test_3x import fig_3x_tour_test
-from .spatial_decomposition import fig_spatial_decomposition
+from .._data import load_3x_tour_data, load_all_seeds
 from .absolute_dln import fig_absolute_dln
-from .beta_n_scatter import fig_beta_n_scatter
-from .dln_vs_rhf import fig_dln_vs_rhf
+from .advantage_histograms import fig_advantage_histograms
 from .basis_profiles import fig_basis_profiles
-from .gso_profiles import fig_gso_profiles
+from .beta_n_scatter import fig_beta_n_scatter
 from .convergence_500_tours import fig_convergence_500_tours
-from .q3329_degeneracy import fig_q3329_degeneracy
-from .per_position_landscape import fig_per_position_landscape
+from .convergence_trajectories import fig_convergence_trajectories
+from .dimension_scaling import fig_dimension_scaling
+from .dln_vs_rhf import fig_dln_vs_rhf
+from .gso_profiles import fig_gso_profiles
 from .peak_dip_trajectory import fig_peak_dip_trajectory
+from .per_position_landscape import fig_per_position_landscape
+from .q3329_degeneracy import fig_q3329_degeneracy
+from .spatial_decomposition import fig_spatial_decomposition
+from .tour_test_3x import fig_3x_tour_test
 
 
 def generate_all(

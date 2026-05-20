@@ -44,15 +44,16 @@ import math
 import os
 import sys
 import time
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any, Optional
 
 import numpy as np
-from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
-
 from _math_core import build_lwe_kannan, ln_fixed_point, metrics_from_gso
+from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("_bkz_core")
 
 # -- Tunable constants -------------------------------------------------------
@@ -110,7 +111,7 @@ def run_single(
     result: dict[str, Any] = {
         "n": n, "beta": beta, "seed": seed, "q": q, "max_tours": max_tours,
         "precision": precision, "dim": dim, "m": m, "status": "completed",
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
     }
     # The legacy q3329_verify dict-literal placed `store_per_tour` at
     # position 10 unconditionally (True or False); other callers only

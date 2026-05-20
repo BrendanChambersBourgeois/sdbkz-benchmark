@@ -11,11 +11,17 @@ matching seeds from the paper's main sweep (fplll 5.5.0), produces:
 
 Usage: python3 analysis/fplll_sensitivity_compare.py
 """
-import os, sys, json, glob, statistics, math
+import glob
+import json
+import math
+import os
+import statistics
+import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO, "scripts"))
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("fplll_sensitivity_compare")
 
 VERSIONS = [

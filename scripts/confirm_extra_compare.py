@@ -5,14 +5,15 @@ out-of-band parallel groups launched by /tmp/launch_extra.sh.
 Same compare logic as confirm_v1_2.py: strip timestamp/bkz_time/
 sdbkz_time, check JSON byte-equality.
 """
+import glob
 import json
 import os
 import sys
-import glob
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO, "scripts"))
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("confirm_extra_compare")
 
 STRIP = {"timestamp", "bkz_time", "sdbkz_time"}

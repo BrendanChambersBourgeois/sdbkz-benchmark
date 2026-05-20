@@ -27,20 +27,21 @@ wrapper is using the CPU. Check first:
     docker ps
     pgrep -af 'run_q3329|sweep_parallel'
 """
+import argparse
+import datetime
+import json
 import os
 import sys
-import json
 import time
-import datetime
-import argparse
 from multiprocessing import Pool
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
+from _seed_paths import seed_dir_for, seed_path_for
 from log import get_logger
-from _seed_paths import seed_path_for, seed_dir_for
+
 PIPELINE = get_logger("run_q3329_n90")
 
 _parser = argparse.ArgumentParser(
@@ -61,6 +62,7 @@ sys.argv = [
     "--precision", "1000",
 ]
 import q3329_verify  # noqa: E402
+
 sys.argv = _saved_argv
 
 # Cleanup stale dir from q3329_verify's import side-effect

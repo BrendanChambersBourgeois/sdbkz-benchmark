@@ -36,15 +36,21 @@ DO NOT launch while the n=140 β=30 convergence test (or any other
 heavy job) is still using the workers. Check first:
     pgrep -af run_convergence
 """
-import os, sys, json, time, datetime, argparse
+import argparse
+import datetime
+import json
+import os
+import sys
+import time
 from multiprocessing import Pool
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT_DIR = os.path.join(REPO_ROOT, "scripts")
 sys.path.insert(0, SCRIPT_DIR)
 
+from _seed_paths import seed_dir_for, seed_path_for
 from log import get_logger
-from _seed_paths import seed_path_for, seed_dir_for
+
 PIPELINE = get_logger("run_q3329_n100_local")
 
 # Parse our own args before mocking sys.argv for q3329_verify import.
@@ -68,6 +74,7 @@ sys.argv = [
     "--precision", "1000",
 ]
 import q3329_verify  # noqa: E402
+
 sys.argv = _saved_argv
 
 # q3329_verify.main()'s OUTPUT_DIR is created at import time inside scripts/.

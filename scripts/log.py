@@ -84,7 +84,7 @@ class JsonlHandler(logging.Handler):
 
     def emit(self, record: logging.LogRecord) -> None:
         entry = {
-            "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(
+            "ts": datetime.datetime.now(datetime.UTC).isoformat(
                 timespec="milliseconds"
             ),
             "level": record.levelname,

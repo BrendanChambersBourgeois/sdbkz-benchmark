@@ -47,7 +47,8 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.join(REPO, "scripts")
 sys.path.insert(0, SCRIPTS)
 
-from log import get_logger, new_run_id, get_run_id  # noqa: E402
+from log import get_logger, get_run_id, new_run_id  # noqa: E402
+
 PIPELINE = get_logger("confirm_v1_2")
 
 STAGING = "/tmp/confirm_v1_2"

@@ -10,12 +10,12 @@ region; negative values mean BKZ is closer. The absolute-nats formulation
 sign-flipped tails dangling below zero.
 """
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 
-from .._style import COLORS
 from .._data import _decompose_seed
-
+from .._style import COLORS
 
 BETAS = [20, 30, 40]
 
@@ -64,7 +64,7 @@ def fig_spatial_decomposition(groups, output_dir=".", min_seeds=10):
     bar_width = 0.26
 
     legend_handles = None
-    for ax, beta in zip(axes, BETAS):
+    for ax, beta in zip(axes, BETAS, strict=False):
         rows = by_beta[beta]
         ax.set_title(f"β = {beta}", loc="left", fontsize=12)
         ax.axhline(y=0, color="#475569", linewidth=0.8, linestyle="-", alpha=0.7)
@@ -112,7 +112,7 @@ def fig_spatial_decomposition(groups, output_dir=".", min_seeds=10):
         # Seed-count annotation for under-filled groups, matching the
         # {c}s convention used in dimension_scaling.py. Place above the
         # tallest of the three bars at each n (or above 0 if all negative).
-        for i, (n, c) in enumerate(zip(ns, seeds)):
+        for i, (n, c) in enumerate(zip(ns, seeds, strict=False)):
             if c >= 100:
                 continue
             top = max(heads[i], mids[i], tails[i], 0.0)

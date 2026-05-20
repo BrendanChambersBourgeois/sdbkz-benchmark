@@ -86,7 +86,7 @@ def table_statistics(groups, min_seeds=10):
 
     p_ttest_holm = holm_bonferroni([r["p_ttest"] for r in raw_rows])
     p_wilcoxon_holm = holm_bonferroni([r["p_wilcoxon"] for r in raw_rows])
-    for row, p_t_h, p_w_h in zip(raw_rows, p_ttest_holm, p_wilcoxon_holm):
+    for row, p_t_h, p_w_h in zip(raw_rows, p_ttest_holm, p_wilcoxon_holm, strict=False):
         row["p_ttest_holm"] = float(p_t_h) if p_t_h is not None else None
         row["p_wilcoxon_holm"] = (
             float(p_w_h) if p_w_h is not None else None

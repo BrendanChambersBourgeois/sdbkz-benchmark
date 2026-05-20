@@ -42,7 +42,7 @@ SOURCE_DIR = os.path.join(REPO, "analysis", "figures")
 
 
 def _load_pairs() -> list[tuple[str, str]]:
-    with open(MAPPING, "r", encoding="utf-8") as fh:
+    with open(MAPPING, encoding="utf-8") as fh:
         spec = json.load(fh)
     return [(p["paper"], p["source"]) for p in spec["pairs"]]
 

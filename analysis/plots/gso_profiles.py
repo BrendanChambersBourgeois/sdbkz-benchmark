@@ -4,11 +4,11 @@ The classic lattice paper figure: log||b*_i|| vs basis position i,
 overlaid with theoretical GSA and LN reference lines computed from
 formulas (not fitted).
 """
-import os
 import math
+import os
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from .._style import COLORS
 

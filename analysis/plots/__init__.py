@@ -23,19 +23,19 @@ Example:
     # layouts but is no longer the recommended entry point; the
     # manifest query path is tested byte-identical against it.
 """
-from .dimension_scaling import fig_dimension_scaling
-from .advantage_histograms import fig_advantage_histograms
-from .convergence_trajectories import fig_convergence_trajectories
-from .tour_test_3x import fig_3x_tour_test
-from .spatial_decomposition import fig_spatial_decomposition
-from .absolute_dln import fig_absolute_dln
-from .beta_n_scatter import fig_beta_n_scatter
-from .dln_vs_rhf import fig_dln_vs_rhf
-from .basis_profiles import fig_basis_profiles
-from .gso_profiles import fig_gso_profiles
-from .convergence_500_tours import fig_convergence_500_tours
-from .q3329_degeneracy import fig_q3329_degeneracy
 from ._orchestrator import generate_all
+from .absolute_dln import fig_absolute_dln
+from .advantage_histograms import fig_advantage_histograms
+from .basis_profiles import fig_basis_profiles
+from .beta_n_scatter import fig_beta_n_scatter
+from .convergence_500_tours import fig_convergence_500_tours
+from .convergence_trajectories import fig_convergence_trajectories
+from .dimension_scaling import fig_dimension_scaling
+from .dln_vs_rhf import fig_dln_vs_rhf
+from .gso_profiles import fig_gso_profiles
+from .q3329_degeneracy import fig_q3329_degeneracy
+from .spatial_decomposition import fig_spatial_decomposition
+from .tour_test_3x import fig_3x_tour_test
 
 __all__ = [
     "fig_dimension_scaling",

@@ -21,9 +21,9 @@ the script is run directly. The package is also importable normally:
     from analysis._data import load_all_seeds
     from analysis import diagnostics, tables
 """
+import argparse
 import os
 import sys
-import argparse
 
 # Repo root derived from this file's location — works for any checkout path.
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,6 +33,7 @@ from analysis.plots import generate_all  # noqa: E402
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("paper_figures")
 
 

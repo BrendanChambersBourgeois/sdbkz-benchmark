@@ -10,15 +10,22 @@ Usage:
 
 Output: results/3x_tours_extended/
 """
-import os, sys, json, math, time, datetime
-import numpy as np
+import datetime
+import json
+import math
+import os
+import sys
+import time
 from multiprocessing import Pool
-from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
+
+import numpy as np
+from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _math_core import build_lwe_kannan, ln_fixed_point, log_clamp
+from _seed_paths import seed_dir_for, seed_path_for
 from log import get_logger
-from _math_core import build_lwe_kannan, log_clamp, ln_fixed_point
-from _seed_paths import seed_path_for, seed_dir_for
+
 PIPELINE = get_logger("run_3x_extended")
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -84,7 +91,7 @@ def run_seed(args):
         "n": n, "beta": beta, "seed": seed, "q": Q,
         "normal_tours": normal_tours, "triple_tours": triple_tours,
         "precision": PRECISION,
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
     }
 
     # BKZ at 3x tours (record d(LN) at both 1x and 3x checkpoints)
@@ -238,7 +245,7 @@ def main():
             "gap_closed_count": int(sum(gaps_closed)),
             "win_rate_equal": float(np.mean(np.array(advs_eq) > 0)),
             "win_rate_3x": float(np.mean(np.array(advs_3x) > 0)),
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         }
         with open(os.path.join(OUTPUT_DIR, f"summary_n{n}_beta{beta}.json"), "w") as f:
             json.dump(summary, f, indent=2)

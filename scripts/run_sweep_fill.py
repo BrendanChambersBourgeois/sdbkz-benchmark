@@ -22,12 +22,12 @@ Usage examples:
     docker compose run --rm sweep python3 scripts/run_sweep_fill.py \
         --n 120 --beta 40 --start 76 --end 100 --workers 16
 """
+import argparse
+import datetime
+import json
 import os
 import sys
-import json
 import time
-import datetime
-import argparse
 from multiprocessing import Pool
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

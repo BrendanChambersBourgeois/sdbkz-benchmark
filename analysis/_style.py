@@ -6,7 +6,6 @@ this module loads, so importing matplotlib.pyplot here is safe.
 """
 import matplotlib.pyplot as plt
 
-
 COLORS = {
     "beta20": "#0891b2",   # cyan-600
     "beta30": "#ea580c",   # orange-600

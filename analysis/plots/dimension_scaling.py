@@ -5,10 +5,11 @@ the rise-peak-decline pattern with shaded ±1σ bands. This is THE figure
 that summarizes the campaign.
 """
 import os
-import numpy as np
-import matplotlib.pyplot as plt
 
-from .._style import COLORS, BETA_LABELS, BETA_COLORS, BETA_MARKERS
+import matplotlib.pyplot as plt
+import numpy as np
+
+from .._style import BETA_COLORS, BETA_LABELS, BETA_MARKERS, COLORS
 
 
 def fig_dimension_scaling(groups, output_dir=".", min_seeds=10):
@@ -47,7 +48,7 @@ def fig_dimension_scaling(groups, output_dir=".", min_seeds=10):
                          color=color, alpha=0.12, zorder=1)
 
         # Annotate partial groups
-        for d, m, c in zip(dims, means, counts):
+        for d, m, c in zip(dims, means, counts, strict=False):
             if c < 100:
                 ax.annotate(f"{c}s", (d, m), fontsize=7, color=color,
                             textcoords="offset points", xytext=(5, 5))

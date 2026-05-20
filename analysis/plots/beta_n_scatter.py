@@ -4,10 +4,11 @@ Visualizes the empirical β/n ≈ 0.20 threshold below which the SD-BKZ
 backward pass becomes ineffective.
 """
 import os
-import numpy as np
-import matplotlib.pyplot as plt
 
-from .._style import COLORS, BETA_LABELS, BETA_COLORS, BETA_MARKERS
+import matplotlib.pyplot as plt
+import numpy as np
+
+from .._style import BETA_COLORS, BETA_LABELS, BETA_MARKERS, COLORS
 
 
 def fig_beta_n_scatter(groups, output_dir=".", min_seeds=10):

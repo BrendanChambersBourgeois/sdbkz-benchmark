@@ -23,23 +23,28 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO, "scripts"))
 
 from log import get_logger  # noqa: E402
+
 PIPELINE = get_logger("test_math_core_parity")
 
 # Mock argv so the target modules' import-time argparse doesn't choke
 _saved = sys.argv
 sys.argv = ["dummy.py"]
-from _math_core import (  # noqa: E402
-    ln_fixed_point as canonical_ln,
-    build_lwe_kannan as canonical_blwe,
-)
-import sweep_parallel  # noqa: E402
-import sweep_cloud  # noqa: E402
 import overnight_experiments  # noqa: E402
 import run_3x_extended  # noqa: E402
 import run_convergence_test  # noqa: E402
+import sweep_cloud  # noqa: E402
+import sweep_parallel  # noqa: E402
+from _math_core import (
+    build_lwe_kannan as canonical_blwe,
+)
+from _math_core import (  # noqa: E402
+    ln_fixed_point as canonical_ln,
+)
+
 sys.argv = ["q3329_verify.py", "--n", "100", "--beta", "30",
             "--seeds", "1", "--precision", "250"]
 import q3329_verify  # noqa: E402
+
 sys.argv = _saved
 
 LN_LEGACY = {

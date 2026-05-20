@@ -19,16 +19,26 @@ Or run individually:
     nice -n 19 python3 scripts/overnight_experiments.py --3x-only
     nice -n 19 python3 scripts/overnight_experiments.py --profile-only
 """
-import os, sys, json, math, time, datetime, glob
-import numpy as np
+import datetime
+import glob
+import json
+import math
+import os
+import sys
+import time
 
-from fpylll import IntegerMatrix, LLL, BKZ, FPLLL, GSO
+import numpy as np
+from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from log import get_logger
 from _math_core import (
-    build_lwe_kannan, log_clamp, metrics_from_gso, ln_fixed_point,
+    build_lwe_kannan,
+    ln_fixed_point,
+    log_clamp,
+    metrics_from_gso,
 )
+from log import get_logger
+
 PIPELINE = get_logger("overnight_experiments")
 
 # BASE is the repo root. Two dirname() calls because this script lives
@@ -184,7 +194,7 @@ def run_3x_tour_test():
             "mean_gap_closed": float(np.mean(closed)),
             "pct_closed": float(np.mean(closed)/np.mean(gaps_normal)*100),
             "sdbkz_still_wins": sum(1 for g in gaps_3x if g > 0),
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         }
         with open(os.path.join(out_dir, "summary.json"), "w") as f:
             json.dump(summary, f, indent=2)
