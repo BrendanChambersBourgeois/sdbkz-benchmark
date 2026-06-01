@@ -20,7 +20,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE="$(cd "$SCRIPT_DIR/.." && pwd)"
-RAW_DIR="$BASE/results/raw"
 
 NUM_SEEDS="${NUM_SEEDS:-5}"
 
@@ -51,11 +50,10 @@ fi
 # Run the first NUM_SEEDS verification seeds (unless --check-only)
 if [[ "${1:-}" != "--check-only" ]]; then
     echo "Running verification seeds: n=50 beta=20 seeds 1-${NUM_SEEDS} ..."
-    mkdir -p "$RAW_DIR"
     NUM_SEEDS="$NUM_SEEDS" python3 -c "
 import sys, os
 sys.path.insert(0, '$SCRIPT_DIR')
-from sweep_parallel import run_single, RAW_DIR, result_path
+from sweep_parallel import run_single, result_path
 import json, os
 
 num_seeds = int(os.environ.get('NUM_SEEDS', '5'))
@@ -93,8 +91,7 @@ while IFS=' ' read -r seed ref_bkz ref_sd ref_adv; do
     fi
     checked=$((checked + 1))
     # v1.3 layout: ask sweep_parallel.result_path for the canonical
-    # path rather than hardcoding RAW_DIR, so verify.sh tracks the
-    # same location writes actually go to.
+    # path so verify.sh tracks the same location writes actually go to.
     file=$(python3 -c "
 import sys; sys.path.insert(0, '$SCRIPT_DIR')
 from sweep_parallel import result_path
