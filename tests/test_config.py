@@ -24,7 +24,6 @@ sys.path.insert(0, os.path.join(REPO_ROOT, "scripts"))
 
 import _config  # noqa: E402
 
-
 # ---------------------------------------------------------------------------
 # Real-file round-trip — protects the committed config/sweep.toml
 # ---------------------------------------------------------------------------

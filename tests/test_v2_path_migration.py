@@ -41,7 +41,6 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 import _seed_paths  # noqa: E402
 
-
 # ---------------------------------------------------------------------------
 # Static scan — no script still references the deleted dirs as a glob target
 # ---------------------------------------------------------------------------

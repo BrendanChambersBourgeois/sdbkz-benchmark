@@ -9,7 +9,6 @@ import math
 
 import numpy as np
 import pytest
-
 from _math_core import (
     CLAMP_FLOOR_R,
     build_lwe_kannan,
@@ -17,7 +16,6 @@ from _math_core import (
     log_clamp,
     metrics_from_gso,
 )
-
 
 # ---------------------------------------------------------------------------
 # build_lwe_kannan

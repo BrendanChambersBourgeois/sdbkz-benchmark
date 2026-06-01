@@ -17,7 +17,6 @@ sys.path.insert(0, os.path.join(REPO_ROOT, "scripts"))
 
 import seed_timing  # noqa: E402
 
-
 FIXTURE_DIR = os.path.join(REPO_ROOT, "tests", "fixtures", "synthetic_seeds")
 FIXTURE_GLOB = (os.path.join(FIXTURE_DIR, "seed_*.json"),)
 

@@ -24,7 +24,6 @@ import pytest  # noqa: E402
 
 from analysis._stats_helpers import cliffs_delta, holm_bonferroni  # noqa: E402
 
-
 # ── Cliff's δ ──────────────────────────────────────────────────────────────
 
 def test_cliffs_delta_all_wins():
@@ -73,7 +72,7 @@ def test_cliffs_delta_range_bounded():
 def test_holm_monotonic_in_sorted_p_order():
     raw = [0.001, 0.01, 0.02, 0.04]
     adj = holm_bonferroni(raw)
-    pairs = list(zip(sorted(raw), sorted(a for a in adj if a is not None)))
+    pairs = list(zip(sorted(raw), sorted(a for a in adj if a is not None), strict=False))
     sorted_adj = [a for _, a in pairs]
     for i in range(1, len(sorted_adj)):
         assert sorted_adj[i] >= sorted_adj[i - 1]
@@ -111,9 +110,9 @@ def test_holm_dominates_bonferroni_strictly_in_mixed_case():
     raw = [0.001, 0.04, 0.05, 0.5]
     holm = holm_bonferroni(raw)
     bonf = [min(1.0, p * len(raw)) for p in raw]
-    for h, b in zip(holm, bonf):
+    for h, b in zip(holm, bonf, strict=True):
         assert h <= b + 1e-12
-    assert any(h < b - 1e-12 for h, b in zip(holm, bonf))
+    assert any(h < b - 1e-12 for h, b in zip(holm, bonf, strict=True))
 
 
 def test_holm_none_passthrough():

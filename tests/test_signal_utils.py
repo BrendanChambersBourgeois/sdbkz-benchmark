@@ -137,7 +137,6 @@ def test_signal_handler_first_invocation_terminates_and_exits():
 def test_signal_handler_second_invocation_calls_os_exit():
     cap = _capture_handler()
     handler = cap["handler"]
-    pool = cap["pool"]
 
     # First call: SystemExit branch (covered by previous test). Second
     # call hits the os._exit hard-exit branch.
