@@ -170,10 +170,10 @@
     },
     {
       "beta": 40,
-      "bkz_seconds_per_tour": 83.12575111150741,
+      "bkz_seconds_per_tour": 85.03929862236976,
       "n": 140,
-      "sample_seeds": 120,
-      "sdbkz_seconds_per_tour": 203.0009700500965
+      "sample_seeds": 200,
+      "sdbkz_seconds_per_tour": 201.56198715293408
     },
     {
       "beta": 20,
@@ -253,6 +253,6 @@
       "sdbkz_seconds_per_tour": 163.52690226113796
     }
   ],
-  "generated_utc_epoch": 1779242470.0852604,
+  "generated_utc_epoch": 1780356450.5450566,
   "schema_version": 1
 }

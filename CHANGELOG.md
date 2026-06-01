@@ -171,6 +171,19 @@ into the v2.0.0 bundle since they ship in the same tag)
   side". LaTeX rebuilt to 32 pages (same length); HTML resynced
   verbatim. Paper-figure parity gate clean. Deferred from v1.5.2 per
   the "data-only bundle" task plan; folded here for the v1.6.0 cut.
+- **n=140 β=40 mt1000 fattened 20 → 100 seeds.** Holiday compute window
+  on Windows host (13900K, WSL2 Docker, T0 2026-05-20 → T15 2026-05-30).
+  Mean advantage tightens from −2.420 to −2.403 (Δ +0.017, within 20-seed
+  CI); win rate 0/100 confirms cliff bottom. BKZ per-tour Δd(LN)
+  70→1000 = +1.0295 (was +1.06); SD-BKZ Δ = −0.0514. Bracket vector
+  updates to ${+}2.101, {+}0.159, {-}0.328, {-}1.038, {-}1.857, {-}2.403,
+  {-}2.064, {-}1.788$; n=110→n=140 swing 4.52 → 4.50 nats; per-tour
+  improvement +1.06 → +1.03 at n=140. Paper HTML + LaTeX §Limitations
+  resynced; seed-count language now "20 seeds each at $n \in \{110,
+  120, 122, 125, 130, 150, 160\}$ plus 100 seeds at $n=140$". Manifest
+  4,741 → 4,821 entries; convergence campaign 260 → 340. Bit-identity
+  verified across three environments (VMware VM native python, VMware
+  VM Docker, WSL2 Docker) before T0 launch.
 
 ### Added (Phase 4 CI gates, held local on `phase4/ci-gates` branch
 prior to this paragraph; merged to main 2026-05-20 via `5b5c2c4`)
