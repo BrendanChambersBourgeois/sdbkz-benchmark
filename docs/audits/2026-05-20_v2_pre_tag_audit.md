@@ -34,6 +34,7 @@ Two duplicate findings dropped: BUG-V2-002 ≡ BUG-DATA-003 (verify.sh RAW_DIR m
 - **Pattern:** `json.load(open(path))` without context manager; file handles never closed
 - **Risk:** Over hundreds of files per analysis pass, exhausts FDs → loader fails halfway, paper figures regen partial
 - **Effort:** <5 min (wrap with `with`)
+- **CLOSED 2026-05-20 (commit `03bdd17`)** — both call sites wrapped in `with open(path) as _fh`.
 
 ### BUG-V2-001: `scripts/cloud_watchdog.sh` S3 prefix hardcoded to deleted `results/raw/`
 - **File:line:** `scripts/cloud_watchdog.sh:183, 185`
@@ -41,6 +42,7 @@ Two duplicate findings dropped: BUG-V2-002 ≡ BUG-DATA-003 (verify.sh RAW_DIR m
 - **Risk:** If cloud is ever restored, watchdog reports all jobs idle (pattern never matches the new `results/seeds/<campaign>/...` S3 prefix) → false-positive job termination
 - **Effort:** 10 min (route through `_seed_paths.seed_dir_for` like sweep_cloud.py did)
 - **Detector gap:** test_v2_path_migration.FUNCTIONAL_RE only scans .py files; shell scripts escape
+- **CLOSED 2026-05-20 (commit `03bdd17`)** — S3_PREFIX rewritten to `results/seeds/q3329/p${PRECISION}_mt${MAX_TOURS}/...` and `results/seeds/main/q97/...` at lines 192/196; explanatory comment block lines 182-188.
 
 ### GAP-TEST-001: `scripts/sweep_cloud.py` S3 ops (upload, validate, list_completed) — **zero tests**
 - **Code:** `scripts/sweep_cloud.py:119–180`
@@ -61,7 +63,7 @@ Two duplicate findings dropped: BUG-V2-002 ≡ BUG-DATA-003 (verify.sh RAW_DIR m
 ## HIGH findings (11)
 
 ### Python correctness
-- **BUG-PY-007** — `analysis/_data.py:448` exception clause catches `(FileNotFoundError, json.JSONDecodeError)` but misses `KeyError` on the immediately-following key access at line 450. Silent data loss on schema mismatch.
+- **BUG-PY-007** — `analysis/_data.py:448` exception clause catches `(FileNotFoundError, json.JSONDecodeError)` but misses `KeyError` on the immediately-following key access at line 450. Silent data loss on schema mismatch. **CLOSED 2026-05-20 (commit `03bdd17`)** — except clause now `(FileNotFoundError, json.JSONDecodeError, KeyError, OSError)` at line 447.
 
 ### Test coverage
 - **GAP-TEST-004** — `build_seed_manifest._refresh_per_tour_cost_cache()` (post-manifest cache rebuild) catches bare `Exception`, swallows all errors; no test for failure modes.
@@ -75,12 +77,12 @@ Two duplicate findings dropped: BUG-V2-002 ≡ BUG-DATA-003 (verify.sh RAW_DIR m
 - **GAP-TEST-012** — `submit_jobs.check_completed()` S3 prefix logic + regex pattern not exercised against any boto3 mock.
 
 ### Data integrity
-- **BUG-DATA-001** — `results/seeds/q3329/q3329_degenerate_README.md` exists on disk but is **not in the manifest** AND **not in any allowlist** (`ALLOWLIST_BASENAMES`, `ALLOWLIST_PREFIXES`, `ALLOWLIST_LEGACY_PATHS`). lint_seed_manifest will flag this as a hard orphan error on next CI run.
+- **BUG-DATA-001** — `results/seeds/q3329/q3329_degenerate_README.md` exists on disk but is **not in the manifest** AND **not in any allowlist** (`ALLOWLIST_BASENAMES`, `ALLOWLIST_PREFIXES`, `ALLOWLIST_LEGACY_PATHS`). lint_seed_manifest will flag this as a hard orphan error on next CI run. **CLOSED 2026-05-20 (commit `03bdd17`)** — `"q3329_degenerate_README.md"` added to `ALLOWLIST_BASENAMES` at `scripts/lint_seed_manifest.py:88`.
 - **BUG-DATA-002** — `hash_verification.txt` (repo root) and `results/hash_verification.txt` diverge by 4 lines. Root copy missing the ad-hoc spot-check comments (AMD 9950X3D + Fresh Ubuntu VM). Unclear which is canonical.
 
 ### Docs / paper consistency
-- **DRIFT-DOC-001** — Paper §Limitations text contains BOTH the new eight-dim bracket text ("eight-dimension ... 110, 120, 122, 125, 130, 140, 150, 160") AND the stale closing sentence "The β=40 cliff is confirmed at 100 seeds across all groups (n=110 through n=150)." n=160 omitted from the closing sentence.
-- **DRIFT-DOC-002** — CHANGELOG v1.5.2 entry says "No paper §Limitations text edit; bracket sentence remains accurate at seven-dim." Reality: LaTeX + HTML already contain the eight-dim bracket (landed in commit `d79584a` outside the v1.5.2 cut). Internal contradiction.
+- **DRIFT-DOC-001** — Paper §Limitations text contains BOTH the new eight-dim bracket text ("eight-dimension ... 110, 120, 122, 125, 130, 140, 150, 160") AND the stale closing sentence "The β=40 cliff is confirmed at 100 seeds across all groups (n=110 through n=150)." n=160 omitted from the closing sentence. **CLOSED — pre-existing in HEAD.** Re-read of both `paper/sdbkz_paper.html` and `paper/latex/sdbkz_paper_latex.tex` shows the closing sentence already reads "...confirmed at 100 seeds across all groups (n=110 through n=150), extended at the t=1000 horizon to n=160 via the eight-dimension bracket described above." No contradiction.
+- **DRIFT-DOC-002** — CHANGELOG v1.5.2 entry says "No paper §Limitations text edit; bracket sentence remains accurate at seven-dim." Reality: LaTeX + HTML already contain the eight-dim bracket (landed in commit `d79584a` outside the v1.5.2 cut). Internal contradiction. **CLOSED — pre-existing in HEAD.** `CHANGELOG.md:234-238` already carries the truthing clause: "The bracket-text update was folded in post-v1.5.2 in commit `d79584a` ... and carried forward into the v2.0.0 candidate; the original 'no paper text edit' claim reflected the v1.5.2 cut point only."
 
 ### CI / Docker
 - **BUG-CI-001** — `cysignals` pinned to `==1.12.6` in Dockerfile + Dockerfile.cloud, `==1.11.4` in Dockerfile.fplll54 + Dockerfile.fplll_legacy. Numerical-core dependency split risks runtime symbol mismatches if shared code crosses image boundaries. **CLOSED 2026-05-20 (commit 3faf423)** — split is structural (fpylll 0.6.0 era stack vs main); commented in-file.
