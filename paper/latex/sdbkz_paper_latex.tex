@@ -29,7 +29,7 @@ Since Gama and Nguyen's influential study~\cite{EC:GamNgu08}, the Root Hermite F
 
 We pose a simple question: \emph{is RHF actually capturing everything that matters about a reduced basis?}
 
-We answer in the negative. By comparing standard BKZ against self-dual BKZ (SD-BKZ)~\cite{EC:MicWal16} using the Li--Nguyen Rankin profile distance $d(\mathrm{LN})$---a metric derived from the dynamical systems analysis of BKZ~\cite{EPRINT:LiNgu20}---we show that SD-BKZ produces bases that are measurably and consistently closer to the theoretical fixed point predicted by Li and Nguyen. This structural improvement is entirely invisible to RHF: across more than 4{,}000 completed seeds, the mean RHF difference between the two algorithms is below $10^{-6}$ in every group without outlier seeds, while $d(\mathrm{LN})$ reveals advantages of 0.1--1.3 nats (natural log units) with win rates of 90--100\%.
+We answer in the negative. By comparing standard BKZ against self-dual BKZ (SD-BKZ)~\cite{EC:MicWal16} using the Li--Nguyen Rankin profile distance $d(\mathrm{LN})$---a metric derived from the dynamical systems analysis of BKZ~\cite{EPRINT:LiNgu20}---we show that SD-BKZ produces bases that are measurably and consistently closer to the theoretical fixed point predicted by Li and Nguyen. This structural improvement is entirely invisible to RHF: across more than 4{,}500 completed seeds, the mean RHF difference between the two algorithms is below $10^{-6}$ in every group without outlier seeds, while $d(\mathrm{LN})$ reveals advantages of 0.1--1.3 nats (natural log units) with win rates of 90--100\%.
 
 This is not a paper about SD-BKZ being ``better'' than BKZ in an absolute sense---it is approximately $2.5\times$ slower. Rather, it makes two contributions. First, it demonstrates that the metric the community uses to evaluate reduction quality is incomplete: RHF cannot distinguish between two algorithms that produce structurally different bases. Second, by measuring that structural difference at scale, it reveals a rich phenomenology---non-monotonic dimension scaling, block-size-dependent peaks, and a sharp $\beta=40$ cliff---that is entirely invisible to RHF and that has never been empirically characterised.
 
@@ -54,7 +54,7 @@ Our contributions are:
 
 \textbf{(2)} The first empirical application of the Li--Nguyen $d(\mathrm{LN})$ metric as a scalar convergence benchmark for lattice reduction, enabling paired statistical comparison between algorithm variants.
 
-\textbf{(3)} A large-scale, multi-seed comparison of SD-BKZ versus BKZ on LWE-Kannan embedding lattices, building on Micciancio and Walter's~\cite{EC:MicWal16} original 10-instance evaluation with more than 4{,}000 statistically independent trials.
+\textbf{(3)} A large-scale, multi-seed comparison of SD-BKZ versus BKZ on LWE-Kannan embedding lattices, building on Micciancio and Walter's~\cite{EC:MicWal16} original 10-instance evaluation with more than 4{,}500 statistically independent trials.
 
 \textbf{(4)} Discovery of a non-monotonic scaling pattern governed by three interacting factors: block size, lattice dimension, and convergence depth. The peak dimension is block-size-dependent: $\beta=20$ peaks at $n=90$ (0.48 nats), $\beta=30$ peaks at $n=100$ (1.35 nats), $\beta=40$ peaks at $n=110$ (1.16 nats). All three block sizes eventually decline into negative territory, where the backward pass is actively harmful. At $\beta=40$, $n=120$, the advantage is negative despite a favourable $\beta/n$ ratio, revealing convergence depth as a third governing parameter.
 
@@ -94,7 +94,7 @@ The Root Hermite Factor $\delta = (\|b_1\| / \mathrm{vol}(L)^{1/d})^{1/d}$ is a 
 
 \subsection{Scale and Justification}
 
-The most recent published empirical comparison of SD-BKZ against BKZ is~\cite{EC:MicWal16}, which used 10 instances. We extend this by a factor of $400\times$, running more than 4{,}000 independent trials across a systematic parameter grid (3{,}388 in the main sweep plus verification and extended-tour experiments). This scale enables statistical inference---confidence intervals, effect sizes, per-seed distributions---that is impossible with 10 instances. Multi-seed statistical benchmarking of BKZ at this scale is rare in the literature; no prior study has combined SD-BKZ with the Li--Nguyen Rankin profile metric.
+The most recent published empirical comparison of SD-BKZ against BKZ is~\cite{EC:MicWal16}, which used 10 instances. We extend this by a factor of $400\times$, running more than 4{,}500 independent trials across a systematic parameter grid (3{,}388 in the main sweep plus verification and extended-tour experiments). This scale enables statistical inference---confidence intervals, effect sizes, per-seed distributions---that is impossible with 10 instances. Multi-seed statistical benchmarking of BKZ at this scale is rare in the literature; no prior study has combined SD-BKZ with the Li--Nguyen Rankin profile metric.
 
 \subsection{Lattice Construction}
 
