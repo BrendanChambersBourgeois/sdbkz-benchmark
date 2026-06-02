@@ -17,5 +17,21 @@
   "supplementary_only": [
     "peak_dip_trajectory.png",
     "per_position_landscape.png"
+  ],
+  "$latex_note": "Maps paper/latex/figs/figNN.png (iacrj LaTeX build, included by sdbkz_paper_latex.tex via \\includegraphics{figs/figNN}) to its canonical analysis/figures/<source>.png. The LaTeX figs were a frozen one-time manual export (2026-04-14) at different render params, outside the parity gate, and silently diverged through the variance-fill (C1). They are now byte-synced to the single canonical analysis/figures/ source and gated below. Naming is by paper Figure NUMBER (fig01 = Figure 1 = dln_vs_rhf), which differs from the HTML bundle's source-file numbering. Adding/renaming a LaTeX figure: update this list, run sync_paper_figures.py, commit.",
+  "latex_pairs": [
+    {"latex": "fig01.png",      "source": "dln_vs_rhf.png"},
+    {"latex": "fig02.png",      "source": "advantage_histograms.png"},
+    {"latex": "fig03.png",      "source": "convergence_trajectories.png"},
+    {"latex": "fig04.png",      "source": "tour_test_3x.png"},
+    {"latex": "fig05.png",      "source": "convergence_500_tours.png"},
+    {"latex": "fig06.png",      "source": "spatial_decomposition.png"},
+    {"latex": "fig07.png",      "source": "basis_profiles.png"},
+    {"latex": "fig08.png",      "source": "gso_profiles.png"},
+    {"latex": "fig09.png",      "source": "dimension_scaling.png"},
+    {"latex": "fig10.png",      "source": "absolute_dln.png"},
+    {"latex": "fig11.png",      "source": "beta_n_scatter.png"},
+    {"latex": "fig12.png",      "source": "q3329_degeneracy.png"},
+    {"latex": "fig_perpos.png", "source": "per_position_landscape.png"}
   ]
 }
