@@ -8,7 +8,7 @@ abstract: >-
   BKZ (SD-BKZ) across more than 4,500 seeds on LWE-Kannan embedding
   lattices, RHF differences are below 1e-6 in all groups without
   outlier seeds, while the Li-Nguyen Rankin profile distance d(LN)
-  reveals statistically significant gaps (Cohen's d up to 9.4). This
+  reveals statistically significant gaps (Cohen's d up to 9.6). This
   repository ships the containerised benchmark, seed manifest,
   analysis pipeline, and accompanying technical report as a single
   reproducible artifact.
@@ -17,7 +17,7 @@ authors:
   - family-names: "Chambers-Bourgeois"
     given-names: "Brendan"
     email: "brendanchambersbou@gmail.com"
-version: "1.5.2"
+version: "2.0.0"
 date-released: "2026-05-19"
 repository-code: "https://github.com/BrendanChambersBourgeois/sdbkz-benchmark"
 license: MIT
