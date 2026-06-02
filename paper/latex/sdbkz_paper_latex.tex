@@ -19,7 +19,7 @@
 \maketitle
 
 \begin{abstract}
-The Root Hermite Factor (RHF), the dominant quality metric for lattice basis reduction, is structurally blind to meaningful differences between reduced bases. Comparing BKZ against self-dual BKZ (SD-BKZ) across more than 4{,}500 seeds on LWE-Kannan embedding lattices ($n = 50$--$150$, $\beta = 20, 30, 40$), we find that RHF differences are below $10^{-6}$ in all groups without outlier seeds, while the Li--Nguyen Rankin profile distance $d(\mathrm{LN})$ reveals statistically significant gaps (Cohen's $d$ up to 9.4). The SD-BKZ advantage is non-monotonic: it rises with dimension, peaks at a block-size-dependent dimension ($\beta=20$ at $n=90$ with 0.48 nats; $\beta=30$ at $n=100$ with 1.35 nats; $\beta=40$ at $n=110$ with 1.16 nats), then declines into negative territory where the backward pass becomes actively harmful ($\beta=30$ reaches $-0.40$ nats at $n=150$ with 0\% win rate; $\beta=40$ collapses to $-1.33$ nats at $n=130$). Giving BKZ $3\times$ the tour budget does not close the gap at $\beta=30$ (0/400 seeds across four dimensions), establishing this as a capability difference rather than a speed difference. This behaviour, governed by the interaction of block size, dimension, and convergence depth, is invisible to RHF. These findings suggest that prior RHF-only evaluations may have missed structural quality differences between reduction algorithms. All experiments are fully reproducible via a containerised benchmark.
+The Root Hermite Factor (RHF), the dominant quality metric for lattice basis reduction, is structurally blind to meaningful differences between reduced bases. Comparing BKZ against self-dual BKZ (SD-BKZ) across more than 4{,}500 seeds on LWE-Kannan embedding lattices ($n = 50$--$150$, $\beta = 20, 30, 40$), we find that RHF differences are below $10^{-6}$ in all groups without outlier seeds, while the Li--Nguyen Rankin profile distance $d(\mathrm{LN})$ reveals statistically significant gaps (Cohen's $d$ up to 9.6). The SD-BKZ advantage is non-monotonic: it rises with dimension, peaks at a block-size-dependent dimension ($\beta=20$ at $n=90$ with 0.48 nats; $\beta=30$ at $n=100$ with 1.35 nats; $\beta=40$ at $n=110$ with 1.16 nats), then declines into negative territory where the backward pass becomes actively harmful ($\beta=30$ reaches $-0.40$ nats at $n=150$ with 0\% win rate; $\beta=40$ collapses to $-1.32$ nats at $n=130$). Giving BKZ $3\times$ the tour budget does not close the gap at $\beta=30$ (0/400 seeds across four dimensions), establishing this as a capability difference rather than a speed difference. This behaviour, governed by the interaction of block size, dimension, and convergence depth, is invisible to RHF. These findings suggest that prior RHF-only evaluations may have missed structural quality differences between reduction algorithms. All experiments are fully reproducible via a containerised benchmark.
 \end{abstract}
 
 \section{Introduction}
@@ -94,7 +94,7 @@ The Root Hermite Factor $\delta = (\|b_1\| / \mathrm{vol}(L)^{1/d})^{1/d}$ is a 
 
 \subsection{Scale and Justification}
 
-The most recent published empirical comparison of SD-BKZ against BKZ is~\cite{EC:MicWal16}, which used 10 instances. We extend this by a factor of $400\times$, running more than 4{,}000 independent trials across a systematic parameter grid (3{,}300 in the main sweep plus verification and extended-tour experiments). This scale enables statistical inference---confidence intervals, effect sizes, per-seed distributions---that is impossible with 10 instances. Multi-seed statistical benchmarking of BKZ at this scale is rare in the literature; no prior study has combined SD-BKZ with the Li--Nguyen Rankin profile metric.
+The most recent published empirical comparison of SD-BKZ against BKZ is~\cite{EC:MicWal16}, which used 10 instances. We extend this by a factor of $400\times$, running more than 4{,}000 independent trials across a systematic parameter grid (3{,}388 in the main sweep plus verification and extended-tour experiments). This scale enables statistical inference---confidence intervals, effect sizes, per-seed distributions---that is impossible with 10 instances. Multi-seed statistical benchmarking of BKZ at this scale is rare in the literature; no prior study has combined SD-BKZ with the Li--Nguyen Rankin profile metric.
 
 \subsection{Lattice Construction}
 
@@ -103,7 +103,7 @@ We generate LWE instances with secret dimension $n$ and modulus $q=97$. The smal
 \subsection{Parameter Grid}
 
 \begin{sloppypar}
-Dimensions: $n \in \{50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150\}$. Block sizes: $\beta \in \{20, 30, 40\}$. Seeds: 100 per $(n, \beta)$ pair. Total: 3{,}300 runs. Tours per reduction: 50 ($\beta=20$), 70 ($\beta=30$), 100 ($\beta=40$). MPFR precision: 250 bits.
+Dimensions: $n \in \{50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150\}$. Block sizes: $\beta \in \{20, 30, 40\}$. Seeds: 100 per $(n, \beta)$ pair (122 for four variance-filled groups). Total: 3{,}388 runs. Tours per reduction: 50 ($\beta=20$), 70 ($\beta=30$), 100 ($\beta=40$). MPFR precision: 250 bits.
 \end{sloppypar}
 
 \subsection{Implementation}
@@ -170,7 +170,7 @@ This is the central finding. Table~\ref{tab:main} contrasts the RHF advantage wi
 
 \begin{table}[tbp]
 \centering
-\caption{RHF sees nothing; $d(\mathrm{LN})$ sees everything. 33 groups, all at 100 seeds. RHF win rates are 42--58\% across all groups (not shown), consistent with a coin flip. Rows marked $\ast$ are dominated by single outlier seeds (see Section~\ref{sec:outliers}).\label{tab:main}}
+\caption{RHF sees nothing; $d(\mathrm{LN})$ sees everything. 33 groups, 100 seeds per group (122 for four variance-filled groups; see Seeds column). RHF win rates are 42--58\% across all groups (not shown), consistent with a coin flip. Rows marked $\ast$ are dominated by single outlier seeds (see Section~\ref{sec:outliers}).\label{tab:main}}
 \small
 \begin{tabular}{rrrlrrr}
 \hline
@@ -192,17 +192,17 @@ $n$ & $\beta$ & Seeds & RHF $\Delta$ (mean) & $d(\mathrm{LN})\,\Delta$ & std & W
 90  & 30 & 100 & $<10^{-6}$ & $0.922$  & $0.199$ & 100\% \\
 90  & 40 & 100 & $<10^{-6}$ & $0.483$  & $0.159$ & 100\% \\
 100 & 20 & 100 & $2.5\times 10^{-8}$   & $0.362$  & $0.171$ & 99\% \\
-100 & 30 & 100 & $<10^{-6}$ & $1.346$  & $0.217$ & 100\% \\
-100 & 40 & 100 & $<10^{-6}$ & $1.176$  & $0.125$ & 100\% \\
+100 & 30 & 122 & $<10^{-6}$ & $1.349$  & $0.216$ & 100\% \\
+100 & 40 & 122 & $<10^{-6}$ & $1.169$  & $0.122$ & 100\% \\
 110 & 20 & 100 & $<10^{-6}$ & $0.235$  & $0.160$ & 92\% \\
 110 & 30 & 100 & $<10^{-6}$ & $1.112$  & $0.197$ & 100\% \\
-110 & 40 & 100 & $<10^{-6}$ & $1.158$  & $0.168$ & 100\% \\
+110 & 40 & 122 & $<10^{-6}$ & $1.163$  & $0.171$ & 100\% \\
 120 & 20 & 100 & $-3.7\times 10^{-8}$  & $0.094$  & $0.157$ & 71\% \\
 120 & 30 & 100 & $-2.4\times 10^{-7}$  & $0.741$  & $0.149$ & 100\% \\
 120 & 40 & 100 & $<10^{-6}$ & $-0.028$ & $0.102$ & 44\% \\
 130 & 20 & 100 & $1.8\times 10^{-7}$   & $0.003$  & $0.159$ & 54\% \\
 130 & 30 & 100 & $<10^{-6}$ & $0.352$  & $0.111$ & 100\% \\
-130 & 40 & 100 & $<10^{-6}$ & $-1.334$ & $0.138$ & 0\% \\
+130 & 40 & 122 & $<10^{-6}$ & $-1.325$ & $0.150$ & 0\% \\
 140 & 20 & 100 & $-1.6\times 10^{-7}$  & $-0.108$ & $0.142$ & 22\% \\
 140 & 30 & 100 & $<10^{-6}$ & $-0.036$ & $0.087$ & 32\% \\
 140 & 40 & 100 & $<10^{-6}$ & $-1.452$ & $0.220$ & 0\% \\
@@ -220,11 +220,11 @@ The decoupling is complete: RHF win rates are 42--58\% across all groups, indist
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=\linewidth]{figs/fig01}
-\caption{The same 100 seeds ($n=100$, $\beta=30$) tell opposite stories depending on the metric. Left: $z$-score histograms of the per-seed advantage. RHF (grey) is centred on zero (mean $-0.05\sigma$, coin flip); $d(\mathrm{LN})$ (green) sits $6.2\sigma$ from zero with no overlap (this group; peak effect is $9.4\sigma$ at $n=100$, $\beta=40$). Right: SD-BKZ win rate by dimension for $\beta=30$. $d(\mathrm{LN})$ shows 100\% win rate through $n=130$ before collapsing; RHF fluctuates around 50\% at every dimension, blind to the structural difference.\label{fig:dln-vs-rhf}}
+\caption{The same 122 seeds ($n=100$, $\beta=30$) tell opposite stories depending on the metric. Left: $z$-score histograms of the per-seed advantage. RHF (grey) is centred on zero (mean $-0.05\sigma$, coin flip); $d(\mathrm{LN})$ (green) sits $6.24\sigma$ from zero with no overlap (this group; peak effect is $9.6\sigma$ at $n=100$, $\beta=40$). Right: SD-BKZ win rate by dimension for $\beta=30$. $d(\mathrm{LN})$ shows 100\% win rate through $n=130$ before collapsing; RHF fluctuates around 50\% at every dimension, blind to the structural difference.\label{fig:dln-vs-rhf}}
 \end{figure}
 
 \paragraph{Statistical rigour.}
-At favourable dimensions ($n=50$--$120$), all groups show statistically significant $d(\mathrm{LN})$ advantages for SD-BKZ. Paired $t$-tests reject the null hypothesis of zero mean advantage with $p<10^{-15}$ for 28 of the 33 complete groups; one-sided Wilcoxon signed-rank tests confirm significance without normality assumptions ($p<10^{-10}$ in these groups). Effect sizes range from Cohen's $d=1.31$ ($n=50$, $\beta=40$) to $9.40$ ($n=100$, $\beta=40$). The 95\% confidence intervals on the mean advantage exclude zero in 32 of 33 groups (Table~\ref{tab:stats}). The sole exception is at $n=130$, $\beta=20$, where the CI straddles zero ($[-0.028, +0.034]$, $p=0.85$), the coin-flip transition point. Shapiro--Wilk tests confirm the advantage distributions are consistent with normality ($p>0.05$ in all but one group; the exception at $n=100$, $\beta=20$, $p=0.033$, shows only mild departure that does not affect the paired $t$-test at this sample size). The asymmetry is also quantified precisely: across all groups where BKZ wins any seeds, the mean loss margin is below 0.04 nats, while the mean win margin for SD-BKZ ranges from 0.106 to 1.346 nats.
+At favourable dimensions ($n=50$--$120$), all groups show statistically significant $d(\mathrm{LN})$ advantages for SD-BKZ. Paired $t$-tests reject the null hypothesis of zero mean advantage with $p<10^{-15}$ for 28 of the 33 complete groups; one-sided Wilcoxon signed-rank tests confirm significance without normality assumptions ($p<10^{-10}$ in these groups). Effect sizes range from Cohen's $d=1.31$ ($n=50$, $\beta=40$) to $9.60$ ($n=100$, $\beta=40$). The 95\% confidence intervals on the mean advantage exclude zero in 32 of 33 groups (Table~\ref{tab:stats}). The sole exception is at $n=130$, $\beta=20$, where the CI straddles zero ($[-0.028, +0.034]$, $p=0.85$), the coin-flip transition point. Shapiro--Wilk tests confirm the advantage distributions are consistent with normality ($p>0.05$ in all but one group; the exception at $n=100$, $\beta=20$, $p=0.033$, shows only mild departure that does not affect the paired $t$-test at this sample size). The asymmetry is also quantified precisely: across all groups where BKZ wins any seeds, the mean loss margin is below 0.04 nats, while the mean win margin for SD-BKZ ranges from 0.106 to 1.349 nats.
 
 \begin{table}[tbp]
 \centering
@@ -250,17 +250,17 @@ $n$ & $\beta$ & 95\% CI & Cohen's $d$ & $t$-test $p$ & Wilcoxon $p$ \\
 90  & 30 & $[0.882, 0.962]$ & $4.60$  & $<10^{-15}$ & $<10^{-10}$ \\
 90  & 40 & $[0.452, 0.514]$ & $3.04$  & $<10^{-15}$ & $<10^{-10}$ \\
 100 & 20 & $[0.328, 0.396]$ & $2.12$  & $<10^{-15}$ & $<10^{-10}$ \\
-100 & 30 & $[1.303, 1.389]$ & $6.20$  & $<10^{-15}$ & $<10^{-10}$ \\
-100 & 40 & $[1.151, 1.201]$ & $9.40$  & $<10^{-15}$ & $<10^{-10}$ \\
+100 & 30 & $[1.310, 1.387]$ & $6.24$  & $<10^{-15}$ & $<10^{-10}$ \\
+100 & 40 & $[1.147, 1.191]$ & $9.60$  & $<10^{-15}$ & $<10^{-10}$ \\
 110 & 20 & $[0.203, 0.267]$ & $1.47$  & $<10^{-15}$ & $<10^{-10}$ \\
 110 & 30 & $[1.072, 1.151]$ & $5.64$  & $<10^{-15}$ & $<10^{-10}$ \\
-110 & 40 & $[1.124, 1.191]$ & $6.88$  & $<10^{-15}$ & $<10^{-10}$ \\
+110 & 40 & $[1.133, 1.194]$ & $6.82$  & $<10^{-15}$ & $<10^{-10}$ \\
 120 & 20 & $[0.063, 0.125]$ & $0.60$  & $3.3\times 10^{-8}$ & $1.4\times 10^{-7}$ \\
 120 & 30 & $[0.711, 0.771]$ & $4.97$  & $<10^{-15}$ & $<10^{-10}$ \\
 120 & 40 & $[-0.048, -0.008]$ & $-0.28$ & $0.008$ & $0.99$ \\
 130 & 20 & $[-0.029, 0.035]$ & $0.02$  & $0.85$ & $0.74$ \\
 130 & 30 & $[0.330, 0.374]$ & $3.19$  & $<10^{-15}$ & $<10^{-10}$ \\
-130 & 40 & $[-1.361, -1.307]$ & $-9.70$ & $<10^{-15}$ & $1.0$ \\
+130 & 40 & $[-1.352, -1.298]$ & $-8.81$ & $<10^{-15}$ & $1.0$ \\
 140 & 20 & $[-0.136, -0.080]$ & $-0.76$ & $1.7\times 10^{-11}$ & $6.2\times 10^{-10}$ \\
 140 & 30 & $[-0.053, -0.019]$ & $-0.42$ & $7\times 10^{-5}$ & $1.5\times 10^{-4}$ \\
 140 & 40 & $[-1.496, -1.409]$ & $-6.59$ & $<10^{-15}$ & $1.0$ \\
@@ -289,14 +289,14 @@ The core lesson is structural: a single anomalous shortest vector dominates the 
 
 The win rate alone understates the result. When SD-BKZ wins (the vast majority of seeds), the advantage is substantial: typically 0.2--0.5 nats. When BKZ wins (the minority), the margin is negligible: below 0.04 nats across all groups. This asymmetry means the $d(\mathrm{LN})$ advantage is not a noisy symmetric effect---it is a one-sided structural improvement.
 
-The effect is most consistent at $\beta=40$, $n=100$, where the standard deviation (0.125) is roughly one-tenth of the mean (1.176), the win rate is 100\%, and Cohen's $d$ reaches 9.40, the highest in the dataset. At $\beta=40$, $n=70$, the ratio is also tight (std 0.096, mean 0.339, $d=3.55$). This suggests the backward pass produces a more deterministic improvement when the SVP oracle is strong.
+The effect is most consistent at $\beta=40$, $n=100$, where the standard deviation (0.122) is roughly one-tenth of the mean (1.169), the win rate is 100\%, and Cohen's $d$ reaches 9.60, the highest in the dataset. At $\beta=40$, $n=70$, the ratio is also tight (std 0.096, mean 0.339, $d=3.55$). This suggests the backward pass produces a more deterministic improvement when the SVP oracle is strong.
 
 The weakest group ($n=50$, $\beta=40$, 90\% win rate, Cohen's $d=1.31$) was investigated in detail. The 10 seeds where BKZ achieves lower $d(\mathrm{LN})$ show advantages of $-0.002$ to $-0.082$ nats (mean $-0.039$), approximately $3\times$ smaller in magnitude than the mean winning margin of $+0.122$ nats. The losing seeds are scattered across the seed range with no clustering, show identical initial RHF to winning seeds, and all reached the maximum tour count without stagnating. Crossover analysis reveals that SD-BKZ led BKZ in every losing seed at earlier tours (crossover tours 3--18) before BKZ marginally overtook it by tour 100. This is consistent with under-convergence at the tour limit rather than a genuine BKZ advantage: both algorithms are still slowly improving at tour 100, and the 10 ``losses'' are coin-flip outcomes in the convergence noise.
 
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=\linewidth]{figs/fig02}
-\caption{Per-seed $d(\mathrm{LN})$ advantage distributions showing the full rise, crossover, and reversal pattern for all three block sizes. Each row corresponds to one $\beta$, progressing from peak (left) through crossover to reversal (right). At $\beta=30$, $n=100$ (peak), the entire distribution sits above 0.5 nats with 100\% win rate; by $n=150$, the distribution is entirely negative (0\% win). At $\beta=40$, the reversal is an order of magnitude larger: $n=130$ shows mean $-1.334$ nats with no overlap with zero.\label{fig:histograms}}
+\caption{Per-seed $d(\mathrm{LN})$ advantage distributions showing the full rise, crossover, and reversal pattern for all three block sizes. Each row corresponds to one $\beta$, progressing from peak (left) through crossover to reversal (right). At $\beta=30$, $n=100$ (peak), the entire distribution sits above 0.5 nats with 100\% win rate; by $n=150$, the distribution is entirely negative (0\% win). At $\beta=40$, the reversal is an order of magnitude larger: $n=130$ shows mean $-1.325$ nats with no overlap with zero.\label{fig:histograms}}
 \end{figure}
 
 \subsection{Convergence Trajectories}
@@ -397,11 +397,11 @@ The GSO log-norm profiles (Figure~\ref{fig:gso}) reveal a complementary structur
 
 \subsection{Non-Monotonic Block Size Relationship}
 
-The advantage peaks at $\beta=30$ at most measured dimensions, but the relationship is dimension-dependent. At $n=110$, $\beta=40$ overtakes $\beta=30$ ($+1.158$ vs $+1.112$, both at 100 seeds) before collapsing dramatically (Table~\ref{tab:beta-n-matrix}, Figure~\ref{fig:dim-scaling}).
+The advantage peaks at $\beta=30$ at most measured dimensions, but the relationship is dimension-dependent. At $n=110$, $\beta=40$ overtakes $\beta=30$ ($+1.163$ vs $+1.112$; 122 and 100 seeds respectively) before collapsing dramatically (Table~\ref{tab:beta-n-matrix}, Figure~\ref{fig:dim-scaling}).
 
 \begin{table}[tbp]
 \centering
-\caption{$d(\mathrm{LN})$ advantage by block size and dimension. Bold indicates the peak for each block size. All groups at 100 seeds.\label{tab:beta-n-matrix}}
+\caption{$d(\mathrm{LN})$ advantage by block size and dimension. Bold indicates the peak for each block size. 100 seeds per group (122 for four variance-filled groups; see Table 3).\label{tab:beta-n-matrix}}
 \small
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{rrrrrrrrrrrr}
@@ -409,8 +409,8 @@ The advantage peaks at $\beta=30$ at most measured dimensions, but the relations
 $\beta$ & $n{=}50$ & $60$ & $70$ & $80$ & $90$ & $100$ & $110$ & $120$ & $130$ & $140$ & $150$ \\
 \hline
 20 & 0.291 & 0.314 & 0.413 & 0.473 & $\mathbf{0.484}$ & 0.362 & 0.235 & 0.094 & 0.003 & $-0.108$ & $-0.173$ \\
-30 & 0.405 & 0.490 & 0.524 & 0.580 & 0.922 & $\mathbf{1.346}$ & 1.112 & 0.741 & 0.352 & $-0.036$ & $-0.395$ \\
-40 & 0.106 & 0.230 & 0.339 & 0.408 & 0.483 & 1.176 & $\mathbf{1.158}$ & $-0.028$ & $-1.334$ & $-1.452$ & $-1.293$ \\
+30 & 0.405 & 0.490 & 0.524 & 0.580 & 0.922 & $\mathbf{1.349}$ & 1.112 & 0.741 & 0.352 & $-0.036$ & $-0.395$ \\
+40 & 0.106 & 0.230 & 0.339 & 0.408 & 0.483 & 1.169 & $\mathbf{1.163}$ & $-0.028$ & $-1.325$ & $-1.452$ & $-1.293$ \\
 \hline
 \end{tabular}
 \end{table}
@@ -443,16 +443,16 @@ $\beta$ & $50{\to}60$ & $60{\to}70$ & $70{\to}80$ & $80{\to}90$ & $90{\to}100$ &
 \end{tabular}
 \end{table}
 
-At $\beta=30$, the full trajectory is: $0.405 \to 0.490 \to 0.524 \to 0.580 \to 0.922 \to 1.346 \to 1.112 \to 0.741 \to 0.352 \to -0.036 \to -0.395$ nats from $n=50$ through $n=150$, peaking at $n=100$ ($+46\%$ from $n=90$) then declining sharply. At $\beta=20$, the trajectory is: $0.291 \to 0.314 \to 0.413 \to 0.473 \to 0.484 \to 0.362 \to 0.235 \to 0.094 \to 0.003 \to -0.108 \to -0.173$, peaking at $n=90$ before collapsing. At $\beta=40$, the advantage rises from 0.106 ($n=50$) through 0.483 ($n=90$) and 1.176 ($n=100$, 100 seeds) to a confirmed peak at $n=110$ ($+1.158$, 100 seeds, overtaking $\beta=30$), then collapses catastrophically: $-0.028$ at $n=120$, $-1.334$ at $n=130$, $-1.452$ at $n=140$, $-1.293$ at $n=150$ (all at 100 seeds, 0\% win). The peak dimension migrates upward with block size: $\beta=20$ at $n=90$, $\beta=30$ at $n=100$, $\beta=40$ at $n=110$.
+At $\beta=30$, the full trajectory is: $0.405 \to 0.490 \to 0.524 \to 0.580 \to 0.922 \to 1.349 \to 1.112 \to 0.741 \to 0.352 \to -0.036 \to -0.395$ nats from $n=50$ through $n=150$, peaking at $n=100$ ($+46\%$ from $n=90$) then declining sharply. At $\beta=20$, the trajectory is: $0.291 \to 0.314 \to 0.413 \to 0.473 \to 0.484 \to 0.362 \to 0.235 \to 0.094 \to 0.003 \to -0.108 \to -0.173$, peaking at $n=90$ before collapsing. At $\beta=40$, the advantage rises from 0.106 ($n=50$) through 0.483 ($n=90$) and 1.169 ($n=100$, 122 seeds) to a confirmed peak at $n=110$ ($+1.163$, 122 seeds, overtaking $\beta=30$), then collapses catastrophically: $-0.028$ at $n=120$, $-1.325$ at $n=130$, $-1.452$ at $n=140$, $-1.293$ at $n=150$ (0\% win). The peak dimension migrates upward with block size: $\beta=20$ at $n=90$, $\beta=30$ at $n=100$, $\beta=40$ at $n=110$.
 
-The variance behaviour also differs by block size. At $\beta=40$, $n=70$, the standard deviation is 0.096, roughly one-quarter of the mean. At $\beta=30$, the standard deviation remains stable at 0.10--0.22 across dimensions. At $\beta=40$, $n=130$, the standard deviation drops to 0.138 despite a mean of $-1.334$, giving Cohen's $d\approx -10$: BKZ wins every seed by a large, consistent margin. The backward pass is not just ineffective at high dimensions; it is deterministically harmful.
+The variance behaviour also differs by block size. At $\beta=40$, $n=70$, the standard deviation is 0.096, roughly one-quarter of the mean. At $\beta=30$, the standard deviation remains stable at 0.10--0.22 across dimensions. At $\beta=40$, $n=130$, the standard deviation is 0.150 against a mean of $-1.325$, giving Cohen's $d\approx -9$: BKZ wins every seed (0/122) by a large margin. The backward pass is not just ineffective at high dimensions; it is deterministically harmful.
 
 \subsection{Block-Size-Dependent Peak Migration and the $\beta=40$ Cliff}
 \label{sec:peakmigration}
 
-The SD-BKZ advantage does not grow monotonically with dimension, and the peak dimension is not universal. At $\beta=20$, the advantage peaks at $n=90$ (0.484 nats), then declines smoothly through 0.235 ($n=110$) and 0.094 ($n=120$) to a coin-flip region at $n=130$ (0.003 nats, 54\% win), and into active BKZ superiority at $n=140$ ($-0.108$ nats, 22\% win) and $n=150$ ($-0.173$ nats, 12\% win). At $\beta=30$, the peak migrates to $n=100$ (1.346 nats, the largest mean advantage in the dataset), followed by decline to 1.112 ($n=110$) and 0.741 ($n=120$), crossing zero near $n=140$ ($-0.036$, 100 seeds, 32\% win) and reaching $-0.395$ at $n=150$ (0\% win rate, 100 seeds).
+The SD-BKZ advantage does not grow monotonically with dimension, and the peak dimension is not universal. At $\beta=20$, the advantage peaks at $n=90$ (0.484 nats), then declines smoothly through 0.235 ($n=110$) and 0.094 ($n=120$) to a coin-flip region at $n=130$ (0.003 nats, 54\% win), and into active BKZ superiority at $n=140$ ($-0.108$ nats, 22\% win) and $n=150$ ($-0.173$ nats, 12\% win). At $\beta=30$, the peak migrates to $n=100$ (1.349 nats, the largest mean advantage in the dataset), followed by decline to 1.112 ($n=110$) and 0.741 ($n=120$), crossing zero near $n=140$ ($-0.036$, 100 seeds, 32\% win) and reaching $-0.395$ at $n=150$ (0\% win rate, 100 seeds).
 
-The $\beta=40$ trajectory reveals the most dramatic behaviour in the dataset. The advantage rises steadily from $+0.106$ at $n=50$ through $+0.483$ at $n=90$, reaches $+1.158$ at $n=110$ (100 seeds, overtaking $\beta=30$), then falls off a cliff: $-0.028$ at $n=120$ (44\% win), $-1.334$ at $n=130$ (0\% win), $-1.452$ at $n=140$ (0\% win), $-1.293$ at $n=150$ (0\% win), all confirmed at 100 seeds. This is a swing of 2.5 nats in two dimension steps ($n=110$ to $n=130$), an order of magnitude steeper than the $\beta=30$ decline (1.75 nats over five steps) or the $\beta=20$ decline (0.66 nats over six steps). The inversion severity scales with block size: larger $\beta$ produces both higher peaks and steeper collapses. The slight recovery from $-1.452$ at $n=140$ to $-1.293$ at $n=150$ suggests the decline may not be monotonic beyond the cliff.
+The $\beta=40$ trajectory reveals the most dramatic behaviour in the dataset. The advantage rises steadily from $+0.106$ at $n=50$ through $+0.483$ at $n=90$, reaches $+1.163$ at $n=110$ (122 seeds, overtaking $\beta=30$), then falls off a cliff: $-0.028$ at $n=120$ (44\% win), $-1.325$ at $n=130$ (0\% win), $-1.452$ at $n=140$ (0\% win), $-1.293$ at $n=150$ (0\% win). This is a swing of 2.5 nats in two dimension steps ($n=110$ to $n=130$), an order of magnitude steeper than the $\beta=30$ decline (1.75 nats over five steps) or the $\beta=20$ decline (0.66 nats over six steps). The inversion severity scales with block size: larger $\beta$ produces both higher peaks and steeper collapses. The slight recovery from $-1.452$ at $n=140$ to $-1.293$ at $n=150$ suggests the decline may not be monotonic beyond the cliff.
 
 \begin{figure}[tbp]
 \centering
@@ -472,17 +472,17 @@ $n$ & $\beta$ & Seeds & $\beta/n$ & Mean adv. & Std & Win rate \\
 90  & 30 & 100 & 0.33 & 0.922   & 0.199 & 100\% \\
 90  & 40 & 100 & 0.44 & 0.483   & 0.159 & 100\% \\
 100 & 20 & 100 & 0.20 & 0.362   & 0.171 & 99\%  \\
-100 & 30 & 100 & 0.30 & 1.346   & 0.217 & 100\% \\
-100 & 40 & 100 & 0.40 & 1.176   & 0.125 & 100\% \\
+100 & 30 & 122 & 0.30 & 1.349   & 0.216 & 100\% \\
+100 & 40 & 122 & 0.40 & 1.169   & 0.122 & 100\% \\
 110 & 20 & 100 & 0.18 & 0.235   & 0.160 & 92\%  \\
 110 & 30 & 100 & 0.27 & 1.112   & 0.197 & 100\% \\
-110 & 40 & 100 & 0.36 & 1.158   & 0.168 & 100\% \\
+110 & 40 & 122 & 0.36 & 1.163   & 0.171 & 100\% \\
 120 & 20 & 100 & 0.17 & 0.094   & 0.157 & 71\%  \\
 120 & 30 & 100 & 0.25 & 0.741   & 0.149 & 100\% \\
 120 & 40 & 100 & 0.33 & $-0.028$ & 0.102 & 44\%  \\
 130 & 20 & 100 & 0.15 & 0.003   & 0.159 & 54\%  \\
 130 & 30 & 100 & 0.23 & 0.352   & 0.111 & 100\% \\
-130 & 40 & 100 & 0.31 & $-1.334$ & 0.138 & 0\%   \\
+130 & 40 & 122 & 0.31 & $-1.325$ & 0.150 & 0\%   \\
 140 & 20 & 100 & 0.14 & $-0.108$ & 0.142 & 22\%  \\
 140 & 30 & 100 & 0.21 & $-0.036$ & 0.087 & 32\%  \\
 140 & 40 & 100 & 0.29 & $-1.452$ & 0.220 & 0\%   \\
@@ -493,15 +493,15 @@ $n$ & $\beta$ & Seeds & $\beta/n$ & Mean adv. & Std & Win rate \\
 \end{tabular}
 \end{table}
 
-The $\beta/n$ ratio alone does not explain this pattern. At $n=110$, $\beta=40$ ($\beta/n=0.36$) shows the highest advantage of any $\beta=40$ group ($+1.158$, 100 seeds), but just two dimension steps later at $n=130$ ($\beta/n=0.31$) it has collapsed to $-1.334$ (0\% win, 100 seeds). Meanwhile, $\beta=30$ at $n=130$ ($\beta/n=0.23$) remains positive ($+0.352$, 100\% win). The $\beta=40$ cliff is not predicted by $\beta/n$ and is an order of magnitude steeper than the $\beta=30$ decline.
+The $\beta/n$ ratio alone does not explain this pattern. At $n=110$, $\beta=40$ ($\beta/n=0.36$) shows the highest advantage of any $\beta=40$ group ($+1.163$, 122 seeds), but just two dimension steps later at $n=130$ ($\beta/n=0.31$) it has collapsed to $-1.325$ (0\% win, 122 seeds). Meanwhile, $\beta=30$ at $n=130$ ($\beta/n=0.23$) remains positive ($+0.352$, 100\% win). The $\beta=40$ cliff is not predicted by $\beta/n$ and is an order of magnitude steeper than the $\beta=30$ decline.
 
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=\linewidth]{figs/fig11}
-\caption{Mean $d(\mathrm{LN})$ advantage vs $\beta/n$ ratio for all groups, coloured by block size. Points below the dashed red line indicate BKZ superiority. The shaded region ($\beta/n<0.20$) marks the ``collapse zone'' for $\beta=20$. The $\beta=40$ cliff is clearly visible: $n=110$ ($+1.16$ at $\beta/n=0.36$) drops to $n=130$ ($-1.33$ at $\beta/n=0.31$) and $n=140$ ($-1.45$ at $\beta/n=0.29$), despite $\beta/n$ ratios that remain above 0.20. All groups at 100 seeds. The $\beta/n$ ratio alone does not govern backward pass effectiveness.\label{fig:beta-n-scatter}}
+\caption{Mean $d(\mathrm{LN})$ advantage vs $\beta/n$ ratio for all groups, coloured by block size. Points below the dashed red line indicate BKZ superiority. The shaded region ($\beta/n<0.20$) marks the ``collapse zone'' for $\beta=20$. The $\beta=40$ cliff is clearly visible: $n=110$ ($+1.16$ at $\beta/n=0.36$) drops to $n=130$ ($-1.32$ at $\beta/n=0.31$) and $n=140$ ($-1.45$ at $\beta/n=0.29$), despite $\beta/n$ ratios that remain above 0.20. 100 seeds per group (122 for four variance-filled groups; see Table 3). The $\beta/n$ ratio alone does not govern backward pass effectiveness.\label{fig:beta-n-scatter}}
 \end{figure}
 
-The $\beta=40$ cliff complicates the convergence depth explanation. If the negative advantage at $n=120$--$150$ were purely due to insufficient convergence, we would not expect $\beta=40$ to \emph{overtake} $\beta=30$ at $n=110$ ($+1.158$ vs $+1.112$) before collapsing. The backward pass is clearly effective at $n=110$ with the same tour budget that produces catastrophic failure two dimension steps later. This suggests the cliff is a structural breakdown, not an artifact of under-convergence: there is a dimension threshold beyond which the backward pass on a 40-dimensional sublattice actively degrades the basis rather than improving it. Whether this threshold can be shifted by increasing the tour count remains an open question; a $3\times$ tour test at $\beta=40$ (analogous to Section~\ref{sec:capability}) would be informative but is computationally prohibitive at these dimensions (a single seed at $n=130$, $\beta=40$, 300 tours requires approximately 25{,}000 seconds based on Table~\ref{tab:runtime} extrapolation).
+The $\beta=40$ cliff complicates the convergence depth explanation. If the negative advantage at $n=120$--$150$ were purely due to insufficient convergence, we would not expect $\beta=40$ to \emph{overtake} $\beta=30$ at $n=110$ ($+1.163$ vs $+1.112$) before collapsing. The backward pass is clearly effective at $n=110$ with the same tour budget that produces catastrophic failure two dimension steps later. This suggests the cliff is a structural breakdown, not an artifact of under-convergence: there is a dimension threshold beyond which the backward pass on a 40-dimensional sublattice actively degrades the basis rather than improving it. Whether this threshold can be shifted by increasing the tour count remains an open question; a $3\times$ tour test at $\beta=40$ (analogous to Section~\ref{sec:capability}) would be informative but is computationally prohibitive at these dimensions (a single seed at $n=130$, $\beta=40$, 300 tours requires approximately 25{,}000 seconds based on Table~\ref{tab:runtime} extrapolation).
 
 SD-BKZ effectiveness depends on at least three interacting factors: block size, lattice dimension, and convergence depth (tour count relative to per-tour cost). The backward pass is beneficial when all three are in a favourable regime. The $\beta=40$ cliff demonstrates that larger block sizes amplify both the peak advantage and the severity of the collapse, suggesting a phase-transition-like boundary in the parameter space.
 
@@ -510,7 +510,7 @@ A per-position decomposition of the Rankin profile reveals that the decline mech
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=\linewidth]{figs/fig_perpos}
-\caption{Per-position SD-BKZ improvement across the active block for all 33 groups (100 seeds each), faceted by block size. Each curve shows the mean per-position advantage ($|d(\mathrm{LN})_{\mathrm{BKZ}}-R^*| - |d(\mathrm{LN})_{\mathrm{SD\text{-}BKZ}}-R^*|$) at a given dimension~$n$, with positive values indicating SD-BKZ is closer to the Li--Nguyen fixed point. At $\beta=20$ (top), the positive hump stays stable while the tail dip (near position~0.9) grows with dimension, driving the mean negative. At $\beta=30$ (middle), the peak improvement reaches $+2.5$~nats at $n=100$ while the tail dip reaches $-2.3$~nats at $n=150$; the decline is dip-dominated. At $\beta=40$ (bottom), both the peak and the dip collapse simultaneously between $n=110$ and $n=130$, producing the steep cliff visible in the mean advantage (Figure~\ref{fig:dim-scaling}). The three-segment decomposition (Figure~\ref{fig:spatial}) averages over these position-level dynamics; this figure shows the non-monotonic structure that the segment averages mask.\label{fig:perpos}}
+\caption{Per-position SD-BKZ improvement across the active block for all 33 groups (100 seeds each; 122 for four variance-filled groups, see Table 3), faceted by block size. Each curve shows the mean per-position advantage ($|d(\mathrm{LN})_{\mathrm{BKZ}}-R^*| - |d(\mathrm{LN})_{\mathrm{SD\text{-}BKZ}}-R^*|$) at a given dimension~$n$, with positive values indicating SD-BKZ is closer to the Li--Nguyen fixed point. At $\beta=20$ (top), the positive hump stays stable while the tail dip (near position~0.9) grows with dimension, driving the mean negative. At $\beta=30$ (middle), the peak improvement reaches $+2.5$~nats at $n=100$ while the tail dip reaches $-2.3$~nats at $n=150$; the decline is dip-dominated. At $\beta=40$ (bottom), both the peak and the dip collapse simultaneously between $n=110$ and $n=130$, producing the steep cliff visible in the mean advantage (Figure~\ref{fig:dim-scaling}). The three-segment decomposition (Figure~\ref{fig:spatial}) averages over these position-level dynamics; this figure shows the non-monotonic structure that the segment averages mask.\label{fig:perpos}}
 \end{figure}
 
 \section{Discussion}
@@ -538,7 +538,7 @@ Our lattices use $q=97$, though a 20-seed verification at $q=3329$ (the ML-KEM m
 \subsection{Reference Profile Sensitivity}
 \label{sec:gsa}
 
-We repeated the full analysis using the Geometric Series Assumption (GSA) reference profile instead of the Li--Nguyen fixed point. Across all 3{,}300 main-sweep seeds (33 groups), the per-seed $d(\mathrm{GSA})$ advantage correlates strongly with $d(\mathrm{LN})$ (Pearson $r=0.89$). Of the 33 groups, 30 agree on the sign of the mean advantage under both metrics; in the core advantage region ($n\leq 110$), agreement is unanimous. $d(\mathrm{GSA})$ advantages are systematically larger than $d(\mathrm{LN})$, meaning the $d(\mathrm{LN})$ results reported throughout this paper are the conservative case.
+We repeated the full analysis using the Geometric Series Assumption (GSA) reference profile instead of the Li--Nguyen fixed point. Across all 3{,}388 main-sweep seeds (33 groups), the per-seed $d(\mathrm{GSA})$ advantage correlates strongly with $d(\mathrm{LN})$ (Pearson $r=0.89$). Of the 33 groups, 30 agree on the sign of the mean advantage under both metrics; in the core advantage region ($n\leq 110$), agreement is unanimous. $d(\mathrm{GSA})$ advantages are systematically larger than $d(\mathrm{LN})$, meaning the $d(\mathrm{LN})$ results reported throughout this paper are the conservative case.
 
 Three groups in the decline zone show sign reversals between the two metrics: $n=120$ $\beta=40$, $n=140$ $\beta=30$, and $n=150$ $\beta=30$. In these groups, $d(\mathrm{LN})$ indicates BKZ superiority while $d(\mathrm{GSA})$ indicates SD-BKZ superiority. The reversals arise because the LN reference includes a vertical offset encoding the Hermite factor prediction; at boundary groups where the advantage is near zero, this offset is large enough to flip which algorithm appears closer to the reference. The reversal groups suggest that SD-BKZ's output at high dimensions sits between the LN and GSA predictions, consistent with convergence toward a distinct attractor that neither reference profile captures exactly. This observation connects to the open theoretical question of whether SD-BKZ has a well-defined fixed point (Section~\ref{sec:limitations}).
 
@@ -572,7 +572,7 @@ This phenomenon is mechanistically distinct from the BKZ tail hook documented at
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=\linewidth]{figs/fig12}
-\caption{fplll Gram--Schmidt cancellation at $q=3329$ (ML-KEM modulus), $n=100$, $\beta=30$, 100 seeds at 1000-bit MPFR. (a) For comparison, $q=97$ at the same parameters: 100 seeds, mean $+1.346$ nats, 0\% degenerate. (b) $q=3329$: 62 clean seeds (green) cluster near $+0.524$ nats (93.5\% win); 38 degenerate seeds (red/orange) scatter across $\pm 170$ nats depending on which algorithm happened to end in the collapsed state. Classification: 16 BKZ-only, 13 SD-BKZ-only, 9 both. (c) Per-tour trajectory of a degenerate seed: $d(\mathrm{LN})$ spikes to 140--270 nats whenever one Gram--Schmidt vector collapses, then returns to ${\sim}5$ nats on clean tours. Both algorithms hit the attractor on different tours.\label{fig:q3329}}
+\caption{fplll Gram--Schmidt cancellation at $q=3329$ (ML-KEM modulus), $n=100$, $\beta=30$, 100 seeds at 1000-bit MPFR. (a) For comparison, $q=97$ at the same parameters: 122 seeds, mean $+1.349$ nats, 0\% degenerate. (b) $q=3329$: 62 clean seeds (green) cluster near $+0.524$ nats (93.5\% win); 38 degenerate seeds (red/orange) scatter across $\pm 170$ nats depending on which algorithm happened to end in the collapsed state. Classification: 16 BKZ-only, 13 SD-BKZ-only, 9 both. (c) Per-tour trajectory of a degenerate seed: $d(\mathrm{LN})$ spikes to 140--270 nats whenever one Gram--Schmidt vector collapses, then returns to ${\sim}5$ nats on clean tours. Both algorithms hit the attractor on different tours.\label{fig:q3329}}
 \end{figure}
 
 \section{Reproducibility}
@@ -587,9 +587,9 @@ Seed-layout note: per-seed JSONs live under \texttt{results/seeds/<campaign>/...
 \section{Conclusion}
 \label{sec:conclusion}
 
-The lattice reduction community has relied on the Root Hermite Factor as its primary quality metric for nearly two decades. We have shown that RHF is blind to a consistent, statistically significant structural difference between BKZ and SD-BKZ output bases. The Li--Nguyen Rankin profile distance $d(\mathrm{LN})$ detects this difference clearly, revealing that SD-BKZ converges closer to the theoretical fixed point in over 95\% of trials at favourable dimensions, with an asymmetric advantage distribution: substantial wins, negligible losses. The statistical evidence is unambiguous: paired $t$-tests rejecting the null with $p<10^{-15}$ in 28 of the 33 complete groups, with Cohen's $|d|$ reaching 9.4 at $n=100$, $\beta=40$.
+The lattice reduction community has relied on the Root Hermite Factor as its primary quality metric for nearly two decades. We have shown that RHF is blind to a consistent, statistically significant structural difference between BKZ and SD-BKZ output bases. The Li--Nguyen Rankin profile distance $d(\mathrm{LN})$ detects this difference clearly, revealing that SD-BKZ converges closer to the theoretical fixed point in over 95\% of trials at favourable dimensions, with an asymmetric advantage distribution: substantial wins, negligible losses. The statistical evidence is unambiguous: paired $t$-tests rejecting the null with $p<10^{-15}$ in 28 of the 33 complete groups, with Cohen's $|d|$ reaching 9.6 at $n=100$, $\beta=40$.
 
-The advantage does not grow monotonically with dimension. The peak dimension is block-size-dependent: $\beta=20$ peaks at $n=90$ (0.484 nats), $\beta=30$ at $n=100$ (1.346 nats), and $\beta=40$ at $n=110$ (1.158 nats, confirmed at 100 seeds). Beyond the peak, all three block sizes decline into negative territory where the backward pass is actively harmful. The inversion severity scales with block size: $\beta=20$ declines gradually (0.66 nats over six dimension steps), $\beta=30$ more steeply (1.75 nats over five steps), and $\beta=40$ catastrophically (2.5 nats over two steps, from $+1.158$ at $n=110$ to $-1.334$ at $n=130$). Giving BKZ $3\times$ the tour budget does not close the gap at $\beta=30$ (0/400 seeds across four dimensions), while at $\beta=20$ BKZ can partially compensate with additional tours (67\% gap closed at $n=60$). A 500-tour convergence test at the crossover dimension ($n=140$, $\beta=30$) confirms that the reversal persists even at $7\times$ the standard tour budget, establishing it as a real regime change. This establishes that the SD-BKZ advantage at $\beta\geq 30$ is a capability difference, not a speed difference.
+The advantage does not grow monotonically with dimension. The peak dimension is block-size-dependent: $\beta=20$ peaks at $n=90$ (0.484 nats), $\beta=30$ at $n=100$ (1.349 nats), and $\beta=40$ at $n=110$ (1.163 nats, confirmed at 122 seeds). Beyond the peak, all three block sizes decline into negative territory where the backward pass is actively harmful. The inversion severity scales with block size: $\beta=20$ declines gradually (0.66 nats over six dimension steps), $\beta=30$ more steeply (1.75 nats over five steps), and $\beta=40$ catastrophically (2.5 nats over two steps, from $+1.163$ at $n=110$ to $-1.325$ at $n=130$). Giving BKZ $3\times$ the tour budget does not close the gap at $\beta=30$ (0/400 seeds across four dimensions), while at $\beta=20$ BKZ can partially compensate with additional tours (67\% gap closed at $n=60$). A 500-tour convergence test at the crossover dimension ($n=140$, $\beta=30$) confirms that the reversal persists even at $7\times$ the standard tour budget, establishing it as a real regime change. This establishes that the SD-BKZ advantage at $\beta\geq 30$ is a capability difference, not a speed difference.
 
 These findings suggest that $d(\mathrm{LN})$ should be adopted alongside RHF in future empirical evaluations of lattice reduction algorithms, and that prior comparisons based solely on RHF may warrant re-examination. Our containerised benchmark is intended to facilitate such re-examination.
 

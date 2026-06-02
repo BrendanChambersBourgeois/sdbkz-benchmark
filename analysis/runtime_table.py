@@ -143,6 +143,16 @@ def main():
     # positional dirs to load_all_seeds explicitly; keeping that path
     # available guards against the manifest being stale / absent.
     print(f"Loading seeds via manifest (campaign={DEFAULT_CAMPAIGN!r}).")
+    # NOTE (C1 / variance-fill): wall-clock runtime is machine-dependent.
+    # Four groups (n=100 b=30/40, n=110 b=40, n=130 b=40) carry 122 seeds
+    # after the variance-fill, and two of those 122-sets mix AWS-cloud and
+    # local-machine seeds (n=110 b=40, n=130 b=40). Averaging cloud+local
+    # wall-clocks is meaningless, so the paper's Table 2 is deliberately
+    # frozen at the single-machine 100-seed baseline. A naive re-run here
+    # would silently produce mixed-machine 122-seed runtimes that do NOT
+    # match Table 2 — scope to single-machine (or the first-100 baseline)
+    # before regenerating runtime figures. d(LN) is machine-invariant and
+    # IS reported at 122 (see paper variance-fill note); runtime is not.
     groups = load_all_seeds(campaign=DEFAULT_CAMPAIGN)
     if not groups:
         print("ERROR: no seed files loaded.")
