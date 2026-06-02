@@ -67,7 +67,9 @@ def fig_dln_vs_rhf(groups, output_dir=".", min_seeds=10):
 
     ax1.set_xlabel(r"Advantage in standard deviations from zero ($\sigma$ units)")
     ax1.set_ylabel("Number of seeds")
-    ax1.set_title(r"Same 100 seeds (n=100, $\beta$=30): two metrics, two stories")
+    ax1.set_title(
+        f"Same {len(peak_seeds)} seeds (n=100, $\\beta$=30): two metrics, two stories"
+    )
     ax1.legend(loc="upper right", fontsize=9)
 
     rhf_win = np.mean(peak_rhfs > 0) * 100
