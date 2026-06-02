@@ -87,7 +87,7 @@ Profile-based analysis of BKZ is well established: the Chen--Nguyen BKZ simulato
 
 \subsection{Root Hermite Factor}
 
-The Root Hermite Factor $\delta = (\|b_1\| / \mathrm{vol}(L)^{1/d})^{1/d}$ is a scalar metric that depends only on the length of the shortest basis vector relative to the lattice volume. Our implementation stores the uprooted Hermite Factor $\mathrm{HF} = \delta^d$ and converts only at report time (since $\mathrm{RHF} = \mathrm{HF}^{1/d}$, a monotone transformation, either metric ranks algorithms identically).\footnote{Our implementation computes the Hermite Factor (without the outer $1/d$ exponent); since $\mathrm{RHF} = \mathrm{HF}^{1/d}$ is a monotone transformation, the conclusions hold for both metrics.} It captures nothing about the interior structure of the basis; the Gram--Schmidt vectors $b^*_2$ through $b^*_d$ are invisible to it. As we demonstrate, this makes it fundamentally unable to detect the type of structural improvement SD-BKZ provides.
+The Root Hermite Factor $\delta = (\|b_1\| / \mathrm{vol}(L)^{1/d})^{1/d}$ is a scalar metric that depends only on the length of the shortest basis vector relative to the lattice volume. Our implementation stores and reports the uprooted Hermite Factor $\mathrm{HF} = \delta^d$ directly (since $\mathrm{RHF} = \mathrm{HF}^{1/d}$, a monotone transformation, either metric ranks algorithms identically).\footnote{Our implementation computes the Hermite Factor (without the outer $1/d$ exponent); since $\mathrm{RHF} = \mathrm{HF}^{1/d}$ is a monotone transformation, the conclusions hold for both metrics.} It captures nothing about the interior structure of the basis; the Gram--Schmidt vectors $b^*_2$ through $b^*_d$ are invisible to it. As we demonstrate, this makes it fundamentally unable to detect the type of structural improvement SD-BKZ provides.
 
 \section{Experimental Design}
 \label{sec:design}
@@ -174,7 +174,7 @@ This is the central finding. Table~\ref{tab:main} contrasts the RHF advantage wi
 \small
 \begin{tabular}{rrrlrrr}
 \hline
-$n$ & $\beta$ & Seeds & RHF $\Delta$ (mean) & $d(\mathrm{LN})\,\Delta$ & std & Win \% \\
+$n$ & $\beta$ & Seeds & HF $\Delta$ (mean) & $d(\mathrm{LN})\,\Delta$ & std & Win \% \\
 \hline
 50  & 20 & 100 & $-7.4\times 10^{-11}$ & $0.291$  & $0.143$ & 98\% \\
 50  & 30 & 100 & $-1.5\times 10^{-10}$ & $0.405$  & $0.143$ & 100\% \\
@@ -213,7 +213,7 @@ $n$ & $\beta$ & Seeds & RHF $\Delta$ (mean) & $d(\mathrm{LN})\,\Delta$ & std & W
 \end{tabular}
 \end{table}
 
-In all groups with RHF data, the RHF difference is below $10^{-6}$ (and below $10^{-7}$ in groups without outlier seeds), effectively zero. Both algorithms produce first basis vectors of indistinguishable length. Yet $d(\mathrm{LN})$ reveals advantages of 0.1--1.3 nats (natural log units) with standard deviations small enough to confirm statistical significance. An evaluation based on RHF alone would conclude ``no meaningful difference between BKZ and SD-BKZ''---a conclusion that is demonstrably wrong. At $n=120$ and $n=130$ with $\beta=20$, however, the advantage effectively vanishes (see Section~\ref{sec:peakmigration}).
+In all groups with RHF data, the HF difference is below $10^{-6}$ (and below $10^{-7}$ in groups without outlier seeds), effectively zero. Both algorithms produce first basis vectors of indistinguishable length. Yet $d(\mathrm{LN})$ reveals advantages of 0.1--1.3 nats (natural log units) with standard deviations small enough to confirm statistical significance. An evaluation based on RHF alone would conclude ``no meaningful difference between BKZ and SD-BKZ''---a conclusion that is demonstrably wrong. At $n=120$ and $n=130$ with $\beta=20$, however, the advantage effectively vanishes (see Section~\ref{sec:peakmigration}).
 
 The decoupling is complete: RHF win rates are 42--58\% across all groups, indistinguishable from a coin flip, while $d(\mathrm{LN})$ win rates range from 90\% to 100\% at favourable dimensions. The $d(\mathrm{LN})$ advantage does not translate to improved RHF, confirming that SD-BKZ's benefit lies in profile regularity rather than first-vector length.\footnote{RHF is blind to the $q=3329$ fpylll instability (Section~\ref{sec:q3329}) for the same structural reason: both the SD-BKZ improvement and the GSO cancellation pathology live in the interior/tail of the basis profile, and RHF only sees the first basis vector. $d(\mathrm{LN})$ surfaced both effects precisely because it is sensitive to interior basis structure.} A per-seed verification on the $n=100$, $\beta=30$ sample (30 seeds) makes the decoupling concrete: $d(\mathrm{LN})$ identifies SD-BKZ wins in 30/30 seeds, while RHF identifies zero seeds where either algorithm wins by more than its $10^{-6}$ noise floor. The Pearson correlation between the per-seed RHF and $d(\mathrm{LN})$ advantages in this group is $r = -0.14$ ($p = 0.48$), statistically indistinguishable from zero. The two metrics are not merely disagreeing on magnitude; they are measuring orthogonal properties of the basis.
 

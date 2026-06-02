@@ -117,7 +117,7 @@ The Root Hermite Factor (RHF), the dominant quality metric for lattice basis red
 
 <h3>2.3 Root Hermite Factor</h3>
 
-<p>The Root Hermite Factor &delta; = (||b<sub>1</sub>||&nbsp;/&nbsp;vol(L)<sup>1/d</sup>)<sup>1/d</sup> is a scalar metric that depends only on the length of the shortest basis vector relative to the lattice volume. Our implementation stores the uprooted Hermite Factor HF&nbsp;=&nbsp;&delta;<sup>d</sup> and converts only at report time (since RHF&nbsp;=&nbsp;HF<sup>1/d</sup>, a monotone transformation, either metric ranks algorithms identically).<sup>&Dagger;</sup> It captures nothing about the interior structure of the basis; the Gram&ndash;Schmidt vectors b*<sub>2</sub> through b*<sub>d</sub> are invisible to it. As we demonstrate, this makes it fundamentally unable to detect the type of structural improvement SD-BKZ provides.</p>
+<p>The Root Hermite Factor &delta; = (||b<sub>1</sub>||&nbsp;/&nbsp;vol(L)<sup>1/d</sup>)<sup>1/d</sup> is a scalar metric that depends only on the length of the shortest basis vector relative to the lattice volume. Our implementation stores and reports the uprooted Hermite Factor HF&nbsp;=&nbsp;&delta;<sup>d</sup> directly (since RHF&nbsp;=&nbsp;HF<sup>1/d</sup>, a monotone transformation, either metric ranks algorithms identically).<sup>&Dagger;</sup> It captures nothing about the interior structure of the basis; the Gram&ndash;Schmidt vectors b*<sub>2</sub> through b*<sub>d</sub> are invisible to it. As we demonstrate, this makes it fundamentally unable to detect the type of structural improvement SD-BKZ provides.</p>
 
 <p class="footnote"><sup>&Dagger;</sup> Our implementation computes the Hermite Factor (without the outer 1/d exponent); since RHF&nbsp;=&nbsp;HF<sup>1/d</sup> is a monotone transformation, the conclusions hold for both metrics.</p>
 
@@ -204,7 +204,7 @@ The Root Hermite Factor (RHF), the dominant quality metric for lattice basis red
 
 <table>
 <thead>
-<tr><th>n</th><th>&beta;</th><th>Seeds</th><th>RHF &Delta; (mean)</th><th>d(LN) &Delta; (mean)</th><th>d(LN) &Delta; (std)</th><th>Win %</th></tr>
+<tr><th>n</th><th>&beta;</th><th>Seeds</th><th>HF &Delta; (mean)</th><th>d(LN) &Delta; (mean)</th><th>d(LN) &Delta; (std)</th><th>Win %</th></tr>
 </thead>
 <tbody>
 <tr><td>50</td><td>20</td><td>100</td><td>&minus;7.4 &times; 10<sup>&minus;11</sup></td><td>0.291</td><td>0.143</td><td>98%</td></tr>
@@ -245,7 +245,7 @@ The Root Hermite Factor (RHF), the dominant quality metric for lattice basis red
 
 <p class="caption">100 seeds per group (122 for four variance-filled groups; see Seeds column). RHF win rates are 42&ndash;58% across all groups (not shown), consistent with a coin flip.</p>
 
-<p>In all groups with RHF data, the RHF difference is below 10<sup>&minus;6</sup> (and below 10<sup>&minus;7</sup> in groups without outlier seeds), effectively zero. Both algorithms produce first basis vectors of indistinguishable length. Yet d(LN) reveals advantages of 0.1&ndash;1.3 nats (natural log units) with standard deviations small enough to confirm statistical significance. An evaluation based on RHF alone would conclude &ldquo;no meaningful difference between BKZ and SD-BKZ&rdquo; &mdash; a conclusion that is demonstrably wrong. At n&nbsp;=&nbsp;120 and n&nbsp;=&nbsp;130 with &beta;&nbsp;=&nbsp;20, however, the advantage effectively vanishes (see Section 6.3).</p>
+<p>In all groups with RHF data, the HF difference is below 10<sup>&minus;6</sup> (and below 10<sup>&minus;7</sup> in groups without outlier seeds), effectively zero. Both algorithms produce first basis vectors of indistinguishable length. Yet d(LN) reveals advantages of 0.1&ndash;1.3 nats (natural log units) with standard deviations small enough to confirm statistical significance. An evaluation based on RHF alone would conclude &ldquo;no meaningful difference between BKZ and SD-BKZ&rdquo; &mdash; a conclusion that is demonstrably wrong. At n&nbsp;=&nbsp;120 and n&nbsp;=&nbsp;130 with &beta;&nbsp;=&nbsp;20, however, the advantage effectively vanishes (see Section 6.3).</p>
 
 <p>The decoupling is complete: RHF win rates are 42&ndash;58% across all groups, indistinguishable from a coin flip, while d(LN) win rates range from 90% to 100% at favourable dimensions. The d(LN) advantage does not translate to improved RHF, confirming that SD-BKZ&rsquo;s benefit lies in profile regularity rather than first-vector length.<sup>&dagger;</sup></p>
 
