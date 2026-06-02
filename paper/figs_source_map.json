@@ -12,11 +12,11 @@
     {"paper": "fig9_basis_profiles.png",           "source": "basis_profiles.png"},
     {"paper": "fig10_gso_profiles.png",            "source": "gso_profiles.png"},
     {"paper": "fig11_convergence_500_tours.png",   "source": "convergence_500_tours.png"},
-    {"paper": "fig12_q3329_degeneracy.png",        "source": "q3329_degeneracy.png"}
+    {"paper": "fig12_per_position_landscape.png",  "source": "per_position_landscape.png"},
+    {"paper": "fig13_q3329_degeneracy.png",        "source": "q3329_degeneracy.png"}
   ],
   "supplementary_only": [
-    "peak_dip_trajectory.png",
-    "per_position_landscape.png"
+    "peak_dip_trajectory.png"
   ],
   "$latex_note": "Maps paper/latex/figs/figNN.png (iacrj LaTeX build, included by sdbkz_paper_latex.tex via \\includegraphics{figs/figNN}) to its canonical analysis/figures/<source>.png. The LaTeX figs were a frozen one-time manual export (2026-04-14) at different render params, outside the parity gate, and silently diverged through the variance-fill (C1). They are now byte-synced to the single canonical analysis/figures/ source and gated below. Naming is by paper Figure NUMBER (fig01 = Figure 1 = dln_vs_rhf), which differs from the HTML bundle's source-file numbering. Adding/renaming a LaTeX figure: update this list, run sync_paper_figures.py, commit.",
   "latex_pairs": [
