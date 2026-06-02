@@ -28,10 +28,9 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
-**Pre-draft for v2.0.0** — the entries below mark the next release as
-a major version bump because the seed layout is a hard break with
-v1.5.x. Move this block to `## [2.0.0] — YYYY-MM-DD` at tag time and
-restore an empty `## Unreleased` above it.
+_Nothing yet._
+
+## [2.0.0] — 2026-06-03
 
 **Breaking layout change.** The v1.3-era back-compat symlink tree at
 `results/{raw,cloud,q3329,q3329_n*_beta*,q3329_degenerate,cliff_500bit,
@@ -211,6 +210,36 @@ prior to this paragraph; merged to main 2026-05-20 via `5b5c2c4`)
   pre-Phase 4 at `.github/workflows/build-and-verify.yml` lines
   203-233. No new step required. (Phase 4 #12; doc-only close-out
   in commit `96e934e`).
+
+### Fixed — paper-integrity pre-tag pass (2026-06-02/03)
+
+- **Seed-count alignment (C1).** Four variance-filled groups (n=100 β=30/40,
+  n=110 β=40, n=130 β=40) now report 122 seeds (was a frozen 100) across Tables
+  3/4/6/8, abstract, §6 body, captions, and conclusion in both the HTML and
+  LaTeX manuscripts — matching the figures and `full_summary_33groups.json`.
+  GSA recomputed at 3,388 main-sweep seeds (Pearson r=0.89 unchanged). Main-sweep
+  total 3,300→3,388; manifest 4,741→4,821 (README/CITATION refreshed).
+- **HF/RHF labelling (M1).** Corrected a false §3.2 claim that the implementation
+  "converts to RHF at report time" — it reports the Hermite factor HF=δ^d
+  directly; Table 3 column "RHF Δ"→"HF Δ"; §4 magnitude claims relabelled to HF.
+  The RHF-blindness thesis is unchanged (monotone transform).
+- **n=140 convergence framing (M4 + H1, 4 locations).** The n=140 β=30 crossover
+  is now reported as significant at the 500-tour budget but a statistically
+  undetectable underpowered null at 1000 tours (mean +0.029, 95% CI
+  [−0.021, +0.079], 12/20, ≈0.21 power) across §5.3, Fig 5, §7.4, and §10; the
+  robust high-dimension reversal is attributed to n=150.
+- **Figure coverage + gate.** fig8 (dln_vs_rhf) title corrected 100→122 seeds;
+  `paper/latex/figs/` byte-synced to `analysis/figures/`; the missing Figure 12
+  (per_position_landscape) added and q3329 renumbered Figure 13; the figure-parity
+  CI gate extended to cover BOTH the HTML bundle and `paper/latex/figs/` (26 pairs).
+- **Docs truthed (M6) + abstract framing (B1–B3).** fplll PR #550 stated as
+  closed-unmerged; 3×-tour claim scoped to β≥30 with the β=20 partial-close
+  caveat; one-clause attractor-open hedge on the intro fixed-point claim; an
+  unverifiable SONAME parenthetical dropped; "more than 4,500 seeds" aligned
+  across channels.
+- **PDF rebuilt.** `paper/latex/sdbkz_paper_latex.pdf` regenerated from the
+  corrected LaTeX (was a stale 2026-05-20 build) and verified to carry every fix
+  with no stale values.
 
 ## [1.5.2] — 2026-05-19
 
