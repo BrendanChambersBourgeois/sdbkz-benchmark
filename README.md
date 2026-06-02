@@ -90,7 +90,7 @@ This project benchmarks the **self-dual BKZ (SD-BKZ)** algorithm against standar
 
 ## Current results
 
-**More than 4,000 independent trials.** The main sweep is complete: 33 of 33 (n, β) groups at 100 seeds each (3,300 runs). Beyond the main sweep: 500 seeds in 3× tour capability experiments, 40 seeds in 500-tour convergence tests (20 each at n=90 and n=140, β=30), 100 seeds in the q=3329 n=100 β=30 characterisation at 1000-bit MPFR, and 80 seeds in q=3329 verification at n=50/70/80/90 (β=30). The cloud campaign (AWS Batch) is complete and decommissioned as of 2026-04-10; all remaining work runs locally. Zero data loss across the campaign.
+**More than 4,000 independent trials.** The main sweep is complete: 33 of 33 (n, β) groups at 100 seeds each — 122 for the four variance-filled groups — (3,388 runs). Beyond the main sweep: 500 seeds in 3× tour capability experiments, 40 seeds in 500-tour convergence tests (20 each at n=90 and n=140, β=30), 100 seeds in the q=3329 n=100 β=30 characterisation at 1000-bit MPFR, and 80 seeds in q=3329 verification at n=50/70/80/90 (β=30). The cloud campaign (AWS Batch) is complete and decommissioned as of 2026-04-10; all remaining work runs locally. Zero data loss across the campaign.
 
 | Dimension | β=20 | β=30 | β=40 |
 |---|---|---|---|
