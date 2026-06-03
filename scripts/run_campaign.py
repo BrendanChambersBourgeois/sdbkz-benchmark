@@ -39,6 +39,8 @@ Dispatch routing (campaign name → underlying runner):
     tours3x                    → run_3x_extended (GROUPS override)
     fplll_sensitivity          → out-of-scope here — needs Dockerfile.fplll54
                                  image build; prints instructions and exits.
+    ntru_smoke                 → inline NTRU basis build + structural check
+                                 (no BKZ; LWE-specific engine metric).
 
 The dispatcher does NOT re-implement the BKZ driver. It builds the
 argv that the underlying runner expects, then either subprocess-execs
@@ -85,6 +87,8 @@ def _select_runner(campaign_name: str) -> str:
       - `tours3x`       — run_3x_extended GROUPS override. Handles tours3x.
       - `fplll_image`   — needs a separate Docker build (Dockerfile.fplll54);
                           this script cannot dispatch it directly.
+      - `ntru_smoke`    — inline NTRU basis build + structural self-check
+                          (no BKZ; the engine metric is LWE-specific).
     """
     if campaign_name in {"main", "cliff500"}:
         return "q3329_verify"
@@ -96,6 +100,8 @@ def _select_runner(campaign_name: str) -> str:
         return "tours3x"
     if campaign_name == "fplll_sensitivity":
         return "fplll_image"
+    if campaign_name == "ntru_smoke":
+        return "ntru_smoke"
     raise ConfigError(f"no dispatch route registered for campaign '{campaign_name}'")
 
 
@@ -237,6 +243,53 @@ def _dispatch_fplll_image(campaign: Campaign, *args: Any, **kwargs: Any) -> int:
     return 2
 
 
+def _dispatch_ntru_smoke(campaign: Campaign, *, dry_run: bool) -> int:
+    """NTRU smoke: build the NTRU basis for each (n ∈ n_grid, seed) and
+    verify its structure inline — dim=2N, top-left q·I_N, and the key
+    consistency H·f ≡ g (mod q). β is ignored (NTRU has no block-size
+    grid here).
+
+    Deliberately does NOT run BKZ. The engine's metric reads the active
+    block [m, dim) with m=2n — an LWE-Kannan convention that does not
+    transfer to NTRU's 2N lattice. Running NTRU through it would produce
+    a metric over a meaningless window. NTRU dynamics/metrics are future
+    work; this smoke gates construction + name-dispatch wiring only.
+    """
+    import numpy as np
+    from generators import get_generator
+    from generators.ntru import build_ntru
+
+    get_generator(campaign.generator)  # validate the name resolves
+    q = campaign.q
+    checks = 0
+    for n in campaign.n_grid:
+        for seed in range(1, campaign.num_seeds + 1):
+            if dry_run:
+                print(f"[dry-run] build_ntru(n={n}, q={q}, seed={seed}) "
+                      f"+ verify dim=2N, q·I, H·f≡g")
+                continue
+            L, f, g = build_ntru(n, q, seed=seed)
+            if len(L) != 2 * n:
+                print(f"ERROR: n={n} seed={seed}: dim {len(L)} != {2 * n}",
+                      file=sys.stderr)
+                return 2
+            H = np.array([[L[n + i][j] for j in range(n)] for i in range(n)])
+            if not np.array_equal((H @ f) % q, g % q):
+                print(f"ERROR: n={n} seed={seed}: H·f != g (mod {q})",
+                      file=sys.stderr)
+                return 2
+            checks += 1
+
+    PIPELINE.info("ntru_smoke ok", cat="sweep",
+                  campaign=campaign.name, q=q,
+                  n_grid=list(campaign.n_grid), seeds=campaign.num_seeds,
+                  bases_verified=checks)
+    if not dry_run:
+        print(f"NTRU smoke OK: {checks} bases built + verified "
+              f"(dim=2N, q·I_N block, H·f≡g mod {q}).")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(
         description="Dispatch a campaign declared in config/sweep.toml.",
@@ -299,6 +352,8 @@ def main() -> int:
     )
 
     role = _select_runner(args.campaign)
+    if role == "ntru_smoke":
+        return _dispatch_ntru_smoke(campaign, dry_run=args.dry_run)
     if role == "q3329_verify":
         return _dispatch_q3329_verify(
             campaign, n, beta,

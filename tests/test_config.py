@@ -65,6 +65,13 @@ def test_real_cliff500_inherits_q97_then_overrides_precision():
     assert cliff.n_grid == (130,)
 
 
+def test_real_ntru_smoke_selects_ntru_generator():
+    c = _config.load_campaign("ntru_smoke")
+    assert c.generator == "ntru"
+    assert c.q == 3329
+    assert c.n_grid == (16, 32)
+
+
 def test_real_convergence_beta40_bracket_has_eight_dims():
     bracket = _config.load_campaign("convergence_beta40_mt1000")
     assert bracket.beta_grid == (40,)

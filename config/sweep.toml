@@ -124,3 +124,21 @@ n_grid = [100]
 tours_by_beta = { "30" = 70 }
 num_seeds = 5
 store_per_tour = false
+
+# -- NTRU construction smoke ------------------------------------------------
+# Greenfield NTRU generator (negacyclic Z_q[x]/(x^N+1), 2N×2N basis). The
+# ntru_smoke runner BUILDS + structurally verifies bases (dim=2N, q·I_N
+# block, key consistency H·f≡g mod q) for each n∈n_grid × seed — it does
+# NOT run BKZ. The engine's active-block metric (m=2n) is LWE-Kannan-
+# specific and does not transfer to NTRU; dynamics/metrics are future work.
+# `n` is the ring degree N here; `beta` is unused (placeholder grid).
+[campaigns.ntru_smoke]
+description = "NTRU basis construction smoke (negacyclic, dim=2N)"
+generator = "ntru"
+q = 3329
+precision = 250
+beta_grid = [2]
+n_grid = [16, 32]
+tours_by_beta = { "2" = 1 }
+num_seeds = 3
+store_per_tour = false

@@ -10,6 +10,7 @@ Generators:
     identity + error row), the existing benchmark construction.
 """
 from generators.lwe_kannan import build_lwe_kannan, kannan_m
+from generators.ntru import build_ntru
 
 
 def _lwe_kannan(n: int, q: int, seed: int) -> list[list[int]]:
@@ -21,10 +22,17 @@ def _lwe_kannan(n: int, q: int, seed: int) -> list[list[int]]:
     return L
 
 
-# name -> uniform generator callable. New generators (e.g. ntru) register
-# here; the engine and run_campaign dispatch by these names alone.
+def _ntru(n: int, q: int, seed: int) -> list[list[int]]:
+    """Registry adapter for NTRU: ring degree N=n, lattice dim 2N, no m."""
+    L, _, _ = build_ntru(n, q, seed=seed)
+    return L
+
+
+# name -> uniform generator callable. New generators register here; the
+# engine and run_campaign dispatch by these names alone.
 GENERATORS = {
     "lwe_kannan": _lwe_kannan,
+    "ntru": _ntru,
 }
 
 
@@ -46,6 +54,6 @@ def get_generator(name: str):
 
 
 __all__ = [
-    "build_lwe_kannan", "kannan_m",
+    "build_lwe_kannan", "kannan_m", "build_ntru",
     "GENERATORS", "available_generators", "get_generator",
 ]
