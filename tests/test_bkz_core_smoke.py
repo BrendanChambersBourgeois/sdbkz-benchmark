@@ -45,7 +45,8 @@ def _basis(n, q, seed):
 def tiny_result():
     return run_single(
         L=_basis(20, 97, 1),
-        n=20, beta=10, seed=1, q=97, precision=100, max_tours=5,
+        n=20, active_block_start=kannan_m(20),
+        beta=10, seed=1, q=97, precision=100, max_tours=5,
         log_clamp_fn=None,
     )
 
@@ -95,7 +96,8 @@ def test_smoke_dim_matches_n_m_kannan():
     # cached fixture) so a future schema drift surfaces immediately.
     r = run_single(
         L=_basis(15, 97, 2),
-        n=15, beta=8, seed=2, q=97, precision=100, max_tours=3,
+        n=15, active_block_start=kannan_m(15),
+        beta=8, seed=2, q=97, precision=100, max_tours=3,
         log_clamp_fn=None,
     )
     assert r["n"] == 15
@@ -106,7 +108,8 @@ def test_smoke_dim_matches_n_m_kannan():
 def test_smoke_store_per_tour_emits_full_arrays():
     r = run_single(
         L=_basis(18, 97, 3),
-        n=18, beta=10, seed=3, q=97, precision=100, max_tours=3,
+        n=18, active_block_start=kannan_m(18),
+        beta=10, seed=3, q=97, precision=100, max_tours=3,
         log_clamp_fn=None, store_per_tour=True,
     )
     # store_per_tour=True asks _bkz_core for full-rankin per-tour
@@ -130,7 +133,8 @@ def test_smoke_clamp_callback_invoked_when_supplied():
 
     r = run_single(
         L=_basis(20, 97, 4),
-        n=20, beta=10, seed=4, q=97, precision=100, max_tours=3,
+        n=20, active_block_start=kannan_m(20),
+        beta=10, seed=4, q=97, precision=100, max_tours=3,
         log_clamp_fn=_clamp,
     )
     assert r["status"] == "completed"

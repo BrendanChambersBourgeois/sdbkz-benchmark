@@ -38,7 +38,7 @@ from _math_core import (
     metrics_from_gso,
 )
 from _seed_paths import seed_dir_for, seed_path_for
-from generators import get_generator
+from generators import get_generator, get_metric_block_start
 from log import get_logger
 
 PIPELINE = get_logger("q3329_verify")
@@ -72,8 +72,10 @@ _args = parse_args()
 Q = _args.q          # ML-KEM modulus (main sweep uses 97; default 3329)
 N = _args.n
 BETA = _args.beta
-# Resolve the generator name -> uniform (n, q, seed) -> L callable once.
+# Resolve the generator name -> uniform (n, q, seed) -> L callable once,
+# plus its metric active-block-start convention m(n).
 GENERATOR = get_generator(_args.generator)
+METRIC_BLOCK_START_FN = get_metric_block_start(_args.generator)
 TOURS_BY_BETA = {20: 50, 30: 70, 40: 100}
 MAX_TOURS = TOURS_BY_BETA.get(BETA, 70)
 PRECISION = _args.precision if _args.precision else 500
@@ -128,7 +130,8 @@ def run_single(n, beta, seed, store_per_tour=False):
     L = GENERATOR(n, Q, seed)
     return _bkz_core_run_single(
         L=L,
-        n=n, beta=beta, seed=seed,
+        n=n, active_block_start=METRIC_BLOCK_START_FN(n),
+        beta=beta, seed=seed,
         q=Q, precision=PRECISION,
         max_tours=MAX_TOURS,
         log_clamp_fn=_log_clamp,

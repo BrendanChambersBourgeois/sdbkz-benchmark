@@ -84,6 +84,7 @@ def run_single(
     *,
     L: list[list[int]],
     n: int,
+    active_block_start: int,
     beta: int,
     seed: int,
     q: int,
@@ -104,12 +105,14 @@ def run_single(
     FPLLL.set_precision(precision)
     FPLLL.set_random_seed(seed)
 
-    # Engine is construction-blind: it receives the basis L and reads the
-    # dimensions off it. dim = n+m+1 ⇒ m = dim-n-1 (== 2n for the Kannan
-    # contract, but the engine never assumes that — it just measures L).
+    # Engine is construction-blind AND metric-blind: it measures the GSO
+    # over the active block [m, dim) the caller specifies. The block start
+    # is the generator's convention (LWE-Kannan: m=2n, the projected
+    # sublattice holding the embedded target) — NOT an engine assumption.
+    # The comparison profile spans the active block, length dim-m.
     dim = len(L)
-    m = dim - n - 1
-    ln_p = ln_fixed_point(n + 1, beta)
+    m = active_block_start
+    ln_p = ln_fixed_point(dim - m, beta)
 
     result: dict[str, Any] = {
         "n": n, "beta": beta, "seed": seed, "q": q, "max_tours": max_tours,

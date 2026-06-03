@@ -21,7 +21,12 @@ import pytest
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO_ROOT, "scripts"))
 
-from generators import build_ntru, get_generator  # noqa: E402
+from generators import (  # noqa: E402
+    build_ntru,
+    get_generator,
+    get_metric_block_start,
+    kannan_m,
+)
 
 # Small grid: N ∈ {16, 32}, prime q (3329 ML-KEM + smaller), seeds 1-3.
 GRID = [(N, q, seed)
@@ -81,6 +86,21 @@ def test_ntru_seed_sensitive():
     a, _, _ = build_ntru(16, 3329, seed=1)
     b, _, _ = build_ntru(16, 3329, seed=2)
     assert a != b
+
+
+def test_lwe_metric_block_start_is_2n():
+    # LWE-Kannan declares m=2n (the projected sublattice with the target).
+    fn = get_metric_block_start("lwe_kannan")
+    assert fn(50) == kannan_m(50) == 100
+
+
+def test_ntru_metric_block_start_gated_on_r_star():
+    # NTRU's active-block convention is the undecided R* research call —
+    # building bases is fine, but routing NTRU through the BKZ metric must
+    # raise loudly rather than measure an LWE-shaped (wrong) window.
+    fn = get_metric_block_start("ntru")
+    with pytest.raises(NotImplementedError, match="R\\*"):
+        fn(16)
 
 
 def test_ntru_registry_adapter_returns_basis_only():

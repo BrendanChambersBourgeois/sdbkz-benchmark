@@ -36,6 +36,37 @@ GENERATORS = {
 }
 
 
+def _ntru_block_start(n: int) -> int:
+    raise NotImplementedError(
+        "NTRU metric active-block start is undecided (the 'R*' research "
+        "decision): which block of the 2N basis defines reduction success "
+        "for fatigue is not the LWE-Kannan projected-sublattice convention. "
+        "Decide R* before routing NTRU through the BKZ engine; ntru_smoke "
+        "only builds + structurally verifies bases."
+    )
+
+
+# name -> active-block start m for metrics_from_gso's [m, dim) window. The
+# generator owns this convention; the engine is metric-blind and just uses
+# the number. LWE-Kannan: m=2n (the projected sublattice with the embedded
+# target). NTRU: gated on the R* decision (see _ntru_block_start).
+METRIC_BLOCK_START = {
+    "lwe_kannan": kannan_m,
+    "ntru": _ntru_block_start,
+}
+
+
+def get_metric_block_start(name: str):
+    """Resolve a generator name to its ``m(n) -> active-block start``
+    callable for metrics_from_gso. Raises ValueError on unknown name."""
+    try:
+        return METRIC_BLOCK_START[name]
+    except KeyError:
+        raise ValueError(
+            f"unknown generator {name!r}; available: {sorted(METRIC_BLOCK_START)}"
+        ) from None
+
+
 def available_generators() -> frozenset[str]:
     """Set of registered generator names (for config validation)."""
     return frozenset(GENERATORS)
@@ -56,4 +87,5 @@ def get_generator(name: str):
 __all__ = [
     "build_lwe_kannan", "kannan_m", "build_ntru",
     "GENERATORS", "available_generators", "get_generator",
+    "METRIC_BLOCK_START", "get_metric_block_start",
 ]
