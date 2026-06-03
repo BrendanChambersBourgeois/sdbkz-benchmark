@@ -1,7 +1,7 @@
 # BKZ Dynamical Systems Benchmark: Empirical Evaluation of Lattice Reduction via the Li–Nguyen Rankin Profile
 
 [![CI](https://github.com/BrendanChambersBourgeois/sdbkz-benchmark/actions/workflows/build-and-verify.yml/badge.svg)](https://github.com/BrendanChambersBourgeois/sdbkz-benchmark/actions)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19686928.svg)](https://doi.org/10.5281/zenodo.19686928)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19686927.svg)](https://doi.org/10.5281/zenodo.19686927)
 [![License: MIT](https://img.shields.io/badge/Code-MIT-blue.svg)](LICENSE)
 [![License: CC-BY-4.0](https://img.shields.io/badge/Paper%20%26%20data-CC--BY--4.0-brightgreen.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg)](https://www.python.org/)
@@ -68,7 +68,7 @@ The rest of the repo is the infrastructure that made finding it possible: pinned
 ```mermaid
 flowchart LR
   A[runners<br/>run_campaign · sweep_parallel · q3329_verify<br/>run_3x_extended · run_convergence · ...] -->|writes| B[results/seeds/<br/>&lt;campaign&gt;/]
-  B -->|indexed by| C[results/seed_manifest.json<br/>4741 entries · SHA-256]
+  B -->|indexed by| C[results/seed_manifest.json<br/>4821 entries · SHA-256]
   C -->|read by| D[analysis/_data.py<br/>load_all_seeds campaign=...]
   D -->|renders| E[paper figures<br/>stats tables<br/>runtime tables]
   B -->|validated by| F[lint_seed_manifest<br/>validate_seeds]
@@ -133,9 +133,9 @@ The `paper/` directory holds the technical writeup documenting the benchmark des
 |---|---|
 | `paper/sdbkz_paper.html` | web-viewable HTML (drag into any browser) |
 | `paper/latex/sdbkz_paper_latex.tex` | LaTeX source (canonical) |
-| `paper/latex/sdbkz_paper_latex.pdf` | LaTeX-rendered PDF, 30 pages (canonical artifact) |
+| `paper/latex/sdbkz_paper_latex.pdf` | LaTeX-rendered PDF, 33 pages (canonical artifact) |
 | `paper/latex/Makefile` | `make` rebuilds the LaTeX PDF in one command |
-| `paper/latex/figs/` | 12 figures at 300 DPI, numbered in report order |
+| `paper/latex/figs/` | 13 figures at 300 DPI, numbered in report order |
 | `paper/latex/{abbrev3,crypto,biblio}.bib` | Bibliography (cryptobib extract + local entries) |
 | `paper/latex/iacrj.cls`, `metacapture.sty` | Vendored IACR journal class (no submodule needed) |
 
@@ -283,7 +283,7 @@ python3 analysis/paper_figures.py
 from analysis._data import load_all_seeds
 from analysis.plots import fig_dimension_scaling
 
-groups = load_all_seeds("results/raw", "results/cloud")
+groups = load_all_seeds(campaign="main")
 fig_dimension_scaling(groups, output_dir="./figures")
 ```
 
