@@ -37,7 +37,7 @@ from _math_core import (
     log_clamp,
     metrics_from_gso,
 )
-from generators import build_lwe_kannan
+from generators import build_lwe_kannan, kannan_m
 from log import get_logger, get_run_id, new_run_id
 
 PIPELINE = get_logger("sweep_cloud")
@@ -235,9 +235,12 @@ def run_single(
 ) -> dict[str, Any]:
     """Thin wrapper: feeds the canonical BKZ driver with sweep_cloud
     conventions (q/precision overridable, TOURS_BY_BETA, safe floor)."""
+    qq = q if q is not None else Q
+    L, _, _ = build_lwe_kannan(n, kannan_m(n), qq, seed=seed)
     return _bkz_core_run_single(
+        L=L,
         n=n, beta=beta, seed=seed,
-        q=q if q is not None else Q,
+        q=qq,
         precision=precision if precision is not None else PRECISION,
         max_tours=TOURS_BY_BETA[beta],
         log_clamp_fn=_log_clamp_cloud,

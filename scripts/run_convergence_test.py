@@ -26,7 +26,7 @@ from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _math_core import ln_fixed_point, log_clamp
 from _seed_paths import seed_dir_for, seed_path_for
-from generators import build_lwe_kannan
+from generators import build_lwe_kannan, kannan_m
 from log import get_logger, get_run_id, new_run_id
 
 PIPELINE = get_logger("run_convergence_test")
@@ -77,7 +77,7 @@ def run_seed(seed):
     FPLLL.set_random_seed(seed)
 
     n, beta = N, BETA
-    m = n * 2
+    m = kannan_m(n)
     dim = m + n + 1
     L, _, _ = build_lwe_kannan(n, m, Q, seed=seed)
     ln_p = ln_fixed_point(n + 1, beta)

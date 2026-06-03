@@ -27,6 +27,15 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(REPO_ROOT, "scripts"))
 
 from _bkz_core import run_single  # noqa: E402
+from generators import build_lwe_kannan, kannan_m  # noqa: E402
+
+
+def _basis(n, q, seed):
+    """Build the LWE-Kannan basis the engine now consumes. Post-refactor
+    run_single is construction-blind — the caller supplies L (here the
+    test plays the dispatcher's role)."""
+    L, _, _ = build_lwe_kannan(n, kannan_m(n), q, seed=seed)
+    return L
 
 
 # Tiny config: n=20, β=10, max_tours=5, 100-bit precision. Total wall
@@ -35,6 +44,7 @@ from _bkz_core import run_single  # noqa: E402
 @pytest.fixture(scope="module")
 def tiny_result():
     return run_single(
+        L=_basis(20, 97, 1),
         n=20, beta=10, seed=1, q=97, precision=100, max_tours=5,
         log_clamp_fn=None,
     )
@@ -84,6 +94,7 @@ def test_smoke_dim_matches_n_m_kannan():
     # convention. Verified once from a fresh call (independent of the
     # cached fixture) so a future schema drift surfaces immediately.
     r = run_single(
+        L=_basis(15, 97, 2),
         n=15, beta=8, seed=2, q=97, precision=100, max_tours=3,
         log_clamp_fn=None,
     )
@@ -94,6 +105,7 @@ def test_smoke_dim_matches_n_m_kannan():
 
 def test_smoke_store_per_tour_emits_full_arrays():
     r = run_single(
+        L=_basis(18, 97, 3),
         n=18, beta=10, seed=3, q=97, precision=100, max_tours=3,
         log_clamp_fn=None, store_per_tour=True,
     )
@@ -117,6 +129,7 @@ def test_smoke_clamp_callback_invoked_when_supplied():
         calls.append((ctx, position, raw_value))
 
     r = run_single(
+        L=_basis(20, 97, 4),
         n=20, beta=10, seed=4, q=97, precision=100, max_tours=3,
         log_clamp_fn=_clamp,
     )

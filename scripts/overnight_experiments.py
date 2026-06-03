@@ -36,7 +36,7 @@ from _math_core import (
     log_clamp,
     metrics_from_gso,
 )
-from generators import build_lwe_kannan
+from generators import build_lwe_kannan, kannan_m
 from log import get_logger
 
 PIPELINE = get_logger("overnight_experiments")
@@ -95,7 +95,7 @@ def run_3x_tour_test():
         FPLLL.set_precision(PRECISION)
         FPLLL.set_random_seed(seed)
 
-        m = N * 2
+        m = kannan_m(N)
         dim = m + N + 1
         L, _, _ = build_lwe_kannan(N, m, Q, seed=seed)
         ln_p = ln_fixed_point(N + 1, BETA)

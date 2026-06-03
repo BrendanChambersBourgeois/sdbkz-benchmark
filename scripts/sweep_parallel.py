@@ -36,7 +36,7 @@ from _math_core import (
 )
 from _seed_paths import seed_path_for
 from _signal_utils import managed_pool
-from generators import build_lwe_kannan
+from generators import build_lwe_kannan, kannan_m
 from log import get_logger, get_run_id, new_run_id
 
 PIPELINE = get_logger("sweep_parallel")
@@ -215,7 +215,9 @@ def run_single(
 ) -> dict[str, Any]:
     """Thin wrapper: feeds the canonical BKZ driver with sweep_parallel
     conventions (Q=97, PRECISION=250, TOURS_BY_BETA, plain floor metric)."""
+    L, _, _ = build_lwe_kannan(n, kannan_m(n), Q, seed=seed)
     return _bkz_core_run_single(
+        L=L,
         n=n, beta=beta, seed=seed,
         q=Q, precision=PRECISION,
         max_tours=TOURS_BY_BETA[beta],

@@ -11,6 +11,16 @@ about how it was built. ``run_campaign`` dispatches generators by name.
 import numpy as np
 
 
+def kannan_m(n: int) -> int:
+    """LWE sample count for the Kannan embedding: ``m = 2n``.
+
+    The benchmark's standing contract. Pinned in one place so no call
+    site forks it — every builder/engine path derives m from here (or,
+    for the engine, from the basis it receives).
+    """
+    return n * 2
+
+
 def build_lwe_kannan(
     n: int, m: int, q: int, seed: int = 123
 ) -> tuple[list[list[int]], np.ndarray, np.ndarray]:

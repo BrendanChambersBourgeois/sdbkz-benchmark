@@ -50,7 +50,6 @@ from typing import Any, Optional
 import numpy as np
 from _math_core import ln_fixed_point, metrics_from_gso
 from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
-from generators import build_lwe_kannan
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger  # noqa: E402
@@ -83,6 +82,7 @@ HEARTBEAT_EVERY: int = 25
 
 def run_single(
     *,
+    L: list[list[int]],
     n: int,
     beta: int,
     seed: int,
@@ -104,9 +104,11 @@ def run_single(
     FPLLL.set_precision(precision)
     FPLLL.set_random_seed(seed)
 
-    m = n * 2
-    dim = m + n + 1
-    L, _, _ = build_lwe_kannan(n, m, q, seed=seed)
+    # Engine is construction-blind: it receives the basis L and reads the
+    # dimensions off it. dim = n+m+1 ⇒ m = dim-n-1 (== 2n for the Kannan
+    # contract, but the engine never assumes that — it just measures L).
+    dim = len(L)
+    m = dim - n - 1
     ln_p = ln_fixed_point(n + 1, beta)
 
     result: dict[str, Any] = {

@@ -9,6 +9,6 @@ Generators:
   - ``build_lwe_kannan`` — LWE-Kannan embedding (q-ary + A-embedding +
     identity + error row), the existing benchmark construction.
 """
-from generators.lwe_kannan import build_lwe_kannan
+from generators.lwe_kannan import build_lwe_kannan, kannan_m
 
-__all__ = ["build_lwe_kannan"]
+__all__ = ["build_lwe_kannan", "kannan_m"]

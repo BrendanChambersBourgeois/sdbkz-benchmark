@@ -38,7 +38,7 @@ from _math_core import (
     metrics_from_gso,
 )
 from _seed_paths import seed_dir_for, seed_path_for
-from generators import build_lwe_kannan
+from generators import build_lwe_kannan, kannan_m
 from log import get_logger
 
 PIPELINE = get_logger("q3329_verify")
@@ -118,7 +118,9 @@ def run_single(n, beta, seed, store_per_tour=False):
     conventions (Q=3329 default, MAX_TOURS captured at import time,
     warn_on_clamp=True for the q=3329 fast-signal, store_per_tour key
     always emitted at position 10 for legacy schema parity)."""
+    L, _, _ = build_lwe_kannan(n, kannan_m(n), Q, seed=seed)
     return _bkz_core_run_single(
+        L=L,
         n=n, beta=beta, seed=seed,
         q=Q, precision=PRECISION,
         max_tours=MAX_TOURS,

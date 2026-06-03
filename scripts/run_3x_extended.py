@@ -24,7 +24,7 @@ from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _math_core import ln_fixed_point, log_clamp
 from _seed_paths import seed_dir_for, seed_path_for
-from generators import build_lwe_kannan
+from generators import build_lwe_kannan, kannan_m
 from log import get_logger
 
 PIPELINE = get_logger("run_3x_extended")
@@ -80,7 +80,7 @@ def run_seed(args):
     FPLLL.set_precision(PRECISION)
     FPLLL.set_random_seed(seed)
 
-    m = n * 2
+    m = kannan_m(n)
     dim = m + n + 1
     L, _, _ = build_lwe_kannan(n, m, Q, seed=seed)
     ln_p = ln_fixed_point(n + 1, beta)
