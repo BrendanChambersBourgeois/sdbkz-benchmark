@@ -161,3 +161,22 @@ n_grid = [59, 61, 67, 71, 73, 79, 83, 89]
 tours_by_beta = { "20" = 50 }
 num_seeds = 20
 store_per_tour = false
+
+# -- NTRU fatigue q-sweep ---------------------------------------------------
+# Fixed n=89 (fatigue point q≈0.004·89^2.484 ≈ 278), sweep q across it via
+# `--q` override to locate the fatigue onset: standard regime (q below
+# fatigue, BKZ blocksize matters) → overstretched (q above, dense sublattice
+# found cheaply). precision=500 (headroom vs the q=3329 §8 cancellation;
+# watch results/clamp_events.jsonl for non-positive get_r). β=20, 10 seeds.
+#   for q in 97 149 211 257 307 401 547 691; do
+#     run_campaign --campaign ntru_qsweep --q $q; done
+[campaigns.ntru_qsweep]
+description = "NTRU fatigue q-sweep at n=89 (DvW circulant)"
+generator = "ntru"
+q = 277
+precision = 500
+beta_grid = [20]
+n_grid = [89]
+tours_by_beta = { "20" = 50 }
+num_seeds = 10
+store_per_tour = false

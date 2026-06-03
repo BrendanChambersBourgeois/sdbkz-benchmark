@@ -107,7 +107,7 @@ def _select_runner(campaign_name: str) -> str:
         return "fplll_image"
     if campaign_name == "ntru_smoke":
         return "ntru_smoke"
-    if campaign_name == "ntru":
+    if campaign_name in {"ntru", "ntru_qsweep"}:
         return "ntru"
     raise ConfigError(f"no dispatch route registered for campaign '{campaign_name}'")
 
@@ -411,6 +411,10 @@ def main() -> int:
                     help="seed count (defaults to campaign.num_seeds)")
     ap.add_argument("--workers", type=int, default=22,
                     help="pool size (default 22)")
+    ap.add_argument("--q", type=int, default=None,
+                    help="override campaign q (e.g. an NTRU fatigue q-sweep)")
+    ap.add_argument("--precision", type=int, default=None,
+                    help="override campaign MPFR precision")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the resolved dispatch invocation; do not run")
     args = ap.parse_args()
@@ -420,6 +424,14 @@ def main() -> int:
     except ConfigError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 2
+
+    # CLI overrides (q / precision) for exploratory sweeps. The seed-path
+    # tree keys on q + precision, so overridden runs land in their own dirs.
+    import dataclasses
+    if args.q is not None:
+        campaign = dataclasses.replace(campaign, q=args.q)
+    if args.precision is not None:
+        campaign = dataclasses.replace(campaign, precision=args.precision)
 
     n = args.n if args.n is not None else campaign.n_grid[0]
     beta = args.beta if args.beta is not None else campaign.beta_grid[0]
