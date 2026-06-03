@@ -118,12 +118,17 @@ def metrics_from_gso(
     clamp_ctx: str = "",
     log_clamp_fn: Optional[Callable[[str, int, float], None]] = None,
     warn_on_clamp: bool = False,
+    active_end: Optional[int] = None,
 ) -> dict[str, Any]:
     """Extract metrics from an already-updated fpylll GSO object.
 
     Always returns ``{"rankin": [...], "dln": float}`` computed over
-    the active block ``[m, dim)``. With ``full=True`` also includes
-    the full-basis Gram-Schmidt log-norms and the Root Hermite Factor.
+    the active block ``[m, active_end)`` (``active_end`` defaults to
+    ``dim`` — the historical full-tail behaviour). The generator owns the
+    span; the engine is metric-blind. With ``full=True`` also includes
+    the full-basis (``[0, dim)``) Gram-Schmidt log-norms and the Root
+    Hermite Factor — that range is always the whole basis, independent of
+    the active block.
 
     Defensive clamps: when ``M.get_r(i, i)`` returns a non-positive
     value (the Cholesky-style cancellation described in paper §8,
@@ -143,7 +148,8 @@ def metrics_from_gso(
     deliberately want the silent 1e-300 substitute without side
     effects. All existing callers pass a real logger.
     """
-    start, size = m, dim - m
+    end = active_end if active_end is not None else dim
+    start, size = m, end - m
     n_clamped = 0
 
     def _safe_log_r(i: int, ctx_tag: str) -> float:
@@ -156,7 +162,7 @@ def metrics_from_gso(
             log_clamp_fn(f"{clamp_ctx} {ctx_tag}".strip(), i, r)
         return 0.5 * math.log(CLAMP_FLOOR_R)
 
-    gs_log_active = [_safe_log_r(i, "active") for i in range(start, dim)]
+    gs_log_active = [_safe_log_r(i, "active") for i in range(start, end)]
     if warn_on_clamp and n_clamped > 0:
         print(f"  WARNING: {n_clamped} get_r values <= 0 "
               f"(logged to results/clamp_events.jsonl)")

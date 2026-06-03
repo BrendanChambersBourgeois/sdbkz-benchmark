@@ -38,6 +38,11 @@ def _basis(n, q, seed):
     return L
 
 
+def _lwe_end(n):
+    """LWE-Kannan active-block end = dim = n + 2n + 1 (full embedded tail)."""
+    return n + kannan_m(n) + 1
+
+
 # Tiny config: n=20, β=10, max_tours=5, 100-bit precision. Total wall
 # ~0.7s per call; we cache a single run with module-scope fixture so
 # every assertion below shares the cost.
@@ -45,7 +50,7 @@ def _basis(n, q, seed):
 def tiny_result():
     return run_single(
         L=_basis(20, 97, 1),
-        n=20, active_block_start=kannan_m(20),
+        n=20, active_block_start=kannan_m(20), active_block_end=_lwe_end(20),
         beta=10, seed=1, q=97, precision=100, max_tours=5,
         log_clamp_fn=None,
     )
@@ -96,7 +101,7 @@ def test_smoke_dim_matches_n_m_kannan():
     # cached fixture) so a future schema drift surfaces immediately.
     r = run_single(
         L=_basis(15, 97, 2),
-        n=15, active_block_start=kannan_m(15),
+        n=15, active_block_start=kannan_m(15), active_block_end=_lwe_end(15),
         beta=8, seed=2, q=97, precision=100, max_tours=3,
         log_clamp_fn=None,
     )
@@ -108,7 +113,7 @@ def test_smoke_dim_matches_n_m_kannan():
 def test_smoke_store_per_tour_emits_full_arrays():
     r = run_single(
         L=_basis(18, 97, 3),
-        n=18, active_block_start=kannan_m(18),
+        n=18, active_block_start=kannan_m(18), active_block_end=_lwe_end(18),
         beta=10, seed=3, q=97, precision=100, max_tours=3,
         log_clamp_fn=None, store_per_tour=True,
     )
@@ -133,7 +138,7 @@ def test_smoke_clamp_callback_invoked_when_supplied():
 
     r = run_single(
         L=_basis(20, 97, 4),
-        n=20, active_block_start=kannan_m(20),
+        n=20, active_block_start=kannan_m(20), active_block_end=_lwe_end(20),
         beta=10, seed=4, q=97, precision=100, max_tours=3,
         log_clamp_fn=_clamp,
     )

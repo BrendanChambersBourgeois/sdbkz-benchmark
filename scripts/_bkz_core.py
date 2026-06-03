@@ -85,6 +85,7 @@ def run_single(
     L: list[list[int]],
     n: int,
     active_block_start: int,
+    active_block_end: int,
     beta: int,
     seed: int,
     q: int,
@@ -106,13 +107,14 @@ def run_single(
     FPLLL.set_random_seed(seed)
 
     # Engine is construction-blind AND metric-blind: it measures the GSO
-    # over the active block [m, dim) the caller specifies. The block start
-    # is the generator's convention (LWE-Kannan: m=2n, the projected
-    # sublattice holding the embedded target) — NOT an engine assumption.
-    # The comparison profile spans the active block, length dim-m.
+    # over the active block [m, end) the GENERATOR specifies via its span
+    # (LWE-Kannan: [2n, dim) embedded tail; NTRU: [0, dim) full basis) —
+    # NOT an engine assumption. The comparison profile spans the active
+    # block, length end-m.
     dim = len(L)
     m = active_block_start
-    ln_p = ln_fixed_point(dim - m, beta)
+    end = active_block_end
+    ln_p = ln_fixed_point(end - m, beta)
 
     result: dict[str, Any] = {
         "n": n, "beta": beta, "seed": seed, "q": q, "max_tours": max_tours,
@@ -130,7 +132,8 @@ def run_single(
     def _metrics(M: Any, full: bool) -> dict[str, Any]:
         return metrics_from_gso(M, dim, m, ln_p, full=full,
                                 log_clamp_fn=log_clamp_fn,
-                                warn_on_clamp=warn_on_clamp)
+                                warn_on_clamp=warn_on_clamp,
+                                active_end=end)
 
     # Initial quality (LLL-reduced, no BKZ yet)
     B_init = IntegerMatrix.from_matrix(L)

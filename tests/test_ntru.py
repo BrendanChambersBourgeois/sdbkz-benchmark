@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.join(REPO_ROOT, "scripts"))
 from generators import (  # noqa: E402
     build_ntru,
     get_generator,
-    get_metric_block_start,
+    get_metric_span,
     kannan_m,
 )
 
@@ -97,18 +97,18 @@ def test_ntru_seed_sensitive():
     assert a != b
 
 
-def test_lwe_metric_block_start_is_2n():
-    # LWE-Kannan declares m=2n (the projected sublattice with the target).
-    fn = get_metric_block_start("lwe_kannan")
-    assert fn(50) == kannan_m(50) == 100
+def test_lwe_metric_span_is_embedded_tail():
+    # LWE-Kannan span = [2n, dim) (the projected sublattice with the target).
+    fn = get_metric_span("lwe_kannan")
+    assert fn(50, 151) == (kannan_m(50), 151) == (100, 151)
 
 
-def test_ntru_metric_block_start_is_full_basis():
+def test_ntru_metric_span_is_full_basis():
     # R* decision: full basis [0, 2n) — the engine measures the whole NTRU
-    # profile, so the active-block start is 0 for any n.
-    fn = get_metric_block_start("ntru")
-    assert fn(17) == 0
-    assert fn(31) == 0
+    # profile, so the span is (0, dim) for any n.
+    fn = get_metric_span("ntru")
+    assert fn(17, 34) == (0, 34)
+    assert fn(31, 62) == (0, 62)
 
 
 def test_ntru_registry_adapter_returns_basis_only():

@@ -218,7 +218,7 @@ def run_single(
     L, _, _ = build_lwe_kannan(n, kannan_m(n), Q, seed=seed)
     return _bkz_core_run_single(
         L=L,
-        n=n, active_block_start=kannan_m(n),
+        n=n, active_block_start=kannan_m(n), active_block_end=len(L),
         beta=beta, seed=seed,
         q=Q, precision=PRECISION,
         max_tours=TOURS_BY_BETA[beta],

@@ -239,7 +239,7 @@ def run_single(
     L, _, _ = build_lwe_kannan(n, kannan_m(n), qq, seed=seed)
     return _bkz_core_run_single(
         L=L,
-        n=n, active_block_start=kannan_m(n),
+        n=n, active_block_start=kannan_m(n), active_block_end=len(L),
         beta=beta, seed=seed,
         q=qq,
         precision=precision if precision is not None else PRECISION,

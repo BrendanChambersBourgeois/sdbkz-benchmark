@@ -261,7 +261,7 @@ def _ntru_seed_worker(task: tuple) -> tuple:
     import numpy as np
     from _bkz_core import run_single
     from _seed_paths import seed_path_for
-    from generators import build_ntru, get_metric_block_start
+    from generators import build_ntru, get_metric_span
 
     n, beta, seed, q, precision, max_tours, generator = task
     out = seed_path_for("ntru", n=n, beta=beta, seed=seed, q=q,
@@ -274,8 +274,9 @@ def _ntru_seed_worker(task: tuple) -> tuple:
     H = np.array([[L[n + i][j] for j in range(n)] for i in range(n)]).T
     if not np.array_equal((H @ f) % q, g % q):
         return (n, beta, seed, None, "key_err")
+    m_start, m_end = get_metric_span(generator)(n, len(L))
     r = run_single(
-        L=L, n=n, active_block_start=get_metric_block_start(generator)(n),
+        L=L, n=n, active_block_start=m_start, active_block_end=m_end,
         beta=beta, seed=seed, q=q, precision=precision,
         max_tours=max_tours, log_clamp_fn=None,
     )
@@ -302,14 +303,14 @@ def _dispatch_ntru(
     import numpy as np
     from _bkz_core import run_single
     from _seed_paths import seed_path_for
-    from generators import build_ntru, get_generator, get_metric_block_start
+    from generators import build_ntru, get_generator, get_metric_span
 
     get_generator(campaign.generator)  # validate the name resolves
     q = campaign.q
 
     if not persist:
         # Serial in-memory smoke — no writes, no pool.
-        block_start_fn = get_metric_block_start(campaign.generator)
+        span_fn = get_metric_span(campaign.generator)
         done = 0
         for n in campaign.n_grid:
             for beta in campaign.beta_grid:
@@ -327,8 +328,10 @@ def _dispatch_ntru(
                         print(f"ERROR: n={n} seed={seed}: bad basis",
                               file=sys.stderr)
                         return 2
+                    m_start, m_end = span_fn(n, len(L))
                     r = run_single(
-                        L=L, n=n, active_block_start=block_start_fn(n),
+                        L=L, n=n,
+                        active_block_start=m_start, active_block_end=m_end,
                         beta=beta, seed=seed, q=q,
                         precision=campaign.precision, max_tours=max_tours,
                         log_clamp_fn=None,

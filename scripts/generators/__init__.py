@@ -36,36 +36,40 @@ GENERATORS = {
 }
 
 
-def _ntru_block_start(n: int) -> int:
-    # R* decision (full basis): measure the whole 2N NTRU profile. The
-    # overstretched/fatigue anomaly manifests in the global Gram-Schmidt
-    # profile, so the active block is [0, 2N).
+def _lwe_kannan_span(n: int, dim: int) -> tuple[int, int]:
+    # LWE-Kannan active block: the projected sublattice holding the embedded
+    # target, [2n, dim) (= the last n+1 GSO vectors).
+    return (kannan_m(n), dim)
+
+
+def _ntru_span(n: int, dim: int) -> tuple[int, int]:
+    # NTRU active block: the full 2n basis [0, dim). The secret (g,f) and the
+    # dense sublattice span the whole lattice (unlike LWE's embedded tail).
     #
-    # CAVEAT: the d(LN) reference (ln_fixed_point) is an LWE-derived GSA
-    # line, NOT the NTRU-correct ZGSA/CN11 shape — so NTRU advantage
-    # *magnitudes* are on their own scale. The transition signal is
-    # reference-robust (verified). See docs/ntru_metric_validity.md.
-    return 0
+    # CAVEAT: the d(LN) reference (ln_fixed_point) is an LWE-derived GSA line,
+    # NOT the NTRU-correct ZGSA/CN11 shape — so NTRU advantage *magnitudes* are
+    # on their own scale. The transition signal is reference-robust (verified).
+    # See docs/ntru_metric_validity.md.
+    return (0, dim)
 
 
-# name -> active-block start m for metrics_from_gso's [m, dim) window. The
-# generator owns this convention; the engine is metric-blind and just uses
-# the number. LWE-Kannan: m=2n (the projected sublattice with the embedded
-# target). NTRU: gated on the R* decision (see _ntru_block_start).
-METRIC_BLOCK_START = {
-    "lwe_kannan": kannan_m,
-    "ntru": _ntru_block_start,
+# name -> active-block span (n, dim) -> (start, end) for metrics_from_gso. The
+# generator owns WHERE on the basis the metric is measured; the engine is
+# metric-blind and just uses the span. LWE-Kannan: [2n, dim). NTRU: [0, dim).
+METRIC_SPAN = {
+    "lwe_kannan": _lwe_kannan_span,
+    "ntru": _ntru_span,
 }
 
 
-def get_metric_block_start(name: str):
-    """Resolve a generator name to its ``m(n) -> active-block start``
-    callable for metrics_from_gso. Raises ValueError on unknown name."""
+def get_metric_span(name: str):
+    """Resolve a generator name to its ``(n, dim) -> (start, end)`` active-
+    block span callable for metrics_from_gso. Raises ValueError on unknown."""
     try:
-        return METRIC_BLOCK_START[name]
+        return METRIC_SPAN[name]
     except KeyError:
         raise ValueError(
-            f"unknown generator {name!r}; available: {sorted(METRIC_BLOCK_START)}"
+            f"unknown generator {name!r}; available: {sorted(METRIC_SPAN)}"
         ) from None
 
 
@@ -89,5 +93,5 @@ def get_generator(name: str):
 __all__ = [
     "build_lwe_kannan", "kannan_m", "build_ntru",
     "GENERATORS", "available_generators", "get_generator",
-    "METRIC_BLOCK_START", "get_metric_block_start",
+    "METRIC_SPAN", "get_metric_span",
 ]
