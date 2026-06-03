@@ -37,13 +37,10 @@ GENERATORS = {
 
 
 def _ntru_block_start(n: int) -> int:
-    raise NotImplementedError(
-        "NTRU metric active-block start is undecided (the 'R*' research "
-        "decision): which block of the 2N basis defines reduction success "
-        "for fatigue is not the LWE-Kannan projected-sublattice convention. "
-        "Decide R* before routing NTRU through the BKZ engine; ntru_smoke "
-        "only builds + structurally verifies bases."
-    )
+    # R* decision (full basis): measure the whole 2N NTRU profile. The
+    # overstretched/fatigue anomaly manifests in the global Gram-Schmidt
+    # profile vs the Li-Nguyen fixed point, so the active block is [0, 2N).
+    return 0
 
 
 # name -> active-block start m for metrics_from_gso's [m, dim) window. The

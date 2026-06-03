@@ -94,13 +94,12 @@ def test_lwe_metric_block_start_is_2n():
     assert fn(50) == kannan_m(50) == 100
 
 
-def test_ntru_metric_block_start_gated_on_r_star():
-    # NTRU's active-block convention is the undecided R* research call —
-    # building bases is fine, but routing NTRU through the BKZ metric must
-    # raise loudly rather than measure an LWE-shaped (wrong) window.
+def test_ntru_metric_block_start_is_full_basis():
+    # R* decision: full basis [0, 2N) — the engine measures the whole NTRU
+    # profile, so the active-block start is 0 for any N.
     fn = get_metric_block_start("ntru")
-    with pytest.raises(NotImplementedError, match="R\\*"):
-        fn(16)
+    assert fn(16) == 0
+    assert fn(32) == 0
 
 
 def test_ntru_registry_adapter_returns_basis_only():

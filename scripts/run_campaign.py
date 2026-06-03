@@ -39,8 +39,9 @@ Dispatch routing (campaign name → underlying runner):
     tours3x                    → run_3x_extended (GROUPS override)
     fplll_sensitivity          → out-of-scope here — needs Dockerfile.fplll54
                                  image build; prints instructions and exits.
-    ntru_smoke                 → inline NTRU basis build + structural check
-                                 (no BKZ; LWE-specific engine metric).
+    ntru_smoke                 → inline NTRU build + structural check + BKZ
+                                 over the full-basis [0,2N) metric (R*);
+                                 in-memory, writes no per-seed JSONs.
 
 The dispatcher does NOT re-implement the BKZ driver. It builds the
 argv that the underlying runner expects, then either subprocess-execs
@@ -87,8 +88,8 @@ def _select_runner(campaign_name: str) -> str:
       - `tours3x`       — run_3x_extended GROUPS override. Handles tours3x.
       - `fplll_image`   — needs a separate Docker build (Dockerfile.fplll54);
                           this script cannot dispatch it directly.
-      - `ntru_smoke`    — inline NTRU basis build + structural self-check
-                          (no BKZ; the engine metric is LWE-specific).
+      - `ntru_smoke`    — inline NTRU build + structural self-check + BKZ
+                          over the full-basis [0,2N) metric; in-memory.
     """
     if campaign_name in {"main", "cliff500"}:
         return "q3329_verify"
@@ -244,29 +245,32 @@ def _dispatch_fplll_image(campaign: Campaign, *args: Any, **kwargs: Any) -> int:
 
 
 def _dispatch_ntru_smoke(campaign: Campaign, *, dry_run: bool) -> int:
-    """NTRU smoke: build the NTRU basis for each (n ∈ n_grid, seed) and
-    verify its structure inline — dim=2N, top-left q·I_N, and the key
-    consistency H·f ≡ g (mod q). β is ignored (NTRU has no block-size
-    grid here).
+    """NTRU smoke: for each (n ∈ n_grid, seed) build the NTRU basis, verify
+    its structure (dim=2N, top-left q·I_N, key consistency H·f ≡ g mod q),
+    then run the BKZ engine over the full-basis [0, 2N) metric (the R*
+    decision) and report the BKZ/SD-BKZ advantage.
 
-    Deliberately does NOT run BKZ. The engine's metric reads the active
-    block [m, dim) with m=2n — an LWE-Kannan convention that does not
-    transfer to NTRU's 2N lattice. Running NTRU through it would produce
-    a metric over a meaningless window. NTRU dynamics/metrics are future
-    work; this smoke gates construction + name-dispatch wiring only.
+    In-memory only — does NOT write per-seed JSONs. NTRU seed storage is a
+    separate step (the seed-path scheme is LWE/q-keyed and does not yet
+    distinguish generator). β / max_tours come from the campaign (a tiny
+    smoke grid); this exercises the whole build→engine→metric pipeline.
     """
     import numpy as np
-    from generators import get_generator
-    from generators.ntru import build_ntru
+    from _bkz_core import run_single
+    from generators import build_ntru, get_generator, get_metric_block_start
 
     get_generator(campaign.generator)  # validate the name resolves
+    block_start_fn = get_metric_block_start(campaign.generator)
     q = campaign.q
+    beta = campaign.beta_grid[0]
+    max_tours = campaign.tours_by_beta[beta]
     checks = 0
     for n in campaign.n_grid:
         for seed in range(1, campaign.num_seeds + 1):
             if dry_run:
                 print(f"[dry-run] build_ntru(n={n}, q={q}, seed={seed}) "
-                      f"+ verify dim=2N, q·I, H·f≡g")
+                      f"+ verify dim=2N, q·I, H·f≡g + BKZ β={beta} "
+                      f"over [0,2N)")
                 continue
             L, f, g = build_ntru(n, q, seed=seed)
             if len(L) != 2 * n:
@@ -278,15 +282,23 @@ def _dispatch_ntru_smoke(campaign: Campaign, *, dry_run: bool) -> int:
                 print(f"ERROR: n={n} seed={seed}: H·f != g (mod {q})",
                       file=sys.stderr)
                 return 2
+            r = run_single(
+                L=L, n=n, active_block_start=block_start_fn(n),
+                beta=beta, seed=seed, q=q,
+                precision=campaign.precision, max_tours=max_tours,
+                log_clamp_fn=None,
+            )
+            print(f"  n={n:3d} seed={seed}: dim={2 * n} verified, "
+                  f"BKZ β={beta} advantage={r['advantage']:+.6f}")
             checks += 1
 
     PIPELINE.info("ntru_smoke ok", cat="sweep",
-                  campaign=campaign.name, q=q,
+                  campaign=campaign.name, q=q, beta=beta,
                   n_grid=list(campaign.n_grid), seeds=campaign.num_seeds,
                   bases_verified=checks)
     if not dry_run:
-        print(f"NTRU smoke OK: {checks} bases built + verified "
-              f"(dim=2N, q·I_N block, H·f≡g mod {q}).")
+        print(f"NTRU smoke OK: {checks} bases built, verified "
+              f"(dim=2N, q·I_N, H·f≡g mod {q}) + BKZ over [0,2N).")
     return 0
 
 
