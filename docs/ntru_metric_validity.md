@@ -1,9 +1,11 @@
 # NTRU metric validity — the d(LN) reference on NTRU bases (Phase 1)
 
-**Status:** analysed 2026-06-03. The NTRU SD-BKZ advantage signal (sharp
-onset at n≈71–73, stable +1.5 plateau for n≥79) is **real and
-reference-robust**, but the *magnitude scale* uses an LWE-derived
-reference; a physically-correct NTRU reference (ZGSA / CN11) is future work.
+**Status:** analysed 2026-06-03. Phase 1 (below) tested LN / GSA-zero /
+reference-free and concluded the n≈71–73 divergence is real. The Phase 3
+addendum (bottom) SHARPENS this with a ZGSA test: the BKZ-vs-SD-BKZ
+*divergence* is real and reference-free, but the *signed* advantage flips
+sign under ZGSA (artifact) — so report the unsigned divergence, NOT the
+signed NTRU "advantage." Read the Phase 3 addendum for the settled verdict.
 
 ## The concern
 
@@ -77,3 +79,43 @@ better-reduced basis (it cracks the dense sublattice; BKZ does not).
   so NTRU advantage isolates dynamics from the q-ary structure. Defer until
   the metric seam (active-block-by-generator) lands and there is a third
   generator to justify the abstraction.
+
+---
+
+## Phase 3 addendum — q-sweep gated on ZGSA (2026-06-03)
+
+Ran a fatigue q-sweep at fixed n=89 (fatigue q≈278), β=20, precision 500,
+8 seeds/q, then re-derived the result under ZGSA (Z-shape, slope-swept) and
+a reference-free divergence — BEFORE trusting any fatigue claim.
+
+**Signed advantage is reference-artifact.** At q=257 (0.92× fatigue):
+d(LN) advantage = +1.56, d(ZGSA, slope 0.0192) = −46, d(ZGSA, slope 0.028)
+= −78. The sign and magnitude track the reference. Even the fixed-n
+plateau (n≥79) sign-flips when the ZGSA slope nears the actual reduced-
+profile slope (~0.027). Conclusion: NTRU has no canonical BKZ fixed point,
+so the *signed* SD-BKZ advantage is not a well-defined observable on NTRU.
+
+**The robust observable is the reference-free divergence**
+`mean|rankin_bkz − rankin_sdbkz|` (unsigned). It needs no reference and
+shows a clean fatigue signal:
+
+| q/q_fatigue | 0.35 | 0.54 | 0.76 | 0.92 | 1.10 | 1.44 | 1.97 | 2.49 |
+|-------------|------|------|------|------|------|------|------|------|
+| divergence  | 1.6  | 2.2  | 5.5  | 78.5 | 10.2 | 0.04 | 0.03 | 0.07 |
+
+Rises toward fatigue, **spikes ~78 at q=257** (bimodal: 7/8 seeds ~90, one
+~0 — one variant cracks the dense sublattice, the other does not), then
+**collapses to ~0 above fatigue** (both variants trivially crack the
+overstretched instance, so they agree). A critical-transition signature at
+q≈q_fatigue, reference-independent.
+
+**Middle-third precursor thesis: NOT supported.** The mid-third divergence
+stays flat (~0.2) through q=211 while the full basis is already elevated
+(5.5); the signal leads in the q-vector head, the middle third lags. No
+precursor in the middle third under any reference.
+
+**Verdict:** the fatigue phenomenon is real and locatable reference-free,
+but the SD-BKZ "advantage" magnitude/sign is not a valid NTRU observable.
+Report the divergence, not the signed advantage. GSO health clean at
+precision 500 for q≤691 (no new clamp events; the §8 Kahan path is only
+needed near q=3329).
