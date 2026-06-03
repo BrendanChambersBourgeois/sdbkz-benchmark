@@ -152,12 +152,12 @@ store_per_tour = false
 # main sweep so the two engines are directly comparable. Scale n / β /
 # seeds (or push q toward fatigue) to map the NTRU fatigue transition.
 [campaigns.ntru]
-description = "NTRU pilot seed set (circulant DvW, q=97 standard regime)"
+description = "NTRU seed set (circulant DvW, q=97 standard regime)"
 generator = "ntru"
 q = 97
 precision = 250
 beta_grid = [20]
-n_grid = [67, 79]
+n_grid = [59, 61, 67, 71, 73, 79, 83, 89]
 tours_by_beta = { "20" = 50 }
-num_seeds = 3
+num_seeds = 20
 store_per_tour = false

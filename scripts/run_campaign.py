@@ -250,79 +250,143 @@ def _dispatch_fplll_image(campaign: Campaign, *args: Any, **kwargs: Any) -> int:
     return 2
 
 
-def _dispatch_ntru(campaign: Campaign, *, dry_run: bool, persist: bool) -> int:
-    """NTRU runner: for each (n ∈ n_grid, β ∈ beta_grid, seed) build the
-    NTRU basis, verify its structure (dim=2n, top-left q·I_n, key
-    consistency H·f ≡ g mod q), then run the BKZ engine over the full-basis
-    [0, 2n) metric (the R* decision) and record the BKZ/SD-BKZ advantage.
-
-    ``persist=False`` (ntru_smoke): in-memory only, a fast structural+BKZ
-    gate. ``persist=True`` (ntru): writes per-seed JSONs — same run_single
-    schema as the LWE seeds — to results/seeds/ntru/q{q}/p{p}_mt{mt}/
-    n{n}_beta{b}/seed{s}.json (resumable: existing seeds are skipped).
+def _ntru_seed_worker(task: tuple) -> tuple:
+    """Pool worker: build + structurally verify + BKZ one NTRU (n, β, seed),
+    then write its per-seed JSON. Returns (n, β, seed, advantage|None,
+    status). Module-level so it pickles for multiprocessing; each process
+    gets its own fpylll global state (precision / RNG), as in sweep_parallel.
     """
     import json
 
     import numpy as np
     from _bkz_core import run_single
     from _seed_paths import seed_path_for
+    from generators import build_ntru, get_metric_block_start
+
+    n, beta, seed, q, precision, max_tours, generator = task
+    out = seed_path_for("ntru", n=n, beta=beta, seed=seed, q=q,
+                        precision=precision, max_tours=max_tours)
+    if os.path.exists(out):
+        return (n, beta, seed, None, "skip")
+    L, f, g = build_ntru(n, q, seed=seed)
+    if len(L) != 2 * n:
+        return (n, beta, seed, None, "dim_err")
+    H = np.array([[L[n + i][j] for j in range(n)] for i in range(n)]).T
+    if not np.array_equal((H @ f) % q, g % q):
+        return (n, beta, seed, None, "key_err")
+    r = run_single(
+        L=L, n=n, active_block_start=get_metric_block_start(generator)(n),
+        beta=beta, seed=seed, q=q, precision=precision,
+        max_tours=max_tours, log_clamp_fn=None,
+    )
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "w") as fh:
+        json.dump(r, fh, indent=2)
+    return (n, beta, seed, r["advantage"], "ok")
+
+
+def _dispatch_ntru(
+    campaign: Campaign, *, dry_run: bool, persist: bool, workers: int = 22,
+) -> int:
+    """NTRU runner: for each (n ∈ n_grid, β ∈ beta_grid, seed) build the
+    NTRU basis, verify its structure (dim=2n, q·I_n, key consistency
+    H·f ≡ g mod q), run the BKZ engine over the full-basis [0, 2n) metric
+    (R*), and record the BKZ/SD-BKZ advantage.
+
+    ``persist=False`` (ntru_smoke): serial, in-memory only — a fast
+    structural+BKZ gate. ``persist=True`` (ntru): writes per-seed JSONs
+    (same run_single schema as the LWE seeds) to results/seeds/ntru/q{q}/
+    p{p}_mt{mt}/n{n}_beta{b}/seed{s}.json across a multiprocessing pool
+    (resumable: existing seeds skipped).
+    """
+    import numpy as np
+    from _bkz_core import run_single
+    from _seed_paths import seed_path_for
     from generators import build_ntru, get_generator, get_metric_block_start
 
     get_generator(campaign.generator)  # validate the name resolves
-    block_start_fn = get_metric_block_start(campaign.generator)
     q = campaign.q
-    done = 0
-    for n in campaign.n_grid:
-        for beta in campaign.beta_grid:
-            max_tours = campaign.tours_by_beta[beta]
-            for seed in range(1, campaign.num_seeds + 1):
-                out = seed_path_for(
-                    "ntru", n=n, beta=beta, seed=seed, q=q,
-                    precision=campaign.precision, max_tours=max_tours,
-                ) if persist else None
-                if dry_run:
-                    tail = f" -> {out}" if persist else ""
-                    print(f"[dry-run] build_ntru(n={n}, q={q}, seed={seed}) "
-                          f"+ verify + BKZ β={beta} over [0,2n){tail}")
-                    continue
-                if persist and os.path.exists(out):
-                    print(f"  n={n:3d} β={beta} seed={seed}: exists, skip")
-                    done += 1
-                    continue
-                L, f, g = build_ntru(n, q, seed=seed)
-                if len(L) != 2 * n:
-                    print(f"ERROR: n={n} seed={seed}: dim {len(L)} != {2 * n}",
-                          file=sys.stderr)
-                    return 2
-                H = np.array([[L[n + i][j] for j in range(n)]
-                              for i in range(n)]).T   # basis stores Hᵀ
-                if not np.array_equal((H @ f) % q, g % q):
-                    print(f"ERROR: n={n} seed={seed}: H·f != g (mod {q})",
-                          file=sys.stderr)
-                    return 2
-                r = run_single(
-                    L=L, n=n, active_block_start=block_start_fn(n),
-                    beta=beta, seed=seed, q=q,
-                    precision=campaign.precision, max_tours=max_tours,
-                    log_clamp_fn=None,
-                )
-                if persist:
-                    os.makedirs(os.path.dirname(out), exist_ok=True)
-                    with open(out, "w") as fh:
-                        json.dump(r, fh, indent=2)
-                print(f"  n={n:3d} β={beta} seed={seed}: dim={2 * n} verified, "
-                      f"advantage={r['advantage']:+.6f}"
-                      + (f"  -> {out}" if persist else ""))
-                done += 1
 
+    if not persist:
+        # Serial in-memory smoke — no writes, no pool.
+        block_start_fn = get_metric_block_start(campaign.generator)
+        done = 0
+        for n in campaign.n_grid:
+            for beta in campaign.beta_grid:
+                max_tours = campaign.tours_by_beta[beta]
+                for seed in range(1, campaign.num_seeds + 1):
+                    if dry_run:
+                        print(f"[dry-run] ntru_smoke n={n} q={q} seed={seed} "
+                              f"β={beta} (in-memory)")
+                        continue
+                    L, f, g = build_ntru(n, q, seed=seed)
+                    H = np.array([[L[n + i][j] for j in range(n)]
+                                  for i in range(n)]).T
+                    if len(L) != 2 * n or not np.array_equal((H @ f) % q,
+                                                             g % q):
+                        print(f"ERROR: n={n} seed={seed}: bad basis",
+                              file=sys.stderr)
+                        return 2
+                    r = run_single(
+                        L=L, n=n, active_block_start=block_start_fn(n),
+                        beta=beta, seed=seed, q=q,
+                        precision=campaign.precision, max_tours=max_tours,
+                        log_clamp_fn=None,
+                    )
+                    print(f"  n={n:3d} β={beta} seed={seed}: dim={2 * n} "
+                          f"verified, advantage={r['advantage']:+.6f}")
+                    done += 1
+        if not dry_run:
+            print(f"NTRU smoke OK: {done} bases verified (dim=2n, q·I_n, "
+                  f"H·f≡g mod {q}) + BKZ over [0,2n).")
+        return 0
+
+    # persist=True: parallel seed generation.
+    tasks = [
+        (n, beta, seed, q, campaign.precision,
+         campaign.tours_by_beta[beta], campaign.generator)
+        for n in campaign.n_grid
+        for beta in campaign.beta_grid
+        for seed in range(1, campaign.num_seeds + 1)
+    ]
+    if dry_run:
+        for n, beta, seed, *_ in tasks:
+            mt = campaign.tours_by_beta[beta]
+            print(f"[dry-run] ntru n={n} β={beta} seed={seed} -> "
+                  + seed_path_for("ntru", n=n, beta=beta, seed=seed, q=q,
+                                  precision=campaign.precision, max_tours=mt))
+        return 0
+
+    import multiprocessing as mp
+
+    nproc = max(1, min(workers, (os.cpu_count() or 2), len(tasks)))
+    total = len(tasks)
+    print(f"NTRU: {total} tasks across {nproc} workers ...")
+    done = written = 0
+    advs: dict[int, list] = {}
+    with mp.Pool(nproc) as pool:
+        for n, beta, seed, adv, status in pool.imap_unordered(
+                _ntru_seed_worker, tasks):
+            done += 1
+            if status == "ok":
+                written += 1
+                advs.setdefault(n, []).append(adv)
+                print(f"  [{done}/{total}] n={n:3d} β={beta} seed={seed}: "
+                      f"advantage={adv:+.6f}")
+            elif status == "skip":
+                print(f"  [{done}/{total}] n={n:3d} β={beta} seed={seed}: skip")
+            else:
+                print(f"  [{done}/{total}] ERROR n={n} seed={seed}: {status}",
+                      file=sys.stderr)
+    for n in sorted(advs):
+        a = advs[n]
+        print(f"  n={n}: mean advantage={sum(a) / len(a):+.4f} "
+              f"(min {min(a):+.4f}, max {max(a):+.4f}, {len(a)} new)")
     PIPELINE.info("ntru run ok", cat="sweep",
-                  campaign=campaign.name, q=q, persist=persist,
+                  campaign=campaign.name, q=q,
                   n_grid=list(campaign.n_grid), seeds=campaign.num_seeds,
-                  seeds_done=done)
-    if not dry_run:
-        verb = "seeds written" if persist else "bases verified"
-        print(f"NTRU {'run' if persist else 'smoke'} OK: {done} {verb} "
-              f"(dim=2n, q·I_n, H·f≡g mod {q}) + BKZ over [0,2n).")
+                  tasks=total, written=written)
+    print(f"NTRU run OK: {written} seeds written / {total} tasks.")
     return 0
 
 
@@ -391,7 +455,8 @@ def main() -> int:
     if role == "ntru_smoke":
         return _dispatch_ntru(campaign, dry_run=args.dry_run, persist=False)
     if role == "ntru":
-        return _dispatch_ntru(campaign, dry_run=args.dry_run, persist=True)
+        return _dispatch_ntru(campaign, dry_run=args.dry_run, persist=True,
+                              workers=args.workers)
     if role == "q3329_verify":
         return _dispatch_q3329_verify(
             campaign, n, beta,
