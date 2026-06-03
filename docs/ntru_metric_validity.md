@@ -119,3 +119,31 @@ but the SD-BKZ "advantage" magnitude/sign is not a valid NTRU observable.
 Report the divergence, not the signed advantage. GSO health clean at
 precision 500 for q≤691 (no new clamp events; the §8 Kahan path is only
 needed near q=3329).
+
+### DSD validation — is the q=257 peak real fatigue or the formula?
+
+The "0.92× fatigue" framing leans on the DvW estimate q_fat≈0.004·n^2.484
+(≈278 at n=89), unvalidated for this circulant. Direct check: does the
+rank-n dense sublattice MEASURABLY appear at q=257? Signature = the
+short-vector count snapping to exactly n (the dense sublattice is rank n)
+with b1 hitting the overstretched floor.
+
+Per-variant dense-sublattice-discovery (short = #{gs < log√(2n·2/3)+0.5}):
+
+| q   | q/q_fat | BKZ short / b1 | SD-BKZ short / b1 |
+|-----|---------|----------------|-------------------|
+| 211 | 0.76    | 96.6 / 0.16    | 96.5 / 0.28       |
+| 257 | 0.92    | 93.1 / 0.51    | **89.0 / 1.97**   |
+| 307 | 1.10    | **89.0 / 1.97**| 89.0 / 1.97       |
+| ≥401| ≥1.44   | 89.0 / 1.97    | 89.0 / 1.97       |
+
+`short` snaps to exactly n=89 with b1→floor 1.97 — SD-BKZ at q=257, BKZ at
+q=307. Per-seed at q=257: SD-BKZ finds the dense sublattice in **8/8**
+seeds, BKZ in **1/8**. So the divergence peak IS real fatigue (the
+sublattice appears there), not a formula artifact; DvW's 278 sits between
+the two crack points (formula roughly right for the circulant).
+
+**Clean observable (reference-free, physically grounded):** the DSD success
+rate per variant vs q (short==n ∧ b1 at floor). SD-BKZ's DSD onset precedes
+BKZ's (q=257 vs 307) — SD-BKZ cracks NTRU fatigue ~18% earlier in q. This,
+not the signed d(LN) advantage, is the NTRU result to carry into Phase 4.
