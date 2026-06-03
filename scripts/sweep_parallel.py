@@ -30,13 +30,13 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _math_core import (
-    build_lwe_kannan,
     ln_fixed_point,
     log_clamp,
     metrics_from_gso,
 )
 from _seed_paths import seed_path_for
 from _signal_utils import managed_pool
+from generators import build_lwe_kannan
 from log import get_logger, get_run_id, new_run_id
 
 PIPELINE = get_logger("sweep_parallel")

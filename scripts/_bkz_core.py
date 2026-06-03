@@ -48,8 +48,9 @@ from collections.abc import Callable
 from typing import Any, Optional
 
 import numpy as np
-from _math_core import build_lwe_kannan, ln_fixed_point, metrics_from_gso
+from _math_core import ln_fixed_point, metrics_from_gso
 from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
+from generators import build_lwe_kannan
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger  # noqa: E402

@@ -32,11 +32,11 @@ from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _math_core import (
-    build_lwe_kannan,
     ln_fixed_point,
     log_clamp,
     metrics_from_gso,
 )
+from generators import build_lwe_kannan
 from log import get_logger
 
 PIPELINE = get_logger("overnight_experiments")
