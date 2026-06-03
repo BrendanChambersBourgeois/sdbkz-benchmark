@@ -277,7 +277,7 @@ def _dispatch_ntru_smoke(campaign: Campaign, *, dry_run: bool) -> int:
                 print(f"ERROR: n={n} seed={seed}: dim {len(L)} != {2 * n}",
                       file=sys.stderr)
                 return 2
-            H = np.array([[L[n + i][j] for j in range(n)] for i in range(n)])
+            H = np.array([[L[i][n + j] for j in range(n)] for i in range(n)])
             if not np.array_equal((H @ f) % q, g % q):
                 print(f"ERROR: n={n} seed={seed}: H·f != g (mod {q})",
                       file=sys.stderr)

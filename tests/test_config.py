@@ -69,7 +69,7 @@ def test_real_ntru_smoke_selects_ntru_generator():
     c = _config.load_campaign("ntru_smoke")
     assert c.generator == "ntru"
     assert c.q == 3329
-    assert c.n_grid == (16, 32)
+    assert c.n_grid == (17, 31)
 
 
 def test_real_convergence_beta40_bracket_has_eight_dims():
