@@ -45,6 +45,8 @@ def test_real_main_campaign_matches_sweep_parallel_constants():
     assert main.tours_by_beta == {20: 50, 30: 70, 40: 100}
     assert main.num_seeds == 100
     assert main.store_per_tour is False
+    # Generator defaults to the historical LWE-Kannan construction.
+    assert main.generator == "lwe_kannan"
 
 
 def test_real_q3329_campaign_matches_q3329_verify_constants():
@@ -100,6 +102,30 @@ def test_minimal_synthetic_loads(tmp_path):
     assert c.precision == 250
     assert c.num_seeds == 5
     assert c.beta_grid == (10,)
+
+
+def test_generator_defaults_to_lwe_kannan(tmp_path):
+    # No generator key anywhere → the dataclass default applies.
+    c = _config.load_campaign("toy", path=_write(tmp_path, MINIMAL))
+    assert c.generator == "lwe_kannan"
+
+
+def test_explicit_known_generator_round_trips(tmp_path):
+    body = MINIMAL.replace(
+        '[campaigns.toy]',
+        '[campaigns.toy]\ngenerator = "lwe_kannan"',
+    )
+    c = _config.load_campaign("toy", path=_write(tmp_path, body))
+    assert c.generator == "lwe_kannan"
+
+
+def test_unknown_generator_raises(tmp_path):
+    body = MINIMAL.replace(
+        '[campaigns.toy]',
+        '[campaigns.toy]\ngenerator = "does_not_exist"',
+    )
+    with pytest.raises(_config.ConfigError, match="unknown generator"):
+        _config.load_campaign("toy", path=_write(tmp_path, body))
 
 
 def test_missing_file_raises(tmp_path):

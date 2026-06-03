@@ -141,6 +141,7 @@ def _dispatch_q3329_verify(
         "--beta", str(beta),
         "--seeds", str(seeds),
         "--precision", str(campaign.precision),
+        "--generator", campaign.generator,
     ]
     if campaign.q != 3329:
         # q3329_verify defaults to Q=3329; pass --q to override for
@@ -293,6 +294,7 @@ def main() -> int:
         seeds=seeds, workers=args.workers,
         precision=campaign.precision, q=campaign.q,
         max_tours=campaign.tours_by_beta.get(beta),
+        generator=campaign.generator,
         dry_run=args.dry_run,
     )
 

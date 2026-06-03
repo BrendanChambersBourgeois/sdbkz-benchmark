@@ -31,6 +31,8 @@ import sys
 import tomllib
 from typing import Any
 
+from generators import available_generators
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_CONFIG_PATH = os.path.join(REPO_ROOT, "config", "sweep.toml")
 
@@ -46,6 +48,7 @@ CAMPAIGN_FIELDS: frozenset[str] = frozenset({
     "tours_by_beta",
     "num_seeds",
     "store_per_tour",
+    "generator",
 })
 
 # Top-level (non-campaign) keys allowed in the TOML root. `default` is
@@ -80,6 +83,10 @@ class Campaign:
     tours_by_beta: dict[int, int]
     num_seeds: int
     store_per_tour: bool
+    # Name of the lattice generator (see generators.GENERATORS). Defaulted
+    # so every pre-existing campaign resolves to the historical LWE-Kannan
+    # construction — byte-for-byte unchanged.
+    generator: str = "lwe_kannan"
 
 
 def _read_toml(path: str) -> dict[str, Any]:
@@ -212,6 +219,13 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
         if b <= 0:
             raise ConfigError(f"{ctx}: beta_grid entries must be positive; got {b}")
 
+    generator = str(merged.get("generator", "lwe_kannan"))
+    if generator not in available_generators():
+        raise ConfigError(
+            f"{ctx}: unknown generator {generator!r}; "
+            f"available: {sorted(available_generators())!r}"
+        )
+
     return Campaign(
         name=name,
         description=str(merged.get("description", "")),
@@ -222,6 +236,7 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
         tours_by_beta=tours_by_beta,
         num_seeds=int(merged["num_seeds"]),
         store_per_tour=bool(merged.get("store_per_tour", False)),
+        generator=generator,
     )
 
 

@@ -29,6 +29,11 @@ q = 97
 precision = 250
 num_seeds = 100
 store_per_tour = false
+# Lattice generator by name (see scripts/generators GENERATORS registry).
+# Every existing campaign inherits this default → the historical LWE-Kannan
+# construction, byte-for-byte unchanged. A campaign overrides it to route a
+# different generator (e.g. "ntru") through the same engine + dispatch.
+generator = "lwe_kannan"
 
 # -- Main paper sweep -------------------------------------------------------
 # q=97, β ∈ {20, 30, 40} × n ∈ {50..150 step 10}. 33 cells × 100 seeds

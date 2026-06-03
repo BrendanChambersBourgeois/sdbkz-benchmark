@@ -38,7 +38,7 @@ from _math_core import (
     metrics_from_gso,
 )
 from _seed_paths import seed_dir_for, seed_path_for
-from generators import build_lwe_kannan, kannan_m
+from generators import get_generator
 from log import get_logger
 
 PIPELINE = get_logger("q3329_verify")
@@ -60,6 +60,11 @@ def parse_args():
     # behaviour for anyone calling q3329_verify.py standalone.
     parser.add_argument("--q", type=int, default=3329,
                         help="LWE modulus (default: 3329; pass 97 for main/cliff500)")
+    # Lattice generator by name (see generators.GENERATORS). Default keeps
+    # the historical LWE-Kannan construction; run_campaign passes the
+    # campaign's generator field through here.
+    parser.add_argument("--generator", type=str, default="lwe_kannan",
+                        help="Lattice generator name (default: lwe_kannan)")
     return parser.parse_args()
 
 _args = parse_args()
@@ -67,6 +72,8 @@ _args = parse_args()
 Q = _args.q          # ML-KEM modulus (main sweep uses 97; default 3329)
 N = _args.n
 BETA = _args.beta
+# Resolve the generator name -> uniform (n, q, seed) -> L callable once.
+GENERATOR = get_generator(_args.generator)
 TOURS_BY_BETA = {20: 50, 30: 70, 40: 100}
 MAX_TOURS = TOURS_BY_BETA.get(BETA, 70)
 PRECISION = _args.precision if _args.precision else 500
@@ -118,7 +125,7 @@ def run_single(n, beta, seed, store_per_tour=False):
     conventions (Q=3329 default, MAX_TOURS captured at import time,
     warn_on_clamp=True for the q=3329 fast-signal, store_per_tour key
     always emitted at position 10 for legacy schema parity)."""
-    L, _, _ = build_lwe_kannan(n, kannan_m(n), Q, seed=seed)
+    L = GENERATOR(n, Q, seed)
     return _bkz_core_run_single(
         L=L,
         n=n, beta=beta, seed=seed,

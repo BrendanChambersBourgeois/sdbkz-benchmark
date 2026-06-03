@@ -11,4 +11,41 @@ Generators:
 """
 from generators.lwe_kannan import build_lwe_kannan, kannan_m
 
-__all__ = ["build_lwe_kannan", "kannan_m"]
+
+def _lwe_kannan(n: int, q: int, seed: int) -> list[list[int]]:
+    """Registry adapter: the uniform ``(n, q, seed) -> L`` calling
+    convention every generator exposes. The Kannan m=2n contract is
+    carried inside here (via kannan_m) so callers — and the engine —
+    stay source-agnostic; only the basis L crosses the boundary."""
+    L, _, _ = build_lwe_kannan(n, kannan_m(n), q, seed=seed)
+    return L
+
+
+# name -> uniform generator callable. New generators (e.g. ntru) register
+# here; the engine and run_campaign dispatch by these names alone.
+GENERATORS = {
+    "lwe_kannan": _lwe_kannan,
+}
+
+
+def available_generators() -> frozenset[str]:
+    """Set of registered generator names (for config validation)."""
+    return frozenset(GENERATORS)
+
+
+def get_generator(name: str):
+    """Resolve a generator name to its uniform ``(n, q, seed) -> L``
+    callable. Raises ``ValueError`` (which the config layer surfaces as
+    a ConfigError) on an unknown name."""
+    try:
+        return GENERATORS[name]
+    except KeyError:
+        raise ValueError(
+            f"unknown generator {name!r}; available: {sorted(GENERATORS)}"
+        ) from None
+
+
+__all__ = [
+    "build_lwe_kannan", "kannan_m",
+    "GENERATORS", "available_generators", "get_generator",
+]
