@@ -332,6 +332,18 @@ def _parse_v13_path(
         if mid != ["q97"]:
             return None
         max_tours = conv_mt
+    elif campaign == "ntru":
+        # seeds/ntru/q{q}/p{prec}_mt{mt}/n{n}_beta{b}/  (q keyed: NTRU
+        # fatigue sweeps the modulus). Mirrors _seed_paths.seed_dir_for.
+        if len(mid) != 2:
+            return None
+        m_q = re.match(r"^q(?P<q>\d+)$", mid[0])
+        m_pm = re.match(r"^p(?P<p>\d+)_mt(?P<mt>\d+)$", mid[1])
+        if m_q is None or m_pm is None:
+            return None
+        q = int(m_q.group("q"))
+        precision = int(m_pm.group("p"))
+        max_tours = int(m_pm.group("mt"))
     else:
         return None
 

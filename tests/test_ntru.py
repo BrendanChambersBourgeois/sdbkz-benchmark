@@ -6,10 +6,11 @@ x^n−1, n prime, uniform ternary). Asserts, over a small prime (n, q, seed)
 grid:
 
   - dimension is 2n (NTRU has no separate m),
-  - the Def 2.3 layout [[q·I_n, H],[0, I_n]]: top-left q·I_n exact,
-    bottom-left block zero, bottom-right block I_n,
+  - the fpylll row layout [[q·I_n, 0],[Hᵀ, I_n]] (transpose of DvW's
+    column-convention Def 2.3): top-left q·I_n exact, top-right block
+    zero, bottom-right block I_n,
   - key consistency H·f ≡ g (mod q) — the real correctness check, that
-    H (top-right) is the circulant matrix of h = g·f⁻¹,
+    H (transpose of the bottom-left block) is the circulant of h = g·f⁻¹,
   - secrets are ternary (uniform {-1,0,1}, σ²=2/3),
   - determinism (same seed → same basis) and seed-sensitivity.
 """
@@ -47,14 +48,14 @@ def test_ntru_dim_is_2n(N, q, seed):
 
 
 @pytest.mark.parametrize("N,q,seed", GRID)
-def test_ntru_top_left_qI_and_bottom_left_zero(N, q, seed):
-    # Def 2.3 layout [[q·I_n, H],[0, I_n]]: top-left is q·I_n (H lives in
-    # the top-right block, so it is NOT zero); the bottom-left block is 0.
+def test_ntru_top_left_qI_and_top_right_zero(N, q, seed):
+    # fpylll row layout [[q·I_n, 0],[Hᵀ, I_n]]: top-left is q·I_n, the
+    # top-right block is 0 (Hᵀ lives in the bottom-left, so NOT zero).
     L, _, _ = build_ntru(N, q, seed=seed)
     for i in range(N):
         for j in range(N):
             assert L[i][j] == (q if i == j else 0), ("top-left", i, j)
-            assert L[N + i][j] == 0, ("bottom-left", i, j)
+            assert L[i][N + j] == 0, ("top-right", i, j)
 
 
 @pytest.mark.parametrize("N,q,seed", GRID)
@@ -67,11 +68,12 @@ def test_ntru_bottom_right_is_identity(N, q, seed):
 
 @pytest.mark.parametrize("N,q,seed", GRID)
 def test_ntru_key_consistency_H_f_equals_g(N, q, seed):
-    # H·f ≡ g (mod q): H (the top-right block, Def 2.3) is the circulant
-    # matrix of h = g·f⁻¹, so this is the structural guarantee that the
-    # public key is correct and (g, f) lies in the lattice.
+    # H·f ≡ g (mod q): H is the circulant of h = g·f⁻¹. The basis stores
+    # Hᵀ in the bottom-left block, so H = (bottom-left)ᵀ. This is the
+    # structural guarantee the public key is correct and (g, f) lies in
+    # the lattice as a short vector.
     L, f, g = build_ntru(N, q, seed=seed)
-    H = np.array([[L[i][N + j] for j in range(N)] for i in range(N)])
+    H = np.array([[L[N + i][j] for j in range(N)] for i in range(N)]).T
     assert np.array_equal((H @ f) % q, g % q)
 
 

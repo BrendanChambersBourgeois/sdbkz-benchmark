@@ -20,7 +20,7 @@ NEW_LAYOUT_ROOT = os.path.join("results", "seeds")
 
 _KNOWN_CAMPAIGNS = frozenset({
     "main", "q3329", "cliff500", "fplll_sensitivity",
-    "tours3x", "convergence",
+    "tours3x", "convergence", "ntru",
 })
 
 
@@ -90,6 +90,15 @@ def seed_dir_for(
         mt = int(_require(max_tours, "max_tours", campaign))
         leaf_dir = os.path.join(
             NEW_LAYOUT_ROOT, "convergence", "q97", f"{n_beta}_mt{mt}"
+        )
+    elif campaign == "ntru":
+        # NTRU sweeps q (fatigue study), so q is keyed in the path:
+        # seeds/ntru/q{q}/p{prec}_mt{mt}/n{n}_beta{b}/. Mirrors the
+        # q3329 layout with an extra q segment.
+        p = int(_require(precision, "precision", campaign))
+        mt = int(_require(max_tours, "max_tours", campaign))
+        leaf_dir = os.path.join(
+            NEW_LAYOUT_ROOT, "ntru", f"q{q}", f"p{p}_mt{mt}", n_beta
         )
     else:
         raise AssertionError("unreachable")  # pragma: no cover

@@ -142,3 +142,22 @@ n_grid = [17, 31]
 tours_by_beta = { "2" = 1 }
 num_seeds = 3
 store_per_tour = false
+
+# -- NTRU pilot seed set ----------------------------------------------------
+# Real NTRU seeds written to results/seeds/ntru/q{q}/p{p}_mt{mt}/n_beta/.
+# Prime n {67,79} at q=97 sit BELOW the fatigue point (q≈0.004·n^2.484 is
+# ≈137 / ≈207), i.e. the standard (non-overstretched) regime where BKZ
+# does real blocksize-dependent work — verified non-degenerate (LLL does
+# NOT solve; ~68s/seed at n=67, advantage ≈ -0.017). q=97 matches the LWE
+# main sweep so the two engines are directly comparable. Scale n / β /
+# seeds (or push q toward fatigue) to map the NTRU fatigue transition.
+[campaigns.ntru]
+description = "NTRU pilot seed set (circulant DvW, q=97 standard regime)"
+generator = "ntru"
+q = 97
+precision = 250
+beta_grid = [20]
+n_grid = [67, 79]
+tours_by_beta = { "20" = 50 }
+num_seeds = 3
+store_per_tour = false

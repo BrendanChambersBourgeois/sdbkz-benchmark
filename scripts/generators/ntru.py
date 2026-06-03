@@ -10,12 +10,18 @@ point q ≈ 0.004·n^2.484 (n > 100):
     — variance σ² = 2/3, the distribution their experiments use (Fig 1,
     "the ternary case is treated as a discrete Gaussian with σ² = 2/3").
     f is resampled until invertible mod q.
-  - Lattice (Def 2.3): the 2n×2n basis
+  - Lattice (Def 2.3): DvW write the 2n×2n basis in COLUMN convention as
+    [[q·I_n, H],[0, I_n]] (their notation: "all vectors are column
+    vectors"). fpylll reduces ROW vectors, so we emit the transpose —
 
-        L = [[ q·I_n ,  H   ],
-             [   0   ,  I_n ]]      H = circulant matrix of h = g·f⁻¹
+        L = [[ q·I_n ,  0   ],
+             [   Hᵀ  ,  I_n ]]      H = circulant matrix of h = g·f⁻¹
 
-    whose secret dense sublattice contains (g, f); H·f ≡ g (mod q).
+    which generates the same lattice (row-span(L) = col-span of Def 2.3).
+    The secret (g, f) is a genuine short lattice vector (‖(g,f)‖ ≈
+    √(2n·2/3) ≪ q); the public-key relation is H·f ≡ g (mod q). Emitting
+    the un-transposed [[q·I,H],[0,I]] as fpylll rows would instead contain
+    the unit rows [0|e_i] — a degenerate λ₁=1 lattice; hence the transpose.
 
 Calling convention matches the generators registry: the ring degree n is
 passed as ``n`` (should be prime for DvW comparability); the lattice
@@ -93,7 +99,7 @@ def build_ntru(n: int, q: int, seed: int = 123):
         L[i][i] = q                    # top-left  q·I_n
     for i in range(n):
         for j in range(n):
-            L[i][n + j] = H[i][j]      # top-right H
+            L[n + i][j] = H[j][i]      # bottom-left Hᵀ (fpylll row basis)
         L[n + i][n + i] = 1            # bottom-right I_n
-    # bottom-left block is 0
+    # top-right block is 0
     return L, f, g

@@ -40,8 +40,10 @@ Dispatch routing (campaign name → underlying runner):
     fplll_sensitivity          → out-of-scope here — needs Dockerfile.fplll54
                                  image build; prints instructions and exits.
     ntru_smoke                 → inline NTRU build + structural check + BKZ
-                                 over the full-basis [0,2N) metric (R*);
+                                 over the full-basis [0,2n) metric (R*);
                                  in-memory, writes no per-seed JSONs.
+    ntru                       → same, persisted to results/seeds/ntru/
+                                 (real NTRU seed generation).
 
 The dispatcher does NOT re-implement the BKZ driver. It builds the
 argv that the underlying runner expects, then either subprocess-execs
@@ -89,7 +91,9 @@ def _select_runner(campaign_name: str) -> str:
       - `fplll_image`   — needs a separate Docker build (Dockerfile.fplll54);
                           this script cannot dispatch it directly.
       - `ntru_smoke`    — inline NTRU build + structural self-check + BKZ
-                          over the full-basis [0,2N) metric; in-memory.
+                          over the full-basis [0,2n) metric; in-memory.
+      - `ntru`          — same, but persists per-seed JSONs to
+                          results/seeds/ntru/ (real seed generation).
     """
     if campaign_name in {"main", "cliff500"}:
         return "q3329_verify"
@@ -103,6 +107,8 @@ def _select_runner(campaign_name: str) -> str:
         return "fplll_image"
     if campaign_name == "ntru_smoke":
         return "ntru_smoke"
+    if campaign_name == "ntru":
+        return "ntru"
     raise ConfigError(f"no dispatch route registered for campaign '{campaign_name}'")
 
 
@@ -244,61 +250,79 @@ def _dispatch_fplll_image(campaign: Campaign, *args: Any, **kwargs: Any) -> int:
     return 2
 
 
-def _dispatch_ntru_smoke(campaign: Campaign, *, dry_run: bool) -> int:
-    """NTRU smoke: for each (n ∈ n_grid, seed) build the NTRU basis, verify
-    its structure (dim=2N, top-left q·I_N, key consistency H·f ≡ g mod q),
-    then run the BKZ engine over the full-basis [0, 2N) metric (the R*
-    decision) and report the BKZ/SD-BKZ advantage.
+def _dispatch_ntru(campaign: Campaign, *, dry_run: bool, persist: bool) -> int:
+    """NTRU runner: for each (n ∈ n_grid, β ∈ beta_grid, seed) build the
+    NTRU basis, verify its structure (dim=2n, top-left q·I_n, key
+    consistency H·f ≡ g mod q), then run the BKZ engine over the full-basis
+    [0, 2n) metric (the R* decision) and record the BKZ/SD-BKZ advantage.
 
-    In-memory only — does NOT write per-seed JSONs. NTRU seed storage is a
-    separate step (the seed-path scheme is LWE/q-keyed and does not yet
-    distinguish generator). β / max_tours come from the campaign (a tiny
-    smoke grid); this exercises the whole build→engine→metric pipeline.
+    ``persist=False`` (ntru_smoke): in-memory only, a fast structural+BKZ
+    gate. ``persist=True`` (ntru): writes per-seed JSONs — same run_single
+    schema as the LWE seeds — to results/seeds/ntru/q{q}/p{p}_mt{mt}/
+    n{n}_beta{b}/seed{s}.json (resumable: existing seeds are skipped).
     """
+    import json
+
     import numpy as np
     from _bkz_core import run_single
+    from _seed_paths import seed_path_for
     from generators import build_ntru, get_generator, get_metric_block_start
 
     get_generator(campaign.generator)  # validate the name resolves
     block_start_fn = get_metric_block_start(campaign.generator)
     q = campaign.q
-    beta = campaign.beta_grid[0]
-    max_tours = campaign.tours_by_beta[beta]
-    checks = 0
+    done = 0
     for n in campaign.n_grid:
-        for seed in range(1, campaign.num_seeds + 1):
-            if dry_run:
-                print(f"[dry-run] build_ntru(n={n}, q={q}, seed={seed}) "
-                      f"+ verify dim=2N, q·I, H·f≡g + BKZ β={beta} "
-                      f"over [0,2N)")
-                continue
-            L, f, g = build_ntru(n, q, seed=seed)
-            if len(L) != 2 * n:
-                print(f"ERROR: n={n} seed={seed}: dim {len(L)} != {2 * n}",
-                      file=sys.stderr)
-                return 2
-            H = np.array([[L[i][n + j] for j in range(n)] for i in range(n)])
-            if not np.array_equal((H @ f) % q, g % q):
-                print(f"ERROR: n={n} seed={seed}: H·f != g (mod {q})",
-                      file=sys.stderr)
-                return 2
-            r = run_single(
-                L=L, n=n, active_block_start=block_start_fn(n),
-                beta=beta, seed=seed, q=q,
-                precision=campaign.precision, max_tours=max_tours,
-                log_clamp_fn=None,
-            )
-            print(f"  n={n:3d} seed={seed}: dim={2 * n} verified, "
-                  f"BKZ β={beta} advantage={r['advantage']:+.6f}")
-            checks += 1
+        for beta in campaign.beta_grid:
+            max_tours = campaign.tours_by_beta[beta]
+            for seed in range(1, campaign.num_seeds + 1):
+                out = seed_path_for(
+                    "ntru", n=n, beta=beta, seed=seed, q=q,
+                    precision=campaign.precision, max_tours=max_tours,
+                ) if persist else None
+                if dry_run:
+                    tail = f" -> {out}" if persist else ""
+                    print(f"[dry-run] build_ntru(n={n}, q={q}, seed={seed}) "
+                          f"+ verify + BKZ β={beta} over [0,2n){tail}")
+                    continue
+                if persist and os.path.exists(out):
+                    print(f"  n={n:3d} β={beta} seed={seed}: exists, skip")
+                    done += 1
+                    continue
+                L, f, g = build_ntru(n, q, seed=seed)
+                if len(L) != 2 * n:
+                    print(f"ERROR: n={n} seed={seed}: dim {len(L)} != {2 * n}",
+                          file=sys.stderr)
+                    return 2
+                H = np.array([[L[n + i][j] for j in range(n)]
+                              for i in range(n)]).T   # basis stores Hᵀ
+                if not np.array_equal((H @ f) % q, g % q):
+                    print(f"ERROR: n={n} seed={seed}: H·f != g (mod {q})",
+                          file=sys.stderr)
+                    return 2
+                r = run_single(
+                    L=L, n=n, active_block_start=block_start_fn(n),
+                    beta=beta, seed=seed, q=q,
+                    precision=campaign.precision, max_tours=max_tours,
+                    log_clamp_fn=None,
+                )
+                if persist:
+                    os.makedirs(os.path.dirname(out), exist_ok=True)
+                    with open(out, "w") as fh:
+                        json.dump(r, fh, indent=2)
+                print(f"  n={n:3d} β={beta} seed={seed}: dim={2 * n} verified, "
+                      f"advantage={r['advantage']:+.6f}"
+                      + (f"  -> {out}" if persist else ""))
+                done += 1
 
-    PIPELINE.info("ntru_smoke ok", cat="sweep",
-                  campaign=campaign.name, q=q, beta=beta,
+    PIPELINE.info("ntru run ok", cat="sweep",
+                  campaign=campaign.name, q=q, persist=persist,
                   n_grid=list(campaign.n_grid), seeds=campaign.num_seeds,
-                  bases_verified=checks)
+                  seeds_done=done)
     if not dry_run:
-        print(f"NTRU smoke OK: {checks} bases built, verified "
-              f"(dim=2N, q·I_N, H·f≡g mod {q}) + BKZ over [0,2N).")
+        verb = "seeds written" if persist else "bases verified"
+        print(f"NTRU {'run' if persist else 'smoke'} OK: {done} {verb} "
+              f"(dim=2n, q·I_n, H·f≡g mod {q}) + BKZ over [0,2n).")
     return 0
 
 
@@ -365,7 +389,9 @@ def main() -> int:
 
     role = _select_runner(args.campaign)
     if role == "ntru_smoke":
-        return _dispatch_ntru_smoke(campaign, dry_run=args.dry_run)
+        return _dispatch_ntru(campaign, dry_run=args.dry_run, persist=False)
+    if role == "ntru":
+        return _dispatch_ntru(campaign, dry_run=args.dry_run, persist=True)
     if role == "q3329_verify":
         return _dispatch_q3329_verify(
             campaign, n, beta,
