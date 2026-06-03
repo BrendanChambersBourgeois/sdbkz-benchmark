@@ -102,39 +102,11 @@ def log_clamp(
         pass
 
 
-def build_lwe_kannan(
-    n: int, m: int, q: int, seed: int = 123
-) -> tuple[list[list[int]], np.ndarray, np.ndarray]:
-    """Construct an LWE-Kannan embedding lattice of dimension n+m+1.
-
-    Pure function of (n, m, q, seed) — seeded numpy RandomState makes
-    lattice generation deterministic. Returns ``(L, s, e)`` where
-    ``L`` is a nested-list ``(n+m+1) x (n+m+1)`` integer matrix,
-    ``s`` the secret, and ``e`` the error vector.
-
-    Character-identical to the legacy copies in (Phase 3 swap):
-      scripts/sweep_parallel.py, scripts/sweep_cloud.py,
-      scripts/q3329_verify.py, scripts/overnight_experiments.py,
-      scripts/run_3x_extended.py, scripts/run_convergence_test.py
-    """
-    rng = np.random.RandomState(seed)
-    s = rng.randint(0, 2, n).astype(int)
-    e = rng.choice([-1, 0, 1], m).astype(int)
-    A = rng.randint(0, q, (m, n)).astype(int)
-    b = (A @ s + e) % q
-    dim = m + n + 1
-    L = [[0] * dim for _ in range(dim)]
-    for i in range(m):
-        L[i][i] = q
-    for j in range(n):
-        for i in range(m):
-            L[m + j][i] = int(A[i][j])
-    for j in range(n):
-        L[m + j][m + j] = 1
-    for i in range(m):
-        L[m + n][i] = int(b[i])
-    L[m + n][m + n] = 1
-    return L, s, e
+# build_lwe_kannan moved to generators/lwe_kannan.py (generators refactor,
+# 2026-06-03). Re-exported here so the seven existing importers keep working
+# unchanged mid-refactor; later steps repoint them at `generators` directly.
+# The move is verbatim — bases stay byte-identical (SHA-256 manifest gate).
+from generators.lwe_kannan import build_lwe_kannan  # noqa: E402,F401
 
 
 def metrics_from_gso(
