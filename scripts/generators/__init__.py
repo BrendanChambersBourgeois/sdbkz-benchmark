@@ -39,7 +39,12 @@ GENERATORS = {
 def _ntru_block_start(n: int) -> int:
     # R* decision (full basis): measure the whole 2N NTRU profile. The
     # overstretched/fatigue anomaly manifests in the global Gram-Schmidt
-    # profile vs the Li-Nguyen fixed point, so the active block is [0, 2N).
+    # profile, so the active block is [0, 2N).
+    #
+    # CAVEAT: the d(LN) reference (ln_fixed_point) is an LWE-derived GSA
+    # line, NOT the NTRU-correct ZGSA/CN11 shape — so NTRU advantage
+    # *magnitudes* are on their own scale. The transition signal is
+    # reference-robust (verified). See docs/ntru_metric_validity.md.
     return 0
 
 
