@@ -28,7 +28,22 @@ Versions follow loose SemVer. Bump on:
 
 ## Unreleased
 
-_Nothing yet._
+### Added
+- **g6k as a second reduction engine** behind a backend seam. `scripts/_engine_backends.py` (`make_backend` → `fplll`|`g6k`); `_bkz_core.run_single` gains a `backend` kwarg; the tour loop is engine-blind (ADR-006).
+- **g6k self-dual BKZ** (`sdbkz` variant): primal + dual-mode pump-n-jump per tour, validated against fplll `SD_VARIANT` (ADR-008).
+- **`Dockerfile.fplll_patched`** — fplll 5.5.0 + Kahan §8 patch + fpylll 0.6.4, `make check` 15/15; `[campaigns.ntru_n127_patched]` rerun (§8 validation #2).
+- **`scripts/compare_xengine.py`** — cross-engine (fplll vs g6k) per-seed comparator → `results/validation/`.
+- **`results/validation/`** tree (ADR-007/008 determinism + cross-engine records, README, schema). Separate from the science seed trees; never enters `seed_manifest`.
+- Campaign config gains `backend` and `seed_tag` fields; `g6k_probe.py` gains `--tours`/`--reseed`; new campaigns `ntru_g6k_pilot`, `ntru_g6k_rhf`, `ntru_xeng_n89`, `ntru_xeng_tail`.
+
+### Changed
+- **Folded 3 duplicate engine loops onto a shared `_bkz_core.dln_trajectory`** (`run_3x_extended`, `run_convergence_test`, `overnight_experiments`) — removes the run_single-divergence hazard (ADR-001 class); per-seed JSON byte-identical.
+- CI `g6k-verify` flipped to a hard byte-identity gate (reference captured).
+
+### Fixed
+- `Dockerfile.fplll_patched` ran as root → bind-mounted seeds were root-owned (INC-40, INC-32 recurrence); added the non-root `runner` USER. Existing root-owned `ntru_patched` seeds chowned back.
+- `dln_trajectory` no longer hardcodes the g6k Siever seed (latent determinism trap; fplll path was unaffected).
+- `_config` now validates `seed_tag` against known trees; `compare_xengine` guards missing rhf fields.
 
 ## [2.0.0] — 2026-06-03
 

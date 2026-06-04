@@ -244,6 +244,17 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
             f"{ctx}: unknown backend {backend!r}; expected 'fplll' or 'g6k'"
         )
 
+    # seed_tag must name a known output tree (else a typo only surfaces at
+    # worker runtime inside seed_dir_for). Validate here to fail fast.
+    seed_tag_val = merged.get("seed_tag")
+    if seed_tag_val:
+        from _seed_paths import _KNOWN_CAMPAIGNS
+        if str(seed_tag_val) not in _KNOWN_CAMPAIGNS:
+            raise ConfigError(
+                f"{ctx}: unknown seed_tag {seed_tag_val!r}; must be one of "
+                f"{sorted(_KNOWN_CAMPAIGNS)}"
+            )
+
     return Campaign(
         name=name,
         description=str(merged.get("description", "")),

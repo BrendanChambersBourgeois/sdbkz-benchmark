@@ -61,6 +61,12 @@ def compare(n, beta, mt, q, fplll_tag, g6k_tag, threshold):
     g6 = _load(g6k_tag, n, beta, mt, q)
     seeds = sorted(set(fp) & set(g6))
     rows = []
+    def _rhf_diff(d: dict):
+        # Guarded: a partial/legacy seed JSON missing an rhf field must skip,
+        # not KeyError-abort the whole comparison.
+        b, s_ = d.get("rhf_bkz"), d.get("rhf_sdbkz")
+        return (b - s_) if (b is not None and s_ is not None) else None
+
     for s in seeds:
         fs0 = _gs0(fp[s], "sdbkz")
         gs0 = _gs0(g6[s], "sdbkz")
@@ -70,8 +76,8 @@ def compare(n, beta, mt, q, fplll_tag, g6k_tag, threshold):
             "g6k_sdbkz_gs0": gs0,
             "fplll_fired": (fs0 is not None and fs0 < threshold),
             "g6k_fired": (gs0 is not None and gs0 < threshold),
-            "fplll_rhf_diff": fp[s]["rhf_bkz"] - fp[s]["rhf_sdbkz"],
-            "g6k_rhf_diff": g6[s]["rhf_bkz"] - g6[s]["rhf_sdbkz"],
+            "fplll_rhf_diff": _rhf_diff(fp[s]),
+            "g6k_rhf_diff": _rhf_diff(g6[s]),
         })
     fp_fired = {r["seed"] for r in rows if r["fplll_fired"]}
     g6_fired = {r["seed"] for r in rows if r["g6k_fired"]}

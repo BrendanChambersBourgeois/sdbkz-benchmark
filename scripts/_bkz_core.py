@@ -91,6 +91,7 @@ def dln_trajectory(
     dim: int,
     m: int,
     ln_p: list[float],
+    seed: int,
     log_clamp_fn: Optional[Callable[[str, int, float], None]] = None,
     active_end: Optional[int] = None,
     backend: str = FPLLL_BACKEND,
@@ -110,10 +111,13 @@ def dln_trajectory(
 
     ``active_end`` defaults to ``dim`` (the full-tail behaviour the callers
     used via ``range(m, dim)``). ``backend`` allows the same trajectory to be
-    measured under g6k for cross-engine comparison.
+    measured under g6k for cross-engine comparison — which is why ``seed`` is
+    required and threaded into the backend: the fplll backend ignores it (the
+    basis is already seeded upstream), but the g6k Siever samples from it, so
+    a hardcoded seed would break per-seed determinism on the g6k path.
     """
     engine = make_backend(backend, B_init=B_init, beta=beta, variant=variant,
-                          seed=0, precision=precision)
+                          seed=seed, precision=precision)
     dln: list[float] = []
     for _ in range(max_tours):
         engine.tour()

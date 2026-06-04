@@ -80,7 +80,8 @@ def run_seed(args):
     t0 = time.time()
     bkz_dln = dln_trajectory(
         B_init=B_init, beta=beta, variant="bkz", max_tours=triple_tours,
-        precision=PRECISION, dim=dim, m=m, ln_p=ln_p, log_clamp_fn=_log_clamp,
+        precision=PRECISION, dim=dim, m=m, ln_p=ln_p, seed=seed,
+        log_clamp_fn=_log_clamp,
     )
     result["bkz_time"] = time.time() - t0
     result["bkz_dln_per_tour"] = bkz_dln
@@ -91,7 +92,8 @@ def run_seed(args):
     t0 = time.time()
     sd_dln = dln_trajectory(
         B_init=B_init, beta=beta, variant="sdbkz", max_tours=normal_tours,
-        precision=PRECISION, dim=dim, m=m, ln_p=ln_p, log_clamp_fn=_log_clamp,
+        precision=PRECISION, dim=dim, m=m, ln_p=ln_p, seed=seed,
+        log_clamp_fn=_log_clamp,
     )
     result["sdbkz_time"] = time.time() - t0
     result["sdbkz_dln_per_tour"] = sd_dln

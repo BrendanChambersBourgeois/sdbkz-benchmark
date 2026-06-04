@@ -100,7 +100,7 @@ def run_3x_tour_test():
         t0 = time.time()
         bkz_dln = dln_trajectory(
             B_init=B_init, beta=BETA, variant="bkz", max_tours=BKZ_TOURS,
-            precision=PRECISION, dim=dim, m=m, ln_p=ln_p,
+            precision=PRECISION, dim=dim, m=m, ln_p=ln_p, seed=seed,
             log_clamp_fn=_log_clamp,
         )
         row["bkz_time"] = time.time() - t0
@@ -112,7 +112,7 @@ def run_3x_tour_test():
         t0 = time.time()
         sd_dln = dln_trajectory(
             B_init=B_init, beta=BETA, variant="sdbkz", max_tours=SDBKZ_TOURS,
-            precision=PRECISION, dim=dim, m=m, ln_p=ln_p,
+            precision=PRECISION, dim=dim, m=m, ln_p=ln_p, seed=seed,
             log_clamp_fn=_log_clamp,
         )
         row["sdbkz_time"] = time.time() - t0
