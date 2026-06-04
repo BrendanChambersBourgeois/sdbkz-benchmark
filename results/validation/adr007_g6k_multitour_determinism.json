@@ -1,0 +1,23 @@
+{
+  "validation": "g6k_multitour_determinism",
+  "adr": "ADR-007",
+  "date": "2026-06-04",
+  "engine": "g6k",
+  "image": "sdbkz-g6k:ref",
+  "params": { "n": 80, "beta": 60, "seed": 42, "threads": 1, "march": "x86-64-v3", "lattice": "qary k=n/2 bits=20" },
+  "result": "PASS",
+  "data": {
+    "runs": [
+      { "tours": 1, "reseed": "once", "basis_sha256_16": "cf22519d529d243c", "rprof_sha256_16": "d4faf05a194bd7a3", "note": "== ADR-005 single-tour reference (regression held)" },
+      { "tours": 3, "reseed": "once", "run": "A", "basis_sha256_16": "ea44fb2367fbef29", "rprof_sha256_16": "5c060b3fde03bc30" },
+      { "tours": 3, "reseed": "once", "run": "B", "basis_sha256_16": "ea44fb2367fbef29", "rprof_sha256_16": "5c060b3fde03bc30" },
+      { "tours": 3, "reseed": "per-tour", "run": "A", "basis_sha256_16": "ea44fb2367fbef29", "rprof_sha256_16": "5c060b3fde03bc30" },
+      { "tours": 3, "reseed": "per-tour", "run": "B", "basis_sha256_16": "ea44fb2367fbef29", "rprof_sha256_16": "5c060b3fde03bc30" }
+    ],
+    "once_runA_eq_runB": true,
+    "pertour_runA_eq_runB": true,
+    "once_eq_pertour": true
+  },
+  "conclusion": "Multi-tour g6k deterministic at threads=1 (run A==B). Re-seed policy MOOT: once == per-tour bit-identical, so per-tour is a no-op; policy locked = re-seed ONCE at Siever construction. tours=1/once reproduces the locked reference.",
+  "reproduce": "docker run --rm -v \"$PWD\":/work -w /work sdbkz-g6k:ref python3 scripts/g6k_probe.py --n 80 --beta 60 --seed 42 --tours 3 --reseed once --json"
+}

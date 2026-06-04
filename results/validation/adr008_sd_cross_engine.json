@@ -1,0 +1,25 @@
+{
+  "validation": "sd_cross_engine_vs_fplll",
+  "adr": "ADR-008",
+  "date": "2026-06-04",
+  "engine": "g6k-vs-fplll",
+  "image": "sdbkz-g6k:ref",
+  "params": { "n": 80, "beta": 40, "tours": 3, "seed": 42, "threads": 1, "lattice": "qary k=n/2 bits=20", "precision_fplll": 250 },
+  "result": "PASS",
+  "data": {
+    "profiles_ln": {
+      "fplll_bkz":   { "head": 7.8885, "tail": 5.7739, "slope": 0.02643 },
+      "fplll_sdbkz": { "head": 7.8695, "tail": 5.7861, "slope": 0.02604 },
+      "g6k_bkz":     { "head": 7.8089, "tail": 5.8028, "slope": 0.02508 },
+      "g6k_sdbkz":   { "head": 7.8013, "tail": 5.8276, "slope": 0.02467 }
+    },
+    "sd_minus_bkz_delta": {
+      "head":  { "fplll": -0.01905, "g6k": -0.00760, "same_direction": true },
+      "tail":  { "fplll": 0.01226,  "g6k": 0.02474,  "same_direction": true },
+      "slope": { "fplll": -0.00039, "g6k": -0.00040, "same_direction": true }
+    },
+    "sdbkz_determinism": { "params": "n=80 beta=40 tours=2", "basis_sha256_16": "de9978db3cf05120", "reproduced": true }
+  },
+  "conclusion": "g6k self-dual tour reproduces fplll SD_VARIANT's SD-vs-BKZ signature (flatten profile: lower head, raise tail) on all 3 metrics, slope-flatten magnitude near-identical (-0.00039 vs -0.00040). Construction validated as coherent self-dual reduction AT 3 TOURS. Deterministic. NOTE: high-tour (mt=50) behaviour later flagged anomalous at n>=89 (see g6k_sd_xengine_n89_seed17_mt50) — ADR-008's validation scope is 3 tours.",
+  "reproduce": "docker run --rm -v \"$PWD\":/work -w /work sdbkz-g6k:ref python3 <_val_sd cross-engine harness, ADR-008 verification artefacts>"
+}
