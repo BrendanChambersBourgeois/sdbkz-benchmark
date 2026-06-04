@@ -284,11 +284,12 @@ jobs:
   # state cannot mask the fplll regression proof above — the two engines'
   # byte-identity gates are independent by design. This job source-builds the
   # single-threaded G6K sieve image and runs its SHA gate; it does NOT touch
-  # the fplll path. Phase 1: the reference SHA is captured on the first
-  # canonical build, so verify_g6k.sh may report PENDING (exit 4) here until
-  # the reference is filled — that is a warning, not a failure. Once the
-  # reference is committed, flip lint to --require-ref and drop the exit-4
-  # tolerance below to make this a hard byte-identity gate.
+  # the fplll path. The reference SHA (cf22519d… / d4faf05a…, n=80 β=60
+  # seed=42) is captured and committed (Phase 1 done), so this is now a HARD
+  # byte-identity gate: the lint runs with --require-ref and verify_g6k.sh
+  # must exit 0 (PENDING/exit 4 can no longer occur). This is the de-facto
+  # cross-machine reference test — the GitHub runner is a third machine vs
+  # the single-machine capture host (ADR-005 cross-machine open item).
   g6k-build-and-verify:
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -322,25 +323,19 @@ jobs:
         run: |
           # Enforces threads==1 contract, fplll-manifest disjointness, and
           # (vacuously until Phase 4 seeds) ghost/drift. Host python is fine —
-          # the lint reads JSON only, no g6k import. Add --require-ref here
-          # once the canonical reference SHA is committed.
-          python3 scripts/lint_g6k_manifest.py
+          # the lint reads JSON only, no g6k import. --require-ref: the
+          # canonical reference SHA is committed (Phase 1 done), so a manifest
+          # that reverts to the PENDING sentinel is now a hard failure.
+          python3 scripts/lint_g6k_manifest.py --require-ref
 
       - name: G6K determinism verify (single-threaded SHA gate)
         run: |
           # Regenerate the reference probe inside the pinned image and SHA-
-          # compare. PENDING reference (exit 4) is a warning during Phase 1;
-          # SHA drift (exit 1) or any other nonzero is a hard failure.
-          set +e
+          # compare. The reference is captured (Phase 1 done), so this is a
+          # HARD byte-identity gate: only exit 0 passes. PENDING (exit 4) can
+          # no longer occur with a filled reference and, if it somehow does,
+          # is treated as a failure alongside SHA drift (exit 1).
           docker run --rm sdbkz-g6k:ci bash scripts/verify_g6k.sh
-          code=$?
-          set -e
-          if [ "$code" = "4" ]; then
-            echo "::warning::G6K reference SHA is PENDING — not yet captured. Scaffold state (Phase 1)."
-          elif [ "$code" != "0" ]; then
-            echo "::error::G6K determinism verify failed (exit $code)."
-            exit "$code"
-          fi
 
       - name: G6K diagnostic banner on failure
         if: failure()
