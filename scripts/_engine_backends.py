@@ -96,17 +96,14 @@ class _G6kBackend:
 
     def __init__(self, *, B_init: IntegerMatrix, beta: int, variant: str,
                  seed: int) -> None:
-        if variant == "sdbkz":
-            raise NotImplementedError(
-                "g6k has no settled SD-BKZ variant (Phase 3 science). "
-                "Do not alias it to plain BKZ — the advantage metric would "
-                "be meaningless. See docs/design_decisions.md ADR-006."
-            )
+        if variant not in ("bkz", "sdbkz"):
+            raise ValueError(f"unknown g6k variant {variant!r}")
         # Import lazily: the fplll path (and its container) has no g6k.
         from g6k import Siever, SieverParams
         from g6k.algorithms.bkz import pump_n_jump_bkz_tour
 
         self.beta = beta
+        self.variant = variant
         self._tour_fn = pump_n_jump_bkz_tour
         A = IntegerMatrix(B_init)  # g6k mutates the basis in place
         # Contract: re-seed FPLLL immediately before the sieve — the g6k
@@ -116,10 +113,27 @@ class _G6kBackend:
         FPLLL.set_random_seed(seed)
         self.g6k = Siever(A, SieverParams(threads=1))
 
-    def tour(self) -> None:
+    def _pnj(self) -> None:
         from fpylll.tools.bkz_stats import dummy_tracer
         self._tour_fn(self.g6k, dummy_tracer, self.beta,
                       pump_params={"down_sieve": True})
+
+    def tour(self) -> None:
+        """One tour. "bkz" = one primal pump-n-jump BKZ tour. "sdbkz" =
+        self-dual: a primal pump-n-jump tour followed by a DUAL one, run under
+        ``temp_params(dual_mode=…)`` flipped — g6k's documented dual mode runs
+        all operations on the dual basis with bounds reflected about full_n/2
+        (the same mechanism g6k's own ``slide_tour`` uses for its dual pass).
+        This mirrors fplll ``BKZ.SD_VARIANT`` (primal+dual per loop) and is
+        validated end-to-end against it on matched lattices (ADR-008). Both
+        sub-tours are threads=1, so the self-dual tour is deterministic
+        (ADR-007)."""
+        self._pnj()  # primal
+        if self.variant == "sdbkz":
+            with self.g6k.temp_params(
+                dual_mode=not self.g6k.params.dual_mode
+            ):
+                self._pnj()  # dual
 
     def reseed(self, seed: int) -> None:
         """Re-seed fplll's global RNG (the sieve sampler's source). Used to

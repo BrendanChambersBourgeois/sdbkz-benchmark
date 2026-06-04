@@ -389,3 +389,47 @@ ADR-005/006 locked g6k byte-identity for a **single** `pump_n_jump_bkz_tour` (th
 
 - `scripts/g6k_probe.py` — `--tours` / `--reseed`; `scripts/_engine_backends.py` — `_G6kBackend.reseed`.
 - The experiment table above (reproducible in `sdbkz-g6k:ref`).
+
+---
+
+## ADR-008 — g6k SD-BKZ semantics: self-dual pump-BKZ, validated vs fplll SD_VARIANT (Phase 3, Gate 2)
+
+**Status**: Accepted. Closes the Phase-3 g6k-science boundary (Gate 1 = ADR-007 determinism; Gate 2 = this). g6k seeds are now unblocked.
+**Date**: 2026-06-04.
+**Chooses**: Option A (self-dual pump-BKZ) from ADR-007's A/B/C. B (stock `slide_tour`) rejected — slide reduction ≠ SD-BKZ, conflates the comparison. C (bkz-only) was the fallback; not needed.
+
+### Construction
+
+A g6k **self-dual tour** (`_G6kBackend(variant="sdbkz").tour()`) is a primal `pump_n_jump_bkz_tour` followed by a **dual** one run under `g6k.temp_params(dual_mode=not g6k.params.dual_mode)`. g6k's documented dual mode runs all operations on the dual basis with `l_bound`/`r_bound` reflected about `full_n/2` (siever.pyx) — the same mechanism g6k's own `slide_tour` uses for its dual pass. This mirrors fplll `BKZ.SD_VARIANT` (primal+dual per loop). The science driver's per-tour d(LN) is read from the primal MatGSO after the `temp_params` block exits (mode reverts), so the metric stays in primal coordinates.
+
+### Why validation is end-to-end, not by-inspection
+
+A single dual pass cannot be judged by eyeballing the **primal** GS profile — dual reduction optimises the dual, so a probe showed an ambiguous signal (tail rises = plausibly correct; slope steepens = looks wrong through a primal lens). Primal-profile heuristics are the wrong validator. Instead we validate the whole construction against the **established** engine: fplll `SD_VARIANT` is the ground truth.
+
+### Validation (n=80, β=40, 3 tours, threads=1, same q-ary lattice; `sdbkz-g6k:ref`)
+
+The cross-engine test is the **SD−BKZ delta**: g6k ≠ fplll numerically (sieve vs enum), but how SD changes the profile vs each engine's own BKZ must agree.
+
+| metric | fplll (SD−BKZ) | g6k (SD−BKZ) | same direction |
+|--------|---------------:|-------------:|:--------------:|
+| head ln(r₀) | −0.01905 | −0.00760 | ✅ SD lowers head |
+| tail ln(r_{n−1}) | +0.01226 | +0.02474 | ✅ SD raises tail |
+| slope (head−tail)/n | −0.00039 | −0.00040 | ✅ SD flattens profile |
+
+SD-BKZ's signature — **flatten the GS profile** (lower head, raise tail) — is reproduced by the g6k self-dual construction on all three metrics, with the slope-flattening magnitude essentially identical (−0.00039 vs −0.00040). The construction is a coherent self-dual reduction.
+
+**Determinism:** the sdbkz path (2 pnj sub-tours, both threads=1) is reproducible — `de9978db…` across independent runs; ADR-007's multi-tour determinism covers it.
+
+### Reviewer defensibility
+
+The construction matches the established fplll SD-BKZ signature (above). Independent prior art exists — *"A New Self-dual BKZ Algorithm Based on Lattice Sieving"* (Springer, 978-981-99-9331-4_22): self-dual reduction via alternating primal/dual sieving passes, the same shape as this construction. Not required for the result (the fplll ground-truth match is the proof) but available as a citation / future exact cross-check.
+
+### Consequences
+
+- `_G6kBackend(variant="sdbkz")` is implemented (the ADR-006 `NotImplementedError` is removed); the g6k advantage metric (bkz vs sdbkz) is now meaningful.
+- Both g6k boundary gates are cleared. g6k seed generation (DSD-onset comparison, SD vs BKZ, cross-engine vs fplll) is unblocked — pending the science-run scope decision (Phase 4).
+
+### Verification artefacts
+
+- `scripts/_engine_backends.py` — `_G6kBackend` sdbkz self-dual tour.
+- Validation harness (cross-engine SD−BKZ delta + sdbkz determinism), reproducible in `sdbkz-g6k:ref`; the table above is its output.
