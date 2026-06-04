@@ -71,9 +71,19 @@ validated on 2 modulus families; `make check` 15/15.
 - **g6k self-dual construction validated sound** (INC-41 resolved): at
   n=101/113 g6k and fplll agree perfectly; the n=89 short-vector events are
   real-but-sparse, corroborated by fplll (seed 19 exact gs[0]=2.332 match).
-- **Phase 4b (running)**: g6k DSD-onset q-sweep at n=89 across fatigue
-  (q∈{211,257,307,401,521}) — does SD-BKZ firing grow as q→fatigue+ on the
-  sieve? Then the matched fplll β=40 q-sweep for the cross-engine map.
+- **Phase 4b (q-sweep, n=89, β=40, q∈{211,257,307,401,521})**: SATURATION —
+  both g6k SD-BKZ and BKZ reach FULL DSD (short=89=n, b1≈1.96, the
+  q-independent ternary-secret floor) on 20/20 seeds at every q; advantage
+  ≈ 0. No onset gap here — the whole window is post-onset.
+  - **Regime-constrained cross-engine result (paper-worthy):** the DSD-onset
+    *gap* (SD onset < BKZ onset, growing with n) was a **β=20** result; g6k's
+    sieve needs **β≥40**, where both engines crack DSD together. The
+    gap-regime (β=20) and the sieve-meaningful-β (≥40) **do not overlap** at
+    n=89 — the SD-vs-BKZ onset advantage is a low-β phenomenon a strong sieve
+    erases. (`results/validation/g6k_dsd_qsweep_n89_beta40_saturation.json`.)
+  - Next: lower-q onset sweep q∈{97,113,137,157,181,211} at β=40 (Phase-4a:
+    q=97 was sparse 2/20, q=211 full 89/89 → the β=40 edge is in there). Does
+    SD lead BKZ at the edge, or do both crack together?
 
 ## Open / next
 - Phase 4b verdict (g6k DSD-onset curve) + matched fplll β=40 q-sweep.

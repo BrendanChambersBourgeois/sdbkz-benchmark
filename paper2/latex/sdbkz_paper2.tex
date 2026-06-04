@@ -208,8 +208,19 @@ engines agree perfectly (no spurious sieve firing), and where a short vector
 genuinely exists ($n=89$, seed 19) both engines land the identical first
 GS log-norm. % [TODO] table: per-n fired counts + Jaccard; the n=89 sparse-but-real result.
 
-% [TODO] Phase-4b: the matched g6k vs fplll beta=40 q-sweep DSD-onset map
-% (running). Add when it lands.
+\paragraph{The gap-regime and the sieve-meaningful block size do not overlap.}
+A G6K DSD-onset $q$-sweep at $n=89$, $\beta=40$, over $q\in\{211,257,307,401,521\}$
+finds \emph{both} SD-BKZ and BKZ at full dense-sublattice discovery on every
+seed at every $q$ (short $=89=n$; $b_1\approx1.96$, the $q$-independent
+ternary-secret floor $\sqrt{2n\cdot 2/3}$), with SD-vs-BKZ advantage $\approx0$.
+The whole window is post-onset---no gap. This is informative: the DSD-onset
+\emph{gap} (Table~\ref{tab:dsdgap}; SD reaching discovery at lower $q$ than BKZ,
+the gap growing with $n$) was measured at $\beta=20$, whereas the sieve oracle
+needs $\beta\gtrsim40$ to do meaningful work, at which point both engines crack
+DSD together. The gap-regime ($\beta=20$) and the sieve-usable regime
+($\beta\ge40$) thus \emph{do not overlap} at $n=89$: the SD-vs-BKZ onset
+advantage is a weak-reduction (low-$\beta$) phenomenon that a strong sieve
+oracle erases by finding the dense sublattice on both passes. % [TODO] lower-q onset sweep q in {97..211} at beta=40 to test the beta=40 edge.
 
 \section{Re-Validating the fplll GSO Fix on a New Modulus Family}
 \label{sec:kahan}
