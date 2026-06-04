@@ -48,8 +48,9 @@ from collections.abc import Callable
 from typing import Any, Optional
 
 import numpy as np
+from _engine_backends import FPLLL_BACKEND, make_backend
 from _math_core import ln_fixed_point, metrics_from_gso
-from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
+from fpylll import FPLLL, GSO, LLL, IntegerMatrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger  # noqa: E402
@@ -96,6 +97,7 @@ def run_single(
     store_per_tour: bool = False,
     floor_mode: str = "safe",
     always_emit_store_per_tour: bool = False,
+    backend: str = FPLLL_BACKEND,
 ) -> dict[str, Any]:
     """Run BKZ and SD-BKZ on a single (n, beta, seed) lattice.
 
@@ -147,14 +149,15 @@ def run_single(
     result["initial_gs_lognorms"] = [float(x) for x in init["gs_lognorms"]]
 
     for variant in ("bkz", "sdbkz"):
-        # LLL is deterministic, so a copy of the already-reduced basis
-        # is byte-equivalent to a fresh from_matrix + LLL — saves one
-        # LLL pass per variant.
-        B = IntegerMatrix(B_init)
-
-        flags = BKZ.MAX_LOOPS | BKZ.AUTO_ABORT
-        if variant == "sdbkz":
-            flags |= BKZ.SD_VARIANT
+        # The reduction engine is selected by `backend`; it takes its own
+        # private copy of the LLL-reduced B_init (the driver reuses B_init
+        # across both variants). LLL is deterministic, so this copy is
+        # byte-equivalent to a fresh from_matrix + LLL. The fplll backend's
+        # tour/gso calls reproduce the pre-seam inline sequence exactly.
+        engine = make_backend(
+            backend, B_init=B_init, beta=beta, variant=variant,
+            seed=seed, precision=precision,
+        )
 
         dln_per_tour = []
         deltas = []
@@ -170,11 +173,9 @@ def run_single(
         t0 = time.time()
 
         for t in range(1, max_tours + 1):
-            param = BKZ.Param(beta, max_loops=1, flags=flags)
-            BKZ.reduction(B, param, float_type="mpfr", precision=precision)
+            engine.tour()
 
-            M = GSO.Mat(B)
-            M.update_gso()
+            M = engine.gso()
             if store_per_tour:
                 metrics = _metrics(M, full=True)
                 rankin_per_tour.append([float(x) for x in metrics["rankin"]])
@@ -215,8 +216,7 @@ def run_single(
 
         if stag_tour is None:
             stag_tour = tours_run
-            M_final = GSO.Mat(B)
-            M_final.update_gso()
+            M_final = engine.gso()
             full_m = _metrics(M_final, full=True)
             stag_rankin = [float(x) for x in full_m["rankin"]]
             stag_rhf = full_m["rhf"]

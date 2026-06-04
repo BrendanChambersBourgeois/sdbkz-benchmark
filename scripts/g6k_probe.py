@@ -64,9 +64,8 @@ def probe(n: int, beta: int, seed: int, threads: int = 1) -> dict:
 
     try:
         from fpylll import FPLLL, LLL, IntegerMatrix
-        from fpylll.tools.bkz_stats import dummy_tracer
-        from g6k import Siever, SieverParams
-        from g6k.algorithms.bkz import pump_n_jump_bkz_tour
+
+        from _engine_backends import make_backend
     except ImportError as e:
         PIPELINE.error("g6k/fpylll import failed", cat="integrity", err=str(e))
         raise SystemExit(2)
@@ -76,24 +75,24 @@ def probe(n: int, beta: int, seed: int, threads: int = 1) -> dict:
     A = IntegerMatrix.random(n, "qary", k=n // 2, bits=DEFAULT_BITS)
     LLL.reduction(A)
 
-    # Contract-locked sieve. The sieve's sampler draws from fplll's global
-    # RNG, so re-seeding FPLLL immediately before the sieve is what fixes the
-    # sieve RNG. (SieverParams has NO "seed" key in fpylll e25ade8 / g6k
-    # c71e084 — setting one is a silently-ignored no-op that emits
-    # "Attribute 'seed' unknown"; verified 2026-06-04. Do not reintroduce.)
-    params = SieverParams(threads=1)
-    FPLLL.set_random_seed(seed)  # re-seed immediately before the sieve
-    g6k = Siever(A, params)
-    pump_n_jump_bkz_tour(g6k, dummy_tracer, beta,
-                         pump_params={"down_sieve": True})
+    # Contract-locked sieve, driven through the SAME backend the science
+    # engine (_bkz_core.run_single) uses — so this exact-SHA gate covers the
+    # backend code path. The g6k backend re-seeds FPLLL immediately before
+    # constructing the Siever (the sampler draws from fplll's global RNG)
+    # and runs one pump_n_jump_bkz_tour under threads=1. (SieverParams has
+    # NO "seed" key in fpylll e25ade8 / g6k c71e084 — a no-op; do not
+    # reintroduce. Verified 2026-06-04.)
+    engine = make_backend("g6k", B_init=A, beta=beta, variant="bkz",
+                          seed=seed, precision=0)
+    engine.tour()
 
     # Hash basis + r-profile independently (either drifting is a failure).
-    B = g6k.M.B
+    M = engine.gso()  # update_gso() already applied by the backend
+    B = M.B
     basis_bytes = str(
         [[B[i][j] for j in range(B.ncols)] for i in range(B.nrows)]
     ).encode()
-    g6k.M.update_gso()
-    rprof = [g6k.M.get_r(i, i) for i in range(n)]
+    rprof = [M.get_r(i, i) for i in range(n)]
     rprof_bytes = json.dumps([f"{x:.10e}" for x in rprof]).encode()
 
     rec = {

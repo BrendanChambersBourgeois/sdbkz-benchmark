@@ -316,3 +316,38 @@ Then flip the CI g6k-verify step from PENDING-tolerant (exit 4 = warning) to a h
 - `Dockerfile.g6k`, `scripts/g6k_probe.py`, `scripts/verify_g6k.sh`, `scripts/lint_g6k_manifest.py`, `results/g6k_seed_manifest.json` — the scaffold.
 - `/tmp/g6k_phase0_report.md` — Phase 0 determinism recon (not committed; the SHA-table evidence behind the `threads=1` contract).
 - Dry-run gate (Phase 1): `docker build -f Dockerfile.g6k --check .` lints the Dockerfile; `python3 scripts/lint_g6k_manifest.py` is green in scaffold state; `scripts/verify_g6k.sh` reports PENDING (exit 4) until the reference is captured.
+
+---
+
+## ADR-006 — Engine seam: g6k as a `_bkz_core` backend (Phase 2)
+
+**Status**: Accepted (seam only; g6k production seeds NOT in scope — see Boundary).
+**Date**: 2026-06-04.
+**Supersedes scope note in ADR-005** ("the engine seam … is Phase 2") — this is that seam.
+
+### Context
+
+ADR-005 shipped g6k as a standalone, SHA-locked *probe* (`g6k_probe.py`), proving the single-threaded sieve is bit-reproducible — but disconnected from the science driver. The science runs through `_bkz_core.run_single`, which hard-coded fplll: one `BKZ.reduction(B, param, float_type="mpfr", precision=p)` per tour over an `IntegerMatrix`. To compare engines on the *same* lattices, the driver must be able to dispatch its per-tour reduction to either engine without the tour loop, stagnation bookkeeping, or metric extraction knowing which engine ran.
+
+### Decision
+
+1. **The seam is a per-tour reduction backend, not a forked driver.** `scripts/_engine_backends.py` exposes `make_backend(name, B_init, beta, variant, seed, precision)` returning an object with exactly `tour()` (advance one BKZ tour) and `gso()` (an `update_gso()`'d fpylll `MatGSO` for metrics). `run_single` gains one kwarg, `backend="fplll"`, and calls through this surface. The tour loop is written ONCE; only the engine varies. (Keeps the ADR-001 anti-duplication invariant — no second `run_single`.)
+
+2. **fplll path is byte-identical, and that is the regression gate.** `_FplllBackend` rebuilds `BKZ.Param` per tour and returns a fresh `GSO.Mat(B)` per `gso()` call — the exact pre-seam call sequence. Gate: the post-seam `run_single` reproduces the committed per-seed JSON exactly, modulo the three wall-clock fields (`timestamp`, `bkz_time`, `sdbkz_time`); `scripts/verify.sh` stays green. Proven on (n=50,β=20) seeds 1/2/5.
+
+3. **g6k path shares the probe's primitive, and that is its own gate.** `g6k_probe.py` now drives its sieve through `make_backend("g6k", …)`, so the `verify_g6k.sh` exact-SHA gate (cf22519d… / d4faf05a…, n=80 β=60 seed=42) covers the backend code. A drift in the backend trips the reference. Re-verified green after the refactor.
+
+4. **g6k `sdbkz` raises, it does not alias.** g6k has no settled SD-BKZ analog. `_G6kBackend(variant="sdbkz")` raises `NotImplementedError` rather than silently running plain BKZ — aliasing would make the advantage metric (`bkz_final_dln - sdbkz_final_dln`) meaningless. Consequence: `run_single(backend="g6k")` cannot yet produce a full seed (it loops bkz→sdbkz and raises on the second variant). This is intentional: the seam is proven, the g6k SD science is deferred.
+
+### Boundary (STOP — review gate, per the Phase 0/1 cadence)
+
+Settled before any g6k seed is generated, NOT decided here:
+- **g6k SD-BKZ semantics** — what "sdbkz" means for a sieve (or whether the comparison is reframed, e.g. bkz-only or a different second arm). Until then the advantage metric is fplll-only.
+- **Multi-tour g6k determinism** — the backend re-seeds FPLLL once at construction, matching the *single-tour* probe. Re-seed-once vs re-seed-per-tour for N>1 tours is UNPROVEN; lock it (extend `g6k_probe.py` to a multi-tour SHA, or settle the policy in a Phase 3 ADR) before trusting any multi-tour g6k seed.
+
+### Verification artefacts
+
+- `scripts/_engine_backends.py` — the backend seam (fplll + g6k).
+- `scripts/_bkz_core.py` — `backend` kwarg; tour loop now engine-blind.
+- `scripts/g6k_probe.py` — refactored to drive the shared g6k backend.
+- Gates (both green 2026-06-04, this machine): `verify.sh` value gate + exact-JSON regression check (fplll, byte-identical); `verify_g6k.sh` SHA gate (g6k, cf22519d…/d4faf05a… through the backend).
