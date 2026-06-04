@@ -1,0 +1,59 @@
+% Paper-2 local references. Shared cryptobib keys (EC:MicWal16 SD-BKZ,
+% EPRINT:LiNgu20 Li-Nguyen, EC:GamNgu08, ...) come from crypto.bib /
+% abbrev3.bib and are NOT redefined here. See reference_lattice_lit memory
+% for the full annotated bibliography; fill DOIs/pages before submission.
+
+@inproceedings{DucasWoerden2021,
+  author    = {L{\'e}o Ducas and Wessel van Woerden},
+  title     = {{NTRU} Fatigue: How Stretched is Overstretched?},
+  booktitle = {ASIACRYPT 2021},
+  year      = {2021},
+  note      = {Defines the circulant NTRU construction and the fatigue point
+               $q_\mathrm{fat} \approx 0.004\,n^{2.484}$; ZGSA Z-shape profile.}
+}
+
+@article{G6K2019,
+  author  = {Martin R. Albrecht and L{\'e}o Ducas and Gottfried Herold and
+             Elena Kirshanova and Eamonn W. Postlethwaite and Marc Stevens},
+  title   = {The General Sieve Kernel and New Records in Lattice Reduction},
+  journal = {EUROCRYPT 2019; IACR ePrint 2019/089},
+  year    = {2019},
+  note    = {G6K; pump-and-jump BKZ; dual\_mode.}
+}
+
+@inproceedings{DengJia2023,
+  author    = {Huiwen Jia and others},
+  title     = {A New Self-dual {BKZ} Algorithm Based on Lattice Sieving},
+  booktitle = {FCS 2023, Springer CCIS 1992},
+  year      = {2023},
+  note      = {Self-dual BKZ with a G6K sieve oracle --- closest precedent
+               to the cross-engine self-dual construction here.}
+}
+
+@phdthesis{Rowell2024,
+  author = {Rowell},
+  title  = {Theoretical, Practical, and Engineering Aspects of Lattice
+            Cryptanalysis and {TLS} Attestation},
+  school = {Royal Holloway, University of London},
+  year   = {2024},
+  note   = {Ch.3: approximate-enum oracles in BKZ; SD-BKZ achieves the same
+            RHF as BKZ under a non-exact oracle (RHF-blind, independent).}
+}
+
+@misc{RecursiveReduction2023,
+  author = {Divesh Aggarwal and Thomas Espitau and Spencer Peters and
+            Noah Stephens-Davidowitz},
+  title  = {Recursive Lattice Reduction},
+  year   = {2023},
+  note   = {arXiv:2311.15064. Abandons rHF for dense-sublattice density;
+            DSP via Rankin --- conceptual cite for the rHF-blind framing.}
+}
+
+@inproceedings{DEP2023,
+  author    = {L{\'e}o Ducas and Thomas Espitau and Eamonn W. Postlethwaite},
+  title     = {Finding Short Integer Solutions When the Modulus is Small},
+  booktitle = {CRYPTO 2023; IACR ePrint 2023/1125},
+  year      = {2023},
+  note      = {Z-shape q-ary geometry; Mitaka forgery at $\beta \approx 40$
+               --- matches the $\beta=40$ regime used here.}
+}
