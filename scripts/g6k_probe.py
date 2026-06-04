@@ -63,9 +63,8 @@ def probe(n: int, beta: int, seed: int, threads: int = 1) -> dict:
         raise SystemExit(3)
 
     try:
-        from fpylll import FPLLL, LLL, IntegerMatrix
-
         from _engine_backends import make_backend
+        from fpylll import FPLLL, LLL, IntegerMatrix
     except ImportError as e:
         PIPELINE.error("g6k/fpylll import failed", cat="integrity", err=str(e))
         raise SystemExit(2)
