@@ -283,7 +283,8 @@ def _ntru_seed_worker(task: tuple) -> tuple:
     from _seed_paths import seed_path_for
     from generators import build_ntru, get_metric_span
 
-    n, beta, seed, q, precision, max_tours, generator, seed_tag = task
+    (n, beta, seed, q, precision, max_tours, generator, seed_tag,
+     backend) = task
     out = seed_path_for(seed_tag, n=n, beta=beta, seed=seed, q=q,
                         precision=precision, max_tours=max_tours)
     if os.path.exists(out):
@@ -299,6 +300,7 @@ def _ntru_seed_worker(task: tuple) -> tuple:
         L=L, n=n, active_block_start=m_start, active_block_end=m_end,
         beta=beta, seed=seed, q=q, precision=precision,
         max_tours=max_tours, log_clamp_fn=_ntru_log_clamp,
+        backend=backend,
     )
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w") as fh:
@@ -370,7 +372,8 @@ def _dispatch_ntru(
     seed_tag = campaign.seed_tag or "ntru"
     tasks = [
         (n, beta, seed, q, campaign.precision,
-         campaign.tours_by_beta[beta], campaign.generator, seed_tag)
+         campaign.tours_by_beta[beta], campaign.generator, seed_tag,
+         campaign.backend)
         for n in campaign.n_grid
         for beta in campaign.beta_grid
         for seed in range(1, campaign.num_seeds + 1)

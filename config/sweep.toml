@@ -204,3 +204,52 @@ n_grid = [127]
 tours_by_beta = { "20" = 50 }
 num_seeds = 4
 store_per_tour = false
+
+# -- g6k engine NTRU pilot (Phase 4) ----------------------------------------
+# First g6k-backend science run (both boundary gates cleared: ADR-007
+# determinism, ADR-008 self-dual). Confirms the g6k full-seed pipeline via
+# run_single(backend="g6k") and the g6k SD-BKZ vs BKZ signature (d(LN)/DSD
+# differs while RHF ~equal — the Rowell cross-engine point). MUST RUN INSIDE
+# sdbkz-g6k:ref (the fplll image has no g6k). β=40 (g6k sieving needs a
+# non-trivial blocksize, unlike the fplll β=20 ntru sweep — cross-engine grid
+# is a Phase-4-proper decision). precision keys the seed path only; the g6k
+# sieve ignores MPFR bits. seed_tag=ntru_g6k → separate results/seeds tree.
+#   docker run --rm -v "$PWD":/work -w /work sdbkz-g6k:ref \
+#     python3 scripts/run_campaign.py --campaign ntru_g6k_pilot --workers 4
+[campaigns.ntru_g6k_pilot]
+description = "g6k-engine NTRU pilot (Phase 4: SD-BKZ vs BKZ on the sieve)"
+generator = "ntru"
+backend = "g6k"
+seed_tag = "ntru_g6k"
+q = 97
+precision = 250
+beta_grid = [40]
+n_grid = [67]
+tours_by_beta = { "40" = 10 }
+num_seeds = 4
+store_per_tour = false
+
+# -- g6k RHF-blind-across-dimension run (Phase 4 (a)) ------------------------
+# Confirms the paper-1 thesis cross-engine, ACROSS DIMENSION on g6k: RHF is
+# blind to the SD-BKZ vs BKZ difference (rhf_bkz == rhf_sdbkz) while the
+# reference-free d(LN) / Rankin profile distance sees it — at every n, not
+# just the pilot cell. q=97 standard regime (advantage ~0, as for the fplll
+# ntru q=97 set); the POINT is the RHF-vs-d(LN) contrast, not a large
+# advantage. mt=50 (full trajectory, distinct path from the mt=10 pilot — no
+# collision). β=40 (g6k needs a non-trivial sieve blocksize). Cite Rowell
+# Ch3 (RHF-equal under non-exact oracle); our d(LN) measures past it.
+# RUN INSIDE sdbkz-g6k:ref, 20+ workers across seeds (sieve threads=1):
+#   docker run --rm -v "$PWD":/work -w /work sdbkz-g6k:ref \
+#     python3 scripts/run_campaign.py --campaign ntru_g6k_rhf --workers 22
+[campaigns.ntru_g6k_rhf]
+description = "g6k NTRU RHF-blind vs d(LN) across dimension (Phase 4a)"
+generator = "ntru"
+backend = "g6k"
+seed_tag = "ntru_g6k"
+q = 97
+precision = 250
+beta_grid = [40]
+n_grid = [67, 79, 89, 101, 113]
+tours_by_beta = { "40" = 50 }
+num_seeds = 20
+store_per_tour = false

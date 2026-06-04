@@ -50,6 +50,7 @@ CAMPAIGN_FIELDS: frozenset[str] = frozenset({
     "store_per_tour",
     "generator",
     "seed_tag",
+    "backend",
 })
 
 # Top-level (non-campaign) keys allowed in the TOML root. `default` is
@@ -94,6 +95,10 @@ class Campaign:
     # "ntru_patched" for a Kahan-patched-fplll rerun (paper §8 validation).
     # Must be one of _seed_paths._KNOWN_CAMPAIGNS.
     seed_tag: str | None = None
+    # Reduction engine: "fplll" (default, all historical campaigns) or "g6k".
+    # Threaded through to _bkz_core.run_single(backend=…). A g6k campaign MUST
+    # run inside the g6k image (sdbkz-g6k:ref); the fplll image has no g6k.
+    backend: str = "fplll"
 
 
 def _read_toml(path: str) -> dict[str, Any]:
@@ -233,6 +238,12 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
             f"available: {sorted(available_generators())!r}"
         )
 
+    backend = str(merged.get("backend", "fplll"))
+    if backend not in ("fplll", "g6k"):
+        raise ConfigError(
+            f"{ctx}: unknown backend {backend!r}; expected 'fplll' or 'g6k'"
+        )
+
     return Campaign(
         name=name,
         description=str(merged.get("description", "")),
@@ -246,6 +257,7 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
         generator=generator,
         seed_tag=(str(merged["seed_tag"]) if merged.get("seed_tag")
                   else None),
+        backend=backend,
     )
 
 

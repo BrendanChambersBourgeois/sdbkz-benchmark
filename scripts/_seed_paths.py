@@ -20,7 +20,7 @@ NEW_LAYOUT_ROOT = os.path.join("results", "seeds")
 
 _KNOWN_CAMPAIGNS = frozenset({
     "main", "q3329", "cliff500", "fplll_sensitivity",
-    "tours3x", "convergence", "ntru", "ntru_patched",
+    "tours3x", "convergence", "ntru", "ntru_patched", "ntru_g6k",
 })
 
 
@@ -109,6 +109,15 @@ def seed_dir_for(
         mt = int(_require(max_tours, "max_tours", campaign))
         leaf_dir = os.path.join(
             NEW_LAYOUT_ROOT, "ntru_patched", f"q{q}", f"p{p}_mt{mt}", n_beta
+        )
+    elif campaign == "ntru_g6k":
+        # g6k-engine NTRU seeds (backend="g6k"); same layout as ntru, separate
+        # root so the sieve-engine output never mixes with the fplll ntru/
+        # tree. precision keys the path but the g6k sieve ignores MPFR bits.
+        p = int(_require(precision, "precision", campaign))
+        mt = int(_require(max_tours, "max_tours", campaign))
+        leaf_dir = os.path.join(
+            NEW_LAYOUT_ROOT, "ntru_g6k", f"q{q}", f"p{p}_mt{mt}", n_beta
         )
     else:
         raise AssertionError("unreachable")  # pragma: no cover
