@@ -351,3 +351,41 @@ Settled before any g6k seed is generated, NOT decided here:
 - `scripts/_bkz_core.py` — `backend` kwarg; tour loop now engine-blind.
 - `scripts/g6k_probe.py` — refactored to drive the shared g6k backend.
 - Gates (both green 2026-06-04, this machine): `verify.sh` value gate + exact-JSON regression check (fplll, byte-identical); `verify_g6k.sh` SHA gate (g6k, cf22519d…/d4faf05a… through the backend).
+
+---
+
+## ADR-007 — g6k multi-tour determinism (Phase 3, Gate 1)
+
+**Status**: Accepted (Gate 1 of the g6k-science boundary). Gate 2 (SD-BKZ semantics) is still open — see Boundary.
+**Date**: 2026-06-04.
+
+### Context
+
+ADR-005/006 locked g6k byte-identity for a **single** `pump_n_jump_bkz_tour` (the probe). Any real reduction is *N* tours, so before any g6k seed is generated the multi-tour determinism must be proven and the re-seed policy fixed. Open question: re-seed fplll's global RNG (the sieve sampler's source) ONCE before tour 1, or before EVERY tour?
+
+### Experiment
+
+`scripts/g6k_probe.py` gained `--tours N` and `--reseed {once,per-tour}` (the backend gained `_G6kBackend.reseed`). n=80, β=60, seed=42, threads=1, in `sdbkz-g6k:ref`:
+
+| run | basis sha (16) | rprof sha (16) |
+|-----|----------------|----------------|
+| tours=1, once (regression) | `cf22519d529d243c` | `d4faf05a194bd7a3` | == ADR-005 reference |
+| tours=3, once — run A | `ea44fb2367fbef29` | `5c060b3fde03bc30` |
+| tours=3, once — run B | `ea44fb2367fbef29` | `5c060b3fde03bc30` |
+| tours=3, per-tour — run A | `ea44fb2367fbef29` | `5c060b3fde03bc30` |
+| tours=3, per-tour — run B | `ea44fb2367fbef29` | `5c060b3fde03bc30` |
+
+### Decision
+
+1. **Multi-tour g6k is deterministic.** Re-seed-once reproduces its own SHA bit-for-bit across independent runs at N>1 tours — `threads=1` is sufficient, as it is for the single tour. No new nondeterminism appears across tours.
+2. **Re-seed policy = ONCE, at Siever construction** (the backend's existing behaviour). The question is empirically MOOT: `once` and `per-tour` produce **bit-identical** output. The seed set before the Siever is built fully determines all N tours; re-seeding fplll's global RNG mid-run does not reach the sieve's already-initialised sampler. Re-seed-once is also the natural policy (a normal reduction is not re-seeded mid-run). Do NOT add per-tour re-seeding — it is a no-op that would only invite confusion.
+3. **Reproduce / regression-check** with `g6k_probe.py --n 80 --beta 60 --seed 42 --tours 3` (default `--reseed once`) → `ea44fb23…` / `5c060b3f…`. Not added to the manifest gate (the single-tour reference remains the CI SHA gate); this is an on-demand determinism tripwire documented here.
+
+### Boundary (Gate 2 — still open, blocks g6k seeds)
+
+**g6k SD-BKZ semantics — undecided.** fplll's `SD_VARIANT` (self-dual BKZ) has no stock g6k equivalent. Recon (2026-06-04): g6k HAS dual machinery — `SieverParams.dual_mode`, `g6k.temp_params(dual_mode=…)`, and a shipped `slide_tour` (Gama–Nguyen slide reduction, dual-aware). Options: (A) construct a self-dual pump-BKZ tour (primal + `temp_params(dual_mode=True)` pass) — the faithful analog, our construction, needs validation; (B) use stock `slide_tour` — rejected, slide ≠ SD, conflates the comparison; (C) reframe g6k as bkz-only — narrower, ships. Gate 1 (this ADR) is the prerequisite for all of them and is now cleared. ADR-008 will settle A vs C.
+
+### Verification artefacts
+
+- `scripts/g6k_probe.py` — `--tours` / `--reseed`; `scripts/_engine_backends.py` — `_G6kBackend.reseed`.
+- The experiment table above (reproducible in `sdbkz-g6k:ref`).

@@ -121,6 +121,12 @@ class _G6kBackend:
         self._tour_fn(self.g6k, dummy_tracer, self.beta,
                       pump_params={"down_sieve": True})
 
+    def reseed(self, seed: int) -> None:
+        """Re-seed fplll's global RNG (the sieve sampler's source). Used to
+        probe the multi-tour determinism policy (re-seed once at construction
+        vs before every tour); see g6k_probe.py / ADR-007."""
+        FPLLL.set_random_seed(seed)
+
     def gso(self) -> Any:
         self.g6k.M.update_gso()
         return self.g6k.M
