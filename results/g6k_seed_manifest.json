@@ -1,0 +1,37 @@
+{
+  "manifest_version": "g6k-1",
+  "engine": "g6k",
+  "note": "SEPARATE from results/seed_manifest.json by design. The g6k sieve is a different engine; its byte-identity hashes are not comparable to the fplll path's and the two manifests must NEVER be merged (ADR-005). lint_g6k_manifest.py enforces disjointness.",
+  "determinism_contract": {
+    "threads": 1,
+    "fplll_random_seed_for_basis": "FPLLL.set_random_seed(S) before IntegerMatrix.random — fixes the input basis",
+    "fplll_random_seed_for_sieve": "FPLLL.set_random_seed(S) again immediately before sieving — the g6k sampler draws from fplll's global RNG, so this is what fixes the sieve RNG",
+    "siever_params_seed": "NOT a knob — SieverParams has no 'seed' key in fpylll e25ade8 / g6k c71e084; setting one is a silently-ignored no-op (verified 2026-06-04). Determinism comes from threads=1 + the two FPLLL re-seeds above, NOT from any g6k-level seed.",
+    "march": "x86-64-v3",
+    "sieve_params": "library defaults",
+    "rejects": "threads>1 (multi-threaded sieve is a nondeterministic insertion-order race; no seed fixes it — Phase 0 verdict 2026-06-04)"
+  },
+  "build_pins": {
+    "base_image": "python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c",
+    "apt_snapshot": "snapshot.debian.org/archive/debian/20240614T000000Z/",
+    "fplll_commit": "1987472",
+    "fpylll_commit": "e25ade8",
+    "fpylll_version": "0.6.4",
+    "g6k_commit": "c71e084",
+    "gmp": "libgmp.so.10 (base-image digest)",
+    "mpfr": "libmpfr.so.6 (base-image digest)"
+  },
+  "reference": {
+    "n": 80,
+    "beta": 60,
+    "seed": 42,
+    "threads": 1,
+    "march": "x86-64-v3",
+    "basis_sha256": "cf22519d529d243c31584f4fb1e81bc7100579198fa8275a79a38689c522cf9e",
+    "rprof_sha256": "d4faf05a194bd7a342c2740722e02ec73b52130fcf9bef60b960aa848d35eba7",
+    "captured_on": "2026-06-04",
+    "captured_machine": "single-machine capture (build host). Confirmed bit-identical across 2 in-image runs. CROSS-MACHINE confirmation pending: the second target (the other of 13900K / 9950X3D) and the GitHub CI runner have not yet been verified against this reference. The x86-64-v3 pin makes cross-machine bit-identity the expectation, not a guarantee — the first CI run on the GitHub runner is the de-facto cross-machine test.",
+    "capture_note": "Captured from a clean Dockerfile.g6k build (sdbkz-g6k:ref): docker run --rm sdbkz-g6k:ref python3 scripts/g6k_probe.py --n 80 --beta 60 --seed 42 --json. To re-verify after any pin change, rebuild and run scripts/lint_g6k_manifest.py --sha-check --require-ref."
+  },
+  "seeds": []
+}

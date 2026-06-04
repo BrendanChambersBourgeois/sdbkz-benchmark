@@ -262,3 +262,57 @@ Rejected because:
 - `Dockerfile`, `Dockerfile.cloud`, `Dockerfile.fplll54`, `Dockerfile.fplll_legacy` — all four carry the digest pin + snapshot.debian.org sources rewrite at the same canonical date.
 - `scripts/verify.sh` — header block records the digest + snapshot date so the reproducibility chain is self-describing.
 - Dry-run gate: `docker build -t sdbkz:phase2-test .` against the modified Dockerfile, then `docker run --rm -e NUM_SEEDS=1 sdbkz:phase2-test bash scripts/verify.sh` returns `VERIFICATION PASSED` matching the 5 reference advantage values within the 1e-4 tolerance encoded in `verify.sh`.
+
+## ADR-005 — G6K as a separate, single-threaded, SHA-locked sieve path (Phase 1)
+
+**Status**: scaffolded 2026-06-04 on branch `generators-refactor`. Build + manifest only — no engine seam, no seeds, no science (those are Phase 2 / Phase 4). Reference SHA capture deferred to the first canonical build.
+
+### Context
+
+We want to add the G6K (General Sieve Kernel) lattice sieve as a second reduction engine alongside the fplll BKZ path, and hold it to the same SHA-256 byte-identity reproducibility bar the fplll path already meets (ADR-002, ADR-004).
+
+Phase 0 recon (2026-06-04, `/tmp/g6k_phase0_report.md`) settled the blocker question empirically:
+
+- **G6K is byte-reproducible only at `threads=1`.** At `threads=1`, fixing `FPLLL.set_random_seed(S)` before basis generation *and again immediately before the sieve* gives bit-identical reduced basis + GSO profile across repeated runs (seeded ×3 and even unseeded ×2 all matched). The sieve's sampler draws from fplll's global RNG, so the second FPLLL re-seed — not any g6k-level knob — is what fixes the sieve RNG. (`SieverParams["seed"]` is **not** a key in fpylll `e25ade8` / g6k `c71e084`: setting one is a silently-ignored no-op that emits `Attribute 'seed' unknown`, verified 2026-06-04 during the Phase 1 build. The contract was corrected to drop it; the reference SHA is identical with and without the inert line.)
+- **Multi-threaded sieving is nondeterministic even with every seed pinned.** Seeded `threads=4` produced 4 distinct hashes across 4 runs; `threads=8` likewise. The nondeterminism is the *order of concurrent vector insertions* into the sieve database — a thread-scheduling race that no RNG seed controls. Thread count also shifts output (`t1≠t4≠t8`).
+- A false-positive guardrail: at small size (dim 70 / blocksize 45) `t=4` matched `t=1` because the sieve DB was too small to actually parallelise; the real probe runs at dim 80 / blocksize 60 where the sieve genuinely threads.
+
+### Decision
+
+1. **Contract is `threads=1`, non-negotiable.** `g6k_probe.py` rejects `threads>1` with exit 3 rather than warning — an MT hash that got recorded would silently poison the reference. `lint_g6k_manifest.py` invariant (1) enforces `threads==1` on the contract, the reference, and every seed entry.
+2. **Source-build, not the wheel.** `Dockerfile.g6k` source-builds fplll (@`1987472`) → fpylll (@`e25ade8`, reports 0.6.4) → g6k (@`c71e084`). The PyPI `fpylll` wheel bundles its own fplll and ships no headers, so G6K's C++ kernel cannot link against it. Base image digest-pinned + apt via snapshot.debian.org per ADR-004.
+3. **`-march=x86-64-v3`, NOT `-march=native`.** Native bakes the build host's exact ISA and breaks cross-machine bit-identity. x86-64-v3 (AVX2/BMI2/FMA) is the common floor across the two target machines (Intel 13900K, AMD 9950X3D) and is the compilation target the contract pins. Phase 0 hashes were `-march=native` and are therefore **not** valid references here.
+4. **Separate manifest, never merged.** `results/g6k_seed_manifest.json` is distinct from `results/seed_manifest.json`. The two engines produce non-comparable hashes; merging them would invite cross-engine confusion in any downstream SHA audit. `lint_g6k_manifest.py` invariant (3a) enforces disjointness of both `path` and `sha256` between the two manifests.
+5. **Separate CI job.** `.github/workflows/build-and-verify.yml` gains a `g6k-build-and-verify` job independent of the fplll regression job, so a still-pending g6k reference cannot mask — and a g6k drift cannot be confused with — the fplll byte-identity proof.
+
+### Why separate manifests (the merge temptation)
+
+Both manifests carry `{path, sha256}` records and it is tempting to fold g6k seeds into the existing `seed_manifest.json` with an `engine` tag. Rejected: the fplll manifest's lint, schema (`docs/seed_manifest_schema.md`), validators, and the paper's reproducibility narrative all assume one engine. A g6k SHA sitting in that file would be compared, walked, and cited under fplll assumptions. Two files with an enforced-disjoint invariant is the honest separation — the hashes differ *by design* (different engine), and the lint makes that explicit rather than implicit.
+
+### Capturing the reference
+
+The reference SHA is `PENDING-FIRST-BUILD` in the manifest until a clean pinned build on a target machine fills it:
+
+```
+docker build -f Dockerfile.g6k -t sdbkz-g6k:ref .
+docker run --rm sdbkz-g6k:ref python3 scripts/g6k_probe.py --n 80 --beta 60 --seed 42 --json
+# paste basis_sha256 + rprof_sha256 into results/g6k_seed_manifest.json,
+# set reference.captured_on, then:
+python3 scripts/lint_g6k_manifest.py --sha-check --require-ref   # must be green
+```
+
+Then flip the CI g6k-verify step from PENDING-tolerant (exit 4 = warning) to a hard gate, and add `--require-ref` to the CI lint step.
+
+### Consequences
+
+**Intended**: G6K gains a byte-identity reproducibility gate matching the fplll path. The `threads=1` contract is machine-checked, not documentation-only.
+
+**Accepted costs**: SHA-locking forces single-threaded sieving, discarding G6K's parallel-sieve throughput — the value/cost tradeoff of adopting G6K at all is a separate (Phase 2+) decision this ADR does not settle. Source-building three C/C++ projects adds ~8–10 min to the g6k CI job (mitigated by gha layer cache, `scope=g6k`).
+
+**Not in scope**: the engine seam that lets the sweep dispatch to g6k (Phase 2); any g6k-reduced seeds (Phase 4); cross-machine reference confirmation (needs the second target machine).
+
+### Verification artefacts
+
+- `Dockerfile.g6k`, `scripts/g6k_probe.py`, `scripts/verify_g6k.sh`, `scripts/lint_g6k_manifest.py`, `results/g6k_seed_manifest.json` — the scaffold.
+- `/tmp/g6k_phase0_report.md` — Phase 0 determinism recon (not committed; the SHA-table evidence behind the `threads=1` contract).
+- Dry-run gate (Phase 1): `docker build -f Dockerfile.g6k --check .` lints the Dockerfile; `python3 scripts/lint_g6k_manifest.py` is green in scaffold state; `scripts/verify_g6k.sh` reports PENDING (exit 4) until the reference is captured.
