@@ -147,3 +147,35 @@ the two crack points (formula roughly right for the circulant).
 rate per variant vs q (short==n ∧ b1 at floor). SD-BKZ's DSD onset precedes
 BKZ's (q=257 vs 307) — SD-BKZ cracks NTRU fatigue ~18% earlier in q. This,
 not the signed d(LN) advantage, is the NTRU result to carry into Phase 4.
+
+### Phase 4 — gap-vs-n trend (5 clean points, n=127 excluded)
+
+DSD onset (rate crossing 50%; short-count→n ∧ b1→floor) per variant, swept
+in q across each n's crack zone, ~15–20 seeds/cell:
+
+| n   | dim | SD onset (q) | BKZ onset (q) | SD/q_fat | BKZ/q_fat | gap% |
+|-----|-----|--------------|---------------|----------|-----------|------|
+| 67  | 134 | 146          | 149           | 1.07     | 1.08      | 2    |
+| 79  | 158 | 175          | 175           | 0.85     | 0.85      | 0    |
+| 89  | 178 | 237          | 281           | 0.85     | 1.01      | 18   |
+| 101 | 202 | 426          | 514           | 1.12     | 1.35      | 21   |
+| 113 | 226 | 732          | 932           | 1.46     | 1.85      | 27   |
+
+**The SD-BKZ DSD-onset gap GROWS with dimension** — ~0 at small n, then
+18 → 21 → 27% for n = 89, 101, 113. SD-BKZ reaches dense-sublattice
+discovery at a progressively lower q (relative to BKZ) as n grows. The
+crack-vs-fatigue ratio also drifts up steeply (BKZ crack 1.0× → 1.85×
+q_fatigue), so the DvW estimate q_fat≈0.004·n^2.484 increasingly
+under-predicts the measured crack for the circulant at finite n.
+
+**n=127 EXCLUDED — fplll §8 catastrophic-cancellation regime.** At n=127
+(dim 254), high q + p1000, 16/152 seeds hit the §8 GSO cancellation:
+`M.get_r` goes non-positive and is silently substituted with CLAMP_FLOOR_R
+(1e-300), so b1 collapses to 0.5·ln(1e-300) = −345.388 and the divergence
+is numerical garbage (>100 nats). n=67–113 are clean (0 contaminated,
+worst b1 ≈ 0). The crack at n=127 is also above the practical q-grid
+(>2.69× fatigue). Excluded from the trend; the 5 clean points already
+establish the dimension-dependence. (NB: the NTRU pool worker passes
+log_clamp_fn=None, so these §8 clamps are silent — a high-q run wanting an
+audit trail should wire the clamp logger; the b1≤−100 filter catches the
+contamination at analysis time.)
