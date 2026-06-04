@@ -1,5 +1,7 @@
 \documentclass[journal=cic,version=preprint]{iacrj}
 
+\usepackage{booktabs}  % \toprule / \midrule / \bottomrule in the result tables
+
 % =====================================================================
 % PAPER 2 (BACKBONE / WORK IN PROGRESS) -- NTRU SD-BKZ + g6k cross-engine.
 % Data paper / technical report. Structure & build modelled on paper 1
@@ -51,7 +53,7 @@ experiments are reproducible via a containerised, determinism-gated benchmark.
 \section{Introduction}
 \label{sec:intro}
 
-The companion paper~\cite{White26} % [TODO: cite paper 1 properly once it has a key/DOI]
+The companion paper~\cite{Paper1} % [TODO: replace Paper1 with the published key/DOI]
 showed, on LWE-Kannan lattices, that the Root Hermite Factor (RHF) is
 structurally blind to differences between BKZ and self-dual
 BKZ~\cite{EC:MicWal16} that the Li--Nguyen Rankin profile distance
@@ -85,7 +87,9 @@ experimental apparatus, the data, and reproducibility, rather than on new
 theory. Closest prior work is Deng and Jia's self-dual BKZ over a sieve
 oracle~\cite{DengJia2023}; we differ in measuring the SD-vs-BKZ structural
 difference via the reference-free profile observable rather than swapping the
-oracle for speed.
+oracle for speed. White~\cite{White26} studies dynamic block-size strategies
+within the same Li--Nguyen framework, complementary to the fixed-$\beta$,
+$q$-swept regime characterised here.
 
 \section{Background}
 \label{sec:background}
