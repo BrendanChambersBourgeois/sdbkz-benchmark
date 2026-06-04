@@ -107,7 +107,11 @@ def _select_runner(campaign_name: str) -> str:
         return "fplll_image"
     if campaign_name == "ntru_smoke":
         return "ntru_smoke"
-    if campaign_name in {"ntru", "ntru_qsweep"}:
+    # Any other ntru* campaign (ntru, ntru_qsweep, ntru_n127_patched, future
+    # ntru_*) persists per-seed JSONs through the shared NTRU pool worker —
+    # the output tree is the campaign's seed_tag, so a new variant needs only
+    # a TOML block, not a router edit.
+    if campaign_name == "ntru" or campaign_name.startswith("ntru_"):
         return "ntru"
     raise ConfigError(f"no dispatch route registered for campaign '{campaign_name}'")
 
@@ -250,11 +254,27 @@ def _dispatch_fplll_image(campaign: Campaign, *args: Any, **kwargs: Any) -> int:
     return 2
 
 
+# Canonical defensive-clamp side log (CLAUDE.md: log the raw get_r before
+# the 1e-300 substitution; never mutate the per-seed JSON). Shared with the
+# sweep/verify scripts. A module-level wrapper so it pickles for the pool.
+_CLAMP_LOG_FILE = os.path.join(REPO_ROOT, "results", "clamp_events.jsonl")
+
+
+def _ntru_log_clamp(ctx: str, position: int, raw_value: float) -> None:
+    from _math_core import log_clamp
+    log_clamp(ctx, position, raw_value,
+              script_name="run_campaign", log_path=_CLAMP_LOG_FILE)
+
+
 def _ntru_seed_worker(task: tuple) -> tuple:
     """Pool worker: build + structurally verify + BKZ one NTRU (n, β, seed),
     then write its per-seed JSON. Returns (n, β, seed, advantage|None,
     status). Module-level so it pickles for multiprocessing; each process
     gets its own fpylll global state (precision / RNG), as in sweep_parallel.
+
+    The task tuple's 8th element is the output seed_tag (which results/seeds/
+    tree to write under, e.g. "ntru" or "ntru_patched"); the per-tour get_r
+    clamp logger is wired so a §8 cancellation is recorded, not silent.
     """
     import json
 
@@ -263,8 +283,8 @@ def _ntru_seed_worker(task: tuple) -> tuple:
     from _seed_paths import seed_path_for
     from generators import build_ntru, get_metric_span
 
-    n, beta, seed, q, precision, max_tours, generator = task
-    out = seed_path_for("ntru", n=n, beta=beta, seed=seed, q=q,
+    n, beta, seed, q, precision, max_tours, generator, seed_tag = task
+    out = seed_path_for(seed_tag, n=n, beta=beta, seed=seed, q=q,
                         precision=precision, max_tours=max_tours)
     if os.path.exists(out):
         return (n, beta, seed, None, "skip")
@@ -278,7 +298,7 @@ def _ntru_seed_worker(task: tuple) -> tuple:
     r = run_single(
         L=L, n=n, active_block_start=m_start, active_block_end=m_end,
         beta=beta, seed=seed, q=q, precision=precision,
-        max_tours=max_tours, log_clamp_fn=None,
+        max_tours=max_tours, log_clamp_fn=_ntru_log_clamp,
     )
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w") as fh:
@@ -344,10 +364,13 @@ def _dispatch_ntru(
                   f"H·f≡g mod {q}) + BKZ over [0,2n).")
         return 0
 
-    # persist=True: parallel seed generation.
+    # persist=True: parallel seed generation. seed_tag routes the output tree
+    # (default "ntru"; a campaign may set "ntru_patched" etc. for a separate
+    # tree that never overwrites the canonical seeds).
+    seed_tag = campaign.seed_tag or "ntru"
     tasks = [
         (n, beta, seed, q, campaign.precision,
-         campaign.tours_by_beta[beta], campaign.generator)
+         campaign.tours_by_beta[beta], campaign.generator, seed_tag)
         for n in campaign.n_grid
         for beta in campaign.beta_grid
         for seed in range(1, campaign.num_seeds + 1)
@@ -355,8 +378,8 @@ def _dispatch_ntru(
     if dry_run:
         for n, beta, seed, *_ in tasks:
             mt = campaign.tours_by_beta[beta]
-            print(f"[dry-run] ntru n={n} β={beta} seed={seed} -> "
-                  + seed_path_for("ntru", n=n, beta=beta, seed=seed, q=q,
+            print(f"[dry-run] {seed_tag} n={n} β={beta} seed={seed} -> "
+                  + seed_path_for(seed_tag, n=n, beta=beta, seed=seed, q=q,
                                   precision=campaign.precision, max_tours=mt))
         return 0
 

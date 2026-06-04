@@ -1,0 +1,100 @@
+# Kahan-patched fplll variant — source-builds fplll 5.5.0 + the §8
+# catastrophic-cancellation fix (patches/fplll_gso_kahan.patch), then fpylll
+# 0.6.4 against it. This is the Kahan-patch VALIDATION #2 image: it re-proves
+# the §8 fix at NTRU cryptographic moduli (q=971/1087/1201, n=127) on a NEW
+# modulus family vs the q=3329 LWE validation #1.
+#
+# Why fplll 5.5.0 (NOT master @1987472): the contaminated n=127 seeds were
+# produced by the MAIN benchmark image, which `pip install fpylll==0.6.4`
+# (PyPI wheel) — and that wheel vendors fplll 5.5.0 (libfplll.so.9.0.0). To
+# isolate the Kahan patch as the SOLE cause of any b1 change, the patched
+# build must match that exact fplll version. The patch applies cleanly to
+# both 5.5.0 and master (verified 2026-06-04); 5.5.0 is the faithful one.
+# (patches/README.md confirms the patch was verified against 5.5.0.)
+#
+# This image NEVER replaces the main Dockerfile's fplll path and NEVER
+# touches the SHA-locked LWE q=97 / q=3329 seeds — the patched NTRU rerun
+# writes to a SEPARATE results/seeds/ntru_patched/ tree.
+#
+# Digest-pinned base + snapshot.debian.org apt per ADR-004 (same provenance
+# as Dockerfile / Dockerfile.g6k).
+FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c
+
+# -march=x86-64-v3 (NOT -march=native) for repo build-target consistency
+# (ADR-005). NB: unlike g6k, this image's gate is NUMERICAL (b1 sanity /
+# zero clamp events), not byte-identity — the -345 floor clamp either fires
+# or it does not, a categorical result robust to the exact ISA. march is
+# pinned for reproducibility, not because bit-identity is required here.
+ENV CFLAGS="-O3 -march=x86-64-v3 -Wp,-U_FORTIFY_SOURCE" \
+    CXXFLAGS="-O3 -march=x86-64-v3 -Wp,-U_FORTIFY_SOURCE"
+
+ARG BUILD_JOBS=
+
+# Apt pinned via snapshot.debian.org (ADR-004) so libgmp/libmpfr headers
+# match the runtime libs the base-image digest bakes in. autoconf/automake/
+# libtool for fplll ./autogen.sh; git to clone the pinned tag.
+RUN printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20240614T000000Z/\nSuites: bookworm bookworm-updates\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: http://snapshot.debian.org/archive/debian-security/20240614T000000Z/\nSuites: bookworm-security\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n' \
+        > /etc/apt/sources.list.d/debian.sources \
+    && apt-get -o Acquire::Check-Valid-Until=false update \
+    && apt-get install -y --no-install-recommends \
+        libmpfr-dev \
+        libgmp-dev \
+        libqd-dev \
+        build-essential \
+        autoconf \
+        automake \
+        libtool \
+        libtool-bin \
+        pkg-config \
+        git \
+    && rm -rf /var/lib/apt/lists/*
+
+# -- Build PATCHED fplll 5.5.0 from source ----------------------------------
+# Clone, checkout the 5.5.0 release tag, apply the Kahan-compensated GSO
+# subtraction patch, then `make check` — the patch's own acceptance gate is
+# 15/15 fplll regression tests (patches/README.md). A failing test fails the
+# build. Produces libfplll.so.9 in /usr/local/lib.
+ARG FPLLL_TAG=5.5.0
+COPY patches/fplll_gso_kahan.patch /tmp/fplll_gso_kahan.patch
+RUN git clone https://github.com/fplll/fplll.git /tmp/fplll \
+    && cd /tmp/fplll \
+    && git checkout ${FPLLL_TAG} \
+    && git apply --verbose /tmp/fplll_gso_kahan.patch \
+    && ./autogen.sh \
+    && ./configure --prefix=/usr/local --disable-static \
+    && make -j${BUILD_JOBS:-$(nproc)} \
+    && echo "=== fplll make check (Kahan patch regression gate) ===" \
+    && make check \
+    && make install \
+    && ldconfig \
+    && rm -rf /tmp/fplll
+
+# -- Python build deps ------------------------------------------------------
+# numpy pinned to the main image's 2.4.4 (the NTRU worker + _math_core RNG/
+# linalg surface must match the path that produced the contaminated seeds).
+# Cython + cysignals are fpylll build-time requirements.
+RUN pip install --no-cache-dir \
+        "Cython>=3.0,<3.1" \
+        cysignals==1.12.6 \
+        numpy==2.4.4
+
+# -- Build fpylll 0.6.4 from source against the patched system fplll --------
+# Source-built (NOT the PyPI wheel) so it links the PATCHED /usr/local fplll
+# instead of its own vendored 5.5.0. 0.6.4 is the exact release the main
+# image's wheel reports, so the only difference vs the contaminating engine
+# is the Kahan patch.
+ARG FPYLLL_TAG=0.6.4
+RUN git clone https://github.com/fplll/fpylll.git /tmp/fpylll \
+    && cd /tmp/fpylll \
+    && git checkout ${FPYLLL_TAG} \
+    && pip install --no-cache-dir --no-build-isolation . \
+    && rm -rf /tmp/fpylll
+
+# Build-time sanity: fpylll imports and links the patched fplll.
+RUN python3 -c "import fpylll; print('fpylll', fpylll.__version__)" \
+    && (strings /usr/local/lib/libfplll.so* 2>/dev/null | grep -oE 'fplll-[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)
+
+WORKDIR /experiment
+# Scripts + harness are bind-mounted at run time (docker run -v "$PWD":/work).
+# No COPY of results/ — the patched rerun writes to a bind-mounted host tree.
+CMD ["python3", "-c", "import fpylll; print('patched fpylll', fpylll.__version__, 'ready')"]

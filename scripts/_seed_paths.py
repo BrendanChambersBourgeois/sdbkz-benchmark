@@ -20,7 +20,7 @@ NEW_LAYOUT_ROOT = os.path.join("results", "seeds")
 
 _KNOWN_CAMPAIGNS = frozenset({
     "main", "q3329", "cliff500", "fplll_sensitivity",
-    "tours3x", "convergence", "ntru",
+    "tours3x", "convergence", "ntru", "ntru_patched",
 })
 
 
@@ -99,6 +99,16 @@ def seed_dir_for(
         mt = int(_require(max_tours, "max_tours", campaign))
         leaf_dir = os.path.join(
             NEW_LAYOUT_ROOT, "ntru", f"q{q}", f"p{p}_mt{mt}", n_beta
+        )
+    elif campaign == "ntru_patched":
+        # Same layout as ntru, separate root: a Kahan-patched-fplll rerun of
+        # contaminated NTRU seeds (paper §8 validation). Kept apart from the
+        # canonical ntru/ tree so the patched engine's output never overwrites
+        # or is confused with the as-published seeds.
+        p = int(_require(precision, "precision", campaign))
+        mt = int(_require(max_tours, "max_tours", campaign))
+        leaf_dir = os.path.join(
+            NEW_LAYOUT_ROOT, "ntru_patched", f"q{q}", f"p{p}_mt{mt}", n_beta
         )
     else:
         raise AssertionError("unreachable")  # pragma: no cover

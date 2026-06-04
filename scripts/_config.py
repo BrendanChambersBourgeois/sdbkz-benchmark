@@ -49,6 +49,7 @@ CAMPAIGN_FIELDS: frozenset[str] = frozenset({
     "num_seeds",
     "store_per_tour",
     "generator",
+    "seed_tag",
 })
 
 # Top-level (non-campaign) keys allowed in the TOML root. `default` is
@@ -87,6 +88,12 @@ class Campaign:
     # so every pre-existing campaign resolves to the historical LWE-Kannan
     # construction — byte-for-byte unchanged.
     generator: str = "lwe_kannan"
+    # Output-tree tag under results/seeds/. None → the dispatcher's default
+    # for the generator (e.g. "ntru"). A campaign sets this to route its
+    # seeds to a SEPARATE tree without touching the canonical one — e.g.
+    # "ntru_patched" for a Kahan-patched-fplll rerun (paper §8 validation).
+    # Must be one of _seed_paths._KNOWN_CAMPAIGNS.
+    seed_tag: str | None = None
 
 
 def _read_toml(path: str) -> dict[str, Any]:
@@ -237,6 +244,8 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
         num_seeds=int(merged["num_seeds"]),
         store_per_tour=bool(merged.get("store_per_tour", False)),
         generator=generator,
+        seed_tag=(str(merged["seed_tag"]) if merged.get("seed_tag")
+                  else None),
     )
 
 
