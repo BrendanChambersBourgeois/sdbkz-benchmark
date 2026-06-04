@@ -69,6 +69,9 @@ NON_SEED_DIRS = frozenset({
 # leaves).
 ALLOWLIST_BASENAMES = frozenset({
     "seed_manifest.json",
+    # G6K determinism manifest — a SEPARATE SHA set owned by
+    # lint_g6k_manifest.py (ADR-005), intentionally not an fplll seed.
+    "g6k_seed_manifest.json",
     "seed_path_crosswalk.csv",
     "summary.json",
     "summary_convergence.json",
