@@ -253,3 +253,42 @@ n_grid = [67, 79, 89, 101, 113]
 tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
+
+# -- fplll cross-engine match at n=89 (anomaly investigation) ----------------
+# The g6k Phase-4a run surfaced a bimodal short-vector event at n=89: g6k
+# SD-BKZ finds a vector below the q-floor (gs[0] 4.46->2.36) on some seeds
+# (17,19) but not others (1). Is it real DSD-onset, or high-tour drift in the
+# g6k self-dual construction (ADR-008 validated only 3 tours)? This runs fplll
+# SD_VARIANT on the SAME 20 NTRU lattices, SAME (n=89, β=40, mt=50, q=97), so
+# the seed-by-seed pattern can be compared engine-to-engine. backend=fplll
+# (default); seed_tag default → results/seeds/ntru/q97/p250_mt50/n089_beta40/,
+# mirroring ntru_g6k's cell for direct comparison. RUN IN sdbkz-benchmark:ci,
+# 22 workers (fplll enum-40 mt=50 is heavy; parallel across the 20 seeds):
+#   python3 scripts/run_campaign.py --campaign ntru_xeng_n89 --workers 22
+[campaigns.ntru_xeng_n89]
+description = "fplll NTRU n=89 β=40 mt=50 — cross-engine match to ntru_g6k anomaly"
+generator = "ntru"
+q = 97
+precision = 250
+beta_grid = [40]
+n_grid = [89]
+tours_by_beta = { "40" = 50 }
+num_seeds = 20
+store_per_tour = false
+
+# -- fplll cross-engine tail (n=101/113), matches the g6k Phase-4a tail ------
+# fplll SD_VARIANT at the two slow dimensions, mirroring ntru_g6k's n=101/113
+# cells, so the morning has a dimension-resolved fplll-vs-g6k comparison of
+# the short-vector-event pattern. Same (β=40, mt=50, q=97). RUN IN
+# sdbkz-benchmark:ci. fplll enum-40 mt=50 at n=113 is heavy — may not finish
+# in one night; resumable (skips existing). Compared via compare_xengine.py.
+[campaigns.ntru_xeng_tail]
+description = "fplll NTRU n=101/113 β=40 mt=50 — cross-engine tail match to ntru_g6k"
+generator = "ntru"
+q = 97
+precision = 250
+beta_grid = [40]
+n_grid = [101, 113]
+tours_by_beta = { "40" = 50 }
+num_seeds = 20
+store_per_tour = false
