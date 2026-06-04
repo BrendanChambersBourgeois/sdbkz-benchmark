@@ -1,0 +1,213 @@
+{
+  "validation": "g6k_sd_xengine_n89_mt50",
+  "adr": "ADR-008",
+  "engine": "g6k-vs-fplll",
+  "params": {
+    "n": 89,
+    "beta": 40,
+    "max_tours": 50,
+    "q": 97,
+    "fire_threshold": 3.5,
+    "fplll_tag": "ntru",
+    "g6k_tag": "ntru_g6k"
+  },
+  "result": "INFO",
+  "data": {
+    "matched_seeds": 20,
+    "fplll_fired_seeds": [
+      19
+    ],
+    "g6k_fired_seeds": [
+      17,
+      19
+    ],
+    "both_fired": [
+      19
+    ],
+    "jaccard_agreement": 0.5,
+    "per_seed": [
+      {
+        "seed": 1,
+        "fplll_sdbkz_gs0": 4.485660735751841,
+        "g6k_sdbkz_gs0": 4.488257486157556,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -0.06949613573955915,
+        "g6k_rhf_diff": -0.2552566822796827
+      },
+      {
+        "seed": 2,
+        "fplll_sdbkz_gs0": 4.474227996172771,
+        "g6k_sdbkz_gs0": 4.557410085059385,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 0.03350165331921673,
+        "g6k_rhf_diff": -0.8481684159955485
+      },
+      {
+        "seed": 3,
+        "fplll_sdbkz_gs0": 4.508802388416678,
+        "g6k_sdbkz_gs0": 4.657710424213345,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -0.4668711266243353,
+        "g6k_rhf_diff": -1.781155626196945
+      },
+      {
+        "seed": 4,
+        "fplll_sdbkz_gs0": 4.489834277120591,
+        "g6k_sdbkz_gs0": 4.467556870395874,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -0.2724479980183627,
+        "g6k_rhf_diff": -0.6923866037180044
+      },
+      {
+        "seed": 5,
+        "fplll_sdbkz_gs0": 4.465775983347261,
+        "g6k_sdbkz_gs0": 4.669058870959004,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -0.12105340163800982,
+        "g6k_rhf_diff": -2.2413956350285265
+      },
+      {
+        "seed": 6,
+        "fplll_sdbkz_gs0": 4.512607443924747,
+        "g6k_sdbkz_gs0": 4.463524323912847,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -0.41355461690981343,
+        "g6k_rhf_diff": 0.10293059815727368
+      },
+      {
+        "seed": 7,
+        "fplll_sdbkz_gs0": 4.484707325433088,
+        "g6k_sdbkz_gs0": 4.548361822594607,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 0.18198596138475054,
+        "g6k_rhf_diff": -0.5481745902804214
+      },
+      {
+        "seed": 8,
+        "fplll_sdbkz_gs0": 4.4454117880021915,
+        "g6k_sdbkz_gs0": 4.465511607928015,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 0.32735403732696433,
+        "g6k_rhf_diff": -0.2607046608639063
+      },
+      {
+        "seed": 9,
+        "fplll_sdbkz_gs0": 4.467951763137211,
+        "g6k_sdbkz_gs0": 4.53386970168858,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -0.5350356645470438,
+        "g6k_rhf_diff": -0.8860176369057822
+      },
+      {
+        "seed": 10,
+        "fplll_sdbkz_gs0": 4.497272379162256,
+        "g6k_sdbkz_gs0": 4.646466835140018,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -0.6193575300070133,
+        "g6k_rhf_diff": -1.828341286648758
+      },
+      {
+        "seed": 11,
+        "fplll_sdbkz_gs0": 4.516503178346634,
+        "g6k_sdbkz_gs0": 4.37549984544935,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -0.4089695442739636,
+        "g6k_rhf_diff": 1.005928098845276
+      },
+      {
+        "seed": 12,
+        "fplll_sdbkz_gs0": 4.438342083307226,
+        "g6k_sdbkz_gs0": 4.436593952025053,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 0.4003654812437336,
+        "g6k_rhf_diff": -0.1546207513751341
+      },
+      {
+        "seed": 13,
+        "fplll_sdbkz_gs0": 4.452586492591691,
+        "g6k_sdbkz_gs0": 4.405677114982864,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 0.48165856014470343,
+        "g6k_rhf_diff": -0.13181367667327137
+      },
+      {
+        "seed": 14,
+        "fplll_sdbkz_gs0": 4.485343134267492,
+        "g6k_sdbkz_gs0": 4.689154711272868,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 0.28784869328852025,
+        "g6k_rhf_diff": -1.9654692305685018
+      },
+      {
+        "seed": 15,
+        "fplll_sdbkz_gs0": 4.469528222667019,
+        "g6k_sdbkz_gs0": 4.480169683246046,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -0.11057864088785507,
+        "g6k_rhf_diff": 0.01609308733232595
+      },
+      {
+        "seed": 16,
+        "fplll_sdbkz_gs0": 4.366313549830197,
+        "g6k_sdbkz_gs0": 4.612121638572587,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 1.0216040962897663,
+        "g6k_rhf_diff": -1.343636881116204
+      },
+      {
+        "seed": 17,
+        "fplll_sdbkz_gs0": 4.49372339470859,
+        "g6k_sdbkz_gs0": 2.3636939093561704,
+        "fplll_fired": false,
+        "g6k_fired": true,
+        "fplll_rhf_diff": -0.8096208921841335,
+        "g6k_rhf_diff": 7.762932509983912
+      },
+      {
+        "seed": 18,
+        "fplll_sdbkz_gs0": 4.388469322587498,
+        "g6k_sdbkz_gs0": 4.483879563384749,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 0.7441855809846665,
+        "g6k_rhf_diff": 0.10371330463864936
+      },
+      {
+        "seed": 19,
+        "fplll_sdbkz_gs0": 2.3317195470560335,
+        "g6k_sdbkz_gs0": 2.3317195470560335,
+        "fplll_fired": true,
+        "g6k_fired": true,
+        "fplll_rhf_diff": 7.975803588805745,
+        "g6k_rhf_diff": 7.6404473498352194
+      },
+      {
+        "seed": 20,
+        "fplll_sdbkz_gs0": 4.462860136780111,
+        "g6k_sdbkz_gs0": 4.465379367779135,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 0.033299816916635194,
+        "g6k_rhf_diff": 0.1533854387754232
+      }
+    ]
+  },
+  "conclusion": "n=89 mt=50: g6k fired 2/20, fplll fired 1/20, Jaccard 0.50. High agreement \u2192 real DSD-onset (construction sound); g6k-fires-where-fplll-does-not \u2192 suspect high-tour drift.",
+  "reproduce": "python3 scripts/compare_xengine.py --n 89 --beta 40 --max-tours 50 --q 97"
+}

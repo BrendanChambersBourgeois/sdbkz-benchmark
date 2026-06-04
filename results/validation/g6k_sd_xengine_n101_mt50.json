@@ -1,0 +1,206 @@
+{
+  "validation": "g6k_sd_xengine_n101_mt50",
+  "adr": "ADR-008",
+  "engine": "g6k-vs-fplll",
+  "params": {
+    "n": 101,
+    "beta": 40,
+    "max_tours": 50,
+    "q": 97,
+    "fire_threshold": 3.5,
+    "fplll_tag": "ntru",
+    "g6k_tag": "ntru_g6k"
+  },
+  "result": "INFO",
+  "data": {
+    "matched_seeds": 20,
+    "fplll_fired_seeds": [],
+    "g6k_fired_seeds": [],
+    "both_fired": [],
+    "jaccard_agreement": 1.0,
+    "per_seed": [
+      {
+        "seed": 1,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -1.0006428841080606e-06,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 2,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -1.8791318545652302e-06,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 3,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 1.0410481340983324e-05,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 4,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 9.200901960326746e-07,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 5,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -1.1122299348187425e-07,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 6,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 1.4796383673854052e-06,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 7,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -1.4041582261370422e-06,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 8,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -1.762453703335609e-05,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 9,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -2.9239437360217835e-07,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 10,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -3.994119467165547e-06,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 11,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 8.450060793308012e-06,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 12,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 1.9117984546568323e-06,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 13,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -3.1009353307354104e-08,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 14,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 1.1787237319538235e-06,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 15,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -2.8941277498972795e-06,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 16,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -5.848117066165059e-07,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 17,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -5.285275914701515e-07,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 18,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": 2.6259835372854923e-07,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 19,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -1.0808084017099873e-05,
+        "g6k_rhf_diff": 0.0
+      },
+      {
+        "seed": 20,
+        "fplll_sdbkz_gs0": 4.574710978503383,
+        "g6k_sdbkz_gs0": 4.574710978503383,
+        "fplll_fired": false,
+        "g6k_fired": false,
+        "fplll_rhf_diff": -1.294563013232164e-06,
+        "g6k_rhf_diff": 0.0
+      }
+    ]
+  },
+  "conclusion": "n=101 mt=50: g6k fired 0/20, fplll fired 0/20, Jaccard 1.00. High agreement \u2192 real DSD-onset (construction sound); g6k-fires-where-fplll-does-not \u2192 suspect high-tour drift.",
+  "reproduce": "python3 scripts/compare_xengine.py --n 101 --beta 40 --max-tours 50 --q 97"
+}
