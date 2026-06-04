@@ -28,14 +28,11 @@ import sys
 import time
 
 import numpy as np
-from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
+from fpylll import FPLLL, LLL, IntegerMatrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _math_core import (
-    ln_fixed_point,
-    log_clamp,
-    metrics_from_gso,
-)
+from _bkz_core import dln_trajectory
+from _math_core import ln_fixed_point, log_clamp
 from generators import build_lwe_kannan, kannan_m
 from log import get_logger
 
@@ -52,13 +49,6 @@ CLAMP_LOG_FILE = os.path.join(BASE, "results", "clamp_events.jsonl")
 def _log_clamp(ctx, position, raw_value):
     log_clamp(ctx, position, raw_value,
               script_name="overnight_experiments", log_path=CLAMP_LOG_FILE)
-
-
-def _metrics_from_gso(M, dim, m, ln_profile, full=False, clamp_ctx=""):
-    return metrics_from_gso(
-        M, dim, m, ln_profile, full=full, clamp_ctx=clamp_ctx,
-        log_clamp_fn=_log_clamp,
-    )
 
 
 # ═════════════════════════════════════════════════════════════════════════
@@ -103,40 +93,28 @@ def run_3x_tour_test():
         # LLL once
         B_init = IntegerMatrix.from_matrix(L)
         LLL.reduction(B_init)
-        M_init = GSO.Mat(B_init)
-        M_init.update_gso()
 
         row = {"seed": seed, "n": N, "beta": BETA}
 
         # --- BKZ at 3x tours ---
-        B = IntegerMatrix(B_init)
-        bkz_dln = []
         t0 = time.time()
-        for t in range(BKZ_TOURS):
-            param = BKZ.Param(BETA, max_loops=1,
-                              flags=BKZ.MAX_LOOPS | BKZ.AUTO_ABORT)
-            BKZ.reduction(B, param, float_type="mpfr", precision=PRECISION)
-            M = GSO.Mat(B)
-            M.update_gso()
-            metrics = _metrics_from_gso(M, dim, m, ln_p)
-            bkz_dln.append(metrics["dln"])
+        bkz_dln = dln_trajectory(
+            B_init=B_init, beta=BETA, variant="bkz", max_tours=BKZ_TOURS,
+            precision=PRECISION, dim=dim, m=m, ln_p=ln_p,
+            log_clamp_fn=_log_clamp,
+        )
         row["bkz_time"] = time.time() - t0
         row["bkz_dln_per_tour"] = bkz_dln
         row["bkz_210_final"] = bkz_dln[-1]
         row["bkz_70_final"] = bkz_dln[69]   # what BKZ had at normal tour count
 
         # --- SD-BKZ at normal tours ---
-        B2 = IntegerMatrix(B_init)
-        sd_dln = []
         t0 = time.time()
-        for t in range(SDBKZ_TOURS):
-            param = BKZ.Param(BETA, max_loops=1,
-                              flags=BKZ.MAX_LOOPS | BKZ.AUTO_ABORT | BKZ.SD_VARIANT)
-            BKZ.reduction(B2, param, float_type="mpfr", precision=PRECISION)
-            M2 = GSO.Mat(B2)
-            M2.update_gso()
-            metrics = _metrics_from_gso(M2, dim, m, ln_p)
-            sd_dln.append(metrics["dln"])
+        sd_dln = dln_trajectory(
+            B_init=B_init, beta=BETA, variant="sdbkz", max_tours=SDBKZ_TOURS,
+            precision=PRECISION, dim=dim, m=m, ln_p=ln_p,
+            log_clamp_fn=_log_clamp,
+        )
         row["sdbkz_time"] = time.time() - t0
         row["sdbkz_dln_per_tour"] = sd_dln
         row["sdbkz_70_final"] = sd_dln[-1]

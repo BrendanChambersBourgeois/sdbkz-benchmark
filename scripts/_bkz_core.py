@@ -81,6 +81,50 @@ CLAMP_FLOOR_R: float = 1e-300
 HEARTBEAT_EVERY: int = 25
 
 
+def dln_trajectory(
+    *,
+    B_init: IntegerMatrix,
+    beta: int,
+    variant: str,
+    max_tours: int,
+    precision: int,
+    dim: int,
+    m: int,
+    ln_p: list[float],
+    log_clamp_fn: Optional[Callable[[str, int, float], None]] = None,
+    active_end: Optional[int] = None,
+    backend: str = FPLLL_BACKEND,
+) -> list[float]:
+    """Per-tour d(LN) trajectory for one variant from an LLL-reduced basis.
+
+    Runs ``max_tours`` BKZ (``variant="bkz"``) or SD-BKZ (``variant="sdbkz"``)
+    tours over a private copy of ``B_init``, returning the d(LN) value after
+    each tour (length ``max_tours``). This is the shared engine loop for the
+    per-tour-trajectory experiments — the convergence test, the 3x-tour
+    capability runs — which historically each carried their own copy of this
+    loop (and, in two of them, a verbatim copy of the d(LN) metric). It uses
+    the SAME ``make_backend`` primitive + ``metrics_from_gso`` as
+    ``run_single``, so it is byte-identical to those inline copies (the fplll
+    backend reproduces the per-tour ``BKZ.Param`` / ``BKZ.reduction`` /
+    ``GSO.Mat`` sequence exactly; the metric is the canonical one).
+
+    ``active_end`` defaults to ``dim`` (the full-tail behaviour the callers
+    used via ``range(m, dim)``). ``backend`` allows the same trajectory to be
+    measured under g6k for cross-engine comparison.
+    """
+    engine = make_backend(backend, B_init=B_init, beta=beta, variant=variant,
+                          seed=0, precision=precision)
+    dln: list[float] = []
+    for _ in range(max_tours):
+        engine.tour()
+        M = engine.gso()
+        metrics = metrics_from_gso(M, dim, m, ln_p, full=False,
+                                   log_clamp_fn=log_clamp_fn,
+                                   active_end=active_end)
+        dln.append(metrics["dln"])
+    return dln
+
+
 def run_single(
     *,
     L: list[list[int]],

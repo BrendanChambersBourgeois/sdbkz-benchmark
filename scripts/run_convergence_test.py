@@ -14,16 +14,16 @@ Output: results/seeds/convergence/q97/n{N:03d}_beta{BETA:02d}_mt{MAX_TOURS}/
 """
 import datetime
 import json
-import math
 import os
 import sys
 import time
 from multiprocessing import Pool
 
 import numpy as np
-from fpylll import BKZ, FPLLL, GSO, LLL, IntegerMatrix
+from fpylll import FPLLL, LLL, IntegerMatrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _bkz_core import dln_trajectory
 from _math_core import ln_fixed_point, log_clamp
 from _seed_paths import seed_dir_for, seed_path_for
 from generators import build_lwe_kannan, kannan_m
@@ -53,25 +53,6 @@ MAX_TOURS = 500
 NUM_SEEDS = 20
 
 
-def _dln_from_gso(M, dim, m, ln_profile, clamp_ctx=""):
-    start, size = m, dim - m
-
-    def _safe_log_r(i):
-        r = M.get_r(i, i)
-        if r > 0:
-            return 0.5 * math.log(r)
-        _log_clamp(f"{clamp_ctx} active".strip(), i, r)
-        return 0.5 * math.log(1e-300)
-
-    gs_log_active = [_safe_log_r(i) for i in range(start, dim)]
-    log_vol = sum(gs_log_active)
-    rankin, cum = [], 0.0
-    for idx, val in enumerate(gs_log_active):
-        cum += val
-        rankin.append(cum - ((idx + 1) / size) * log_vol)
-    return float(np.mean(np.abs(np.array(rankin) - np.array(ln_profile))))
-
-
 def run_seed(seed):
     FPLLL.set_precision(PRECISION)
     FPLLL.set_random_seed(seed)
@@ -93,29 +74,20 @@ def run_seed(seed):
     }
 
     # BKZ at 500 tours
-    B = IntegerMatrix(B_init)
-    bkz_dln = []
     t0 = time.time()
-    for t in range(1, MAX_TOURS + 1):
-        param = BKZ.Param(beta, max_loops=1, flags=BKZ.MAX_LOOPS | BKZ.AUTO_ABORT)
-        BKZ.reduction(B, param, float_type="mpfr", precision=PRECISION)
-        M = GSO.Mat(B)
-        M.update_gso()
-        bkz_dln.append(_dln_from_gso(M, dim, m, ln_p))
+    bkz_dln = dln_trajectory(
+        B_init=B_init, beta=beta, variant="bkz", max_tours=MAX_TOURS,
+        precision=PRECISION, dim=dim, m=m, ln_p=ln_p, log_clamp_fn=_log_clamp,
+    )
     result["bkz_time"] = time.time() - t0
     result["bkz_dln_per_tour"] = bkz_dln
 
     # SD-BKZ at 500 tours
-    B2 = IntegerMatrix(B_init)
-    sd_dln = []
     t0 = time.time()
-    for t in range(1, MAX_TOURS + 1):
-        param = BKZ.Param(beta, max_loops=1,
-                          flags=BKZ.MAX_LOOPS | BKZ.AUTO_ABORT | BKZ.SD_VARIANT)
-        BKZ.reduction(B2, param, float_type="mpfr", precision=PRECISION)
-        M2 = GSO.Mat(B2)
-        M2.update_gso()
-        sd_dln.append(_dln_from_gso(M2, dim, m, ln_p))
+    sd_dln = dln_trajectory(
+        B_init=B_init, beta=beta, variant="sdbkz", max_tours=MAX_TOURS,
+        precision=PRECISION, dim=dim, m=m, ln_p=ln_p, log_clamp_fn=_log_clamp,
+    )
     result["sdbkz_time"] = time.time() - t0
     result["sdbkz_dln_per_tour"] = sd_dln
 
