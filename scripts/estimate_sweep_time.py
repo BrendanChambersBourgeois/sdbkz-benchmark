@@ -39,6 +39,28 @@ from log import get_logger  # noqa: E402
 PIPELINE = get_logger("estimate_sweep_time")
 
 
+def _campaign_seed_glob(name: str, beta: int) -> tuple[str, ...]:
+    """Glob patterns for a campaign's OWN completed seed cells (the #1
+    self-anchor). Scopes to the campaign's tree (= engine+generator regime,
+    #4) and its (β, mt), across whatever q/precision/n cells have run.
+
+    Returns several layout candidates so it works for both the q/p_mt trees
+    (ntru, ntru_g6k, q3329, …) and the q97 trees (main, convergence, …); the
+    non-matching patterns simply glob to nothing.
+    """
+    from _config import load_campaign
+    c = load_campaign(name)
+    tree = c.seed_tag or ("ntru" if c.generator == "ntru" else "main")
+    b = beta if beta in c.tours_by_beta else c.beta_grid[0]
+    mt = c.tours_by_beta.get(b) or c.tours_by_beta[c.beta_grid[0]]
+    bt = f"n*_beta{b:02d}"
+    return (
+        f"results/seeds/{tree}/q*/p*_mt{mt}/{bt}/seed*.json",  # ntru/q3329/g6k
+        f"results/seeds/{tree}/q97/{bt}/seed*.json",           # main/tours3x
+        f"results/seeds/{tree}/q97/{bt}_mt{mt}/seed*.json",    # convergence
+    )
+
+
 def _format_hours(h):
     """Render hours as either '12.3 h' or '2.5 d' depending on magnitude."""
     if h is None:
@@ -48,13 +70,38 @@ def _format_hours(h):
     return f"{h / 24:.1f} d ({h:.0f} h)"
 
 
-def _print_report(est, *, stream=sys.stderr):
-    """Human-readable summary of a SweepEstimate, written to stderr."""
+def _print_report(est, *, stream=sys.stderr, scoped=0):
+    """Human-readable summary of a SweepEstimate, written to stderr.
+
+    ``scoped`` is the number of the run's own cell-seeds the anchor was
+    scoped to (--from-campaign / --seed-glob); >0 means the naive figure is
+    built from fresh, same-regime data and IS the estimate, even if the
+    banded "anchored" method (which needs ≥500-tour data) is unavailable.
+    """
     print(file=stream)
     print(f"Sweep estimate — n={est.n}, β={est.beta}, max_tours={est.max_tours}", file=stream)
     print(f"  pool: {est.num_seeds} seeds × {est.num_workers} workers", file=stream)
     print(f"  recommendation: {est.method_recommended}", file=stream)
     print(file=stream)
+    # #1/#4: say which corpus the figure rests on. Scoped to the run's own
+    # cells -> the naive figure is fresh + same-regime (accurate). Unscoped
+    # naive -> interpolated from the distant/wrong-regime global corpus, so
+    # flag it as a rough estimate rather than hand it back silently.
+    if scoped:
+        print(f"  >>> SELF-ANCHORED on {scoped} of this run's own cell-seeds "
+              f"(fresh, same regime) — "
+              f"{_format_hours(est.predicted_wall_h_naive)} is the estimate.",
+              file=stream)
+        print("      (The banded p95 method needs ≥500-tour data; the "
+              "naive-from-own-cells figure is the accurate one here.)", file=stream)
+        print(file=stream)
+    elif est.method_recommended == "naive":
+        print(f"  >>> NO VALID ANCHOR — {_format_hours(est.predicted_wall_h_naive)} "
+              f"is a ROUGH naive estimate (no fresh same-regime data).", file=stream)
+        print("      For a new experiment type, anchor on its own cells once one "
+              "has run:\n        estimate_sweep_time … --from-campaign <name>",
+              file=stream)
+        print(file=stream)
     print(f"  naive    wall: {_format_hours(est.predicted_wall_h_naive)}", file=stream)
     print(f"  anchored wall: {_format_hours(est.predicted_wall_h_anchored)}"
           f"  (p95 {_format_hours(est.predicted_wall_h_p95)},"
@@ -119,9 +166,31 @@ def main(argv=None):
     ap.add_argument("--anchor-age-warn-days", type=float, default=7.0, dest="anchor_age_warn_days",
                     help="if youngest anchor seed is older than this, recommendation flips "
                          "to naive and a warning is emitted (default: 7)")
+    # #1 self-anchor: scope the anchor to a RUNNING experiment's own completed
+    # cells instead of the global (LWE q=97) corpus. The run's own seeds are
+    # by construction fresh AND in the exact (engine, generator, β, mt) regime,
+    # so after one cell the estimate for the rest is near-exact. This is the
+    # fix for "naive on every new experiment type": once a cell has run,
+    # estimate from it. --from-campaign derives the glob from sweep.toml;
+    # --seed-glob takes an explicit pattern (non-campaign trees / power user).
+    ap.add_argument("--from-campaign", default=None, dest="from_campaign",
+                    help="anchor on this campaign's own completed cells — a "
+                         "fresh, same-regime self-anchor (forces --no-cache)")
+    ap.add_argument("--seed-glob", default=None, dest="seed_glob",
+                    help="explicit seed-glob to anchor on (overrides the default corpus)")
     args = ap.parse_args(argv)
 
     cache_path = None if args.no_cache else args.cache_path
+
+    # Resolve the anchor seed glob (#1/#4). When scoped to a run's own tree we
+    # force a fresh table (no stale global cache).
+    seed_glob_patterns = None
+    if args.seed_glob:
+        seed_glob_patterns = (args.seed_glob,)
+        cache_path = None
+    elif args.from_campaign:
+        seed_glob_patterns = _campaign_seed_glob(args.from_campaign, args.beta)
+        cache_path = None
 
     est = seed_timing.estimate_sweep_wall(
         n=args.n,
@@ -131,6 +200,7 @@ def main(argv=None):
         num_workers=args.workers,
         cache_path=cache_path,
         anchor_age_warn_days=args.anchor_age_warn_days,
+        seed_glob_patterns=seed_glob_patterns,
     )
 
     PIPELINE.info(
@@ -139,7 +209,9 @@ def main(argv=None):
         **_estimate_to_log_ctx(est),
     )
 
-    _print_report(est)
+    scoped_n = (len(seed_timing._expand_globs(seed_glob_patterns))
+                if seed_glob_patterns else 0)
+    _print_report(est, scoped=scoped_n)
 
     return 0
 
