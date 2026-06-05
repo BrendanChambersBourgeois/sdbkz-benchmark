@@ -95,9 +95,32 @@ $q$-swept regime characterised here.
 \label{sec:background}
 
 \subsection{Circulant NTRU lattices and fatigue}
-% [TODO] NTRU construction (DvW Z_q[x]/(x^n-1), uniform-ternary sigma^2=2/3,
-% 2n x 2n basis), the q-vector head + dense sublattice, ZGSA Z-shape, the
-% fatigue point q_fat ~ 0.004 n^2.484, overstretched regime.
+\label{sec:bg-ntru}
+We use the circulant NTRU construction of Ducas and van
+Woerden~\cite{DucasWoerden2021}. For a prime $n$ and modulus $q$, sample
+ternary secrets $f,g\in\mathbb{Z}_q[x]/(x^n-1)$ (uniform $\{-1,0,1\}$,
+coordinate variance $\sigma^2=2/3$) with $f$ invertible, set $h=g/f \bmod q$,
+and form the $2n\times2n$ basis
+\[
+B=\begin{pmatrix} q I_n & 0 \\ H & I_n \end{pmatrix},
+\]
+where $H$ is the circulant matrix of $h$. The secret $(f,g)$ is an unusually
+short vector in the row span; recovering it breaks the key. Two structures
+distinguish $B$ from a random $q$-ary lattice: a \emph{$q$-vector head} (rows of
+$qI_n$ that survive reduction as length-$q$ vectors) and a \emph{dense secret
+sublattice} spanned by the rotations of $(f,g)$. A BKZ-reduced NTRU profile
+therefore follows the \emph{ZGSA} (Z-shaped) model---a flat head at $\log q$,
+then a GSA slope---rather than the single-slope GSA line of a random $q$-ary
+lattice.
+
+As $q$ grows at fixed $n$, the secret sublattice becomes relatively denser and
+easier to detect: at the \emph{fatigue point}
+$q_\mathrm{fat}(n)\approx0.004\,n^{2.484}$~\cite{DucasWoerden2021} the attack
+transitions from the standard regime (secret found only through full SVP) to
+the \emph{overstretched} regime, where reduction discovers the dense sublattice
+(\emph{dense-sublattice discovery}, DSD) well before solving SVP. The geometry
+of this transition---and how self-dual reduction moves through it---is the
+object of this report.
 
 \subsection{BKZ, SD-BKZ, and the two engines}
 % [TODO] BKZ / SD-BKZ (Micciancio-Walter primal+dual). fplll enumeration
