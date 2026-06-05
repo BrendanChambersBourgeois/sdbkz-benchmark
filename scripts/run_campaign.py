@@ -458,6 +458,13 @@ def main() -> int:
         campaign = dataclasses.replace(campaign, q=args.q)
     if args.precision is not None:
         campaign = dataclasses.replace(campaign, precision=args.precision)
+    # --seeds override the campaign default. The ntru persist loop keys on
+    # campaign.num_seeds, so fold the override in here (same pattern as q /
+    # precision) rather than threading a separate arg through _dispatch_ntru.
+    # Resumable: existing seeds are skipped, so bumping 20 -> 100 only generates
+    # the new tail (21..100); the original 20 stay byte-identical.
+    if args.seeds is not None:
+        campaign = dataclasses.replace(campaign, num_seeds=args.seeds)
 
     n = args.n if args.n is not None else campaign.n_grid[0]
     beta = args.beta if args.beta is not None else campaign.beta_grid[0]
