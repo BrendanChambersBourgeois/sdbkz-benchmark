@@ -1,6 +1,7 @@
 \documentclass[journal=cic,version=preprint]{iacrj}
 
 \usepackage{booktabs}  % \toprule / \midrule / \bottomrule in the result tables
+\usepackage{amssymb}   % \mathbb (Z_q ring in the NTRU construction)
 
 % =====================================================================
 % PAPER 2 (BACKBONE / WORK IN PROGRESS) -- NTRU SD-BKZ + g6k cross-engine.
@@ -123,30 +124,113 @@ of this transition---and how self-dual reduction moves through it---is the
 object of this report.
 
 \subsection{BKZ, SD-BKZ, and the two engines}
-% [TODO] BKZ / SD-BKZ (Micciancio-Walter primal+dual). fplll enumeration
-% oracle vs G6K pump-and-jump sieve oracle; why beta=40 for the sieve.
+\label{sec:bg-bkz}
+Block Korkine--Zolotarev (BKZ) reduction repeatedly calls an SVP oracle on
+length-$\beta$ projected sublattice windows, sweeping left to right. Self-dual
+BKZ (SD-BKZ)~\cite{EC:MicWal16} alternates a forward (primal) pass with a
+backward pass on the reversed dual basis, so each tour reduces the basis from
+both ends. On LWE-Kannan lattices the companion paper~\cite{Paper1} found the
+two produce bases of indistinguishable Root Hermite Factor yet measurably
+different Rankin profiles; this report asks how that difference behaves on NTRU
+and across two oracle implementations.
+
+We use two engines. \textbf{fplll} supplies an exact enumeration SVP oracle;
+its self-dual variant (\texttt{SD\_VARIANT}) is our ground truth. \textbf{G6K}~%
+\cite{G6K2019} supplies an approximate \emph{sieving} oracle through the
+pump-and-jump BKZ tour (\texttt{pump\_n\_jump\_bkz\_tour}); we realise SD-BKZ on
+it as a primal pump-and-jump pass followed by a dual pass run under G6K's
+\texttt{dual\_mode} (operations on the dual basis, bounds reflected about
+$\mathrm{full\_n}/2$). The two oracles differ fundamentally---deterministic
+enumeration versus randomised sieving---which is what makes a phenomenon that
+survives both engines credible. Sieving carries a fixed setup cost that makes
+small $\beta$ uninformative, so all cross-engine experiments use $\beta=40$,
+the smallest block size at which the sieve does non-trivial work; this is also
+the regime in which related $q$-ary forgery attacks operate~\cite{DEP2023}.
 
 \subsection{The reference-free DSD observable}
-% [TODO] Why signed d(LN) is a reference artifact on NTRU (no canonical fixed
-% point); the reference-free BKZ-vs-SD-BKZ profile divergence; DSD criterion
-% (short <= n+1 and b1 floor); onset q. Cite docs/ntru_metric_validity.md.
+\label{sec:bg-obs}
+The companion paper's metric is $d(\mathrm{LN})=\frac1m\sum_i|r_i-\rho_i|$,
+where $r_i$ is the slope-removed Gram--Schmidt log-norm profile and $\rho_i$ is
+the Li--Nguyen BKZ fixed point~\cite{EPRINT:LiNgu20}---a GSA line valid for a
+\emph{random $q$-ary} lattice. NTRU is not random $q$-ary (Section~%
+\ref{sec:bg-ntru}): its reduced profile follows the ZGSA Z-shape, for which no
+closed-form Li--Nguyen fixed point exists. Comparing an NTRU profile to the LWE
+line therefore conflates structure with reduction dynamics, and the
+\emph{signed} advantage $d(\mathrm{LN})_{\mathrm{BKZ}}-d(\mathrm{LN})_{\mathrm{SD}}$
+can flip sign under a different reference---it is a \emph{reference artifact}.
+
+Two observables survive this. First, the \emph{unsigned} profile divergence
+$\frac1m\sum_i|r_i^{\mathrm{BKZ}}-r_i^{\mathrm{SD}}|$ is reference-free (it
+never names $\rho$); on NTRU it is large precisely at the transition and
+reproduces under three independent references. Second, and what we report
+throughout, is a binary \emph{dense-sublattice-discovery} flag: a reduction has
+found the secret sublattice when $b_1=\min_i\log\|\mathbf b_i^\ast\| > 1.5$,
+where the threshold is the $q$-independent ternary-secret log-norm floor
+$\log\sqrt{2n\cdot2/3}\approx1.96$ (we also track the count of GS vectors that
+have collapsed below the $q$-vector head, $\le n+1$). Both are properties of the
+output basis alone, independent of any modelled reference. The onset $q$ is the
+smallest modulus at which a given reduction flags DSD; the SD-vs-BKZ onset
+\emph{gap} is the object of Sections~\ref{sec:fatigue} and~\ref{sec:xengine}.
 
 \section{Experimental Setup}
 \label{sec:setup}
 
 \subsection{Generators and engines}
-% [TODO] generators/ntru.py; the engine seam (run_single backend = fplll|g6k);
-% the self-dual pump-n-jump g6k construction (primal + dual_mode pass).
+\label{sec:setup-engines}
+NTRU bases are built by \texttt{generators/ntru.py} following Section~%
+\ref{sec:bg-ntru}; every basis is checked structurally at construction
+($\dim=2n$, a $qI_n$ block, and $H\!f\equiv g\pmod q$) before any reduction.
+Both engines sit behind a single seam: \texttt{run\_single} takes a
+\texttt{backend} argument, and \texttt{make\_backend} returns either an fplll or
+a G6K backend exposing a common \texttt{tour()}/\texttt{gso()} interface. The
+per-tour reduction loop is then engine-blind---the same loop drives enumeration
+and sieving, so the two cannot diverge through duplicated control flow. The G6K
+self-dual tour is a primal \texttt{pump\_n\_jump\_bkz\_tour} followed by a dual
+pass executed inside a \texttt{temp\_params} block that flips
+\texttt{dual\_mode}; this was validated against fplll's \texttt{SD\_VARIANT} by
+checking that the SD$-$BKZ profile-change signature (the GS-slope flattening)
+agrees in direction and magnitude across engines (fplll $-0.00039$ vs G6K
+$-0.00040$ per tour at $n=80$, $\beta=40$).
 
 \subsection{Reproducibility and determinism gates}
-% [TODO] Containerised builds (digest-pinned base, snapshot.debian.org apt,
-% -march=x86-64-v3); fplll byte-identity gate (verify.sh); g6k single- and
-% multi-tour determinism (threads=1, re-seed-once; ADR-007); SHA gate
-% (verify_g6k.sh). Per-seed JSON; seed manifests. ADRs 005--008.
+\label{sec:setup-repro}
+Both engines run in containers built from a digest-pinned base with
+\texttt{snapshot.debian.org} apt pinning and a fixed \texttt{-march=x86-64-v3}
+target, so the binaries are bit-reproducible across machines. Each result is a
+per-seed JSON carrying the full input parameters and output profile; a SHA-256
+manifest gates byte-identity. The fplll path is held to exact-JSON
+reproducibility by \texttt{verify.sh}; the G6K path by \texttt{verify\_g6k.sh}
+against a captured reference hash, confirmed on a second machine (the CI
+runner).
+
+Determinism on the sieve required care (ADRs~005--008). G6K's multi-threaded
+sieve has a nondeterministic reduction race, so all sieving runs single-threaded
+($\texttt{threads}=1$); across-seed parallelism still uses all cores, since
+seeds are independent. The fplll global RNG must be seeded both before basis
+construction and again before the sieve (G6K samples from it), and the
+\texttt{SieverParams} seed is a no-op that we never rely on. With these,
+multi-tour G6K runs are bit-identical run-to-run, and---verified at $n=80$,
+$\beta=60$, three tours---per-tour re-seeding is itself a no-op: the
+construction seed alone determines all $N$ tours, so the policy is to seed once
+at construction. The new modulus and engine introduced no schema change to the
+seed JSON, preserving the companion paper's SHA baselines.
 
 \subsection{Campaigns and parameter grids}
-% [TODO] config/sweep.toml campaigns: ntru, ntru_qsweep, ntru_g6k_*,
-% ntru_xeng_*. n-grid, beta, q-grid straddling fatigue, seeds, tours.
+\label{sec:setup-campaigns}
+Every experiment is a named campaign in \texttt{config/sweep.toml}, fixing
+generator, engine, $n$-grid, $\beta$, $q$, tour count, and seed count so a
+single command reproduces a cell. The dimension-onset sweep
+(Section~\ref{sec:dimonset}) fixes $q=97$, $\beta=20$, 50 tours and sweeps
+$n\in[59,89]$ at 20 seeds each. The fatigue and DSD-onset sweeps
+(Section~\ref{sec:fatigue}) fix $n$ and sweep $q$ across the fatigue point. The
+cross-engine sweeps (Section~\ref{sec:xengine}) fix $n=89$, $\beta=40$, 50 tours
+and sweep a matched $q$-grid on \emph{both} engines---the G6K campaign
+(\texttt{ntru\_g6k\_qsweep}) and the fplll campaign
+(\texttt{ntru\_xeng\_qsweep}) write to leaves that share the same
+$(q,\text{precision},\text{tours},n,\beta)$ key, so a comparator reads the two
+engines cell-for-cell. The Kahan re-validation (Section~\ref{sec:kahan}) runs
+$n=127$ at $q\in\{971,1087,1201\}$ through a separate patched-fplll campaign
+whose seeds land in their own tree, never overwriting the canonical seeds.
 
 \section{The SD-BKZ Advantage Has a Dimension-Onset on NTRU}
 \label{sec:dimonset}
