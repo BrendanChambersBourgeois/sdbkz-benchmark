@@ -208,37 +208,48 @@ engines agree perfectly (no spurious sieve firing), and where a short vector
 genuinely exists ($n=89$, seed 19) both engines land the identical first
 GS log-norm. % [TODO] table: per-n fired counts + Jaccard; the n=89 sparse-but-real result.
 
-\paragraph{The DSD-onset gap reproduces on the sieve.}
-A G6K DSD-onset $q$-sweep at $n=89$, $\beta=40$ shows that SD-BKZ reaches
-dense-sublattice discovery (reference-free: $b_1>1.5$, the $q$-independent
-ternary-secret floor $\approx\sqrt{2n\cdot 2/3}$) at \emph{lower} $q$ than BKZ.
+\paragraph{The DSD-onset gap reproduces on \emph{both} engines, confound-free.}
+We run the \emph{same} grid ($n=89$, $\beta=40$, $50$ tours, $q\in\{97,113,137,
+157,181,211\}$, $20$ seeds/cell) on both the fplll enumeration engine and the
+G6K sieve, under the \emph{identical} reference-free DSD criterion: $b_1=\min_i
+\|\mathbf{b}_i^\ast\| > 1.5$ (in log-norm; the $q$-independent ternary-secret
+floor $\approx\sqrt{2n\cdot 2/3}\approx1.96$). On both engines SD-BKZ reaches
+dense-sublattice discovery at \emph{lower} $q$ than BKZ.
 
 \begin{table}[tbp]
 \centering
-\caption{G6K SD-BKZ reaches DSD at lower $q$ than BKZ ($n=89$, $\beta=40$, 20 seeds, $b_1>1.5$).\label{tab:g6konset}}
-\begin{tabular}{rccc}
+\caption{Matched cross-engine DSD-onset: SD-BKZ reaches DSD before BKZ on \emph{both} engines ($n=89$, $\beta=40$, $50$ tours, 20 seeds/cell, $b_1>1.5$).\label{tab:g6konset}}
+\begin{tabular}{rcccc}
 \toprule
-$q$ & SD DSD & BKZ DSD & gap \\
+ & \multicolumn{2}{c}{fplll (enum)} & \multicolumn{2}{c}{G6K (sieve)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+$q$ & SD/BKZ & gap & SD/BKZ & gap \\
 \midrule
-97, 113 & 0/20 & 0/20 & 0 (pre-onset) \\
-137 & \textbf{14/20} & \textbf{4/20} & $+10$ \\
-157 & 20/20 & 19/20 & $+1$ \\
-$\ge181$ & 20/20 & 20/20 & 0 (saturated) \\
+97, 113 & 0/0 & 0 (pre-onset) & 0/0 & 0 (pre-onset) \\
+137 & \textbf{8/1} & $+7$ & \textbf{14/4} & $+10$ \\
+157 & 20/18 & $+2$ & 20/19 & $+1$ \\
+$\ge181$ & 20/20 & 0 (sat.) & 20/20 & 0 (sat.) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-At $q=137$, SD-BKZ cracks DSD on $14/20$ seeds where BKZ cracks only $4/20$
-(SD-only on 11): SD onset ${\approx}137$, BKZ onset ${\approx}157$. This is the
-DSD-onset gap of Table~\ref{tab:dsdgap}, now on a sieve oracle, at \emph{lower}
-$q$ than the $\beta=20$ fplll onset ($q{=}237$)---stronger reduction lowers the
-onset. Crucially the gap is visible \emph{only} reference-free: on the seeds
-where SD-BKZ cracks DSD, the \emph{signed} $d(\mathrm{LN})$ advantage is large
-and \emph{negative} (mean $-30.8$ at $q=137$), because the DSD Z-shaped profile
-is far from the LWE-derived $d(\mathrm{LN})$ reference. This makes the
-``signed $d(\mathrm{LN})$ is a reference artifact on NTRU'' point concrete and
-cross-engine: report reference-free DSD, never the signed advantage.
-% [TODO] confirm SD<BKZ onset with more seeds + finer q-grid 120-160; matched fplll beta=40 q-sweep.
+At $q=137$ SD-BKZ cracks DSD where BKZ does not---$8/20$ vs $1/20$ on fplll,
+$14/20$ vs $4/20$ on G6K---the same onset ($q\!\approx\!137$), same direction,
+same magnitude scale ($+7$ enum, $+10$ sieve). This is the DSD-onset gap of
+Table~\ref{tab:dsdgap} reproduced across a fundamentally different oracle, and
+on a matched $\beta$: it is therefore \emph{not} a $\beta=20$ artifact (both
+engines run $\beta=40$) and \emph{not} an engine artifact (enumeration and
+sieving alike). Both onsets sit at lower $q$ than the $\beta=20$ fplll onset
+($q{=}237$)---stronger reduction lowers the onset.
+
+Crucially the gap is visible \emph{only} reference-free: on the seeds where
+SD-BKZ cracks DSD, the \emph{signed} $d(\mathrm{LN})$ advantage is large and
+\emph{negative}---mean $-21.9$ (fplll) and $-30.8$ (G6K) at $q=137$---because
+the DSD Z-shaped profile is far from the LWE-derived $d(\mathrm{LN})$ reference.
+This makes the ``signed $d(\mathrm{LN})$ is a reference artifact on NTRU'' point
+concrete and cross-engine: report reference-free DSD, never the signed
+advantage.
+% [TODO] tighten the gap magnitude with a finer q-grid 120-160 + 100 seeds at q=137.
 
 \section{Re-Validating the fplll GSO Fix on a New Modulus Family}
 \label{sec:kahan}
