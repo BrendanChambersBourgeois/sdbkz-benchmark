@@ -1,0 +1,29 @@
+{
+  "validation": "fplll_dsd_onset_n89_beta40_matched",
+  "engine": "fplll",
+  "image": "sdbkz-benchmark:ci",
+  "matches": "g6k_dsd_onset_n89_beta40",
+  "params": {
+    "n": 89,
+    "beta": 40,
+    "max_tours": 50,
+    "precision": 250,
+    "q_grid": [97, 113, 137, 157, 181, 211],
+    "seeds_per_cell": 20,
+    "dsd_criterion": "b1 = min(gs_lognorm) > 1.5 (reference-free secret-norm floor) -- IDENTICAL to the g6k onset record"
+  },
+  "result": "INFO",
+  "data": {
+    "per_q": [
+      { "q": 97,  "seeds": 20, "sd_dsd": 0,  "bkz_dsd": 0,  "gap": 0 },
+      { "q": 113, "seeds": 20, "sd_dsd": 0,  "bkz_dsd": 0,  "gap": 0 },
+      { "q": 137, "seeds": 20, "sd_dsd": 8,  "bkz_dsd": 1,  "gap": 7, "mean_signed_dln_adv": -21.93 },
+      { "q": 157, "seeds": 20, "sd_dsd": 20, "bkz_dsd": 18, "gap": 2, "mean_signed_dln_adv": -5.59 },
+      { "q": 181, "seeds": 20, "sd_dsd": 20, "bkz_dsd": 20, "gap": 0 },
+      { "q": 211, "seeds": 20, "sd_dsd": 20, "bkz_dsd": 20, "gap": 0 }
+    ]
+  },
+  "matched_table": "q137  fplll SD/BKZ 8/1 (+7) | g6k 14/4 (+10);  q157 fplll 20/18 (+2) | g6k 20/19 (+1);  q>=181 both engines fully saturate (gap 0).",
+  "conclusion": "REMOVES the two outstanding confounds in the paper-2 cross-engine headline at once. Run on the SAME beta=40 / n=89 / mt=50 / q-grid as the g6k onset record, under the IDENTICAL reference-free DSD criterion (b1=min(gs)>1.5). The SD-BKZ DSD-onset gap reproduces on the fplll enumeration engine: at q=137 SD cracks DSD on 8/20 seeds vs BKZ 1/20 (gap +7), while g6k shows 14/4 (gap +10) at the same cell. Same onset location (q~137), same direction (SD reaches dense-sublattice discovery at lower q than BKZ), same magnitude scale (+7 enum, +10 sieve). q=157 both nearly saturate (SD still ahead, +2 / +1); q>=181 both crack on all 20. The mean signed d(LN) advantage goes large-negative exactly where SD fires DSD (fplll -21.93 at q137, mirroring g6k -30.83) -- the signed-d(LN)-is-a-reference-artifact finding, now shown on BOTH engines. Net: the gap is NOT a beta=20 artifact (both engines at beta=40) and NOT an engine artifact (enum AND sieve). It is a property of self-dual reduction reaching DSD earlier in q.",
+  "reproduce": "for q in 97 113 137 157 181 211; do run_campaign --campaign ntru_xeng_qsweep --q $q --precision 250 --workers 22; done  (sdbkz-benchmark:ci); then b1=min(gs_lognorms)>1.5 per variant per seed."
+}
