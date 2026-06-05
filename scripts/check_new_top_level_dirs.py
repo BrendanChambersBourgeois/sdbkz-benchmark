@@ -48,7 +48,7 @@ ALLOWED_TOP_LEVEL = frozenset({
     "config",
     "docs",
     "examples",
-    "paper",
+    "paper1",
     "paper2",
     "patches",
     "results",

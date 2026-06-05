@@ -38,8 +38,8 @@ lint-manifest-sha:  ## Full --sha-check lint (recomputes SHA-256 of every seed; 
 figs:  ## Regenerate paper figures into analysis/figures/
 	python3 analysis/paper_figures.py
 
-paper:  ## Rebuild the LaTeX PDF in paper/latex/
-	$(MAKE) -C paper/latex
+paper:  ## Rebuild the LaTeX PDF in paper1/latex/
+	$(MAKE) -C paper1/latex
 
 clean:  ## Remove build artifacts (preserves seed data and logs)
 	rm -f .tags

@@ -143,7 +143,7 @@ Scripts that invoke `sudo` or destructive commands (`docker system prune`, `git 
 
 All changes ship under a **paper-safety invariant**: zero SHA-256 drift on paper-cited files (seeds, figures, patches, paper PDF). Anything additive (docs, tests, infra) is safe. Anything that touches `_math_core`, `_bkz_core`, `_seed_paths.py` path logic, or scientific constants (`BETAS`, `NS`, `TOURS_BY_BETA`, `PRECISION`, MPFR settings) requires the full parity suite before commit and an explicit callout in the commit body.
 
-The paper PDF, LaTeX source, and HTML mirror under `paper/` are edited exclusively through `paper_findings.md` (external to the repo) plus a camera-ready session. Direct edits to `paper/*.pdf` / `paper/*.html` / `paper/latex/*.tex` from a feature branch are not an accepted workflow.
+The paper PDF, LaTeX source, and HTML mirror under `paper1/` are edited exclusively through `paper_findings.md` (external to the repo) plus a camera-ready session. Direct edits to `paper1/*.pdf` / `paper1/*.html` / `paper1/latex/*.tex` from a feature branch are not an accepted workflow.
 
 ## Getting help
 

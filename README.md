@@ -84,7 +84,7 @@ Every writer routes through `scripts/_seed_paths.py::seed_path_for()`. Every rea
 ## License
 
 - **Code** (scripts, analysis, Docker, patches): [MIT](LICENSE)
-- **Paper and data** (`paper/`, `results/`): [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Paper and data** (`paper1/`, `results/`): [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)
 
 This project benchmarks the **self-dual BKZ (SD-BKZ)** algorithm against standard BKZ for lattice basis reduction on LWE-Kannan embedding lattices. It measures convergence to the Li–Nguyen fixed-point Rankin profile across 11 lattice dimensions (n=50–150), 3 block sizes (β=20, 30, 40), and 100 random seeds per configuration (122 for the four variance-filled groups) — 3,388 runs total.
 
@@ -127,22 +127,22 @@ Key findings (ordered most to least critical):
 
 ## Paper and patches
 
-The `paper/` directory holds the technical writeup documenting the benchmark design, results, and the fplll numerical bug findings. Generated from `paper/latex/` via `make`. Ships in both HTML and LaTeX form alongside the benchmark code:
+The `paper1/` directory holds the technical writeup documenting the benchmark design, results, and the fplll numerical bug findings. Generated from `paper1/latex/` via `make`. Ships in both HTML and LaTeX form alongside the benchmark code:
 
 | File | Purpose |
 |---|---|
-| `paper/sdbkz_paper.html` | web-viewable HTML (drag into any browser) |
-| `paper/latex/sdbkz_paper_latex.tex` | LaTeX source (canonical) |
-| `paper/latex/sdbkz_paper_latex.pdf` | LaTeX-rendered PDF, 33 pages (canonical artifact) |
-| `paper/latex/Makefile` | `make` rebuilds the LaTeX PDF in one command |
-| `paper/latex/figs/` | 13 figures at 300 DPI, numbered in report order |
-| `paper/latex/{abbrev3,crypto,biblio}.bib` | Bibliography (cryptobib extract + local entries) |
-| `paper/latex/iacrj.cls`, `metacapture.sty` | Vendored IACR journal class (no submodule needed) |
+| `paper1/sdbkz_paper.html` | web-viewable HTML (drag into any browser) |
+| `paper1/latex/sdbkz_paper_latex.tex` | LaTeX source (canonical) |
+| `paper1/latex/sdbkz_paper_latex.pdf` | LaTeX-rendered PDF, 33 pages (canonical artifact) |
+| `paper1/latex/Makefile` | `make` rebuilds the LaTeX PDF in one command |
+| `paper1/latex/figs/` | 13 figures at 300 DPI, numbered in report order |
+| `paper1/latex/{abbrev3,crypto,biblio}.bib` | Bibliography (cryptobib extract + local entries) |
+| `paper1/latex/iacrj.cls`, `metacapture.sty` | Vendored IACR journal class (no submodule needed) |
 
 To rebuild the LaTeX PDF from source:
 
 ```bash
-cd paper/latex && make
+cd paper1/latex && make
 ```
 
 Requires a TeX Live distribution with `pdflatex`, `bibtex`, and standard LaTeX packages.

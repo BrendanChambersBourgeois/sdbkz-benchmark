@@ -13,10 +13,10 @@ results/clamp_events.jsonl
 results/seed_path_crosswalk.csv
 
 # Rendered paper artifacts — regenerated from LaTeX source / analysis scripts
-paper/*.pdf
-paper/*.html
-paper/*.png
-paper/latex/figs/*.png
+paper1/*.pdf
+paper1/*.html
+paper1/*.png
+paper1/latex/figs/*.png
 analysis/figures/*.png
 figures/*.png
 

@@ -3,8 +3,8 @@
 
 Two channels share the single canonical source dir analysis/figures/:
 
-  1. HTML bundle  — paper/fig{N}_<name>.png   (figs_source_map.json "pairs")
-  2. LaTeX build  — paper/latex/figs/figNN.png (figs_source_map.json "latex_pairs")
+  1. HTML bundle  — paper1/fig{N}_<name>.png   (figs_source_map.json "pairs")
+  2. LaTeX build  — paper1/latex/figs/figNN.png (figs_source_map.json "latex_pairs")
 
 Both are copied from their mapped analysis/figures/<source>.png. Idempotent:
 if a target already byte-matches its source it is skipped (preserves mtime,
@@ -22,10 +22,10 @@ Usage:
 Origin: backlog F1 option 4 in
 /mnt/hgfs/Research/backlog/_shipped/2026-04-20_repo_dir_organization_audit.md.
 The HTML-channel drift this guards against was caught at audit-followup
-2026-04-25 when 11 of 12 paper/fig*.png had silently fallen out of parity
+2026-04-25 when 11 of 12 paper1/fig*.png had silently fallen out of parity
 with analysis/figures/ since commit a34122e (variance-fill SHA refresh).
 
-The LaTeX channel was added 2026-06-02: paper/latex/figs/ was a frozen
+The LaTeX channel was added 2026-06-02: paper1/latex/figs/ was a frozen
 one-time manual export (2026-04-14) sitting OUTSIDE this gate, and it
 silently diverged through the variance-fill (the C1 contradiction —
 LaTeX text said 122 while its figures showed pre-fill data + "100 seeds").
@@ -47,9 +47,9 @@ from log import get_logger  # noqa: E402
 PIPELINE = get_logger("sync_paper_figures")
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAPPING = os.path.join(REPO, "paper", "figs_source_map.json")
-PAPER_DIR = os.path.join(REPO, "paper")
-LATEX_DIR = os.path.join(REPO, "paper", "latex", "figs")
+MAPPING = os.path.join(REPO, "paper1", "figs_source_map.json")
+PAPER_DIR = os.path.join(REPO, "paper1")
+LATEX_DIR = os.path.join(REPO, "paper1", "latex", "figs")
 SOURCE_DIR = os.path.join(REPO, "analysis", "figures")
 
 
@@ -62,13 +62,13 @@ def _load_targets() -> list[tuple[str, str, str]]:
         targets.append((
             os.path.join(PAPER_DIR, p["paper"]),
             os.path.join(SOURCE_DIR, p["source"]),
-            f"paper/{p['paper']}",
+            f"paper1/{p['paper']}",
         ))
     for p in spec.get("latex_pairs", []):
         targets.append((
             os.path.join(LATEX_DIR, p["latex"]),
             os.path.join(SOURCE_DIR, p["source"]),
-            f"paper/latex/figs/{p['latex']}",
+            f"paper1/latex/figs/{p['latex']}",
         ))
     return targets
 

@@ -31,7 +31,7 @@ For upstream library findings (fplll, fpylll, MPFR), coordinate timing so the fi
 
 - **Disclosure doc:** [`docs/disclosure/fplll_gso_kahan_findings.md`](docs/disclosure/fplll_gso_kahan_findings.md)
 - **Patch:** [`patches/fplll_gso_kahan.patch`](patches/fplll_gso_kahan.patch) with accompanying [`patches/README.md`](patches/README.md)
-- **Paper reference:** §8 of `paper/latex/sdbkz_paper_latex.tex` (and `paper/sdbkz_paper.html` mirror)
+- **Paper reference:** §8 of `paper1/latex/sdbkz_paper_latex.tex` (and `paper1/sdbkz_paper.html` mirror)
 - **Upstream issue:** filing queued pre-publication; status will be recorded in the disclosure doc once filed.
 - **Impact summary:** At cryptographic moduli (e.g. q=3329 for ML-KEM) with `n ≥ 100`, the squared-form Gram–Schmidt recurrence in `fplll/gso_interface.cpp:147–151` suffers catastrophic cancellation, producing non-positive diagonal entries for the squared norm. Observed degeneracy rate: **38.0%** (Wilson 95% CI [29.1%, 47.8%]) at n=100 β=30 q=3329 with 1000-bit MPFR, across 100 seeds spanning 3 compute environments. A 30-line Kahan-compensated subtraction patch drops the rate to **0/55**, passes all 15 fplll regression tests. `q=97` (the paper's main-sweep modulus) is unaffected at every dimension up to n=150.
 

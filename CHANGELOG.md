@@ -37,6 +37,7 @@ Versions follow loose SemVer. Bump on:
 - Campaign config gains `backend` and `seed_tag` fields; `g6k_probe.py` gains `--tours`/`--reseed`; new campaigns `ntru_g6k_pilot`, `ntru_g6k_rhf`, `ntru_xeng_n89`, `ntru_xeng_tail`.
 
 ### Changed
+- **Renamed the `paper/` directory to `paper1/`** for symmetry with `paper2/` (the NTRU cross-engine technical report). Updated the build target, figure-parity gate (`sync_paper_figures.py`, the CI step), `.dockerignore`/`.gitattributes`, the top-level-dir allowlist, and the current-facing docs (README, SECURITY, CONTRIBUTING). Historical CHANGELOG/audit/disclosure entries keep their original `paper/` paths as point-in-time records.
 - **Folded 3 duplicate engine loops onto a shared `_bkz_core.dln_trajectory`** (`run_3x_extended`, `run_convergence_test`, `overnight_experiments`) — removes the run_single-divergence hazard (ADR-001 class); per-seed JSON byte-identical.
 - CI `g6k-verify` flipped to a hard byte-identity gate (reference captured).
 

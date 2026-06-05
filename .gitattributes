@@ -1,5 +1,5 @@
 # Paper manuscript bundle (HTML + LaTeX + figures + bib).
-paper/** linguist-documentation
+paper1/** linguist-documentation
 
 # Top-level reader-facing prose. Keeps the GitHub language bar
 # focused on the actual code (Python) instead of weighting it toward

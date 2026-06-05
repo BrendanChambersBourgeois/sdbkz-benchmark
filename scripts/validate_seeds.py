@@ -114,7 +114,7 @@ def seed_files(directory: str) -> Iterator[str]:
         `paper_claims`, etc.)
     """
     non_data = {"analysis", "logs", "summaries", "backups",
-                "error_logs", "scripts", "paper", "cheatsheets",
+                "error_logs", "scripts", "paper1", "cheatsheets",
                 "summary", "pilot", "paper_claims"}
     for f in sorted(glob.glob(os.path.join(directory, "**", "*.json"),
                               recursive=True)):
