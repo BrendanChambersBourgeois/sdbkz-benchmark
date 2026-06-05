@@ -257,8 +257,17 @@ Three regimes: tied for $n\!\le\!67$; an onset zone at $n=71$--$73$ where the
 mean spikes to $+4$--$10$ nats with ${\sim}25\times$ the plateau variance
 (SD-BKZ cracks the dense sublattice on most-but-not-all instances); and a
 stable $+1.5$-nat plateau for $n\!\ge\!79$ (std ${\approx}0.2$, $20/20$ wins).
-The onset spike exceeds the plateau---non-monotonic.
-% [TODO] figure: advantage vs n with the spike; per-seed bimodality at n=71,73.
+The onset spike exceeds the plateau---non-monotonic
+(Figure~\ref{fig:dimonset}).
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{figs/dimension_onset}
+\caption{NTRU SD-BKZ dimension-onset ($q=97$, $\beta=20$, 50 tours, 20 seeds
+per $n$, $\pm1\sigma$ band). The signed advantage is reference-robust at the
+spike (Section~\ref{sec:bg-obs}); shown here for the dimension transition.
+Recomputed from the per-seed \texttt{advantage} field.\label{fig:dimonset}}
+\end{figure}
 
 \section{Fatigue and the Cross-Dimension DSD-Onset Gap}
 \label{sec:fatigue}
@@ -294,8 +303,16 @@ $n$ & SD onset $q$ & BKZ onset $q$ & gap\% \\
 \end{table}
 
 $n=127$ is excluded (fplll \S8 catastrophic cancellation + an off-grid crack).
-% [TODO] figure: SD vs BKZ onset q vs n; gap% trend. Confirm slope with more
-% seeds/cell.
+The widening is shown in Figure~\ref{fig:dsdgap}.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{figs/dsd_onset_trend}
+\caption{Reference-free DSD-onset modulus ($b_1>1.5$) for SD-BKZ vs BKZ as a
+function of $n$ ($\beta=20$), with the SD-vs-BKZ gap\% labelled. SD-BKZ reaches
+dense-sublattice discovery at progressively lower $q$ than BKZ; the gap grows
+from $0$ to $27\%$. Values mirror Table~\ref{tab:dsdgap}.\label{fig:dsdgap}}
+\end{figure}
 
 \section{Cross-Engine: SD-BKZ on a Sieve Oracle}
 \label{sec:xengine}
