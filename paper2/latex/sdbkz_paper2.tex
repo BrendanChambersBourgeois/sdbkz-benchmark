@@ -286,6 +286,12 @@ BKZ-vs-SD-BKZ profile divergence peaks near $q\!\approx\!q_\mathrm{fat}$. The
 SD-BKZ DSD-onset occurs at progressively \emph{lower} $q$ than the BKZ onset as
 $n$ grows---the gap widens with dimension:
 
+% CRITERION-SUSPECT (2026-06-05, results/validation/dsd_criterion_sensitivity.json):
+% codified extraction (scripts/extract_dsd_onset.py, proper two-part criterion)
+% reproduces n=89/101 EXACTLY but NOT n=67 (146 matches no criterion) or n=113
+% (732/932 off the on-disk q<=523 grid). Growth survives on n=79/89/101. Do NOT
+% revise these numbers until the n=67/113 endpoints are regenerated (held: core
+% contention with the polish sweep). Prose left as-is pending the full reckoning.
 \begin{table}[tbp]
 \centering
 \caption{Reference-free DSD-onset: SD-BKZ reaches dense-sublattice discovery at lower $q$ than BKZ, gap growing with $n$ ($\sim$15--20 seeds/cell).\label{tab:dsdgap}}
@@ -365,6 +371,14 @@ G6K sieve, under the \emph{identical} reference-free DSD criterion: $b_1=\min_i
 floor $\approx\sqrt{2n\cdot 2/3}\approx1.96$). On both engines SD-BKZ reaches
 dense-sublattice discovery at \emph{lower} $q$ than BKZ.
 
+% CRITERION-SUSPECT / LIKELY WRONG AS FRAMED (2026-06-05,
+% results/validation/dsd_criterion_sensitivity.json): this table uses b1>1.5
+% ALONE, which over-fires on uniformly-reduced sub-fatigue bases. Under the
+% PROPER two-part criterion (short<=n+1 AND b1>1.5) the q=137 cell is 0/0 on
+% both variants/engines and the true DSD onset (~196-211) shows NO SD-vs-BKZ
+% gap at beta=40. The gap here is min-GS-clearing (aggressive reduction), not
+% DSD. Restores the saturation-record 'regime-constrained' conclusion. Headline
+% rewrite deferred to the full reckoning (narrative not yet locked).
 \begin{table}[tbp]
 \centering
 \caption{Matched cross-engine DSD-onset: SD-BKZ reaches DSD before BKZ on \emph{both} engines ($n=89$, $\beta=40$, $50$ tours, 20 seeds/cell, $b_1>1.5$).\label{tab:g6konset}}

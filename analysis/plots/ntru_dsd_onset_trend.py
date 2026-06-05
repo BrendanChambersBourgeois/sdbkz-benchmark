@@ -6,12 +6,15 @@ the SD-vs-BKZ gap% annotated. SD-BKZ reaches DSD at progressively lower q
 than BKZ as n grows (gap 0 -> 27%).
 
 DATA PROVENANCE: the per-(n, variant) onset moduli below are the committed
-5-point trend (paper2 Table tab:dsdgap; /mnt/hgfs/Research/paper_findings.md
-"SD-BKZ DSD-onset GAP GROWS with dimension", reference-free b1>1.5, fplll
-beta=20, ~15-20 seeds/cell). The full per-q DSD-fraction extraction that
-produced these onsets is not yet codified as a reusable analysis, so the
-trend is carried here as constants kept in lock-step with the table rather
-than recomputed; recomputation from the ntru q-sweep seeds is future work.
+5-point trend (paper2 Table tab:dsdgap). The onset extraction is now CODIFIED
+in scripts/extract_dsd_onset.py (proper two-part DSD criterion, 50%-rate
+crossing). That extractor reproduces this table EXACTLY at n=89 (237/281) and
+n=101 (426/514); the n=67 and n=113 rows do NOT reproduce from on-disk seeds
+(n=67 curated 146 matches neither criterion; n=113's beta=20 grid stops at
+q523, below the 732/932 onset). See results/validation/dsd_criterion_sensitivity.json
+-- this trend is CRITERION-SUSPECT at its endpoints pending the full reckoning,
+so the constants are still carried verbatim (in lock-step with the table) rather
+than swapped to the extractor output until the endpoints are regenerated.
 """
 import os
 

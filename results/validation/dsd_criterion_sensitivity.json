@@ -1,0 +1,53 @@
+{
+  "validation": "dsd_criterion_sensitivity",
+  "date": "2026-06-05",
+  "status": "OPEN -- full reckoning pending; paper2 §4/§5 prose intentionally NOT yet revised",
+  "summary": "Codifying the DSD-onset extractor (scripts/extract_dsd_onset.py) surfaced that the cross-engine §5 headline and the §4 onset-trend endpoints depend on WHICH reference-free DSD criterion is used. The proper two-part criterion (short<=n+1 AND b1=min(gs_lognorm)>1.5 -- the saturation-record definition) differs sharply from the b1>1.5-alone criterion that produced the published cross-engine gap. b1-alone over-fires on uniformly-reduced sub-fatigue bases (min(gs)>1.5 but the profile has NOT collapsed: short=2n, not <=n+1) -- the same over-firing class as the gs[0]<3.5 proxy bug caught earlier this session.",
+  "criteria": {
+    "b1_only": "min(gs_lognorm) > 1.5  (necessary but NOT sufficient; over-fires at small n / sub-fatigue q)",
+    "two_part_proper": "short = #{i: gs_lognorm_i < 2.888} <= n+1  AND  min(gs_lognorm) > 1.5  (canonical DSD; profile collapsed to the dense sublattice)"
+  },
+  "blast_radius": {
+    "section3_dimension_onset_spike": {
+      "verdict": "UNAFFECTED",
+      "why": "tab:dimonset / Fig 1 use the `advantage` field (bkz_dln - sdbkz_dln), no DSD flag. n=71-73 spike already reference-robust under 3 references. Solid."
+    },
+    "section4_beta20_onset_trend": {
+      "verdict": "SURVIVES qualitatively; endpoints unreproducible",
+      "gap_pct_two_part_by_n": {"67": 1, "79": 1, "89": 18, "101": 21, "113": null},
+      "onset_two_part": {"67": "169/170", "79": "181/183", "89": "237/281", "101": "426/514", "113": "None (grid stops q523)"},
+      "onset_b1_only":  {"67": "<=97/<=97", "79": "127/161", "89": "237/280", "101": "426/503", "113": "None"},
+      "curated_tab_dsdgap": {"67": "146/149", "79": "175/175", "89": "237/281", "101": "426/514", "113": "732/932"},
+      "notes": [
+        "n=89 and n=101 reproduce the curated table EXACTLY under two-part (237/281 gap18; 426/514 gap21).",
+        "n=67 curated 146 is reproducible by NEITHER criterion (two-part fires nowhere below q167; b1-only fires at q97). Provenance lost.",
+        "n=113 curated 732/932 is NOT seed-backed: the on-disk beta=20 q-sweep stops at q523. Needs regeneration (a BKZ run -- HELD during the polish sweep, core contention).",
+        "The 'gap grows with dimension' claim survives on the reproducible points (gap 1% -> 18% -> 21% over n=79->89->101)."
+      ]
+    },
+    "section5_beta40_cross_engine_gap": {
+      "verdict": "NOT REAL under the proper criterion -- the published gap is a b1-only artifact",
+      "q137_cell_n89_beta40": {
+        "b1_only":  {"fplll_sd_bkz": "8/1", "g6k_sd_bkz": "14/4"},
+        "two_part": {"fplll_sd_bkz": "0/0", "g6k_sd_bkz": "0/0"}
+      },
+      "two_part_q_grid_n89_beta40": {
+        "137": "0/0 both engines", "157": "0/0", "181": "0/0",
+        "211": "20/20 both engines"
+      },
+      "two_part_onset": "~196-211 for BOTH SD and BKZ on both engines -- NO gap",
+      "interpretation": "At q137 the b1-fired seeds are uniformly reduced (head q-vectors killed, short=2n) -- NOT dense-sublattice discovery. There IS a real SD-vs-BKZ difference there (SD drives min-GS above the secret floor more often: 14 vs 4) but it is aggressive reduction, not DSD. True DSD onset at beta=40 shows no SD-vs-BKZ gap.",
+      "history": "This RESTORES the original g6k_dsd_qsweep_n89_beta40_saturation record's conclusion ('gap-regime and sieve-meaningful-beta do not overlap at n=89 -- regime-constrained'). That record was marked 'superseded/premature' by g6k_dsd_onset_n89_beta40, which switched to the b1-only criterion at q137 -- the supersede was the error. Since g6k needs beta>=40 (sieve) and the SD-BKZ DSD-onset gap is a beta=20 phenomenon, the regimes do not overlap; the cross-engine gap confirmation is likely not achievable as framed."
+    }
+  },
+  "affected_records_flagged_suspect": [
+    "g6k_dsd_onset_n89_beta40.json (b1-only criterion -> the +10 gap)",
+    "fplll_dsd_onset_n89_beta40_matched.json (b1-only criterion -> the +7 gap)"
+  ],
+  "decisions": [
+    "Narrative NOT locked: full reckoning first (this record). paper2 §4/§5 prose + tables left untouched pending review.",
+    "Polish sweep ALLOWED to finish (characterises the min-GS-clearing SD>BKZ signal at fine q); it samples q127-157, below the true DSD onset 181-211.",
+    "n=113 beta20 high-q regen + a finer beta40 q181-211 grid are both new BKZ runs, HELD until the sweep frees cores."
+  ],
+  "reproduce": "python3 scripts/extract_dsd_onset.py --trend                 # beta20 §4 trend\n           python3 scripts/extract_dsd_onset.py --n 89 --beta 40 --engine g6k --show-curve   # §5"
+}
