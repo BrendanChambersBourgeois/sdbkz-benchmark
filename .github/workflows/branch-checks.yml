@@ -1,0 +1,60 @@
+name: Branch checks (fast)
+
+# Cheap per-push verification for working branches (everything EXCEPT main,
+# which gets the full docker byte-identity CI in build-and-verify.yml). This
+# is the solo-dev answer to "branch pushes were untested": host-only ruff +
+# the no-engine lints + the fpylll-free test subset. ~1–2 min, NO docker
+# build (the ~10 min g6k source-build + verify.sh stay on main).
+#
+# Path-filtered (#2): only fires when CODE changes — pure seed-data (results/)
+# pushes are skipped, so a data commit doesn't burn a runner.
+on:
+  push:
+    branches-ignore: [main]
+    paths:
+      - '**.py'
+      - 'config/**'
+      - 'pyproject.toml'
+      - 'Makefile'
+      - '.github/workflows/branch-checks.yml'
+
+# A newer push on the same branch cancels the in-flight run.
+concurrency:
+  group: branch-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+
+      - name: Install lightweight deps (no fpylll, no docker)
+        run: python3 -m pip install --upgrade ruff pytest numpy
+
+      - name: Lint (ruff) — style + dead-import drift
+        run: ruff check scripts/ analysis/ tests/
+
+      - name: Lint centralised logging coverage (CLAUDE.md)
+        run: python3 scripts/lint_logging.py
+
+      - name: Guard — no un-allowlisted new top-level dirs (INC-39)
+        run: python3 scripts/check_new_top_level_dirs.py "$PWD"
+
+      - name: g6k manifest lint (contract / separation / require-ref)
+        run: python3 scripts/lint_g6k_manifest.py --require-ref
+      # NOTE: seed_manifest.json lint + --sha-check + figure-parity + the
+      # byte-identity / engine tests stay on main's docker CI — the seed
+      # manifest is rebuilt at finalize time, so it is intentionally stale on
+      # a working branch that is actively generating seeds (would false-fail
+      # here every push).
+
+      - name: Unit tests — fpylll-free subset (config / paths / timing / estimator)
+        run: |
+          python3 -m pytest -q \
+            tests/test_config.py \
+            tests/test_seed_paths.py \
+            tests/test_seed_timing.py \
+            tests/test_estimator_accuracy.py
