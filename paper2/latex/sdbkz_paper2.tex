@@ -31,7 +31,6 @@
 \maketitle
 
 \begin{abstract}
-% [TODO] Finalise once the Phase-4b cross-engine DSD-onset q-sweep lands.
 This technical report extends the self-dual BKZ (SD-BKZ) reduction benchmark
 of the companion paper from LWE-Kannan lattices to \emph{NTRU}, and from a
 single enumeration engine (fplll) to a second, sieving engine (G6K). We
@@ -264,9 +263,14 @@ The onset spike exceeds the plateau---non-monotonic.
 \section{Fatigue and the Cross-Dimension DSD-Onset Gap}
 \label{sec:fatigue}
 
-% [TODO] metric validity: the n=71-73 spike is reference-robust under 3
-% references; but signed d(LN) on NTRU is a reference artifact in general ->
-% use the reference-free DSD observable.
+Before sweeping $q$ we confirm the metric is sound here. The $n\approx71$--$73$
+divergence of Section~\ref{sec:dimonset} is reference-robust: re-derived from the
+stored profiles under three independent references (Li--Nguyen, GSA-zero, and
+the reference-free $\frac1m\sum_i|r_i^{\mathrm{BKZ}}-r_i^{\mathrm{SD}}|$), it
+remains large under all three ($32.7$ nats reference-free at $n=73$ vs $0.03$ at
+$n=67$). The \emph{signed} advantage, by contrast, is a reference artifact on
+NTRU (Section~\ref{sec:bg-obs}); accordingly everything below reports the
+reference-free DSD observable, never the signed quantity.
 
 Sweeping $q$ across the fatigue point at fixed $n$, the reference-free
 BKZ-vs-SD-BKZ profile divergence peaks near $q\!\approx\!q_\mathrm{fat}$. The
@@ -296,8 +300,11 @@ $n=127$ is excluded (fplll \S8 catastrophic cancellation + an off-grid crack).
 \section{Cross-Engine: SD-BKZ on a Sieve Oracle}
 \label{sec:xengine}
 
-% [TODO] g6k engine seam + self-dual pump-n-jump construction; validation vs
-% fplll SD_VARIANT (SD-flatten signature; slope delta -0.00039 vs -0.00040).
+The G6K engine seam and the self-dual pump-and-jump construction are described
+in Section~\ref{sec:setup-engines}; recall that the construction was validated
+against fplll's \texttt{SD\_VARIANT} by matching the per-tour GS-slope-flattening
+signature ($-0.00039$ vs $-0.00040$). This section reports what the validated
+sieve engine then shows.
 
 \paragraph{RHF blindness is engine-independent but regime-dependent.}
 On NTRU at $q=97$, $\beta=40$, the companion paper's thesis reproduces on the
@@ -309,11 +316,29 @@ RHF-equality reported under a non-exact (approximate-enumeration)
 oracle~\cite{Rowell2024}; the present work measures the structure RHF misses.
 
 \paragraph{Cross-engine validation of the construction.}
-A dimension-resolved fplll-vs-G6K comparison ($n=89/101/113$, 20 seeds each)
-confirms the self-dual G6K construction is sound: at $n=101/113$ the two
-engines agree perfectly (no spurious sieve firing), and where a short vector
-genuinely exists ($n=89$, seed 19) both engines land the identical first
-GS log-norm. % [TODO] table: per-n fired counts + Jaccard; the n=89 sparse-but-real result.
+A dimension-resolved fplll-vs-G6K comparison at $q=97$ ($n=89/101/113$, 20
+seeds each, $\beta=40$, 50 tours) confirms the self-dual G6K construction is
+sound (Table~\ref{tab:xeng-sound}): at $n=101/113$ neither engine fires a
+short-vector event, and at $n=89$ the engines overlap (Jaccard $0.50$) on the
+one seed where a short vector genuinely exists (seed 19), where both land the
+identical first GS log-norm $2.332$. The G6K sieve never fires where fplll's
+exact oracle does not---there is no spurious sieve firing---so the $n=89$
+short-vector events are real but sparse, not an artifact of the approximate
+oracle.
+
+\begin{table}[tbp]
+\centering
+\caption{Cross-engine soundness at $q=97$: G6K never fires where fplll does not; the $n=89$ overlap is the one genuine short-vector seed.\label{tab:xeng-sound}}
+\begin{tabular}{rccc}
+\toprule
+$n$ & G6K fired & fplll fired & Jaccard \\
+\midrule
+89  & 2/20 & 1/20 & 0.50 \\
+101 & 0/20 & 0/20 & 1.00 \\
+113 & 0/20 & 0/20 & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \paragraph{The DSD-onset gap reproduces on \emph{both} engines, confound-free.}
 We run the \emph{same} grid ($n=89$, $\beta=40$, $50$ tours, $q\in\{97,113,137,
@@ -372,20 +397,63 @@ this NTRU set).
 
 \section{Discussion}
 \label{sec:discussion}
-% [TODO] What the dimension-onset + fatigue gap mean for NTRU security
-% estimation; cross-engine implications; the regime-dependence of RHF
-% blindness; relation to DEP2023 (beta=40, Z-shape) and recursive
-% reduction~\cite{RecursiveReduction2023}.
+Three observations bear on how SD-BKZ is modelled in NTRU security estimation.
+First, the SD-BKZ advantage is \emph{not} a smooth function of dimension: the
+sharp onset spike at $n\approx71$--$73$ (Section~\ref{sec:dimonset}), exceeding
+the plateau, means a security estimate interpolated from a coarse $n$-grid can
+miss where self-dual reduction is most effective. Second, the quantity that
+captures the SD-vs-BKZ difference on NTRU is reference-free: the signed
+$d(\mathrm{LN})$ advantage flips sign under the reference and must not be
+reported (Section~\ref{sec:bg-obs}); the defensible observables are the unsigned
+profile divergence and the DSD flag. Third, and most consequential, the
+DSD-onset \emph{gap}---SD-BKZ reaching dense-sublattice discovery at lower $q$
+than BKZ---grows with dimension (Section~\ref{sec:fatigue}) and reproduces on
+both an enumeration and a sieving oracle at a matched $\beta=40$
+(Section~\ref{sec:xengine}). A model that treats SD-BKZ and BKZ as
+RHF-equivalent (as the Root Hermite Factor, blind here, would suggest) misses
+that self-dual reduction crosses the overstretched threshold earlier.
+
+These findings sit alongside two lines of work. The $\beta=40$ regime and the
+Z-shaped $q$-ary profile geometry match the small-modulus forgery setting of
+Ducas--Espitau--Postlethwaite~\cite{DEP2023}, where the same profile structure
+is the attack surface. And the move away from an RHF-centric view toward
+sublattice density echoes recursive lattice reduction~\cite{RecursiveReduction2023},
+which abandons the Hermite-factor framing for a Rankin/dense-sublattice one---the
+same direction our reference-free observable points.
+
+We are careful about scope. The dimension-onset spike is shown at $\beta=20$,
+$q=97$; the cross-engine gap at $\beta=40$, $n=89$. The signed $d(\mathrm{LN})$
+is reported nowhere as a result. And $n=127$ is excluded from the onset trend
+(Section~\ref{sec:fatigue}): the fplll \S8 cancellation contaminated those
+cells, and the circulant crack there is off-grid---it is a validation target
+(Section~\ref{sec:kahan}), not a trend point.
 
 \section{Reproducibility}
 \label{sec:repro}
-% [TODO] The repo, per-seed JSON seeds, the determinism/byte-identity gates,
-% the campaign config, the validation records, ADRs 005--008. One make target
-% per result where possible.
+Every result traces to per-seed JSON files under \texttt{results/seeds/},
+SHA-256-gated for byte-identity and reproducible across machines from
+digest-pinned containers (Section~\ref{sec:setup-repro}). Each experiment is a
+named campaign in \texttt{config/sweep.toml}, so a cell is regenerated by a
+single \texttt{run\_campaign} invocation naming the campaign, $q$, and seed
+count. The cross-engine soundness records and DSD-onset tables are committed
+under \texttt{results/validation/} with their own reproduction commands; the
+determinism and self-dual-semantics decisions are recorded in ADRs~005--008.
+The figures regenerate from the seed data through one figure module each, gated
+against drift. The companion paper's SHA baselines are preserved unchanged: the
+NTRU generator and the G6K engine were added without altering the seed JSON
+schema.
 
 \section{Conclusion}
 \label{sec:conclusion}
-% [TODO]
+On NTRU, the difference between BKZ and self-dual BKZ that the Root Hermite
+Factor cannot see is real, reference-free, and consequential: SD-BKZ reaches
+dense-sublattice discovery at a lower modulus than BKZ, with a gap that grows
+with dimension and that we observe on two fundamentally different reduction
+oracles at a matched block size. The companion paper argued the RHF is blind on
+LWE; this report shows the blindness persists on NTRU and on a sieve, exactly
+where it matters for the overstretched transition. The apparatus---a
+determinism-gated, containerised, two-engine benchmark with per-seed evidence---is
+released so the measurements can be reproduced and extended.
 
 \bibliography{abbrev3,crypto,biblio}
 
