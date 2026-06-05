@@ -18,7 +18,7 @@
     "dsd_short_threshold": 2.888,
     "dsd_criterion": "short<=n+1 and b1>1.5"
   },
-  "result": "INFO",
+  "result": "SUPERSEDED",
   "data": {
     "per_q": [
       {
@@ -79,5 +79,6 @@
     ]
   },
   "conclusion": "At beta=40, n=89, both g6k SD-BKZ and BKZ reach FULL DSD (short=89=n, b1~1.96) across the entire q=211-521 range; SD-vs-BKZ advantage ~0 (|mean|<=0.015). No onset gap here -- the whole window is post-onset. The DSD-onset GAP (fplll: SD onset 237 < BKZ onset 281 at n=89) was a beta=20 result; the sieve needs beta>=40, where both engines crack DSD together. The gap-regime and the sieve-meaningful-beta do not overlap at n=89 -- a regime-constrained cross-engine result. The beta=40 onset edge is at LOWER q (Phase-4a: q=97 was sparse 2/20; q=211 here is full 89/89), to be swept next.",
-  "reproduce": "for q in 211 257 307 401 521; do run_campaign --campaign ntru_g6k_qsweep --q $q --precision <250|500> --workers 22; done  (sdbkz-g6k:ref)"
+  "reproduce": "for q in 211 257 307 401 521; do run_campaign --campaign ntru_g6k_qsweep --q $q --precision <250|500> --workers 22; done  (sdbkz-g6k:ref)",
+  "superseded_by": "g6k_dsd_onset_n89_beta40 \u2014 the saturation framing (no gap / regime-constrained) was PREMATURE: q=211-521 is entirely post-saturation. The DSD-onset gap reproduces at beta=40 at lower q (~137); SD cracks DSD where BKZ does not. See the corrected record."
 }

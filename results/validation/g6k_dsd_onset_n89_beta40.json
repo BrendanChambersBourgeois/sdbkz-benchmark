@@ -1,0 +1,87 @@
+{
+  "validation": "g6k_dsd_onset_n89_beta40",
+  "engine": "g6k",
+  "image": "sdbkz-g6k:ref",
+  "params": {
+    "n": 89,
+    "beta": 40,
+    "max_tours": 50,
+    "q_grid": [
+      97,
+      113,
+      137,
+      157,
+      181,
+      211
+    ],
+    "seeds_per_cell": 20,
+    "dsd_criterion": "b1=min(gs_lognorm) > 1.5 (reference-free secret-norm floor)"
+  },
+  "result": "INFO",
+  "data": {
+    "per_q": [
+      {
+        "q": 97,
+        "seeds": 20,
+        "sd_dsd": 0,
+        "bkz_dsd": 0,
+        "gap": 0,
+        "sd_only": 0,
+        "bkz_only": 0,
+        "mean_signed_dln_adv": 0.54
+      },
+      {
+        "q": 113,
+        "seeds": 20,
+        "sd_dsd": 0,
+        "bkz_dsd": 0,
+        "gap": 0,
+        "sd_only": 0,
+        "bkz_only": 0,
+        "mean_signed_dln_adv": -0.77
+      },
+      {
+        "q": 137,
+        "seeds": 20,
+        "sd_dsd": 14,
+        "bkz_dsd": 4,
+        "gap": 10,
+        "sd_only": 11,
+        "bkz_only": 1,
+        "mean_signed_dln_adv": -30.83
+      },
+      {
+        "q": 157,
+        "seeds": 20,
+        "sd_dsd": 20,
+        "bkz_dsd": 19,
+        "gap": 1,
+        "sd_only": 1,
+        "bkz_only": 0,
+        "mean_signed_dln_adv": -3.2
+      },
+      {
+        "q": 181,
+        "seeds": 20,
+        "sd_dsd": 20,
+        "bkz_dsd": 20,
+        "gap": 0,
+        "sd_only": 0,
+        "bkz_only": 0,
+        "mean_signed_dln_adv": 0.0
+      },
+      {
+        "q": 211,
+        "seeds": 20,
+        "sd_dsd": 20,
+        "bkz_dsd": 20,
+        "gap": 0,
+        "sd_only": 0,
+        "bkz_only": 0,
+        "mean_signed_dln_adv": -0.0
+      }
+    ]
+  },
+  "conclusion": "CORRECTS the earlier g6k_dsd_qsweep_n89_beta40_saturation framing. The g6k SD-BKZ DSD-onset GAP reproduces on the sieve engine at beta=40: at q=137 SD cracks DSD (b1>1.5) on 14/20 seeds vs BKZ 4/20 (gap +10; SD-only 11, BKZ-only 1). SD onset ~q137 < BKZ onset ~q157 -- SD reaches dense-sublattice discovery at lower q than BKZ, the paper-2 thesis cross-engine. Lower q than the beta=20 fplll onset (SD 237) as expected (stronger reduction -> lower onset). Visible ONLY reference-free (b1): signed d(LN) goes large-negative (mean -30 at q137) when DSD is found, because the DSD Z-profile is far from the LWE-derived d(LN) reference -- the signed-d(LN)-is-a-reference-artifact finding, demonstrated cross-engine. q>=181 saturates (both crack); the earlier q=211-521 window was entirely post-saturation and missed the gap.",
+  "reproduce": "for q in 97 113 137 157 181 211; do run_campaign --campaign ntru_g6k_qsweep --q $q --precision 250 --workers 22; done; then b1>1.5 per variant"
+}

@@ -208,19 +208,37 @@ engines agree perfectly (no spurious sieve firing), and where a short vector
 genuinely exists ($n=89$, seed 19) both engines land the identical first
 GS log-norm. % [TODO] table: per-n fired counts + Jaccard; the n=89 sparse-but-real result.
 
-\paragraph{The gap-regime and the sieve-meaningful block size do not overlap.}
-A G6K DSD-onset $q$-sweep at $n=89$, $\beta=40$, over $q\in\{211,257,307,401,521\}$
-finds \emph{both} SD-BKZ and BKZ at full dense-sublattice discovery on every
-seed at every $q$ (short $=89=n$; $b_1\approx1.96$, the $q$-independent
-ternary-secret floor $\sqrt{2n\cdot 2/3}$), with SD-vs-BKZ advantage $\approx0$.
-The whole window is post-onset---no gap. This is informative: the DSD-onset
-\emph{gap} (Table~\ref{tab:dsdgap}; SD reaching discovery at lower $q$ than BKZ,
-the gap growing with $n$) was measured at $\beta=20$, whereas the sieve oracle
-needs $\beta\ge40$ to do meaningful work, at which point both engines crack
-DSD together. The gap-regime ($\beta=20$) and the sieve-usable regime
-($\beta\ge40$) thus \emph{do not overlap} at $n=89$: the SD-vs-BKZ onset
-advantage is a weak-reduction (low-$\beta$) phenomenon that a strong sieve
-oracle erases by finding the dense sublattice on both passes. % [TODO] lower-q onset sweep q in {97..211} at beta=40 to test the beta=40 edge.
+\paragraph{The DSD-onset gap reproduces on the sieve.}
+A G6K DSD-onset $q$-sweep at $n=89$, $\beta=40$ shows that SD-BKZ reaches
+dense-sublattice discovery (reference-free: $b_1>1.5$, the $q$-independent
+ternary-secret floor $\approx\sqrt{2n\cdot 2/3}$) at \emph{lower} $q$ than BKZ.
+
+\begin{table}[tbp]
+\centering
+\caption{G6K SD-BKZ reaches DSD at lower $q$ than BKZ ($n=89$, $\beta=40$, 20 seeds, $b_1>1.5$).\label{tab:g6konset}}
+\begin{tabular}{rccc}
+\toprule
+$q$ & SD DSD & BKZ DSD & gap \\
+\midrule
+97, 113 & 0/20 & 0/20 & 0 (pre-onset) \\
+137 & \textbf{14/20} & \textbf{4/20} & $+10$ \\
+157 & 20/20 & 19/20 & $+1$ \\
+$\ge181$ & 20/20 & 20/20 & 0 (saturated) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At $q=137$, SD-BKZ cracks DSD on $14/20$ seeds where BKZ cracks only $4/20$
+(SD-only on 11): SD onset ${\approx}137$, BKZ onset ${\approx}157$. This is the
+DSD-onset gap of Table~\ref{tab:dsdgap}, now on a sieve oracle, at \emph{lower}
+$q$ than the $\beta=20$ fplll onset ($q{=}237$)---stronger reduction lowers the
+onset. Crucially the gap is visible \emph{only} reference-free: on the seeds
+where SD-BKZ cracks DSD, the \emph{signed} $d(\mathrm{LN})$ advantage is large
+and \emph{negative} (mean $-30.8$ at $q=137$), because the DSD Z-shaped profile
+is far from the LWE-derived $d(\mathrm{LN})$ reference. This makes the
+``signed $d(\mathrm{LN})$ is a reference artifact on NTRU'' point concrete and
+cross-engine: report reference-free DSD, never the signed advantage.
+% [TODO] confirm SD<BKZ onset with more seeds + finer q-grid 120-160; matched fplll beta=40 q-sweep.
 
 \section{Re-Validating the fplll GSO Fix on a New Modulus Family}
 \label{sec:kahan}
