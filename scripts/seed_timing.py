@@ -478,6 +478,67 @@ def per_tour_cost_table(
     return out
 
 
+def _per_tour_cost_table_q(
+    seed_glob_patterns: Sequence[str],
+) -> dict[tuple[int, int, int], PerTourCost]:
+    """Per-(n, β, q) per-tour cost table (median per cell).
+
+    Like :func:`per_tour_cost_table` but keyed by q as well — q is the
+    dominant cost axis for NTRU/overstretched sweeps (per-seed cost varies
+    2–5× across a q-grid at fixed n, β), which the (n, β)-only table blends
+    away. Private + opt-in (used by the q-aware estimate path); the public
+    (n, β) table is unchanged so existing callers/cache are unaffected.
+    """
+    buckets: dict[tuple[int, int, int], list[tuple[float, float]]] = {}
+    for path in _expand_globs(tuple(seed_glob_patterns)):
+        d = _read_seed_json(path)
+        if d is None:
+            continue
+        try:
+            n = int(d["n"]); beta = int(d["beta"]); q = int(d.get("q", 97))
+        except (KeyError, ValueError, TypeError):
+            continue
+        per = _per_tour_from_seed(d)
+        if per is None:
+            continue
+        buckets.setdefault((n, beta, q), []).append(per)
+    out: dict[tuple[int, int, int], PerTourCost] = {}
+    for (n, b, q), rows in buckets.items():
+        out[(n, b, q)] = PerTourCost(
+            n=n, beta=b,
+            bkz_seconds_per_tour=statistics.median(r[0] for r in rows),
+            sdbkz_seconds_per_tour=statistics.median(r[1] for r in rows),
+            sample_seeds=len(rows),
+        )
+    return out
+
+
+def _lookup_cost_q(
+    table_q: dict[tuple[int, int, int], PerTourCost],
+    n: int, beta: int, q: int,
+) -> tuple[Optional[PerTourCost], Optional[str]]:
+    """Per-(n, β) cost at the target q: exact (n, β, q), else nearest q.
+
+    q drives cost far more than n at fixed (n, β) here, so we match q first
+    (exact, then nearest available q at the same (n, β)). Returns (None, note)
+    if no (n, β) cell exists at any q.
+    """
+    exact = table_q.get((n, beta, q))
+    if exact is not None:
+        return exact, None
+    same_nb = sorted(
+        ((qk, row) for (nk, b, qk), row in table_q.items() if nk == n and b == beta),
+        key=lambda kv: kv[0],
+    )
+    if not same_nb:
+        return None, None  # caller falls back to the (n, β) table
+    qk, row = min(same_nb, key=lambda kv: abs(kv[0] - q))
+    return row, (
+        f"No per-tour cost at exactly (n={n}, β={beta}, q={q}); used nearest "
+        f"observed q={qk} (cost varies strongly with q, so treat as approximate)."
+    )
+
+
 def per_tour_cost_table_to_dict(table: dict[tuple[int, int], PerTourCost]) -> dict:
     """Serialise a cost table to a JSON-safe dict (for cache write)."""
     return {
@@ -624,6 +685,7 @@ def estimate_sweep_wall(
     seed_glob_patterns: Optional[Sequence[str]] = None,
     cache_path: Optional[str] = None,
     anchor_age_warn_days: float = 7.0,
+    q: Optional[int] = None,
 ) -> SweepEstimate:
     """Estimate wall time for a planned convergence sweep at ``(n, β, max_tours)``.
 
@@ -684,7 +746,15 @@ def estimate_sweep_wall(
     parallel_factor = max(1, math.ceil(num_seeds / max(1, num_workers)))
 
     naive_wall_h: Optional[float]
-    target_cost, target_note = _lookup_cost(cost_table, n, beta)
+    target_cost, target_note = None, None
+    # q-aware cost first (the dominant axis for NTRU/overstretched sweeps):
+    # exact (n, β, q) or nearest q from the run's own cells. Falls back to the
+    # (n, β) table when no q-keyed cell exists (e.g. the LWE q=97 corpus).
+    if q is not None:
+        table_q = _per_tour_cost_table_q(patterns)
+        target_cost, target_note = _lookup_cost_q(table_q, n, beta, q)
+    if target_cost is None:
+        target_cost, target_note = _lookup_cost(cost_table, n, beta)
     if target_note is not None:
         notes.append(target_note)
     if target_cost is None:

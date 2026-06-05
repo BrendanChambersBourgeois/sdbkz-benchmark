@@ -178,6 +178,9 @@ def main(argv=None):
                          "fresh, same-regime self-anchor (forces --no-cache)")
     ap.add_argument("--seed-glob", default=None, dest="seed_glob",
                     help="explicit seed-glob to anchor on (overrides the default corpus)")
+    ap.add_argument("--q", type=int, default=None,
+                    help="target modulus q — cost is q-aware (the dominant axis "
+                         "for NTRU/overstretched sweeps): exact (n,β,q) or nearest q")
     args = ap.parse_args(argv)
 
     cache_path = None if args.no_cache else args.cache_path
@@ -201,6 +204,7 @@ def main(argv=None):
         cache_path=cache_path,
         anchor_age_warn_days=args.anchor_age_warn_days,
         seed_glob_patterns=seed_glob_patterns,
+        q=args.q,
     )
 
     PIPELINE.info(
