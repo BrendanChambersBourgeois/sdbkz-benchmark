@@ -292,3 +292,49 @@ n_grid = [101, 113]
 tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
+
+# -- g6k DSD-onset q-sweep at fixed n=89 (Phase 4b) --------------------------
+# Map the g6k SD-BKZ DSD-onset by sweeping q ACROSS the NTRU fatigue point
+# (q_fat(89) ≈ 0.004·89^2.484 ≈ 280) at fixed n=89, β=40, mt=50. Thesis: the
+# SD-BKZ short-vector "fire" rate (gs_lognorms_sdbkz[0] below the q-floor)
+# GROWS as q → fatigue and into the overstretched regime, with SD-onset at
+# lower q than BKZ-onset — the reference-free DSD observable, now on the
+# sieve engine. (The Phase-4a fixed-q=97 sweep across n was the WRONG axis:
+# at fixed q, larger n is harder, so firing fell — INC-41. q is the right
+# knob.) Sweep q via --q; match the fplll precision tier per q via
+# --precision (p250 for q<400, p500 for 400–899) so a future fplll β=40
+# match shares the seed paths. RUN IN sdbkz-g6k:ref, 22 workers:
+#   for q in 211 257 307; do run_campaign --campaign ntru_g6k_qsweep --q $q --precision 250 --workers 22; done
+#   for q in 401 521;     do run_campaign --campaign ntru_g6k_qsweep --q $q --precision 500 --workers 22; done
+[campaigns.ntru_g6k_qsweep]
+description = "g6k NTRU DSD-onset q-sweep at n=89, β=40 (Phase 4b)"
+generator = "ntru"
+backend = "g6k"
+seed_tag = "ntru_g6k"
+q = 257
+precision = 250
+beta_grid = [40]
+n_grid = [89]
+tours_by_beta = { "40" = 50 }
+num_seeds = 20
+store_per_tour = false
+
+# -- fplll β=40 DSD-onset q-sweep — matched cross-engine baseline ------------
+# Same (n=89, β=40, mt=50, q-grid, DSD criterion) as ntru_g6k_qsweep, on the
+# fplll enum oracle. Removes the β=20-vs-β=40 confound: the existing fplll
+# NTRU q-sweep (the paper-2 DSD-onset trend) is β=20; this is β=40, so the
+# g6k(sieve,β40) vs fplll(enum,β40) onset comparison is apples-to-apples.
+# seed_tag default → results/seeds/ntru/q{q}/p250_mt50/n089_beta40/, the same
+# cells compare_xengine.py reads against ntru_g6k. RUN IN sdbkz-benchmark:ci
+# (rebuilt non-root, INC-40). fplll enum-β40 mt=50 is heavy (~2h/cell) — long:
+#   for q in 97 113 137 157 181 211; do run_campaign --campaign ntru_xeng_qsweep --q $q --precision 250 --workers 22; done
+[campaigns.ntru_xeng_qsweep]
+description = "fplll NTRU β=40 DSD-onset q-sweep at n=89 — cross-engine match"
+generator = "ntru"
+q = 137
+precision = 250
+beta_grid = [40]
+n_grid = [89]
+tours_by_beta = { "40" = 50 }
+num_seeds = 20
+store_per_tour = false
