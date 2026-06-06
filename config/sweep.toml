@@ -344,20 +344,23 @@ store_per_tour = false
 # 2026-06-03 via a temp block since removed; no recorded CLI command, --n is
 # ignored by the ntru persist loop which iterates campaign.n_grid). seed_tag
 # default → results/seeds/ntru/q{q}/p{prec}_mt50/n113_beta20/. Resumable:
-# skips existing 1-20, makes 21-100. PRECISION MUST LADDER BY q to match the
-# existing cells exactly (else seeds 21-100 split into a different p### dir).
-# RUN WITH --ulimit stack=-1 (docker default 8MB stack; a deep dim-226 p1000
-# GSO/enum can overflow it -> native crash, exit 255, no traceback). The
-# RUN() wrapper below sets it; bare `run_campaign ...` lines are the in-
-# container command:
-#   RUN() { docker run --rm --user "$(id -u):$(id -g)" --ulimit stack=-1 -v "$PWD":/work -w /work sdbkz-benchmark:ci "$@"; }
-#   p1000: for q in 947 1049 1163 1279; do RUN python3 scripts/run_campaign.py --campaign ntru_n113_qsweep --q $q --precision 1000 --seeds 100 --workers 30; done
-#   p500:  for q in 569 613 631 661 701 719 773 859; do RUN python3 scripts/run_campaign.py --campaign ntru_n113_qsweep --q $q --precision 500 --seeds 100 --workers 30; done
-#   p250:  for q in 409 449 487 523; do RUN python3 scripts/run_campaign.py --campaign ntru_n113_qsweep --q $q --precision 250 --seeds 100 --workers 30; done
+# skips existing seeds, tops up to 100. PRECISION MUST LADDER BY q to match the
+# existing cells exactly (else the new seeds split into a different p### dir).
+# RUN ON VMWARE (proven stable; made the originals). workers=22 (VM allocation).
+# Run slow-first (q947 p1000 = ~68min/seed sink) so the long pole starts early:
+#   RUN() { docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/work -w /work sdbkz-benchmark:ci "$@"; }
+#   p1000: for q in 947 1049 1163 1279; do RUN python3 scripts/run_campaign.py --campaign ntru_n113_qsweep --q $q --precision 1000 --seeds 100 --workers 22; done
+#   p500:  for q in 569 613 631 661 701 719 773 859; do RUN python3 scripts/run_campaign.py --campaign ntru_n113_qsweep --q $q --precision 500 --seeds 100 --workers 22; done
+#   p250:  for q in 409 449 487 523; do RUN python3 scripts/run_campaign.py --campaign ntru_n113_qsweep --q $q --precision 250 --seeds 100 --workers 22; done
 # DRY-RUN each first. --seeds works (fix ebcab5f); --beta does NOT (beta_grid sets it).
-# The worker now isolates a single seed's PYTHON failure (logs "error:" +
-# continues); a native crash still kills its worker, but the cell is resumable
-# so survivors stay on disk -- just re-fire that q to fill the rest.
+# DO NOT use --ulimit stack=-1 (β=20 enum is shallow; the flag broke OpenBLAS
+# thread creation across forks on WSL2 -- dropped). If fork pressure ever
+# recurs, the fix is per-worker thread-pinning env vars (OPENBLAS_NUM_THREADS=1
+# OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1) -- byte-identity
+# RE-VERIFIED safe (verify.sh, n=50 refs matched to digit). The original WSL2
+# crash was the WSL2 VM init dying (p9io/dxgk), not this campaign.
+# Worker isolates a single seed's PYTHON failure (logs "error:" + continues);
+# a native crash kills only its worker, cell is resumable -- re-fire that q.
 [campaigns.ntru_n113_qsweep]
 description = "NTRU β=20 DSD-onset q-sweep at n=113 — trend endpoint top-up"
 generator = "ntru"

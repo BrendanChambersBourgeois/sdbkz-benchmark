@@ -38,7 +38,7 @@ DEFAULT_FIRE_THRESHOLD = 3.5
 
 def _cell_glob(tag: str, n: int, beta: int, mt: int, q: int) -> str:
     return os.path.join(
-        BASE, "results", "seeds", tag, f"q{q}", f"p250_mt{mt}",
+        BASE, "results", "seeds", tag, f"q{q}", f"p*_mt{mt}",
         f"n{n:03d}_beta{beta:02d}", "seed*.json"
     )
 

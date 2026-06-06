@@ -69,7 +69,7 @@ def _is_dsd(seed: dict, variant: str, n: int) -> bool:
 def _cell_rate(tree: str, n: int, beta: int, q: int, variant: str):
     """(fires, total) for one (tree, n, beta, q) cell, or None if absent."""
     pat = os.path.join(BASE, "results", "seeds", tree, f"q{q}",
-                       "p250_mt*", f"n{n:03d}_beta{beta:02d}", "seed*.json")
+                       "p*_mt*", f"n{n:03d}_beta{beta:02d}", "seed*.json")
     files = sorted(glob.glob(pat))
     if not files:
         return None
@@ -79,10 +79,10 @@ def _cell_rate(tree: str, n: int, beta: int, q: int, variant: str):
 
 def _q_grid(tree: str, n: int, beta: int) -> list[int]:
     pat = os.path.join(BASE, "results", "seeds", tree, "q*",
-                       "p250_mt*", f"n{n:03d}_beta{beta:02d}")
+                       "p*_mt*", f"n{n:03d}_beta{beta:02d}")
     qs = set()
     for d in glob.glob(pat):
-        # .../q<NNN>/p250_mt*/n...
+        # .../q<NNN>/p<prec>_mt*/n...  (p* spans p250/p500/p1000 ladder)
         for part in d.split(os.sep):
             if part.startswith("q") and part[1:].isdigit():
                 qs.add(int(part[1:]))
