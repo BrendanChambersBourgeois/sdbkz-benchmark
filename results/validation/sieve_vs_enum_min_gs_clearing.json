@@ -1,0 +1,42 @@
+{
+  "validation": "sieve_vs_enum_min_gs_clearing",
+  "date": "2026-06-06",
+  "status": "CANDIDATE finding -- needs the artifact check (see caveats) before it enters the paper",
+  "summary": "The DSD-onset polish sweep (n=89, beta=40, q in {127,131,137,139,149,151}, q137 at N=100, both engines) shows: (1) proper two-part DSD = 0 everywhere on this sub-onset grid (confirms the §5 null cleanly); (2) the min-GS-clearing event (min(gs_lognorm) > 1.5, aggressive reduction, NOT DSD) reproduces an SD>BKZ gap at every q on BOTH engines; (3) a NEW cross-engine structural difference -- the g6k sieve drives the shortest GS vector far higher than fplll enumeration at the same n/q/beta/tours, i.e. the sieve leaves a much more aggressively-reduced tail.",
+  "criteria": {
+    "two_part_DSD": "short = #{i: gs_lognorm_i < 2.888} <= n+1  AND  min(gs_lognorm) > 1.5  (proper; 0 across this grid)",
+    "min_gs_clearing": "min(gs_lognorm) > 1.5  (the b1-only event -- aggressive tail reduction, NOT DSD)"
+  },
+  "data_n89_beta40_mt50_p250": {
+    "note": "per cell: b1 = #seeds with min(gs)>1.5; two = #seeds proper-DSD; med = median min(gs). two=0 for ALL cells below.",
+    "q137_N100_tight": {
+      "fplll": {"SD": {"b1": 38, "med_min_gs": 0.255}, "BKZ": {"b1": 12, "med_min_gs": 0.104}},
+      "g6k":   {"SD": {"b1": 61, "med_min_gs": 1.844}, "BKZ": {"b1": 23, "med_min_gs": 0.140}}
+    },
+    "fine_grid_N20": {
+      "127": {"fplll_SD_BKZ_b1": "2/0",  "g6k_SD_BKZ_b1": "3/0"},
+      "131": {"fplll_SD_BKZ_b1": "4/0",  "g6k_SD_BKZ_b1": "6/0"},
+      "139": {"fplll_SD_BKZ_b1": "10/2", "g6k_SD_BKZ_b1": "15/5"},
+      "149": {"fplll_SD_BKZ_b1": "18/9", "g6k_SD_BKZ_b1": "20/16"},
+      "151": {"fplll_SD_BKZ_b1": "20/12","g6k_SD_BKZ_b1": "20/19"}
+    },
+    "median_min_gs_trajectory_SD": {
+      "comment": "SD median min(gs) rises sharply across the grid; g6k leads fplll at every q.",
+      "fplll": {"127": 0.12, "131": 0.194, "137": 0.255, "139": 1.209, "149": 1.928, "151": 1.959},
+      "g6k":   {"127": 0.265, "131": 0.306, "137": 1.844, "139": 1.885, "149": 1.959, "151": 1.959}
+    }
+  },
+  "findings": [
+    "Proper DSD = 0/0 on the entire q127-151 grid, both engines -- the §5 'gap' was entirely b1-only over-firing. Clean null.",
+    "min-GS-clearing SD>BKZ gap reproduces on BOTH engines at every q. Tight at q137 (N=100): fplll SD 38 vs BKZ 12 (3.2x); g6k SD 61 vs BKZ 23 (2.7x).",
+    "CROSS-ENGINE STRUCTURAL DIFFERENCE: at q137 the g6k(sieve) SD median min(gs) is 1.844 -- above the 1.5 floor -- vs fplll(enum) SD 0.255, a ~7x gap on identical instances. The sieve produces a far more aggressively-reduced tail than enumeration at beta=40. BKZ shows the same direction but milder (g6k 0.140 vs fplll 0.104).",
+    "So the SD-vs-BKZ difference IS cross-engine-robust -- as min-GS-clearing / aggressive reduction, NOT as DSD-onset. This is the honest salvage of the §5 cross-engine result."
+  ],
+  "caveats": [
+    "NOT DSD: two-part criterion = 0 everywhere here (profile not collapsed, short > n+1). Must be labelled aggressive-reduction / tail min-GS, never DSD-onset.",
+    "ARTIFACT CHECK REQUIRED before publishing: the g6k self-dual pump-n-jump construction is ours (ADR-008). Confirm the 1.844 median is genuine sieve reduction and not a construction/orientation quirk -- e.g. compare against g6k primal-only BKZ min(gs), and against the gso() bit-identity check that already validated primal orientation. If it survives, 'sieve vs enum leave structurally different sub-fatigue bases at beta=40' is a real, new, paper-worthy cross-engine observation -- arguably more interesting than the DSD gap that did not survive.",
+    "N=20 cells are noisy; only q137 (N=100) is tight. The medians on the N=20 cells (esp the sharp q137->q139 jump) want more seeds before they are load-bearing."
+  ],
+  "relation": "Companion to results/validation/dsd_criterion_sensitivity.json (which establishes the proper criterion + the §5 null). This record is the POSITIVE finding the sweep produced. Both feed the post-repaste §5 reckoning (combined (b)+(a) frame).",
+  "reproduce": "python3 -c \"import json,glob,statistics as st; [print of min(gs)>1.5 fraction + median min(gs) per cell over results/seeds/{ntru,ntru_g6k}/q*/p250_mt50/n089_beta40/\"  (n=89 beta=40 fine grid)"
+}
