@@ -338,3 +338,25 @@ n_grid = [89]
 tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
+
+# -- NTRU n=113 β=20 DSD-onset q-sweep — trend ENDPOINT top-up ---------------
+# Reconstructs the recipe for the n=113 β=20 trend cells (originals made
+# 2026-06-03 via a temp block since removed; no recorded CLI command, --n is
+# ignored by the ntru persist loop which iterates campaign.n_grid). seed_tag
+# default → results/seeds/ntru/q{q}/p{prec}_mt50/n113_beta20/. Resumable:
+# skips existing 1-20, makes 21-100. PRECISION MUST LADDER BY q to match the
+# existing cells exactly (else seeds 21-100 split into a different p### dir):
+#   p1000: for q in 947 1049 1163 1279; do run_campaign --campaign ntru_n113_qsweep --q $q --precision 1000 --seeds 100 --workers 30; done
+#   p500:  for q in 569 613 631 661 701 719 773 859; do run_campaign --campaign ntru_n113_qsweep --q $q --precision 500 --seeds 100 --workers 30; done
+#   p250:  for q in 409 449 487 523; do run_campaign --campaign ntru_n113_qsweep --q $q --precision 250 --seeds 100 --workers 30; done
+# DRY-RUN each first. --seeds works (fix ebcab5f); --beta does NOT (beta_grid sets it).
+[campaigns.ntru_n113_qsweep]
+description = "NTRU β=20 DSD-onset q-sweep at n=113 — trend endpoint top-up"
+generator = "ntru"
+q = 947
+precision = 1000
+beta_grid = [20]
+n_grid = [113]
+tours_by_beta = { "20" = 50 }
+num_seeds = 100
+store_per_tour = false
