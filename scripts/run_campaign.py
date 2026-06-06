@@ -296,15 +296,29 @@ def _ntru_seed_worker(task: tuple) -> tuple:
     if not np.array_equal((H @ f) % q, g % q):
         return (n, beta, seed, None, "key_err")
     m_start, m_end = get_metric_span(generator)(n, len(L))
-    r = run_single(
-        L=L, n=n, active_block_start=m_start, active_block_end=m_end,
-        beta=beta, seed=seed, q=q, precision=precision,
-        max_tours=max_tours, log_clamp_fn=_ntru_log_clamp,
-        backend=backend,
-    )
-    os.makedirs(os.path.dirname(out), exist_ok=True)
-    with open(out, "w") as fh:
-        json.dump(r, fh, indent=2)
+    # Wrap the reduction + write so ONE failing seed logs and is skipped
+    # rather than propagating up through imap_unordered and killing the whole
+    # batch (matches the skip/dim_err/key_err status-tuple contract). NOTE:
+    # this catches PYTHON exceptions only -- a native C crash (segfault/abort
+    # in fplll/MPFR) still kills the worker process; for those see the
+    # --ulimit stack=-1 in the run recipe and run each cell so survivors are
+    # already on disk (resumable skip).
+    try:
+        r = run_single(
+            L=L, n=n, active_block_start=m_start, active_block_end=m_end,
+            beta=beta, seed=seed, q=q, precision=precision,
+            max_tours=max_tours, log_clamp_fn=_ntru_log_clamp,
+            backend=backend,
+        )
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        # Write atomically (tmp + rename) so a crash mid-write never leaves a
+        # half-written seed JSON that breaks the resumable skip / SHA gate.
+        tmp = out + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump(r, fh, indent=2)
+        os.replace(tmp, out)
+    except Exception as e:  # noqa: BLE001 -- isolate one seed's failure
+        return (n, beta, seed, None, f"error: {type(e).__name__}: {e}")
     return (n, beta, seed, r["advantage"], "ok")
 
 
