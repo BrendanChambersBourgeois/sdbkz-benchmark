@@ -371,3 +371,41 @@ n_grid = [113]
 tours_by_beta = { "20" = 50 }
 num_seeds = 100
 store_per_tour = false
+
+# -- NTRU β=20 ball-out per-dim top-ups (trend cells -> 100 transition / 20 filler) --
+# Same pattern as ntru_n113_qsweep, for the other trend dims. --n is ignored by
+# the persist loop (iterates n_grid), so one block per dim. Driven by
+# ops/ballout_chain.sh with per-cell --q/--precision/--seeds (precision MUST
+# match each existing cell). n=89 reuses [campaigns.ntru_qsweep] (n_grid=[89]).
+[campaigns.ntru_n67_qsweep]
+description = "NTRU β=20 ball-out top-up at n=67"
+generator = "ntru"
+q = 167
+precision = 250
+beta_grid = [20]
+n_grid = [67]
+tours_by_beta = { "20" = 50 }
+num_seeds = 100
+store_per_tour = false
+
+[campaigns.ntru_n79_qsweep]
+description = "NTRU β=20 ball-out top-up at n=79"
+generator = "ntru"
+q = 181
+precision = 250
+beta_grid = [20]
+n_grid = [79]
+tours_by_beta = { "20" = 50 }
+num_seeds = 100
+store_per_tour = false
+
+[campaigns.ntru_n101_qsweep]
+description = "NTRU β=20 ball-out top-up at n=101"
+generator = "ntru"
+q = 443
+precision = 250
+beta_grid = [20]
+n_grid = [101]
+tours_by_beta = { "20" = 50 }
+num_seeds = 100
+store_per_tour = false
