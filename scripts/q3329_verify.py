@@ -65,6 +65,12 @@ def parse_args():
     # campaign's generator field through here.
     parser.add_argument("--generator", type=str, default="lwe_kannan",
                         help="Lattice generator name (default: lwe_kannan)")
+    # Override the per-beta tour count. Default None keeps the historical
+    # TOURS_BY_BETA mapping (so existing main/cliff500/q3329 runs are
+    # byte-unchanged); run_campaign passes the campaign's tours_by_beta value
+    # so e.g. the estimator_probe can request mt=500.
+    parser.add_argument("--max-tours", type=int, default=None,
+                        help="override tours (default: TOURS_BY_BETA[beta])")
     return parser.parse_args()
 
 _args = parse_args()
@@ -77,7 +83,7 @@ BETA = _args.beta
 GENERATOR = get_generator(_args.generator)
 METRIC_SPAN_FN = get_metric_span(_args.generator)
 TOURS_BY_BETA = {20: 50, 30: 70, 40: 100}
-MAX_TOURS = TOURS_BY_BETA.get(BETA, 70)
+MAX_TOURS = _args.max_tours if _args.max_tours else TOURS_BY_BETA.get(BETA, 70)
 PRECISION = _args.precision if _args.precision else 500
 SEEDS = list(range(1, _args.seeds + 1))
 

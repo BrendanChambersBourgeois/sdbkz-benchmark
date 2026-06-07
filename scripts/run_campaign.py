@@ -95,7 +95,7 @@ def _select_runner(campaign_name: str) -> str:
       - `ntru`          — same, but persists per-seed JSONs to
                           results/seeds/ntru/ (real seed generation).
     """
-    if campaign_name in {"main", "cliff500"}:
+    if campaign_name in {"main", "cliff500", "estimator_probe"}:
         return "q3329_verify"
     if campaign_name == "q3329":
         return "q3329_verify"
@@ -159,6 +159,7 @@ def _dispatch_q3329_verify(
         "--seeds", str(seeds),
         "--precision", str(campaign.precision),
         "--generator", campaign.generator,
+        "--max-tours", str(tours),
     ]
     if campaign.q != 3329:
         # q3329_verify defaults to Q=3329; pass --q to override for

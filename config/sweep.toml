@@ -409,3 +409,24 @@ n_grid = [101]
 tours_by_beta = { "20" = 50 }
 num_seeds = 100
 store_per_tour = false
+
+# -- Estimator d(LN) probe: n=130 β=40 mt=500 (paper-3 feasibility) ----------
+# Higher-tours rerun of the main n=130 β=40 cell to disambiguate the
+# d(real,CN11) dim-growth: convergence artifact vs structural. Baseline =
+# main/q97/n130_beta40 (p250 mt100, profiles stored). This = SAME (q97,n130,
+# β40,p250) at mt500, own tree results/seeds/estimator_probe/q97/n130_beta40/
+# (campaign-keyed -> NO collision with main). q3329_verify-class runner stores
+# initial_gs_lognorms + gs_lognorms_bkz. 20 seeds (fills cores; 1 wave ≤22).
+# Then: probe-branch cn11_converge.py compares d(real,CN11) main-mt100 vs this
+# mt500 -> shrinks=artifact(NO-GO) / stable=structural(GO). ~30h (1 wave @
+# ~32h/seed). SPECULATIVE -- easy to drop/retune.
+[campaigns.estimator_probe]
+description = "estimator d(LN) probe: n=130 β=40 mt=500 (convergence disambiguation)"
+inherits = "main"
+q = 97
+precision = 250
+beta_grid = [40]
+n_grid = [130]
+tours_by_beta = { "40" = 500 }
+num_seeds = 20
+store_per_tour = false
