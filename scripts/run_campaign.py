@@ -318,7 +318,20 @@ def _ntru_seed_worker(task: tuple) -> tuple:
         with open(tmp, "w") as fh:
             json.dump(r, fh, indent=2)
         os.replace(tmp, out)
+        # Centralised per-seed completion event (side-log only; never touches
+        # the seed JSON, so SHA byte-identity is unaffected). Workers inherit
+        # the parent's run_id, so these correlate with the pool's run.
+        PIPELINE.info(
+            "seed done", cat="seed", n=n, beta=beta, seed=seed, q=q,
+            precision=precision, backend=backend, seed_tag=seed_tag,
+            advantage=r["advantage"],
+        )
     except Exception as e:  # noqa: BLE001 -- isolate one seed's failure
+        PIPELINE.error(
+            "seed failed", cat="seed", n=n, beta=beta, seed=seed, q=q,
+            precision=precision, backend=backend, seed_tag=seed_tag,
+            error=f"{type(e).__name__}: {e}",
+        )
         return (n, beta, seed, None, f"error: {type(e).__name__}: {e}")
     return (n, beta, seed, r["advantage"], "ok")
 
