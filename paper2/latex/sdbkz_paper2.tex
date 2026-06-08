@@ -84,10 +84,15 @@ Our contributions are primarily empirical and infrastructural:
 
 This is a \emph{technical report / data paper}: the emphasis is on the
 experimental apparatus, the data, and reproducibility, rather than on new
-theory. Closest prior work is Deng and Jia's self-dual BKZ over a sieve
-oracle~\cite{DengJia2023}; we differ in measuring the SD-vs-BKZ structural
-difference via the reference-free profile observable rather than swapping the
-oracle for speed. White~\cite{White26} studies dynamic block-size strategies
+theory. Closest prior work is Deng and Jia~\cite{DengJia2023}, who give a
+sieving-based self-dual BKZ that puts a G6K Pump oracle in place of
+enumeration and thereby attains comparable or better output quality at
+substantially lower running time, and who observe the SD-vs-BKZ quality gap
+narrowing as the block size grows. Our aim is complementary rather than
+competing: we do not propose a faster oracle but a finer empirical
+characterisation, measuring the SD-vs-BKZ structural difference through the
+reference-free profile observable across a fixed-$\beta$, $q$-swept regime.
+White~\cite{White26} studies dynamic block-size strategies
 within the same Li--Nguyen framework, complementary to the fixed-$\beta$,
 $q$-swept regime characterised here.
 
