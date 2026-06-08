@@ -6,15 +6,15 @@ the SD-vs-BKZ gap% annotated. SD-BKZ reaches DSD at progressively lower q
 than BKZ as n grows (gap 0 -> 27%).
 
 DATA PROVENANCE: the per-(n, variant) onset moduli below are the committed
-5-point trend (paper2 Table tab:dsdgap). The onset extraction is now CODIFIED
-in scripts/extract_dsd_onset.py (proper two-part DSD criterion, 50%-rate
-crossing). That extractor reproduces this table EXACTLY at n=89 (237/281) and
-n=101 (426/514); the n=67 and n=113 rows do NOT reproduce from on-disk seeds
-(n=67 curated 146 matches neither criterion; n=113's beta=20 grid stops at
-q523, below the 732/932 onset). See results/validation/dsd_criterion_sensitivity.json
--- this trend is CRITERION-SUSPECT at its endpoints pending the full reckoning,
-so the constants are still carried verbatim (in lock-step with the table) rather
-than swapped to the extractor output until the endpoints are regenerated.
+5-point trend (paper2 Table tab:dsdgap), now SEED-BACKED end to end under the
+proper two-part DSD criterion (scripts/extract_dsd_onset.py, 50%-rate crossing).
+The 2026-06-07 ball-out completed the beta=20 ladder, so all five rows now
+reproduce from on-disk seeds: n=67 167/168, n=79 182/183, n=89 238/283,
+n=101 429/512, n=113 729/925 (the endpoint lands in the predicted 719-773 band;
+the earlier "n=113 unreproducible" was an extractor glob bug, p250-only). The
+criterion-suspect endpoint caveat is resolved. See
+results/validation/dsd_criterion_sensitivity.json and
+results/seed_manifest.json.
 """
 import os
 
@@ -23,15 +23,14 @@ import matplotlib.pyplot as plt
 from .._style import COLORS
 
 # (n, SD onset q, BKZ onset q, gap%) -- mirrors paper2 Table tab:dsdgap
-# exactly. gap% is carried verbatim from the committed table (its published
-# values, not recomputed: the curated table rounded inconsistently at the
-# edge, e.g. n=89 -> 18) so figure and table never disagree.
+# exactly. Seed-backed (two-part criterion, extract_dsd_onset --trend), so
+# figure and table never disagree.
 ONSET_TREND = [
-    (67, 146, 149, 2),
-    (79, 175, 175, 0),
-    (89, 237, 281, 18),
-    (101, 426, 514, 21),
-    (113, 732, 932, 27),
+    (67, 167, 168, 1),
+    (79, 182, 183, 0),
+    (89, 238, 283, 19),
+    (101, 429, 512, 20),
+    (113, 729, 925, 27),
 ]
 
 

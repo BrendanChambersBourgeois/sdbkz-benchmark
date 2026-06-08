@@ -291,24 +291,18 @@ BKZ-vs-SD-BKZ profile divergence peaks near $q\!\approx\!q_\mathrm{fat}$. The
 SD-BKZ DSD-onset occurs at progressively \emph{lower} $q$ than the BKZ onset as
 $n$ grows---the gap widens with dimension:
 
-% CRITERION-SUSPECT (2026-06-05, results/validation/dsd_criterion_sensitivity.json):
-% codified extraction (scripts/extract_dsd_onset.py, proper two-part criterion)
-% reproduces n=89/101 EXACTLY but NOT n=67 (146 matches no criterion) or n=113
-% (732/932 off the on-disk q<=523 grid). Growth survives on n=79/89/101. Do NOT
-% revise these numbers until the n=67/113 endpoints are regenerated (held: core
-% contention with the polish sweep). Prose left as-is pending the full reckoning.
 \begin{table}[tbp]
 \centering
-\caption{Reference-free DSD-onset: SD-BKZ reaches dense-sublattice discovery at lower $q$ than BKZ, gap growing with $n$ ($\sim$15--20 seeds/cell).\label{tab:dsdgap}}
+\caption{Reference-free DSD-onset (proper two-part criterion): SD-BKZ reaches dense-sublattice discovery at lower $q$ than BKZ, the gap growing with $n$. Seed-backed across the $q$-sweep (up to 100 seeds/cell), including the $n=113$ endpoint from the completed precision ladder.\label{tab:dsdgap}}
 \begin{tabular}{rrrr}
 \toprule
 $n$ & SD onset $q$ & BKZ onset $q$ & gap\% \\
 \midrule
-67  & 146 & 149 & 2 \\
-79  & 175 & 175 & 0 \\
-89  & 237 & 281 & 18 \\
-101 & 426 & 514 & 21 \\
-113 & 732 & 932 & 27 \\
+67  & 167 & 168 & 1 \\
+79  & 182 & 183 & 0 \\
+89  & 238 & 283 & 19 \\
+101 & 429 & 512 & 20 \\
+113 & 729 & 925 & 27 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -368,56 +362,65 @@ $n$ & G6K fired & fplll fired & Jaccard \\
 \end{tabular}
 \end{table}
 
-\paragraph{The DSD-onset gap reproduces on \emph{both} engines, confound-free.}
+\paragraph{At a matched $\beta=40$ the two engines agree: no DSD-onset gap.}
 We run the \emph{same} grid ($n=89$, $\beta=40$, $50$ tours, $q\in\{97,113,137,
-157,181,211\}$, $20$ seeds/cell) on both the fplll enumeration engine and the
-G6K sieve, under the \emph{identical} reference-free DSD criterion: $b_1=\min_i
-\|\mathbf{b}_i^\ast\| > 1.5$ (in log-norm; the $q$-independent ternary-secret
-floor $\approx\sqrt{2n\cdot 2/3}\approx1.96$). On both engines SD-BKZ reaches
-dense-sublattice discovery at \emph{lower} $q$ than BKZ.
+157,181,211\}$) on both the fplll enumeration engine and the G6K sieve, under
+the \emph{proper} two-part DSD criterion: a basis has reached dense-sublattice
+discovery when its profile has collapsed onto the dense sublattice,
+$\#\{i:\log\|\mathbf{b}_i^\ast\| < 2.888\}\le n+1$ \emph{and}
+$\min_i\log\|\mathbf{b}_i^\ast\| > 1.5$. (The looser $b_1>1.5$ test alone
+over-fires on uniformly-reduced sub-fatigue bases, where the tail is cleared but
+the profile has not collapsed.) Under this criterion the cross-engine picture is
+a clean \emph{null}: at $q=137$ neither SD-BKZ nor BKZ fires DSD on \emph{either}
+engine, and the true DSD onset---$q\approx196$--$211$---is reached by SD-BKZ and
+BKZ \emph{together}, with no SD-vs-BKZ gap on either oracle
+(Table~\ref{tab:g6konset}).
 
-% CRITERION-SUSPECT / LIKELY WRONG AS FRAMED (2026-06-05,
-% results/validation/dsd_criterion_sensitivity.json): this table uses b1>1.5
-% ALONE, which over-fires on uniformly-reduced sub-fatigue bases. Under the
-% PROPER two-part criterion (short<=n+1 AND b1>1.5) the q=137 cell is 0/0 on
-% both variants/engines and the true DSD onset (~196-211) shows NO SD-vs-BKZ
-% gap at beta=40. The gap here is min-GS-clearing (aggressive reduction), not
-% DSD. Restores the saturation-record 'regime-constrained' conclusion. Headline
-% rewrite deferred to the full reckoning (narrative not yet locked).
 \begin{table}[tbp]
 \centering
-\caption{Matched cross-engine DSD-onset: SD-BKZ reaches DSD before BKZ on \emph{both} engines ($n=89$, $\beta=40$, $50$ tours, 20 seeds/cell, $b_1>1.5$).\label{tab:g6konset}}
-\begin{tabular}{rcccc}
+\caption{Cross-engine at $\beta=40$ under the proper two-part DSD criterion: both
+engines reach DSD-onset together ($q\approx196$--$211$) with no SD-vs-BKZ gap---an
+honest null. The separate min-GS-clearing event ($\min_i\log\|\mathbf{b}_i^\ast\|>1.5$
+alone: aggressive tail reduction, \emph{not} DSD) shows SD$>$BKZ on both engines
+and a sieve-vs-enum structural difference ($q=137$, 100 seeds).\label{tab:g6konset}}
+\begin{tabular}{lcccc}
 \toprule
  & \multicolumn{2}{c}{fplll (enum)} & \multicolumn{2}{c}{G6K (sieve)} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}
-$q$ & SD/BKZ & gap & SD/BKZ & gap \\
+ & SD & BKZ & SD & BKZ \\
 \midrule
-97, 113 & 0/0 & 0 (pre-onset) & 0/0 & 0 (pre-onset) \\
-137 & \textbf{8/1} & $+7$ & \textbf{14/4} & $+10$ \\
-157 & 20/18 & $+2$ & 20/19 & $+1$ \\
-$\ge181$ & 20/20 & 0 (sat.) & 20/20 & 0 (sat.) \\
+two-part DSD @ $q{=}137$            & 0/100 & 0/100 & 0/100 & 0/100 \\
+two-part DSD onset                  & \multicolumn{4}{c}{$q\approx196$--$211$, both engines, no gap} \\
+\midrule
+min-GS-clearing @ $q{=}137$         & 38/100 & 12/100 & 61/100 & 23/100 \\
+median $\min_i\log\|\mathbf{b}_i^\ast\|$ & 0.255 & 0.104 & \textbf{1.844} & 0.140 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-At $q=137$ SD-BKZ cracks DSD where BKZ does not---$8/20$ vs $1/20$ on fplll,
-$14/20$ vs $4/20$ on G6K---the same onset ($q\!\approx\!137$), same direction,
-same magnitude scale ($+7$ enum, $+10$ sieve). This is the DSD-onset gap of
-Table~\ref{tab:dsdgap} reproduced across a fundamentally different oracle, and
-on a matched $\beta$: it is therefore \emph{not} a $\beta=20$ artifact (both
-engines run $\beta=40$) and \emph{not} an engine artifact (enumeration and
-sieving alike). Both onsets sit at lower $q$ than the $\beta=20$ fplll onset
-($q{=}237$)---stronger reduction lowers the onset.
+The cross-engine result is therefore not a confirmation of the $\beta=20$
+DSD-onset gap of Section~\ref{sec:fatigue} but a \emph{regime constraint}: that
+gap is a $\beta=20$ phenomenon, while the sieve is only meaningful at
+$\beta\ge40$, and the two regimes do not overlap. What the matched-$\beta$
+comparison \emph{does} surface is a structural difference between the oracles
+themselves. The min-GS-clearing event---an aggressively reduced tail
+($\min_i\log\|\mathbf{b}_i^\ast\|>1.5$, short of full DSD collapse)---fires more
+often under SD-BKZ than BKZ on both engines ($38$ vs $12$ on fplll, $61$ vs $23$
+on G6K at $q=137$, 100 seeds), and the G6K sieve drives the shortest GS log-norm
+far higher than fplll enumeration on identical instances: median $1.844$ (sieve)
+vs $0.255$ (enum), a ${\sim}7\times$ gap. The sieve leaves a more
+aggressively-reduced sub-fatigue tail than enumeration. This is a genuine
+cross-engine observation---both engines start from the byte-identical primal
+basis ($100/100$ seeds) and the determinant is conserved to ${\sim}10^{-7}$
+(\texttt{results/validation/sieve\_vs\_enum\_min\_gs\_clearing.json})---but it is
+aggressive reduction, \emph{not} dense-sublattice discovery, and we label it as
+such.
 
-Crucially the gap is visible \emph{only} reference-free: on the seeds where
-SD-BKZ cracks DSD, the \emph{signed} $d(\mathrm{LN})$ advantage is large and
-\emph{negative}---mean $-21.9$ (fplll) and $-30.8$ (G6K) at $q=137$---because
-the DSD Z-shaped profile is far from the LWE-derived $d(\mathrm{LN})$ reference.
-This makes the ``signed $d(\mathrm{LN})$ is a reference artifact on NTRU'' point
-concrete and cross-engine: report reference-free DSD, never the signed
-advantage.
-% [TODO] tighten the gap magnitude with a finer q-grid 120-160 + 100 seeds at q=137.
+The reference-free observable remains essential on these cells: where the
+min-GS-clearing event fires, the \emph{signed} $d(\mathrm{LN})$ advantage is
+large and negative on both engines, because an aggressively reduced $q$-ary tail
+is far from the LWE-derived $d(\mathrm{LN})$ reference. Report the unsigned
+profile structure, never the signed advantage.
 
 \section{Re-Validating the fplll GSO Fix on a New Modulus Family}
 \label{sec:kahan}
@@ -443,11 +446,15 @@ $d(\mathrm{LN})$ advantage flips sign under the reference and must not be
 reported (Section~\ref{sec:bg-obs}); the defensible observables are the unsigned
 profile divergence and the DSD flag. Third, and most consequential, the
 DSD-onset \emph{gap}---SD-BKZ reaching dense-sublattice discovery at lower $q$
-than BKZ---grows with dimension (Section~\ref{sec:fatigue}) and reproduces on
-both an enumeration and a sieving oracle at a matched $\beta=40$
-(Section~\ref{sec:xengine}). A model that treats SD-BKZ and BKZ as
+than BKZ---grows with dimension at $\beta=20$ (Section~\ref{sec:fatigue}). At a
+matched $\beta=40$ the enumeration and sieving oracles instead \emph{agree}---both
+reach DSD-onset together, with no SD-vs-BKZ gap (Section~\ref{sec:xengine}); the
+gap is a $\beta=20$ phenomenon that does not overlap the sieve-meaningful regime.
+Where the two oracles differ at $\beta=40$ is the aggressiveness of sub-fatigue
+tail reduction---the G6K sieve clears the shortest GS vector markedly more than
+fplll enumeration on identical instances. A model that treats SD-BKZ and BKZ as
 RHF-equivalent (as the Root Hermite Factor, blind here, would suggest) misses
-that self-dual reduction crosses the overstretched threshold earlier.
+that at $\beta=20$ self-dual reduction crosses the overstretched threshold earlier.
 
 These findings sit alongside two lines of work. The $\beta=40$ regime and the
 Z-shaped $q$-ary profile geometry match the small-modulus forgery setting of
@@ -458,8 +465,11 @@ which abandons the Hermite-factor framing for a Rankin/dense-sublattice one---th
 same direction our reference-free observable points.
 
 We are careful about scope. The dimension-onset spike is shown at $\beta=20$,
-$q=97$; the cross-engine gap at $\beta=40$, $n=89$. The signed $d(\mathrm{LN})$
-is reported nowhere as a result. And $n=127$ is excluded from the onset trend
+$q=97$; the cross-engine comparison at $\beta=40$, $n=89$. The signed $d(\mathrm{LN})$
+is reported nowhere as a result; and the cross-engine comparison at $\beta=40$,
+$n=89$ is an honest null on the DSD-onset (a regime constraint, not a
+confirmation), its positive content being the sieve-vs-enum tail-reduction
+difference. And $n=127$ is excluded from the onset trend
 (Section~\ref{sec:fatigue}): the fplll \S8 cancellation contaminated those
 cells, and the circulant crack there is off-grid---it is a validation target
 (Section~\ref{sec:kahan}), not a trend point.
@@ -484,10 +494,12 @@ schema.
 On NTRU, the difference between BKZ and self-dual BKZ that the Root Hermite
 Factor cannot see is real, reference-free, and consequential: SD-BKZ reaches
 dense-sublattice discovery at a lower modulus than BKZ, with a gap that grows
-with dimension and that we observe on two fundamentally different reduction
-oracles at a matched block size. The companion paper argued the RHF is blind on
-LWE; this report shows the blindness persists on NTRU and on a sieve, exactly
-where it matters for the overstretched transition. The apparatus---a
+with dimension at $\beta=20$. At a matched $\beta=40$ the enumeration and sieving
+oracles agree on the onset---there they differ instead in how aggressively they
+reduce the sub-fatigue tail, the sieve markedly more than enumeration. The
+companion paper argued the RHF is blind on LWE; this report shows the blindness
+persists on NTRU and on a sieve, exactly where it matters for the overstretched
+transition. The apparatus---a
 determinism-gated, containerised, two-engine benchmark with per-seed evidence---is
 released so the measurements can be reproduced and extended.
 
