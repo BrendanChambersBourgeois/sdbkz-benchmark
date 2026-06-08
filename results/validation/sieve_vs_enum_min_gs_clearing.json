@@ -1,7 +1,21 @@
 {
   "validation": "sieve_vs_enum_min_gs_clearing",
   "date": "2026-06-06",
-  "status": "CANDIDATE finding -- needs the artifact check (see caveats) before it enters the paper",
+  "status": "CONFIRMED 2026-06-08 -- artifact check PASSED (see artifact_check). Genuine sieve reduction, not a g6k-construction quirk. Cleared to enter paper2 §5 as the cross-engine replacement headline.",
+  "artifact_check": {
+    "date": "2026-06-08",
+    "cell": "n=89 beta=40 mt50 p250 q137, both engines, 100 common seeds",
+    "method": "Raw-value comparison per q3329 lesson (check underlying values, not aggregates). gso() bit-identity primal test + determinant conservation + per-seed divergence + degeneracy/length guards.",
+    "tests": {
+      "primal_bit_identity": "initial_gs_lognorms identical fplll==g6k on 100/100 seeds -- both engines start from the SAME lattice. Difference is reduction behaviour, not construction.",
+      "det_conservation": "median |sum(gs_lognorms_final) - sum(initial)| = 9.8e-07 (fplll) / 2.2e-07 (g6k); max drift 1.3e-04 / 1.9e-05. Volume preserved both engines -- the 1.844 is NOT a normalization/scaling quirk.",
+      "b1_reproduce": "min(gs)>1.5 counts fplll SD=38, g6k SD=61 -- reproduce the candidate file EXACTLY.",
+      "divergence_asymmetry": "per-seed: both-hi=37, g6k-only=24, fplll-only=1, neither=38. g6k clears 24 seeds fplll misses vs only 1 the other way -- genuine, asymmetric, sieve more aggressive.",
+      "degeneracy_guard": "0 of the g6k min>1.5 seeds have a collapsed/constant profile (spread<1e-6) -- high min is a real cleared tail.",
+      "length_parity": "profile length 178==178 both engines -- no dropped/padded vectors."
+    },
+    "verdict": "PASS. g6k(sieve) genuinely leaves a more aggressively-reduced tail than fplll(enum) at beta=40 on identical instances."
+  },
   "summary": "The DSD-onset polish sweep (n=89, beta=40, q in {127,131,137,139,149,151}, q137 at N=100, both engines) shows: (1) proper two-part DSD = 0 everywhere on this sub-onset grid (confirms the §5 null cleanly); (2) the min-GS-clearing event (min(gs_lognorm) > 1.5, aggressive reduction, NOT DSD) reproduces an SD>BKZ gap at every q on BOTH engines; (3) a NEW cross-engine structural difference -- the g6k sieve drives the shortest GS vector far higher than fplll enumeration at the same n/q/beta/tours, i.e. the sieve leaves a much more aggressively-reduced tail.",
   "criteria": {
     "two_part_DSD": "short = #{i: gs_lognorm_i < 2.888} <= n+1  AND  min(gs_lognorm) > 1.5  (proper; 0 across this grid)",
@@ -34,7 +48,7 @@
   ],
   "caveats": [
     "NOT DSD: two-part criterion = 0 everywhere here (profile not collapsed, short > n+1). Must be labelled aggressive-reduction / tail min-GS, never DSD-onset.",
-    "ARTIFACT CHECK REQUIRED before publishing: the g6k self-dual pump-n-jump construction is ours (ADR-008). Confirm the 1.844 median is genuine sieve reduction and not a construction/orientation quirk -- e.g. compare against g6k primal-only BKZ min(gs), and against the gso() bit-identity check that already validated primal orientation. If it survives, 'sieve vs enum leave structurally different sub-fatigue bases at beta=40' is a real, new, paper-worthy cross-engine observation -- arguably more interesting than the DSD gap that did not survive.",
+    "ARTIFACT CHECK [RESOLVED 2026-06-08, PASSED -- see artifact_check block]: was required because the g6k self-dual pump-n-jump construction is ours (ADR-008). Confirmed the 1.844 median is genuine sieve reduction, not a construction/orientation quirk: primal bit-identity 100/100, det conserved to ~1e-7 both engines, b1 counts reproduce, divergence asymmetric (g6k-only 24 vs fplll-only 1), 0 degenerate profiles. 'sieve vs enum leave structurally different sub-fatigue bases at beta=40' is now a confirmed, paper-worthy cross-engine observation -- arguably more interesting than the DSD gap that did not survive.",
     "N=20 cells are noisy; only q137 (N=100) is tight. The medians on the N=20 cells (esp the sharp q137->q139 jump) want more seeds before they are load-bearing."
   ],
   "relation": "Companion to results/validation/dsd_criterion_sensitivity.json (which establishes the proper criterion + the §5 null). This record is the POSITIVE finding the sweep produced. Both feed the post-repaste §5 reckoning (combined (b)+(a) frame).",

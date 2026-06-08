@@ -1,0 +1,30 @@
+{
+  "validation": "ballout_20260607_byte_identity",
+  "date": "2026-06-08",
+  "status": "PASS -- WSL2-produced ball-out seeds are byte-identical (science fields) to a fresh re-derivation in the gate-pinned image. Certified load-bearing for paper2.",
+  "artifact": "Research/ops/wsl_ballout_seeds_20260607.tar.gz (1858 delta seeds, 57 ntru beta=20 cells n=67/79/89/101/113)",
+  "provenance": {
+    "platform": "WSL2 (Ubuntu-24.04 on Win11, i9-13900K). Initial host-side distro teardowns (idle + client-disconnect, see ops/wsl_crash_analysis_20260607.md) were FIXED (vmIdleTimeout=-1 + persistent keepalive client); full 1858-seed pool then ran clean to completion over ~1 day via run_packed.py.",
+    "image": "sdbkz-benchmark:ci (gate-pinned base python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c; image id 55f4c5b55ac7)",
+    "runner": "run_packed.py pooling the 57-cell list (byte-identical reduction path to per-cell run_campaign.py)",
+    "thread_note": "the WSL2 recipe omitted the *_NUM_THREADS=1 env vars present in the gate run; this affects crash-risk only (fork/import burst), NOT output -- the fplll/MPFR reduction is single-thread-deterministic. Run completed clean, no crash."
+  },
+  "gate_checks": {
+    "verify_sh": "PASS this session (n=50 beta=20 ref seeds, tolerance 1e-4, --check-only path: committed references intact).",
+    "spot_check_fresh_rederive": {
+      "method": "Decisive byte-identity test: took a WSL2-produced ball-out seed, fresh-re-derived it in the gate-pinned image on a SEPARATE host (VMware VM), compared.",
+      "seed": "results/seeds/ntru/q167/p250_mt50/n067_beta20/seed0050.json (cheapest cell)",
+      "raw_sha_differs": "yes -- but ONLY in 3 wall-clock fields (timestamp, bkz_time, sdbkz_time), which are non-deterministic by construction.",
+      "science_hash_match": "YES. sha256 over all 34 non-volatile fields (sorted, compact) = 4430457b6bc259c5a4a995244ad1e4761a88d626bd69e89901360531d8d846ae for BOTH the WSL2-original and the fresh VMware re-derivation.",
+      "verdict": "Identical reduction math. WSL2 did not drift the bits."
+    }
+  },
+  "merge_checks": {
+    "overlap": "0 (1858/1858 new vs repo)",
+    "contiguity": "57/57 cells contiguous repo[1..k]+tarball[k+1..N], 0 gaps, 0 overlaps",
+    "clamps": "0 sentinels",
+    "schema": "intact, 37-key seed schema",
+    "manifest": "rebuilt, ntru 2062->3920, 8741 total"
+  },
+  "note": "The manifest _sha256 hashes raw file bytes (a file index), so it is NOT a cross-run repro certificate -- wall-clock fields make raw SHA per-run. Reproducibility is certified on the science-field hash, as above."
+}
