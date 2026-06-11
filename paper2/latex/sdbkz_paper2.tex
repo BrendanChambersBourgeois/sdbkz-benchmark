@@ -272,7 +272,9 @@ whose seeds land in their own tree, never overwriting the canonical seeds.
 \section{The SD-BKZ Advantage Has a Dimension-Onset on NTRU}
 \label{sec:dimonset}
 
-On circulant NTRU at $q=97$ (standard regime), $\beta=20$, $50$ tours, the
+On circulant NTRU at $q=97$ ($\beta=20$, $50$ tours; standard regime
+throughout the sweep, though only marginally so at the smallest dimension:
+$q_\mathrm{fat}(59)\approx100$), the
 SD-BKZ-vs-BKZ advantage has a \emph{sharp} dimension transition, not a smooth
 ramp (20 seeds per $n$):
 
@@ -298,18 +300,22 @@ $0.20$--$0.33$, $20/20$ wins). The onset variance is not noise but bimodality: t
 at $n=71$ ranges from $-6.7$ to $+13.4$ ($n=73$: $-5.1$ to $+16.0$)---SD-BKZ
 cracks the dense sublattice on most instances and loses outright on the rest.
 The onset spike exceeds the plateau---non-monotonic
-(Figure~\ref{fig:dimonset}). One scale caveat: the NTRU $d(\mathrm{LN})$
-baseline (${\approx}50$) sits roughly $15\times$ above the LWE-Kannan scale,
-so advantage magnitudes are comparable within NTRU only---sign and structure,
-not raw nats, carry across to the companion paper.
+(Figure~\ref{fig:dimonset}; Table~\ref{tab:dimonset}). One scale caveat: the
+NTRU $d(\mathrm{LN})$ baseline (${\approx}50$) sits roughly an order of
+magnitude above the LWE-Kannan scale (final $d(\mathrm{LN})$ ${\approx}4$--$5$
+at the companion paper's central cells), so advantage magnitudes are
+comparable within NTRU only---sign and structure, not raw nats, carry across
+to the companion paper.
 
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=\linewidth]{figs/dimension_onset}
 \caption{NTRU SD-BKZ dimension-onset ($q=97$, $\beta=20$, 50 tours, 20 seeds
-per $n$, $\pm1\sigma$ band). The signed advantage is reference-robust at the
-spike (Section~\ref{sec:bg-obs}); shown here for the dimension transition.
-Recomputed from the per-seed \texttt{advantage} field.\label{fig:dimonset}}
+per $n$, $\pm1\sigma$ band; in the bimodal onset zone $n=71$--$73$ the band is
+a spread indicator only, not a distributional summary). The signed advantage
+is reference-robust at the spike (Section~\ref{sec:bg-obs}); shown here for
+the dimension transition. Recomputed from the per-seed \texttt{advantage}
+field.\label{fig:dimonset}}
 \end{figure}
 
 \section{Fatigue and the Cross-Dimension DSD-Onset Gap}
@@ -331,7 +337,7 @@ $n$ grows---the gap widens with dimension:
 
 \begin{table}[tbp]
 \centering
-\caption{Reference-free DSD-onset (proper two-part criterion): SD-BKZ reaches dense-sublattice discovery at lower $q$ than BKZ, the gap growing with $n$. Onsets are $50\%$-rate crossings, linearly interpolated between grid cells; gap\% is computed from these unrounded onsets (denominator: SD onset). Seed-backed across the $q$-sweep (up to 100 seeds/cell), including the $n=113$ endpoint from the completed precision ladder.\label{tab:dsdgap}}
+\caption{Reference-free DSD-onset (proper two-part criterion): SD-BKZ reaches dense-sublattice discovery at lower $q$ than BKZ, the gap growing with $n$. Onsets are $50\%$-rate crossings, linearly interpolated between grid cells; gap\% is computed from these unrounded onsets (denominator: SD onset). Bracketing cells carry $N=100$ seeds at $n\ge89$ and $N=20$ at $n=67/79$ (where the gap is ${\approx}0$); the $n=113$ endpoint comes from the completed precision ladder.\label{tab:dsdgap}}
 \begin{tabular}{rrrr}
 \toprule
 $n$ & SD onset $q$ & BKZ onset $q$ & gap\% \\
@@ -412,8 +418,9 @@ $n$ & G6K fired & fplll fired & Jaccard \\
 \end{table}
 
 \paragraph{At a matched $\beta=40$ the two engines agree: no DSD-onset gap.}
-We run the \emph{same} grid ($n=89$, $\beta=40$, $50$ tours, $q\in\{97,113,137,
-157,181,211\}$) on both the fplll enumeration engine and the G6K sieve, under
+We run the \emph{same} grid ($n=89$, $\beta=40$, $50$ tours, 15 moduli
+$q\in[97,211]$ including a dense onset window $q\in\{191,193,197,199\}$, 100
+seeds per cell) on both the fplll enumeration engine and the G6K sieve, under
 the \emph{proper} two-part DSD criterion: a basis has reached dense-sublattice
 discovery when its profile has collapsed onto the dense sublattice,
 $\#\{i:\log\|\mathbf{b}_i^\ast\| < \log\sqrt{2n\cdot2/3}+0.5\}\le n+1$
@@ -427,18 +434,20 @@ spurious ``matched cross-engine DSD gap''---a claim an earlier draft of this
 report made, and which the two-part criterion refutes (the audit record is
 \texttt{results/validation/dsd\_criterion\_sensitivity.json}). Under the
 proper criterion the cross-engine picture is a clean \emph{null}: at $q=137$
-neither SD-BKZ nor BKZ fires DSD on \emph{either} engine, and the true DSD
-onset lies in $(181,211]$, reached by SD-BKZ and BKZ \emph{together} on both
-oracles (Table~\ref{tab:g6konset}). The null is grid-resolution-limited:
-every cell at $q\le181$ is $0/N$ and $q=211$ is $20/20$, for both variants on
-both engines, so an SD-vs-BKZ gap below the single $181\!\to\!211$ grid step
-(${\approx}16\%$ relative, bracketing cells $N=20$) would be invisible.
+neither SD-BKZ nor BKZ fires DSD on \emph{either} engine, and the onset is
+pinned by the dense window at 100 seeds per cell---fplll SD $193.7$ / BKZ
+$193.8$, G6K SD $193.1$ / BKZ $194.0$, a $0\%$ SD-vs-BKZ gap on both oracles
+(Table~\ref{tab:g6konset}). The DSD rate rises smoothly through the window
+($37\%$ at $q=191$ to $85\%$ at $q=199$, $100\%$ at $q=211$, near-identical
+curves for both variants and both engines), so the null is
+measurement-resolved, not grid-limited: densifying from $N=40$ to $N=100$
+moved every onset by less than one modulus unit.
 
 \begin{table}[tbp]
 \centering
 \caption{Cross-engine at $\beta=40$ under the proper two-part DSD criterion: both
-engines reach DSD-onset together ($q\in(181,211]$) with no SD-vs-BKZ gap resolved
-at the grid spacing---an honest null. The separate min-GS-clearing event ($\min_i\log\|\mathbf{b}_i^\ast\|>1.5$
+engines reach DSD-onset together (${\approx}q=194$, dense onset window, 100
+seeds/cell) with no SD-vs-BKZ gap---an honest null. The separate min-GS-clearing event ($\min_i\log\|\mathbf{b}_i^\ast\|>1.5$
 alone: aggressive tail reduction, \emph{not} DSD) shows SD$>$BKZ on both engines
 and a sieve-vs-enum structural difference ($q=137$, 100 seeds).\label{tab:g6konset}}
 \begin{tabular}{lcccc}
@@ -448,7 +457,7 @@ and a sieve-vs-enum structural difference ($q=137$, 100 seeds).\label{tab:g6kons
  & SD & BKZ & SD & BKZ \\
 \midrule
 two-part DSD @ $q{=}137$            & 0/100 & 0/100 & 0/100 & 0/100 \\
-two-part DSD onset                  & \multicolumn{4}{c}{$q\in(181,211]$, both engines, no gap resolved} \\
+two-part DSD onset ($50\%$-rate)    & 193.7 & 193.8 & 193.1 & 194.0 \\
 \midrule
 min-GS-clearing @ $q{=}137$         & 38/100 & 12/100 & 61/100 & 23/100 \\
 median $\min_i\log\|\mathbf{b}_i^\ast\|$ & 0.255 & 0.104 & \textbf{1.844} & 0.140 \\
@@ -520,8 +529,8 @@ profile divergence and the DSD flag. Third, and most consequential, the
 DSD-onset \emph{gap}---SD-BKZ reaching dense-sublattice discovery at lower $q$
 than BKZ---grows with dimension at $\beta=20$ (Section~\ref{sec:fatigue}). At a
 matched $\beta=40$ the enumeration and sieving oracles instead \emph{agree}---both
-reach DSD-onset together, with no SD-vs-BKZ gap resolved at the grid spacing
-(Section~\ref{sec:xengine}); the
+reach DSD-onset together (within $1$ modulus unit at 100 seeds/cell,
+Section~\ref{sec:xengine}); the
 gap is a $\beta=20$ phenomenon that does not overlap the sieve-meaningful regime.
 Where the two oracles differ at $\beta=40$ is the aggressiveness of sub-fatigue
 tail reduction---the G6K sieve clears the shortest GS vector markedly more than
@@ -535,7 +544,12 @@ Ducas--Espitau--Postlethwaite~\cite{DEP2023}, where the same profile structure
 is the attack surface. And the move away from an RHF-centric view toward
 sublattice density echoes recursive lattice reduction~\cite{RecursiveReduction2023},
 which abandons the Hermite-factor framing for a Rankin/dense-sublattice one---the
-same direction our reference-free observable points.
+same direction our reference-free observable points. We do not benchmark
+against speed-oriented reduction tools such as \textsf{flatter}~\cite{RyanHeninger2023}:
+the object of study is basis \emph{structure} at a fixed reduction effort
+(profile convergence, DSD onset), not attack wall-clock, so the relevant
+comparison axis is oracle type (enumeration vs sieving), which
+Section~\ref{sec:xengine} covers.
 
 We are careful about scope. The dimension-onset spike is shown at $\beta=20$,
 $q=97$; the cross-engine comparison at $\beta=40$, $n=89$. The signed $d(\mathrm{LN})$
