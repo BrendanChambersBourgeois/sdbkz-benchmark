@@ -35,16 +35,25 @@ Versions follow loose SemVer. Bump on:
 - **`scripts/compare_xengine.py`** — cross-engine (fplll vs g6k) per-seed comparator → `results/validation/`.
 - **`results/validation/`** tree (ADR-007/008 determinism + cross-engine records, README, schema). Separate from the science seed trees; never enters `seed_manifest`.
 - Campaign config gains `backend` and `seed_tag` fields; `g6k_probe.py` gains `--tours`/`--reseed`; new campaigns `ntru_g6k_pilot`, `ntru_g6k_rhf`, `ntru_xeng_n89`, `ntru_xeng_tail`.
+- **NTRU β=20 ball-out**: 1,858 seeds across 57 cells (n=67–113 precision ladders), completing the DSD-onset trend end to end — including the n=113 endpoint. Manifest 4,741 → 8,741.
+- **`scripts/extract_dsd_onset.py`** — reference-free DSD-onset extractor (two-part criterion, 50%-rate crossing, per-n threshold); reproduces paper-2 Table 2 from the seed tree.
+- **`scripts/build_g6k_manifest.py`** — populates `g6k_seed_manifest.json` seeds[] from the on-disk G6K tree (verify-gated, threads=1 contract). 0 → 464 entries; the G6K campaign seeds now have full SHA-256 gate coverage (previously only the reference probe).
+- **Per-seed central logging**: both runners emit seed done/failed events to `logs/pipeline.jsonl`; seed JSONs untouched (byte-identity preserved).
 
 ### Changed
 - **Renamed the `paper/` directory to `paper1/`** for symmetry with `paper2/` (the NTRU cross-engine technical report). Updated the build target, figure-parity gate (`sync_paper_figures.py`, the CI step), `.dockerignore`/`.gitattributes`, the top-level-dir allowlist, and the current-facing docs (README, SECURITY, CONTRIBUTING). Historical CHANGELOG/audit/disclosure entries keep their original `paper/` paths as point-in-time records.
 - **Folded 3 duplicate engine loops onto a shared `_bkz_core.dln_trajectory`** (`run_3x_extended`, `run_convergence_test`, `overnight_experiments`) — removes the run_single-divergence hazard (ADR-001 class); per-seed JSON byte-identical.
 - CI `g6k-verify` flipped to a hard byte-identity gate (reference captured).
+- **DSD criterion finalised as the n-dependent two-part test** (collapse count ≤ n+1 at threshold log√(2n·2/3)+0.5 AND min log-norm > 1.5). The b1-only variant over-fires on sub-fatigue bases and is rejected; the frozen n=89 constant (2.888) is retained only as a documented sensitivity alternate. Paper-2 Table 2 regenerated under the canonical criterion (gap trend ≈0% → 28%, threshold-robust).
+- Paper-2 accuracy pass following an internal audit: §6 cross-engine soundness containment corrected (the record shows one sieve-only firing); §2.3 now defines the two-part criterion (was the rejected b1-only form); §7 clamp statistics restated from the event log (157 of 208 in the quoted range, 40 deeper); statistics relabelled (standard deviation vs variance; linear vs log-norm ratios); bibliography corrected (missing first author, wrong report title, citation-record title mismatch).
 
 ### Fixed
 - `Dockerfile.fplll_patched` ran as root → bind-mounted seeds were root-owned (INC-40, INC-32 recurrence); added the non-root `runner` USER. Existing root-owned `ntru_patched` seeds chowned back.
 - `dln_trajectory` no longer hardcodes the g6k Siever seed (latent determinism trap; fplll path was unaffected).
 - `_config` now validates `seed_tag` against known trees; `compare_xengine` guards missing rhf fields.
+- `lint_seed_manifest.py` orphan walk no longer flags the deliberately-separate trees (`results/validation/`, `results/seeds/ntru_g6k/`, `results/seeds/ntru_patched/`) — 487 false orphans → 0.
+- Top-level-dir test allowlist updated for the `paper/` → `paper1/`+`paper2/` rename (latent failure that would have surfaced at merge).
+- `CITATION.cff` cited the v1.5.0 version DOI as the concept DOI; now points at the true concept DOI (10.5281/zenodo.19686927) with the v2.0.0 version DOI as a second identifier. (Fixed on `main`, d951f11.)
 
 ## [2.0.0] — 2026-06-03
 
