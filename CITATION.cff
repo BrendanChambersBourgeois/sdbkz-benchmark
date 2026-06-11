@@ -21,11 +21,14 @@ version: "2.0.0"
 date-released: "2026-06-03"
 repository-code: "https://github.com/BrendanChambersBourgeois/sdbkz-benchmark"
 license: MIT
-doi: 10.5281/zenodo.19686928
+doi: 10.5281/zenodo.19686927
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.19686928
+    value: 10.5281/zenodo.19686927
     description: "Zenodo concept DOI (resolves to the latest version)"
+  - type: doi
+    value: 10.5281/zenodo.20518060
+    description: "Zenodo version DOI for v2.0.0"
 keywords:
   - lattice-reduction
   - BKZ
