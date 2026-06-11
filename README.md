@@ -353,7 +353,7 @@ The author thanks Dylan Chambers Bourgeois for contributing compute resources (A
 Core references for the benchmark design and the algorithms under test. The full 15-reference bibliography lives in the paper.
 
 - Li, J. & Nguyen, P.Q. (2024). "A Complete Analysis of the BKZ Lattice Reduction Algorithm." *Journal of Cryptology*. IACR ePrint 2020/1237. *(Defines the Rankin-profile fixed point and the d(LN) metric this benchmark is built around.)*
-- White, T. (2026). "Optimisation in BKZ: An analysis of dynamic block size." *AMSI Summer Research Scholarships 2025–26*, Deakin University. [Profile](https://srs.amsi.org.au/student-profile/trillion-white/) · [Report (PDF)](https://srs.amsi.org.au/wp-content/uploads/sites/92/2026/03/white_trill_srs-report.pdf)
+- White, T. (2026). "Dynamic analysis of lattice basis reduction algorithms." *AMSI Summer Research Scholarships 2025–26*, Deakin University. [Profile](https://srs.amsi.org.au/student-profile/trillion-white/) · [Report (PDF)](https://srs.amsi.org.au/wp-content/uploads/sites/92/2026/03/white_trill_srs-report.pdf)
 - [fplll](https://github.com/fplll/fplll) — Lattice algorithms library; every BKZ and SD-BKZ call in this benchmark goes through fplll 5.5.0.
 - [fpylll](https://github.com/fplll/fpylll) — Python bindings for fplll (0.6.4).
 - Micciancio, D. & Walter, M. (2016). "Practical, Predictable Lattice Basis Reduction." *EUROCRYPT 2016*, LNCS 9665, pp. 820–849. Full version: ePrint 2015/1123.
