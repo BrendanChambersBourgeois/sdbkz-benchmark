@@ -62,6 +62,19 @@ NON_SEED_DIRS = frozenset({
     "analysis",           # analysis rollups only
     "paper_claims",       # curated paper-evidence JSONs
     "3x_tours_extended",  # summary-JSON scratch dir (3x runner)
+    "validation",         # validation/ADR records, not seeds
+})
+
+# Seed trees under results/seeds/<campaign> that are DELIBERATELY not in
+# the fplll seed_manifest: skipped on the orphan walk.
+NON_MANIFEST_SEED_TREES = frozenset({
+    # G6K engine seeds — byte-identity owned by the SEPARATE
+    # results/g6k_seed_manifest.json (ADR-005; the two manifests must
+    # never be merged).
+    "ntru_g6k",
+    # Patched-fplll (Kahan) validation campaign — its own tree by
+    # design, never overwrites or joins the canonical seeds.
+    "ntru_patched",
 })
 
 # Filenames we explicitly do not flag (informational only, known
@@ -147,8 +160,13 @@ def collect_orphans(
 
     for root, dirs, files in os.walk(results_root):
         rel_root = os.path.relpath(root, results_root)
-        top = rel_root.split(os.sep)[0] if rel_root != "." else ""
+        rel_parts = rel_root.split(os.sep) if rel_root != "." else []
+        top = rel_parts[0] if rel_parts else ""
         if top in NON_SEED_DIRS:
+            dirs[:] = []
+            continue
+        if (len(rel_parts) >= 2 and top == NEW_LAYOUT_DIRNAME
+                and rel_parts[1] in NON_MANIFEST_SEED_TREES):
             dirs[:] = []
             continue
         for fname in files:
