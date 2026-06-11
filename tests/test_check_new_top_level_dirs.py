@@ -92,7 +92,7 @@ def test_allowlist_contains_expected_baseline():
     # Sanity check: the categories the audit doc mentions.
     expected = {
         "scripts", "tests", "analysis", "docs", "examples",
-        "paper", "patches", "results",
+        "paper1", "paper2", "patches", "results",
         ".github", ".claude",
         "logs", ".pytest_cache", ".ruff_cache",
     }
