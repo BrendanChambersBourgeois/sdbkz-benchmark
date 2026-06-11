@@ -6,21 +6,26 @@ dense-sublattice-discovery (DSD) onset is the modulus q at which the variant
 starts cracking the dense secret sublattice. A seed's output basis counts as
 DSD under the PROPER two-part reference-free criterion
 
-    short = #{i : log||b*_i|| < 2.888} <= n + 1   AND   min_i log||b*_i|| > 1.5
+    short = #{i : log||b*_i|| < log(sqrt(2n*2/3)) + 0.5} <= n + 1
+    AND   min_i log||b*_i|| > 1.5
 
 i.e. the profile has collapsed to the dense sublattice (at most n+1 vectors
-survive below the q-floor) AND the shortest GS vector clears the secret-norm
-floor. NOT the gs_lognorms[0] < 3.5 "fired" proxy (which double-bit us this
+survive below the secret-norm threshold) AND the shortest GS vector clears
+the floor. The short-count threshold is n-DEPENDENT (2.746 at n=67, 2.888 at
+n=89, 3.008 at n=113): the ternary-secret log-norm plus a 0.5-nat margin. NOT the gs_lognorms[0] < 3.5 "fired" proxy (which double-bit us this
 session), and NOT the b1>1.5 half alone -- that over-fires at small n, where a
 reduced-but-uncracked basis already has min(gs)>1.5 (e.g. n=67 q=97:
 min(gs)~1.7-2.0 but short=2n, no collapse). The onset q is the modulus at which
 the DSD rate crosses 0.5, linearly interpolated between bracketing cells.
 
-This reproduces the committed paper-2 trend (Table tab:dsdgap) EXACTLY at the
-well-bracketed cells -- n=89 (SD 237 / BKZ 281) and n=101 (426 / 514) -- and
-within ~15-20q at n=67/79. n=113 is grid-limited: the on-disk beta=20 q-sweep
-stops at q=523, below the curated 732/932 onset, so it returns None (the curated
-n=113 row is not backed by local seeds).
+This reproduces the committed paper-2 trend (Table tab:dsdgap) EXACTLY at all
+five rows -- n=67 144.6/145.4, n=79 171.2/171.0, n=89 238.0/283.3,
+n=101 428.6/512.2, n=113 729.2/930.4 -- seed-backed end to end since the
+2026-06-07 WSL2 ball-out completed the beta=20 precision ladder (grid now
+reaches q=1279 at n=113). SENSITIVITY: freezing the threshold at its n=89
+value 2.888 across the n-grid (the pre-2026-06-11 behaviour) shifts only the
+near-zero-gap rows (n=67 -> 166.6/167.5, n=79 -> 181.7/182.5, n=113 BKZ ->
+925.0) and leaves the gap trend unchanged (1,0,19,20,28 -> ...,27).
 
 Pure analysis -- reads results/seeds/, never runs a reduction. Reused for both
 engines (fplll tree results/seeds/ntru/, g6k tree results/seeds/ntru_g6k/) and
@@ -36,6 +41,7 @@ from __future__ import annotations
 import argparse
 import glob
 import json
+import math
 import os
 import sys
 
@@ -46,7 +52,14 @@ PIPELINE = get_logger("extract_dsd_onset")
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 B1_FLOOR = 1.5                      # secret-norm floor (log-norm)
-SHORT_THRESHOLD = 2.888             # q-floor: GS positions below this are "short"
+
+
+def short_threshold(n: int) -> float:
+    """n-dependent short-count threshold: ternary-secret log-norm + 0.5-nat
+    margin (log(sqrt(2n*2/3)) + 0.5; = 2.888 at n=89)."""
+    return 0.5 * math.log(2 * n * 2 / 3) + 0.5
+
+
 DEFAULT_RATE = 0.5                  # onset = DSD-rate crossing of this fraction
 ENGINE_TREE = {"fplll": "ntru", "g6k": "ntru_g6k"}
 # The committed paper-2 5-point trend (Table tab:dsdgap), beta=20, fplll.
@@ -62,7 +75,7 @@ def _is_dsd(seed: dict, variant: str, n: int) -> bool:
     gs = seed.get(f"gs_lognorms_{variant}") or []
     if not gs:
         return False
-    short = sum(1 for x in gs if x < SHORT_THRESHOLD)
+    short = sum(1 for x in gs if x < short_threshold(n))
     return short <= n + 1 and min(gs) > B1_FLOOR
 
 

@@ -1,19 +1,21 @@
 """Paper 2, Figure 2: NTRU DSD-onset gap grows with dimension.
 
-SD-BKZ vs BKZ reference-free DSD-onset modulus (smallest q at which the
-variant flags dense-sublattice discovery, b1>1.5) as a function of n, with
+SD-BKZ vs BKZ reference-free DSD-onset modulus (proper two-part criterion:
+short count <= n+1 with the n-dependent threshold log(sqrt(2n*2/3))+0.5 AND
+b1 > 1.5; 50%-rate crossing, linearly interpolated) as a function of n, with
 the SD-vs-BKZ gap% annotated. SD-BKZ reaches DSD at progressively lower q
-than BKZ as n grows (gap 0 -> 27%).
+than BKZ as n grows (gap ~0 -> 28%).
 
 DATA PROVENANCE: the per-(n, variant) onset moduli below are the committed
-5-point trend (paper2 Table tab:dsdgap), now SEED-BACKED end to end under the
-proper two-part DSD criterion (scripts/extract_dsd_onset.py, 50%-rate crossing).
-The 2026-06-07 ball-out completed the beta=20 ladder, so all five rows now
-reproduce from on-disk seeds: n=67 167/168, n=79 182/183, n=89 238/283,
-n=101 429/512, n=113 729/925 (the endpoint lands in the predicted 719-773 band;
-the earlier "n=113 unreproducible" was an extractor glob bug, p250-only). The
-criterion-suspect endpoint caveat is resolved. See
-results/validation/dsd_criterion_sensitivity.json and
+5-point trend (paper2 Table tab:dsdgap), SEED-BACKED end to end under the
+proper two-part DSD criterion (scripts/extract_dsd_onset.py, 50%-rate
+crossing, n-dependent threshold since 2026-06-11). The 2026-06-07 ball-out
+completed the beta=20 ladder, so all five rows reproduce from on-disk seeds:
+n=67 144.6/145.4, n=79 171.2/171.0, n=89 238.0/283.3, n=101 428.6/512.2,
+n=113 729.2/930.4 (the endpoint lands in the predicted 719-773 band; the
+earlier "n=113 unreproducible" was an extractor glob bug, p250-only). gap%
+is computed from the unrounded onsets.
+See results/validation/dsd_criterion_sensitivity.json and
 results/seed_manifest.json.
 """
 import os
@@ -24,13 +26,13 @@ from .._style import COLORS
 
 # (n, SD onset q, BKZ onset q, gap%) -- mirrors paper2 Table tab:dsdgap
 # exactly. Seed-backed (two-part criterion, extract_dsd_onset --trend), so
-# figure and table never disagree.
+# figure and table never disagree. gap% computed from unrounded onsets.
 ONSET_TREND = [
-    (67, 167, 168, 1),
-    (79, 182, 183, 0),
-    (89, 238, 283, 19),
-    (101, 429, 512, 20),
-    (113, 729, 925, 27),
+    (67, 144.6, 145.4, 1),
+    (79, 171.2, 171.0, 0),
+    (89, 238.0, 283.3, 19),
+    (101, 428.6, 512.2, 20),
+    (113, 729.2, 930.4, 28),
 ]
 
 
@@ -54,7 +56,7 @@ def fig_ntru_dsd_onset_trend(output_dir=".", fname="dsd_onset_trend.png"):
                     color="#334155", va="center")
 
     ax.set_xlabel("NTRU parameter $n$")
-    ax.set_ylabel(r"DSD-onset modulus $q$ (reference-free, $b_1>1.5$)")
+    ax.set_ylabel(r"DSD-onset modulus $q$ (reference-free, two-part criterion)")
     ax.set_title(r"SD-BKZ reaches DSD at lower $q$ than BKZ; gap grows with $n$"
                  "\n" r"($\beta=20$, gap% labelled)")
     ax.legend(loc="upper left", framealpha=0.9)
