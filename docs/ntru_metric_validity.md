@@ -150,6 +150,16 @@ not the signed d(LN) advantage, is the NTRU result to carry into Phase 4.
 
 ### Phase 4 — gap-vs-n trend (5 clean points, n=127 excluded)
 
+> **SUPERSEDED (2026-06-11).** Canonical trend = `scripts/extract_dsd_onset.py
+> --trend` (two-part criterion `#{gs < log√(2n·2/3)+0.5} <= n+1 ∧ min(gs) >
+> 1.5`, n-dependent threshold, 50%-rate crossing, up to 100 seeds/cell after
+> the 2026-06-07 ball-out): 67: 144.6/145.4 g1 · 79: 171.2/171.0 g0 ·
+> 89: 238.0/283.3 g19 · 101: 428.6/512.2 g20 · 113: 729.2/930.4 g28 (paper-2
+> Table tab:dsdgap). The table below is the original ~15–20-seed extraction
+> under this doc's `short==n ∧ b1→floor` criterion — kept as history; it
+> lands within grid resolution of the canonical numbers. Criterion lineage +
+> correction record: Research drive paper_findings.md (2026-06-11 entries).
+
 DSD onset (rate crossing 50%; short-count→n ∧ b1→floor) per variant, swept
 in q across each n's crack zone, ~15–20 seeds/cell:
 

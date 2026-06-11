@@ -49,5 +49,16 @@
     "Polish sweep ALLOWED to finish (characterises the min-GS-clearing SD>BKZ signal at fine q); it samples q127-157, below the true DSD onset 181-211.",
     "n=113 beta20 high-q regen + a finer beta40 q181-211 grid are both new BKZ runs, HELD until the sweep frees cores."
   ],
-  "reproduce": "python3 scripts/extract_dsd_onset.py --trend                 # beta20 §4 trend\n           python3 scripts/extract_dsd_onset.py --n 89 --beta 40 --engine g6k --show-curve   # §5"
+  "reproduce": "python3 scripts/extract_dsd_onset.py --trend                 # beta20 §4 trend\n           python3 scripts/extract_dsd_onset.py --n 89 --beta 40 --engine g6k --show-curve   # §5",
+  "followup_20260611": {
+    "status": "RESOLVED",
+    "resolution": [
+      "Reckoning landed 2026-06-08 (paper2 §4/§5 rewrite, commit 4d18602); this record's OPEN status and 'prose NOT yet revised' are historical.",
+      "n=113 IS seed-backed since the 2026-06-07 ball-out (grid to q1279); 'grid stops q523' was pre-ball-out + an extractor glob bug (p250-only, fixed 2026-06-08).",
+      "n=67 'provenance lost' RESOLVED: the curated 146/149 (and 175/175 at n=79) reproduce under the n-DEPENDENT short threshold log(sqrt(2n*2/3))+0.5 (2.746 at n=67). The 'fires nowhere below q167' observation was an artifact of the extractor's then-hardcoded n=89 constant 2.888, not lost provenance.",
+      "2026-06-11: extractor switched to the n-dependent threshold (maintainer call). Canonical trend now 67:144.6/145.4 g1, 79:171.2/171.0 g0, 89:238.0/283.3 g19, 101:428.6/512.2 g20, 113:729.2/930.4 g28. Frozen-2.888 alternate: 166.6/167.5, 181.7/182.5, same 89/101, 113 BKZ 925.0 g27. Gap trend threshold-robust."
+    ],
+    "criteria_note": "the 'two_part_proper' 2.888 above is the n=89 instantiation of the n-dependent formula; canonical criterion uses log(sqrt(2n*2/3))+0.5 per n",
+    "record": "correction chain on Research drive paper_findings.md (2026-06-11 entries)"
+  }
 }
