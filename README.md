@@ -45,21 +45,21 @@ Or with `docker compose`, export the env first (compose expands `${UID}`/`${GID}
 
 ## Engineering TL;DR
 
-This repo is (a) the empirical data + paper for a 4,821-seed lattice-reduction benchmark (v1.5.0 Zenodo deposit: 4,541 seeds; +280 follow-up seeds across post-flip cliff-bracket extensions and the n=140 variance-fill), and (b) a case study in defensive engineering for numerical experiments. The headline finding is a **catastrophic-cancellation bug in fplll's Gram–Schmidt recurrence** (`fplll/gso_interface.cpp:147–151`) that corrupts 38% of bases at q=3329 n=100 β=30 with 1000-bit MPFR. A 30-line Kahan-compensated patch drops the rate to 0/55, passes all 15 fplll regression tests, and reproduces bit-identical across Intel 13900K and AMD 9950X3D. The bug is a new instance of the cancellation family in fpylll #272; the patch was filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08 (closed unmerged 2026-05-17; the patch ships in-repo and paper §8 stands on its own). See paper §8 and `patches/fplll_gso_kahan.patch`.
+This repo is (a) the empirical data + papers for a two-engine lattice-reduction benchmark — 8,741 manifest-gated fplll seeds (LWE-Kannan + NTRU campaigns) plus 464 G6K sieve seeds under a separate engine manifest — and (b) a case study in defensive engineering for numerical experiments. Paper 1 (LWE-Kannan, published via Zenodo) is joined by paper 2 (in progress, `paper2/`): NTRU dense-sublattice-discovery onset and a cross-engine (enumeration vs sieving) study with G6K wired as a second reduction engine behind a determinism-gated seam. The headline finding is a **catastrophic-cancellation bug in fplll's Gram–Schmidt recurrence** (`fplll/gso_interface.cpp:147–151`) that corrupts 38% of bases at q=3329 n=100 β=30 with 1000-bit MPFR. A 30-line Kahan-compensated patch drops the rate to 0/55, passes all 15 fplll regression tests, and reproduces bit-identical across Intel 13900K and AMD 9950X3D. The bug is a new instance of the cancellation family in fpylll #272; the patch was filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08 (closed unmerged 2026-05-17; the patch ships in-repo and paper §8 stands on its own). See paper §8 and `patches/fplll_gso_kahan.patch`.
 
-The rest of the repo is the infrastructure that made finding it possible: pinned Docker builds, SHA-256-verified seed manifest (4,821 entries, lint-gated in CI), byte-identical numerical output across three environments, per-claim evidence ledger, and 215 unit tests covering clamp semantics, file-identity dedup, manifest integrity, path migration, statistical helpers, and the v2.0.0 symlink-drop regression guard.
+The rest of the repo is the infrastructure that made finding it possible: pinned Docker builds, SHA-256-verified seed manifests (8,741 fplll entries + 464 G6K entries, both lint-gated in CI), byte-identical numerical output across three environments, per-claim evidence ledger, and 289 unit tests covering clamp semantics, file-identity dedup, manifest integrity, path migration, statistical helpers, NTRU construction checks, and the v2.0.0 symlink-drop regression guard.
 
 ## Engineering highlights
 
 - **fplll cancellation bug + Kahan patch.** Paper §8.3 isolates a never-flagged numerical pathology in fplll's GSO computation triggered at cryptographic moduli. Full chain: diagnostic script → raw `get_r()` capture → cross-machine reproduction → algorithm-level root cause → 30-line patch → 55-seed regression rerun. `patches/fplll_gso_kahan.patch` is drop-in on fplll HEAD (commit `1987472`); filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08 (closed unmerged 2026-05-17; ships in-repo).
 
-- **Verify-gated seed manifest.** `results/seed_manifest.json` indexes every seed file with SHA-256, size, mtime, verified flag, per-seed advantage. `scripts/lint_seed_manifest.py` checks three invariants on every CI run — no orphan files, no ghost entries, no hash drift. 4,821 entries (4,541 in the v1.5.0 Zenodo deposit + 280 post-deposit additions from the cliff bracket extensions and the n=140 variance-fill); 0 violations across the v1.3.x → v1.5.x → v2.0.0 release chain.
+- **Verify-gated seed manifests.** `results/seed_manifest.json` indexes every fplll seed file with SHA-256, size, mtime, verified flag, per-seed advantage — 8,741 entries across 7 campaigns; `scripts/lint_seed_manifest.py` checks three invariants on every CI run (no orphan files, no ghost entries, no hash drift), 0 violations across the v1.3.x → v2.x release chain. The G6K engine has its own manifest (`results/g6k_seed_manifest.json`, 464 entries, `scripts/lint_g6k_manifest.py`) — the two engines' hashes are not comparable and are never merged (ADR-005).
 
 - **Bit-identical reproducibility across 3 environments.** Intel 13900K / AWS Batch / AMD 9950X3D all produce byte-identical seed JSONs (SHA-256 hash of 100 seeds verified in `hash_verification.txt`). Different MPFR minor versions (4.2.0 vs 4.2.1), different CPU vendors, different container runtimes — no drift.
 
 - **Append-only audit chain.** `results/clamp_events.jsonl` logs every defensive clamp fire (non-positive `get_r` value) with timestamp, script name, seed context. Never truncated per policy. `logs/pipeline.jsonl` receives structured events from every committed script (enforced by `scripts/lint_logging.py`).
 
-- **CI-gated numerical reproducibility.** `.github/workflows/build-and-verify.yml` runs on every push: Docker build from scratch → import smoke tests → 214-test pytest suite (mypy strict on numerical-core, ruff F/W/I/B/UP, pytest --cov 75% floor) → `verify.sh` regenerating one seed in a fresh container and comparing SHA-256 → `validate_seeds.py` schema + volume-drift checks → `lint_seed_manifest.py` + paper-figure parity gate. Any regression in any of these fails the build.
+- **CI-gated numerical reproducibility.** `.github/workflows/build-and-verify.yml` runs on every push: Docker build from scratch → import smoke tests → 289-test pytest suite (mypy strict on numerical-core, ruff F/W/I/B/UP, pytest --cov 75% floor) → `verify.sh` regenerating one seed in a fresh container and comparing SHA-256 → `verify_g6k.sh` exact-SHA gate on the G6K engine → `validate_seeds.py` schema + volume-drift checks → manifest lints + paper-figure parity gate. Any regression in any of these fails the build.
 
 - **Incident-driven hardening.** Repo policies are written against real operational incidents, not conjectured ones. Defensive clamps must log raw values before substituting (introduced after a clamp hid the real `get_r` return for 9 days and produced a wrong Section 8 in a draft paper — see [`docs/incident_q3329_post_mortem.md`](docs/incident_q3329_post_mortem.md)). Data is never deleted without backup. `sudo` paths require explicit opt-in.
 
@@ -77,18 +77,20 @@ flowchart LR
   A -->|structured events| I[logs/pipeline.jsonl]
 ```
 
-Every writer routes through `scripts/_seed_paths.py::seed_path_for()`. Every reader queries the manifest. Cross-validation via SHA-256 on read. The campaign tree (`main`, `q3329`, `cliff500`, `fplll_sensitivity`, `tours3x`, `convergence`) is the single source of truth post-v1.3.
+Every writer routes through `scripts/_seed_paths.py::seed_path_for()`. Every reader queries the manifest. Cross-validation via SHA-256 on read. The campaign tree (`main`, `q3329`, `cliff500`, `fplll_sensitivity`, `tours3x`, `convergence`, `ntru`, plus the engine-separate `ntru_g6k` and validation-only `ntru_patched`) is the single source of truth post-v1.3.
 
 **v2.0.0 layout change.** The pre-v1.3 top-level seed directories (`results/raw/`, `results/cloud/`, `results/q3329/`, `results/cliff_500bit/`, `results/3x_tours/`, `results/convergence/`, `results/convergence_test/`, `results/fplll5*_sensitivity/`, etc.) lived as back-compat symlinks from v1.3 through v1.5.2 to give external citations time to re-path. They were retired at v2.0.0; `results/seed_path_crosswalk.csv` (4,387 rows, committed) is the permanent old→new reconciler. Any paper-era reference to a pre-v2 path resolves through that crosswalk to the canonical `results/seeds/<campaign>/...` location.
 
 ## License
 
 - **Code** (scripts, analysis, Docker, patches): [MIT](LICENSE)
-- **Paper and data** (`paper1/`, `results/`): [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Papers and data** (`paper1/`, `paper2/`, `results/`): [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)
 
-This project benchmarks the **self-dual BKZ (SD-BKZ)** algorithm against standard BKZ for lattice basis reduction on LWE-Kannan embedding lattices. It measures convergence to the Li–Nguyen fixed-point Rankin profile across 11 lattice dimensions (n=50–150), 3 block sizes (β=20, 30, 40), and 100 random seeds per configuration (122 for the four variance-filled groups) — 3,388 runs total.
+## Project scope
 
-## Current results
+This project benchmarks the **self-dual BKZ (SD-BKZ)** algorithm against standard BKZ for lattice basis reduction. Paper 1 measures convergence to the Li–Nguyen fixed-point Rankin profile on LWE-Kannan lattices across 11 dimensions (n=50–150), 3 block sizes (β=20, 30, 40), and 100 random seeds per configuration (122 for the four variance-filled groups) — 3,388 main-sweep runs. Paper 2 (in progress) extends to circulant NTRU — dimension-onset of the SD-BKZ advantage, a reference-free dense-sublattice-discovery (DSD) onset gap that grows with dimension, and a cross-engine study running the same instances through fplll's exact enumeration oracle and the G6K sieve.
+
+## Current results (paper 1)
 
 **More than 4,000 independent trials.** The main sweep is complete: 33 of 33 (n, β) groups at 100 seeds each — 122 for the four variance-filled groups — (3,388 runs). Beyond the main sweep: 500 seeds in 3× tour capability experiments, 40 seeds in 500-tour convergence tests (20 each at n=90 and n=140, β=30), 100 seeds in the q=3329 n=100 β=30 characterisation at 1000-bit MPFR, and 80 seeds in q=3329 verification at n=50/70/80/90 (β=30). The cloud campaign (AWS Batch) is complete and decommissioned as of 2026-04-10; all remaining work runs locally. Zero data loss across the campaign.
 
@@ -125,9 +127,9 @@ Key findings (ordered most to least critical):
 
 - SD-BKZ costs 2.3–2.7× the runtime of BKZ across all configurations.
 
-## Paper and patches
+## Papers and patches
 
-The `paper1/` directory holds the technical writeup documenting the benchmark design, results, and the fplll numerical bug findings. Generated from `paper1/latex/` via `make`. Ships in both HTML and LaTeX form alongside the benchmark code:
+The `paper1/` directory holds the technical writeup documenting the benchmark design, results, and the fplll numerical bug findings; `paper2/` holds the in-progress NTRU + cross-engine technical report (`paper2/latex/`, same `make` flow). Paper 1 is generated from `paper1/latex/` via `make` and ships in both HTML and LaTeX form alongside the benchmark code:
 
 | File | Purpose |
 |---|---|
