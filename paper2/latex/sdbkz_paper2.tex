@@ -610,8 +610,11 @@ On NTRU, the difference between BKZ and self-dual BKZ that the Root Hermite
 Factor cannot see is real, reference-free, and consequential: SD-BKZ reaches
 dense-sublattice discovery at a lower modulus than BKZ, with a gap that grows
 with dimension at $\beta=20$. At a matched $\beta=40$ the enumeration and sieving
-oracles agree on the onset---there they differ instead in how aggressively they
-reduce the sub-fatigue tail, the sieve markedly more than enumeration. The
+oracles agree on the onset at $n=89$---there they differ instead in how
+aggressively they reduce the sub-fatigue tail, the sieve markedly more
+than enumeration. At $n=101$ the gap reopens on the fplll oracle to
+$9\%$ (SD $257.3$ / BKZ $280.7$, Section~\ref{sec:xengine}); whether it
+survives cross-engine is open. The
 companion paper argued the RHF is blind on LWE; this report shows the blindness
 persists on NTRU and on a sieve, exactly where it matters for the overstretched
 transition. The apparatus---a
