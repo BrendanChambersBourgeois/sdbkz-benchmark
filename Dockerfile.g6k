@@ -97,10 +97,25 @@ RUN git clone https://github.com/fplll/fpylll.git /tmp/fpylll \
 # so g6k's setup.py finds the installed fpylll (it imports fpylll to resolve
 # include paths) + Cython. Installs the g6k package + compiled siever exts
 # into site-packages so `import g6k` works with no PYTHONPATH gymnastics.
+#
+# G6K_MAX_SIEVING_DIM: kernel/siever.h caps the sieving context at
+# MAX_SIEVING_DIM (default 128). g6k's setup.py runs ./configure itself
+# (with no arguments) when no Makefile exists, so env CXXFLAGS defines
+# are NOT honoured — the knob is configure's --with-max-sieving-dim
+# (configure.ac AC_ARG_WITH), which must be run BEFORE pip install.
+# Our NTRU lattices have dim=2n; n>=101 (dim 202) exceeds the default
+# cap and G6K refuses to sieve. Build with
+# --build-arg G6K_MAX_SIEVING_DIM=256 for an n>=101-capable image
+# (larger fixed-size vector arrays; byte-identity vs the 128-build must
+# be re-gated — verify_g6k.sh against the captured reference decides
+# whether the reference SHAs carry over).
 ARG G6K_COMMIT=c71e084
+ARG G6K_MAX_SIEVING_DIM=128
 RUN git clone https://github.com/fplll/g6k.git /tmp/g6k \
     && cd /tmp/g6k \
     && git checkout ${G6K_COMMIT} \
+    && autoreconf -i \
+    && ./configure --with-max-sieving-dim=${G6K_MAX_SIEVING_DIM} \
     && pip install --no-cache-dir --no-build-isolation . \
     && rm -rf /tmp/g6k
 
