@@ -360,7 +360,8 @@ The extraction evaluates the short-count threshold per $n$
 the grid shifts only the near-zero-gap rows ($n=67$: $166.6/167.5$; $n=79$:
 $181.7/182.5$; $n=113$ BKZ $925.0$, gap $27\%$) and leaves the gap trend
 unchanged---the trend is threshold-robust. $n=127$ is excluded
-(fplll \S8 catastrophic cancellation + an off-grid crack). The widening is
+(fplll GSO catastrophic cancellation~\cite[\S8]{Paper1}, re-validated
+in Section~\ref{sec:kahan}, plus an off-grid crack). The widening is
 shown in Figure~\ref{fig:dsdgap}.
 
 \begin{figure}[tbp]
@@ -581,8 +582,9 @@ generalises: a binary structural flag should test the structure (here, profile
 collapse onto the sublattice), not a single order statistic that aggressive
 reduction can satisfy without the structure being present. And $n=127$ is
 excluded from the onset trend
-(Section~\ref{sec:fatigue}): the fplll \S8 cancellation contaminated those
-cells, and the circulant crack there is off-grid---it is a validation target
+(Section~\ref{sec:fatigue}): the fplll GSO cancellation
+~\cite[\S8]{Paper1} contaminated those cells, and the circulant crack
+there is off-grid---it is a validation target
 (Section~\ref{sec:kahan}), not a trend point.
 
 \section{Reproducibility}
