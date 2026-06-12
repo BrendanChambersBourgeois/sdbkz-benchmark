@@ -14,13 +14,14 @@ module-level knobs and calls its `main()`.
 
 Usage examples:
     # n=150 β=30 1000-tour, 20 seeds, 22 workers (defaults match paper §5.3)
-    nohup python3 scripts/run_convergence.py --n 150 --max-tours 1000 \\
-        > logs/convergence_n150_mt1000_stdout.log 2>&1 &
+    tmux new-session -d -s conv \
+        'python3 scripts/run_convergence.py --n 150 --max-tours 1000'
 
     # custom block size + seed count
-    nohup python3 scripts/run_convergence.py --n 120 --max-tours 500 \\
-        --beta 40 --seeds 40 \\
-        > logs/convergence_n120_beta40_mt500_stdout.log 2>&1 &
+    tmux new-session -d -s conv \
+        'python3 scripts/run_convergence.py --n 120 --max-tours 500 --beta 40 --seeds 40'
+
+    # progress: logs/pipeline.jsonl (structured events; no stdout side-files in logs/)
 
 Output path (inherited from run_convergence_test._seed_paths):
     results/seeds/convergence/q97/n{n:03d}_beta{beta:02d}_mt{max_tours}/

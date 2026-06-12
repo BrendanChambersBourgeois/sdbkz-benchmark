@@ -50,7 +50,7 @@ NS = [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160]
 #                                                          ^ new
 ```
 
-Then run `nohup python3 scripts/sweep_parallel.py > logs/nohup.out 2>&1 &`. The script is resumable — it skips seeds already present under `results/seeds/main/q97/`.
+Then run `tmux new-session -d -s sweep 'python3 scripts/sweep_parallel.py'` (progress: `logs/pipeline.jsonl`). The script is resumable — it skips seeds already present under `results/seeds/main/q97/`.
 
 ---
 

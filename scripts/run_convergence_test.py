@@ -7,7 +7,8 @@ fixed-point profile shape. Addresses reviewer concern that SD-BKZ may
 converge to a different fixed point than the Li-Nguyen BKZ fixed point.
 
 Usage:
-    nohup python3 scripts/run_convergence_test.py > logs/convergence_stdout.log 2>&1 &
+    tmux new-session -d -s conv 'python3 scripts/run_convergence_test.py'
+    # progress: logs/pipeline.jsonl (structured events; no stdout side-files in logs/)
 
 Output: results/seeds/convergence/q97/n{N:03d}_beta{BETA:02d}_mt{MAX_TOURS}/
         (resolved via `_seed_paths.seed_dir_for`, post-v2.0.0 layout)

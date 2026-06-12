@@ -29,8 +29,8 @@ From the seed-1 data: initial post-LLL state is clean (min gs_lognorm
 the degeneracy appears DURING BKZ, not at LLL setup.
 
 Usage:
-    nohup python3 analysis/investigate_q3329_get_r.py \\
-        > logs/investigate_q3329_get_r.log 2>&1 &
+    tmux new-session -d -s q3329 'python3 analysis/investigate_q3329_get_r.py'
+    # progress: logs/pipeline.jsonl
 
 Per-tour cost at n=100 β=30 1000-bit MPFR is ~8-12 minutes. The
 script stops at the first tour where any position hits `r_val ≤ 0`,

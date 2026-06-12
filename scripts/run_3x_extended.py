@@ -6,7 +6,8 @@ Tests whether BKZ at 3x the tour budget can match SD-BKZ at 1x.
 4 groups run sequentially, seeds within each group run in parallel.
 
 Usage:
-    nohup python3 scripts/run_3x_extended.py > logs/3x_extended_stdout.log 2>&1 &
+    tmux new-session -d -s 3x 'python3 scripts/run_3x_extended.py'
+    # progress: logs/pipeline.jsonl (structured events; no stdout side-files in logs/)
 
 Output: results/3x_tours_extended/
 """

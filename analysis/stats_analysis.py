@@ -6,7 +6,8 @@ READ-ONLY on results directory. Safe to run while sweep_parallel.py is active.
 Computes: paired t-test, Wilcoxon signed-rank, Cohen's d, Cliff's δ,
 95% CIs, Holm-Bonferroni adjusted p-values, skewness.
 Reads from: results/seed_manifest.json (campaign-keyed, default `main`).
-Writes to:  <repo>/logs/stats_output.txt (and prints to stdout)
+Prints to stdout; structured completion event to logs/pipeline.jsonl.
+Redirect stdout yourself if a saved copy is wanted (keep it out of the repo).
 
 Usage:
     python3 stats_analysis.py
@@ -40,7 +41,6 @@ PIPELINE = get_logger("stats_analysis")
 
 # ── Config ──────────────────────────────────────────────────────────────────
 DEFAULT_RAW_DIR = os.path.join(REPO_ROOT, "results", "raw")
-OUTPUT_FILE = os.path.join(REPO_ROOT, "logs", "stats_output.txt")
 
 
 def compute_stats(advantages):
@@ -267,16 +267,8 @@ def main():
     out("  exclude zero in every group. These statistics confirm that the d(LN) advantage")
     out("  is not a statistical artifact but a consistent structural phenomenon.")
 
-    # ── Write output file ──
-    try:
-        with open(OUTPUT_FILE, 'w') as f:
-            f.write('\n'.join(output_lines))
-        out()
-        out(f"Output saved to: {OUTPUT_FILE}")
-    except Exception as e:
-        out(f"Could not save output file: {e}")
-
-    PIPELINE.info("stats_analysis complete", cat="analysis")
+    PIPELINE.info("stats_analysis complete", cat="analysis",
+                  lines=len(output_lines))
 
 
 if __name__ == '__main__':

@@ -181,7 +181,8 @@ bash scripts/verify.sh
 docker compose up sweep
 
 # Or directly (recommended for long-running sweep)
-nohup python3 scripts/sweep_parallel.py > logs/nohup.out 2>&1 &
+tmux new-session -d -s sweep 'python3 scripts/sweep_parallel.py'
+# progress: structured events in logs/pipeline.jsonl
 ```
 
 The sweep is fully resumable — it scans `results/seeds/main/q97/` at startup and skips completed work. Results are written as individual JSON files per (n, β, seed) triple. A summary is regenerated every 10 completions to `results/summary.json`.
