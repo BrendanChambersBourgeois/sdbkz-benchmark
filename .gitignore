@@ -59,3 +59,9 @@ _archives/
 .coverage
 .coverage.*
 htmlcov/
+
+# paper2 built PDF — regenerated on every audit pass; was causing pack
+# churn (paper1 history alone is 72 versions / 225 MB cumulative). paper1
+# PDF stays tracked (published Zenodo artifact). Active TeX builds via
+# pdflatex into paper2/latex/ on demand.
+paper2/latex/*.pdf
