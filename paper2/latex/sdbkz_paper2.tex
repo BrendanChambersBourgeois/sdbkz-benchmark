@@ -527,9 +527,9 @@ patched build passes all 15 fplll regression tests. The patch removes the
 \emph{catastrophic} cancellation specifically: 208 transient mid-trajectory
 clamps persist at this dimension and precision ($11$ shallower than
 $-0.1$; $157$ in $-0.1$ to $-3.5$; $40$ deeper, down to $-173$); raw values are side-logged while the
-clamped value enters the stored profile. Separately, five of the twelve
-patched SD-BKZ runs end with $b_1$ at the $-345.388$ floor: these are not
-residual contamination but genuine dense-sublattice cracks---SD-BKZ cracking
+clamped value enters the stored profile. Separately, five of the twenty-four
+patched runs end with $b_1$ at the $-345.388$ floor (one SD-BKZ, four BKZ):
+these are not residual contamination but genuine dense-sublattice cracks---
 the circulant off-grid at $n=127$, the same crack that excludes $n=127$ from
 the trend of Section~\ref{sec:fatigue}---whose collapsed profiles bottom out
 at the clamp floor. The fix is thus validated on two

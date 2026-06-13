@@ -65,3 +65,8 @@ htmlcov/
 # PDF stays tracked (published Zenodo artifact). Active TeX builds via
 # pdflatex into paper2/latex/ on demand.
 paper2/latex/*.pdf
+
+# analysis plots from corpus mining (per_position_attribution, bimodal_tail, tail_auc,
+# cross_engine_seed_scatter). Generated locally for paper-2 figure candidates; check in
+# once selected and moved to paper2/figs/, not from here.
+analysis/plots_findings/
