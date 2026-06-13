@@ -40,7 +40,8 @@ toward a shortest vector and instead discovers the dense secret sublattice.
 We report three empirical results, each traceable to per-seed data. First,
 the SD-BKZ advantage on circulant NTRU is not a smooth function of dimension:
 tied with BKZ for $n\!\le\!67$, it spikes at $n\!\approx\!71$--$73$ (mean up
-to $+9.7$ nats at ${\approx}27\times$ the plateau standard deviation), then
+to $+9.7$ nats, the onset-zone standard deviation ${\approx}27\times$
+the plateau standard deviation), then
 settles into a tight $+1.5$--$1.7$-nat plateau for $n\!\ge\!79$. Second, the defensible NTRU
 observable is \emph{reference-free}---signed $d(\mathrm{LN})$ has no canonical
 fixed point on NTRU and is a reference artifact---and under it SD-BKZ reaches
@@ -298,7 +299,8 @@ $n$ & mean adv & std & seeds$>0$ \\
 \end{table}
 
 Three regimes: tied for $n\!\le\!67$; an onset zone at $n=71$--$73$ where the
-mean spikes to $+4$--$10$ nats with ${\approx}27\times$ the plateau standard
+mean spikes to $+4$--$10$ nats, the onset-zone standard deviation
+${\approx}27\times$ the plateau standard
 deviation; and a stable $+1.5$--$1.7$-nat plateau for $n\!\ge\!79$ (std
 $0.20$--$0.33$, $20/20$ wins). The onset variance is not noise but bimodality: the per-seed advantage
 at $n=71$ ranges from $-6.7$ to $+13.4$ ($n=73$: $-5.1$ to $+16.0$)---SD-BKZ
