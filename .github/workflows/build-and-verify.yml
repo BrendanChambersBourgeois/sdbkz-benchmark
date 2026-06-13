@@ -205,7 +205,20 @@ jobs:
             --strict --sha-check \
             results/seeds/main/ results/seeds/q3329/ \
             results/seeds/cliff500/ results/seeds/convergence/ \
-            results/seeds/fplll_sensitivity/
+            results/seeds/fplll_sensitivity/ \
+            results/seeds/ntru_g6k/ \
+            results/seeds/ntru/ results/seeds/ntru_patched/
+          # ntru_g6k wired in per INC-45 Phase 3: validates 1784/1784 clean
+          # (sieve path — no fplll squared-form GSO cancellation).
+          # ntru/ + ntru_patched wired in per INC-45 Phase 4b (verdict
+          # 2026-06-14): fplll squared-form GSO volume-drift is classified —
+          # small drift (0.1-10 nat) is GSO-arithmetic/Kahan-family numerical
+          # residual (_incident id=45), >10 nat is structural dense-sublattice
+          # collapse (_incident id=46). Both are incident-logged, never
+          # silenced and never errored (mirrors the q=3329 id=26 path), so the
+          # families validate green (0 errors) with every nonzero Δ visible.
+          # DEFERRED_FAMILIES is now empty; the
+          # test_seed_validation_coverage.py guard enforces full coverage.
           # tours3x: non-strict (legacy duplicate warnings carried over
           # from the pre-v1.3 pilot seeds co-existing with extended seeds
           # at the same (n, β, seed); preserved offline at

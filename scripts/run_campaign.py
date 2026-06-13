@@ -317,6 +317,13 @@ def _ntru_seed_worker(task: tuple) -> tuple:
         tmp = out + ".tmp"
         with open(tmp, "w") as fh:
             json.dump(r, fh, indent=2)
+            # fsync before the atomic rename so an unattended host crash
+            # (e.g. thermal) cannot leave a renamed-but-unflushed (zeroed)
+            # seed JSON. os.replace alone is atomic vs SIGKILL, but the tmp
+            # file's CONTENTS need durability before the rename for power-loss
+            # / hard-crash safety (INC-45 Phase 4b, overnight-run exposure).
+            fh.flush()
+            os.fsync(fh.fileno())
         os.replace(tmp, out)
         # Centralised per-seed completion event (side-log only; never touches
         # the seed JSON, so SHA byte-identity is unaffected). Workers inherit

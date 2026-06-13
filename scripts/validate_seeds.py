@@ -247,16 +247,53 @@ class SeedValidator:
                         cat="timing", file=fname,
                     )
 
-        # 5c. Dimension consistency
+        # 5c. Dimension consistency. The corpus carries two lattice
+        # embeddings with different shape conventions:
+        #   LWE/main  — Bai–Galbraith embedding: dim = 3n+1, rankin len = n+1
+        #   NTRU      — coefficient embedding:    dim = 2n,   rankin len = dim
+        # Family is read from the seed path ("ntru", "ntru_g6k" and
+        # "ntru_patched" all carry the "ntru" tag); everything else uses
+        # the LWE convention.
+        is_ntru = "ntru" in filepath.lower()
+        n_val = d.get("n", 0)
+        default_dim = (2 * n_val) if is_ntru else (3 * n_val + 1)
         if "dim" in d and "n" in d:
-            expected_dim = 3 * d["n"] + 1
+            expected_dim = (2 * d["n"]) if is_ntru else (3 * d["n"] + 1)
             if d["dim"] != expected_dim:
                 self._err(f"{label}: dim={d['dim']} expected {expected_dim}",
                           cat="schema", file=fname)
 
+        # 5d-presence. Per-family array expectation (INC-45 Phase 3.5).
+        # The corpus splits cleanly: GS-bearing families (sweep / q3329 /
+        # NTRU) MUST carry the three GS profiles; trajectory families
+        # (convergence, tours3x) record per-tour d(LN) arrays instead and
+        # legitimately have no GS profiles. Without this, 5d/5e only fire
+        # "if key in d", so a GS-bearing seed that lost its arrays to a bug
+        # would pass green — the INC-45 failure mode (pass via absence), one
+        # layer down. Assert presence so the skip becomes a loud failure.
+        is_trajectory = any(s in filepath for s in
+                            ("/convergence/", "/tours3x/", "/3x_tour"))
+        if is_trajectory:
+            for key in ("bkz_dln_per_tour", "sdbkz_dln_per_tour"):
+                if key not in d:
+                    self._err(f"{label}: trajectory seed missing {key}",
+                              cat="schema", file=fname, field=key)
+                elif not isinstance(d[key], list) or not d[key]:
+                    self._err(f"{label}: {key} not a non-empty list",
+                              cat="schema", file=fname, field=key)
+                elif any(not math.isfinite(v) for v in d[key]):
+                    self._err(f"{label}: {key} has non-finite values",
+                              cat="integrity", file=fname, field=key)
+        else:
+            missing_gs = [k for k in ("initial_gs_lognorms", "gs_lognorms_bkz",
+                                      "gs_lognorms_sdbkz") if k not in d]
+            if missing_gs:
+                self._err(f"{label}: GS-bearing seed missing {missing_gs}",
+                          cat="schema", file=fname,
+                          field=",".join(missing_gs))
+
         # 5d. Array length checks
-        dim = d.get("dim", 3 * d.get("n", 0) + 1)
-        n_val = d.get("n", 0)
+        dim = d.get("dim", default_dim)
         for key in ("gs_lognorms_bkz", "gs_lognorms_sdbkz", "initial_gs_lognorms"):
             if key in d:
                 arr = d[key]
@@ -269,14 +306,15 @@ class SeedValidator:
                 elif any(not math.isfinite(v) for v in arr):
                     self._err(f"{label}: {key} has non-finite values",
                               cat="integrity", file=fname, field=key)
+        expected_rankin = dim if is_ntru else n_val + 1
         for key in ("rankin_profile_bkz", "rankin_profile_sdbkz", "initial_rankin_profile"):
             if key in d:
                 arr = d[key]
                 if not isinstance(arr, list):
                     self._err(f"{label}: {key} is {type(arr).__name__}",
                               cat="schema", file=fname)
-                elif len(arr) != n_val + 1:
-                    self._err(f"{label}: {key} len={len(arr)} expected {n_val+1}",
+                elif len(arr) != expected_rankin:
+                    self._err(f"{label}: {key} len={len(arr)} expected {expected_rankin}",
                               cat="schema", file=fname, field=key)
                 elif any(not math.isfinite(v) for v in arr):
                     self._err(f"{label}: {key} has non-finite values",
@@ -299,18 +337,51 @@ class SeedValidator:
         #       - ~100× below the smallest q=3329 catastrophic drift (~10 nats)
         #     so the q=3329 detection remains intact.
         VOLUME_DRIFT_THRESHOLD = 0.1
+        # NTRU two-axis volume handling (INC-45 Phase 4, verdict 2026-06-14):
+        #   The NTRU coefficient-embedding family carries two DISTINCT, both-
+        #   documented volume-drift populations — NOT validator errors:
+        #     - small drift (0.1 < |Δ| ≤ 10 nat): GSO-arithmetic / Kahan-family
+        #       numerical residual. Phase-4a same-seed rerun under Kahan-patched
+        #       fplll (n=8 clean seeds across n=113/127): drift is GSO-summation-
+        #       PATH-dependent (>50% change when the squared-form summation is
+        #       swapped), stays bounded ≪ crack region, control clean, and NO
+        #       seed persisted-unchanged (the structural-stop signal never fired).
+        #       → numerical, mirrors the q=3329 accumulated-cancellation path.
+        #       Incident-logged (id=45), never silenced (CLAUDE.md / q3329 rule:
+        #       log the raw value, don't suppress). CAVEAT: 4a tested the LOW end
+        #       (~0.1-0.15); the 1-10 band rides the same verdict by continuity,
+        #       and tagging (not threshold-raising) keeps every nonzero Δ visible.
+        #     - crack (|Δ| > 10 nat, ~345): genuine dense-sublattice collapse
+        #       (paper §7/§8, the n=127 off-grid cracks + one n=113 q=773). This
+        #       is structural — correctly UNTOUCHED by Kahan (ds≈345 persists
+        #       post-patch). Separate axis (INC-46), separate id.
+        NTRU_CRACK_THRESHOLD = 10.0
         if all(k in d for k in ("initial_gs_lognorms", "gs_lognorms_bkz", "gs_lognorms_sdbkz")):
             init_sum = sum(d["initial_gs_lognorms"])
             is_q3329 = d.get("q") == 3329
             for key in ("gs_lognorms_bkz", "gs_lognorms_sdbkz"):
                 arr_sum = sum(d[key])
-                if abs(init_sum - arr_sum) > VOLUME_DRIFT_THRESHOLD:
+                diff = abs(init_sum - arr_sum)
+                if diff > VOLUME_DRIFT_THRESHOLD:
                     msg = (f"{label}: volume mismatch {key} "
                            f"init_sum={init_sum:.4f} vs {arr_sum:.4f}")
                     if is_q3329:
                         self._incident(msg + " (q=3329 known instability)",
                                        id=26, file=fname, field=key,
-                                       diff=round(abs(init_sum - arr_sum), 4))
+                                       diff=round(diff, 4))
+                    elif is_ntru:
+                        if diff > NTRU_CRACK_THRESHOLD:
+                            self._incident(
+                                msg + " (NTRU dense-sublattice collapse / crack"
+                                " — structural, Kahan-invariant, INC-46)",
+                                id=46, file=fname, field=key,
+                                diff=round(diff, 4))
+                        else:
+                            self._incident(
+                                msg + " (NTRU GSO numerical residual,"
+                                " Kahan-family — INC-45 Phase 4)",
+                                id=45, file=fname, field=key,
+                                diff=round(diff, 4))
                     else:
                         self._err(msg, cat="integrity", file=fname, field=key)
 
