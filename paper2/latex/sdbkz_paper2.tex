@@ -387,9 +387,9 @@ sieve engine then shows.
 
 \paragraph{RHF blindness is engine-independent but regime-dependent.}
 On NTRU at $q=97$, $\beta=40$, the companion paper's thesis reproduces on the
-sieve: at $n=67/101/113$ the stored Hermite-factor values of the G6K BKZ and
-SD-BKZ bases are equal seed-for-seed (to machine precision at $n=67$,
-bit-identical at $n=101/113$; the fplll diffs are $\le2\times10^{-5}$) while
+sieve: at $n=101/113$ the stored Hermite-factor values of the G6K BKZ and
+SD-BKZ bases are bit-identical seed-for-seed, and the same comparison on
+fplll holds to $\le2\times10^{-6}$ across $20$ seeds at each $n$, while
 $d(\mathrm{LN})$ differs. The effect is regime-dependent: at $n=89$---the
 cell containing the short-vector events---the values diverge broadly on every
 seed, fired or not. This is consistent with
