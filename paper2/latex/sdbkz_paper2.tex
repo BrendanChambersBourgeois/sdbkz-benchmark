@@ -483,7 +483,7 @@ showing SD-BKZ firing on $36/40$ seeds against BKZ's $13/40$ on identical
 bases---the largest single-$q$ SD-advantage cell in the corpus.
 Whether the $n=101$ gap survives cross-engine is a single experiment
 that has not yet been run (extractor:
-\texttt{extract\_dsd\_onset.py --n 101 --beta 40};
+\verb|extract_dsd_onset.py --n 101 --beta 40|;
 seeds: \texttt{results/seeds/ntru/q\{127,\ldots,331\}/p250\_mt50/n101\_beta40}).
 We therefore treat the matched-$\beta$ null as established at $n=89$ and
 the gap as established on fplll at $n=101$, with the cross-engine claim
@@ -600,7 +600,7 @@ determinism and self-dual-semantics decisions are recorded in ADRs~005--008.
 Each figure has one figure module: Figure~\ref{fig:dimonset} renders
 directly from the per-seed data, and Figure~\ref{fig:dsdgap} mirrors
 Table~\ref{tab:dsdgap}, whose values reproduce from the seeds via
-\texttt{extract\_dsd\_onset.py --trend}. The companion paper's SHA baselines are preserved unchanged: the
+\verb|extract_dsd_onset.py --trend|. The companion paper's SHA baselines are preserved unchanged: the
 NTRU generator and the G6K engine were added without altering the seed JSON
 schema.
 
