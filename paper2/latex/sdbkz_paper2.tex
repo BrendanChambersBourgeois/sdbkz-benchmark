@@ -484,9 +484,13 @@ a flat null. At $n=101,\beta=40$ the picture is different. An 8-prime
 coarse grid $q\in\{127,149,181,211,241,271,307,331\}$ at $N=40$ seeds/cell
 on the fplll engine (run 2026-06-12, $50$ tours, $p{=}250$, same two-part
 criterion as $n=89$) recovers a $9\%$ SD$<$BKZ DSD-onset gap (SD $257.3$,
-BKZ $280.7$, $50\%$-rate crossings), with the transition row $q=271$
-showing SD-BKZ firing on $36/40$ seeds against BKZ's $13/40$ on identical
-bases---the largest single-$q$ SD-advantage cell in the corpus.
+BKZ $280.7$, $50\%$-rate crossings; bootstrap $95\%$ CI on the gap
+$[6.1\%, 11.0\%]$), with the transition row $q=271$ showing SD-BKZ
+firing on $36/40$ seeds against BKZ's $13/40$ on identical
+bases---and the seed-wise discordant split is $24$ SD-only versus $1$
+BKZ-only (with $12$ co-fired and $3$ neither), McNemar
+$\chi^2_1=21.16$ ($p<10^{-3}$): SD-BKZ fires on a near-superset of the
+BKZ fire set, the cleanest single-$q$ SD-advantage cell in the corpus.
 Whether the $n=101$ gap survives cross-engine is a single experiment
 that has not yet been run (extractor:
 \verb|extract_dsd_onset.py --n 101 --beta 40|;
