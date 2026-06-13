@@ -45,15 +45,19 @@ the plateau standard deviation), then
 settles into a tight $+1.5$--$1.7$-nat plateau for $n\!\ge\!79$. Second, the defensible NTRU
 observable is \emph{reference-free}---signed $d(\mathrm{LN})$ has no canonical
 fixed point on NTRU and is a reference artifact---and under it SD-BKZ reaches
-dense-sublattice discovery (DSD) at lower modulus than BKZ, the gap growing
-from ${\approx}0\%$ at $n\!\le\!79$ to $28\%$ at $n\!=\!113$, at $\beta=20$. Third, a second
+dense-sublattice discovery (DSD) at lower modulus than BKZ, the gap
+stepping up with dimension at $\beta=20$---${\approx}0\%$ at $n\!\le\!79$,
+${\approx}19$--$20\%$ at $n\!=\!89$--$101$, then widening to $28\%$ at
+$n\!=\!113$. Third, a second
 engine---the G6K sieve---reproduces the RHF-blindness thesis on a
 fundamentally different oracle and sharpens its scope: at a matched
 $\beta=40$ the engines agree on the DSD onset at $n=89$ (no SD-vs-BKZ
-gap---an honest null at this dimension), but the gap reopens at
-$n=101$ to $9\%$ on the fplll oracle (SD $257.3$ / BKZ $280.7$,
-transition row $q=271$: SD $36/40$ vs BKZ $13/40$), with the
-cross-engine question at $n=101$ still open. What separates the
+gap---an honest null at this dimension), and the gap reopens at
+$n=101$ on both oracles---$9\%$ on fplll (SD $257.3$ / BKZ $280.7$)
+and $7\%$ on G6K (SD $249.9$ / BKZ $268.3$); at the transition row
+$q=271$ each engine's SD-BKZ fire set is a near-superset of its BKZ
+set (fplll $36/40$ vs $13/40$, $24{:}1$ SD-only; G6K $39/40$ vs
+$22/40$, $17{:}0$ SD-only). What separates the
 engines at $n=89,\beta=40$ is instead the tail: under SD-BKZ the sieve
 leaves the shortest Gram--Schmidt vector ${\approx}4.9\times$ longer than
 enumeration on identical instances (median log-norm $1.844$ vs $0.255$,
@@ -491,13 +495,18 @@ bases---and the seed-wise discordant split is $24$ SD-only versus $1$
 BKZ-only (with $12$ co-fired and $3$ neither), McNemar
 $\chi^2_1=21.16$ ($p<10^{-3}$): SD-BKZ fires on a near-superset of the
 BKZ fire set, the cleanest single-$q$ SD-advantage cell in the corpus.
-Whether the $n=101$ gap survives cross-engine is a single experiment
-that has not yet been run (extractor:
-\verb|extract_dsd_onset.py --n 101 --beta 40|;
-seeds: \texttt{results/seeds/ntru/q\{127,\ldots,331\}/p250\_mt50/n101\_beta40}).
-We therefore treat the matched-$\beta$ null as established at $n=89$ and
-the gap as established on fplll at $n=101$, with the cross-engine claim
-at $n=101$ explicitly open. What the matched-$\beta$
+The $n=101$ gap survives cross-engine. A matched G6K sweep over the
+transition cells $q\in\{241,271,307\}$ ($N=40$ seeds/cell, run 2026-06-13,
+$50$ tours, $p{=}250$, same two-part criterion) recovers a $7\%$ SD$<$BKZ
+DSD-onset gap (SD $249.9$, BKZ $268.3$; extractor:
+\verb|extract_dsd_onset.py --n 101 --beta 40 --engine g6k|;
+seeds: \texttt{results/seeds/ntru\_g6k/q\{241,271,307\}/p250\_mt50/n101\_beta40}),
+mirroring fplll in direction and magnitude. At the transition row $q=271$
+G6K SD-BKZ fires on $39/40$ seeds against BKZ's $22/40$, a $17{:}0$ SD-only
+discordant split (McNemar $\chi^2_1=17.00$, $p<10^{-4}$)---a near-superset,
+as on fplll. We therefore treat the matched-$\beta$ null as established at
+$n=89$ and the gap as established on \emph{both} engines at $n=101$. What
+the matched-$\beta$
 comparison \emph{does} surface is a structural difference between the oracles
 themselves. The min-GS-clearing event---an aggressively reduced tail
 ($\min_i\log\|\mathbf{b}_i^\ast\|>1.5$, short of full DSD collapse)---fires more
@@ -559,13 +568,14 @@ DSD-onset \emph{gap}---SD-BKZ reaching dense-sublattice discovery at lower $q$
 than BKZ---grows with dimension at $\beta=20$ (Section~\ref{sec:fatigue}). At
 matched $\beta=40$ the enumeration and sieving oracles agree at $n=89$
 (within $1$ modulus unit at 100 seeds/cell, Section~\ref{sec:xengine});
-at $n=101$ the gap reopens on the fplll oracle to $9\%$, motivating but
-not yet establishing a cross-engine claim at that dimension.
+at $n=101$ the gap reopens on both oracles ($9\%$ fplll, $7\%$ G6K),
+establishing the cross-engine claim at that dimension.
 Where the two oracles differ at $\beta=40$ is the aggressiveness of sub-fatigue
 tail reduction---the G6K sieve clears the shortest GS vector markedly more than
 fplll enumeration on identical instances. A model that treats SD-BKZ and BKZ as
 RHF-equivalent (as the Root Hermite Factor, blind here, would suggest) misses
-that at $\beta=20$ self-dual reduction crosses the overstretched threshold earlier.
+that at $\beta=20$ self-dual reduction reaches dense-sublattice structure at a
+lower modulus than BKZ on identical bases.
 
 These findings sit alongside two lines of work. The $\beta=40$ regime and the
 Z-shaped $q$-ary profile geometry match the small-modulus forgery setting of
@@ -585,9 +595,9 @@ $q=97$; the cross-engine comparison at $\beta=40$, $n=89$. The signed $d(\mathrm
 is reported nowhere as a result; and the cross-engine comparison at $\beta=40$,
 $n=89$ is an honest null on the DSD-onset (a regime constraint, not a
 confirmation), its positive content being the sieve-vs-enum tail-reduction
-difference; the matched-$\beta=40$ gap reopens at $n=101$ on fplll ($9\%$,
-Section~\ref{sec:xengine}), with the cross-engine measurement at that
-dimension still pending. The criterion-sensitivity episode of Section~\ref{sec:xengine}
+difference; the matched-$\beta=40$ gap reopens at $n=101$ on both engines ($9\%$ fplll,
+$7\%$ G6K, Section~\ref{sec:xengine}), each engine's SD-BKZ fire set a
+near-superset of its BKZ set. The criterion-sensitivity episode of Section~\ref{sec:xengine}
 generalises: a binary structural flag should test the structure (here, profile
 collapse onto the sublattice), not a single order statistic that aggressive
 reduction can satisfy without the structure being present. And $n=127$ is
@@ -622,12 +632,13 @@ dense-sublattice discovery at a lower modulus than BKZ, with a gap that grows
 with dimension at $\beta=20$. At a matched $\beta=40$ the enumeration and sieving
 oracles agree on the onset at $n=89$---there they differ instead in how
 aggressively they reduce the sub-fatigue tail, the sieve markedly more
-than enumeration. At $n=101$ the gap reopens on the fplll oracle to
-$9\%$ (SD $257.3$ / BKZ $280.7$, Section~\ref{sec:xengine}); whether it
-survives cross-engine is open. The
+than enumeration. At $n=101$ the gap reopens on both engines---$9\%$ on fplll
+(SD $257.3$ / BKZ $280.7$) and $7\%$ on G6K (SD $249.9$ / BKZ $268.3$,
+Section~\ref{sec:xengine}); the cross-engine gap holds. The
 companion paper argued the RHF is blind on LWE; this report shows the blindness
-persists on NTRU and on a sieve, exactly where it matters for the overstretched
-transition. The apparatus---a
+persists on NTRU and on a sieve. That blindness is dimension-dependent and
+engine-independent: the apparatus measures structure the RHF misses, across
+two oracles. The apparatus---a
 determinism-gated, containerised, two-engine benchmark with per-seed evidence---is
 released so the measurements can be reproduced and extended.
 
