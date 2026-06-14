@@ -480,6 +480,36 @@ median $\min_i\log\|\mathbf{b}_i^\ast\|$ & 0.255 & 0.104 & \textbf{1.844} & 0.14
 \end{tabular}
 \end{table}
 
+\paragraph{Where the tail clearing lands: a cross-engine per-position view.}
+The separate min-GS-clearing event of Table~\ref{tab:g6konset} (SD$>$BKZ on both
+engines at $q=137$) is a redistribution of profile mass, not a uniform
+improvement. Figure~\ref{fig:perpos} plots the per-position difference
+$\log\|\mathbf{b}_i^\ast\|_{\mathrm{SD}}-\log\|\mathbf{b}_i^\ast\|_{\mathrm{BKZ}}$
+over the $q$-sweep: in the pre-onset band ($q\in[127,157]$) self-dual reduction
+pulls mass head-down and pushes it tail-up, concentrated in the last few GS
+vectors, and is flat in the onset regime ($q\ge181$). This is largely a
+corollary of the flatter SD profile under determinant conservation---a fit to
+pure slope-flattening explains ${\approx}96\%$ of the per-position signal
+($R^2=0.957$)---so we read it as a \emph{visualisation} of the
+cross-engine-agreeing slope flattening rather than an independent mechanism.
+The pattern holds on both the fplll enumeration and the G6K sieve (the sieve
+slightly larger in magnitude), placing the agreement at the level of the
+reduction's structural effect, not the oracle.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{figs/per_position_attribution}
+\caption{Per-position profile difference
+$\log\|\mathbf{b}_i^\ast\|_{\mathrm{SD}}-\log\|\mathbf{b}_i^\ast\|_{\mathrm{BKZ}}$
+at $n=89$, $\beta=40$ (100 seeds/cell) over a $q$-sweep, for the fplll
+enumeration (left) and G6K sieve (right) engines. Self-dual reduction
+redistributes mass head-down/tail-up in the pre-onset band ($q\in[127,157]$),
+peaking in the last few GS vectors, and is flat at $q\ge181$; both engines
+agree. The redistribution is ${\approx}96\%$ predicted by slope flattening
+alone ($R^2=0.957$), so it visualises the flattening rather than a distinct
+mechanism.\label{fig:perpos}}
+\end{figure}
+
 The cross-engine result at $n=89$ is therefore not a confirmation of the
 $\beta=20$ DSD-onset gap of Section~\ref{sec:fatigue} but a
 \emph{regime constraint at that dimension}: the $\beta=20$ gap does not
