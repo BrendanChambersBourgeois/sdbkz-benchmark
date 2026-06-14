@@ -41,7 +41,7 @@ RUN pip install --no-cache-dir \
 
 # Non-root runtime — match host UID/GID so bind-mounted volumes don't
 # produce root-owned host files (Incident #32; backlog
-# /mnt/hgfs/Research/backlog/2026-04-20_v3_dockerfile_scope.md §8).
+# backlog/2026-04-20_v3_dockerfile_scope.md §8).
 # Cloud campaign decommissioned 2026-04-10; the USER directive is
 # included for parity with the main Dockerfile so a future revival
 # inherits the same hygiene.

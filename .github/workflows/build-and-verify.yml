@@ -45,7 +45,7 @@ jobs:
     # GHA forced Node 24 default 2026-06-02; Node 20 removed 2026-09-16.
     # The earlier FORCE_JAVASCRIPT_ACTIONS_TO_NODE24 env shim is no
     # longer needed and has been removed (audit doc
-    # /mnt/hgfs/Research/backlog/_shipped/2026-04-20_tool_audit_followup.md
+    # backlog/_shipped/2026-04-20_tool_audit_followup.md
     # MEDIUM #5 closed by version bump).
 
     steps:

@@ -574,13 +574,13 @@ prior to this paragraph; merged to main 2026-05-20 via `5b5c2c4`)
   2026-04-07 when the local sweep finished and the cloud took over
   (per the script's own header). No callers anywhere in the repo;
   README §scripts entry dropped alongside. Backup retained offline
-  at `/mnt/hgfs/Research/_archives/health_check.sh.dormant_2026-04-25.bak`
+  at `_archives/health_check.sh.dormant_2026-04-25.bak`
   per the never-delete-without-backup rule. INC-39.
 - **`logs/convergence_n{90,140,150}_mt1000_stdout.log`** +
   **`logs/convergence_n150_mt1000_stdout.log.pre_refactor`** —
   legacy stdout captures from completed sweeps. Tarball + SHA-256
   manifest retained offline at
-  `/mnt/hgfs/Research/_archives/logs_legacy_2026-04-25.tar.gz`
+  `_archives/logs_legacy_2026-04-25.tar.gz`
   (SHA-256 in `_archives/CHECKSUMS_legacy_2026-04-25.sha256`; audit chain stays out
   of the public repo per INC-39). `logs/` now contains only
   `pipeline.jsonl` (authoritative), `.gitkeep` (placeholder), and
@@ -595,7 +595,7 @@ prior to this paragraph; merged to main 2026-05-20 via `5b5c2c4`)
   Internal audit chain belongs offline, not in the public-facing
   reproducibility surface. Now `.gitignore`d so future archive
   tarballs stay local by default. Pre-rewrite repo bundle preserved
-  offline at `/mnt/hgfs/Research/_archives/sdbkz_pre_inc39_rewrite_2026-04-25/`.
+  offline at `_archives/sdbkz_pre_inc39_rewrite_2026-04-25/`.
   INC-39.
 
 ## [1.5.0] — 2026-04-22
@@ -687,7 +687,7 @@ https://github.com/BrendanChambersBourgeois/sdbkz-benchmark/releases/tag/v1.5.0.
 - **Legacy `.log`/`.pid`/`.out` debris from `logs/` + tracked
   `results/progress.log` (173K) + untracked `results/health.log`
   (24K).** All 19 files archived **offline** to
-  `/mnt/hgfs/Research/_archives/logs_legacy_2026-04-20.tar.gz`
+  `_archives/logs_legacy_2026-04-20.tar.gz`
   with SHA-256 in the adjacent `CHECKSUMS.sha256` before rm. (Audit
   chain lives offline by convention — the in-repo `_archives/` path
   is `.gitignore`d per INC-39, 2026-04-25.) `logs/` retains
@@ -697,7 +697,7 @@ https://github.com/BrendanChambersBourgeois/sdbkz-benchmark/releases/tag/v1.5.0.
 - **Byte-identical duplicate `results/paper_claims/profile_decomposition.json`**
   (paper-cited canonical is `results/profile_decomposition.json`).
   Archived dup **offline** at
-  `/mnt/hgfs/Research/_archives/profile_decomposition_paper_claims_dup_2026-04-20.tar.gz`.
+  `_archives/profile_decomposition_paper_claims_dup_2026-04-20.tar.gz`.
 
 ### Fixed
 - **`.gitignore`** now tracks `.ruff_cache/` + `.pytest_cache/`

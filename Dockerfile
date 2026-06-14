@@ -58,7 +58,7 @@ RUN pip install --no-cache-dir \
 # Non-root runtime — match host UID/GID so bind-mounted ./results +
 # ./logs do not produce root-owned host files (Incident #32 recurrence
 # pattern; backlog
-# /mnt/hgfs/Research/backlog/2026-04-20_v3_dockerfile_scope.md §8).
+# backlog/2026-04-20_v3_dockerfile_scope.md §8).
 # Defaults match the most common Linux desktop UID/GID; override at
 # build time with --build-arg HOST_UID=$(id -u) --build-arg
 # HOST_GID=$(id -g) on systems where they differ. The `getent` guards
@@ -90,7 +90,7 @@ COPY --chown=${HOST_UID}:${HOST_GID} scripts/ scripts/
 # bind-mount. Bulk seed data stays out of the image (excluded via
 # .dockerignore); these are the small artifacts that the paper figures
 # + claim ledger reference directly. Per backlog
-# /mnt/hgfs/Research/backlog/2026-04-20_v3_dockerfile_scope.md §1
+# backlog/2026-04-20_v3_dockerfile_scope.md §1
 # (fresh-VM reproducibility, INC-36).
 COPY --chown=${HOST_UID}:${HOST_GID} analysis/ analysis/
 COPY --chown=${HOST_UID}:${HOST_GID} tests/ tests/

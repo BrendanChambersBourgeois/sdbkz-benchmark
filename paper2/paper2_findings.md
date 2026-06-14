@@ -1,7 +1,7 @@
 # Paper 2 — curated findings (NTRU SD-BKZ + g6k cross-engine)
 
 Organized paper-2 view of the §NTRU-tagged entries in the canonical
-append-log `/mnt/hgfs/Research/paper_findings.md` (which stays the
+append-log `paper_findings.md` (which stays the
 append-only chronological source). Numbers below trace to that log + the
 in-repo seed data. Update this file when a paper-2 result lands.
 

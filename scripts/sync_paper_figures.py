@@ -20,7 +20,7 @@ Usage:
               pinned image, so local --check == the CI gate.
 
 Origin: backlog F1 option 4 in
-/mnt/hgfs/Research/backlog/_shipped/2026-04-20_repo_dir_organization_audit.md.
+backlog/_shipped/2026-04-20_repo_dir_organization_audit.md.
 The HTML-channel drift this guards against was caught at audit-followup
 2026-04-25 when 11 of 12 paper1/fig*.png had silently fallen out of parity
 with analysis/figures/ since commit a34122e (variance-fill SHA refresh).

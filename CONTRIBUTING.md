@@ -127,7 +127,7 @@ The repo enforces a "never delete experimental data" rule. Seed JSONs, clamp eve
 - No `rm -rf results/` or any subset thereof without an explicit backup step.
 - No truncation of `logs/pipeline.jsonl` or `results/clamp_events.jsonl`.
 - No rewriting committed seed JSONs. If a seed needs to be re-generated, the new version lands with a different path (e.g. under `results/seeds/<campaign>/<new_precision_bucket>/...`) and the manifest indexes both.
-- Moving corrupted data is acceptable: it goes to a clearly-named `*_corrupted` location *inside* the repo (visible to reviewers), or to an offline archive at `/mnt/hgfs/Research/_archives/` for non-paper-grade artifacts. **Never put `_archives/` inside the public repo** — that path is `.gitignore`d so the audit chain stays offline (paper-grade boundary; INC-39, 2026-04-25). Never `/dev/null`.
+- Moving corrupted data is acceptable: it goes to a clearly-named `*_corrupted` location *inside* the repo (visible to reviewers), or to an offline archive at `_archives/` for non-paper-grade artifacts. **Never put `_archives/` inside the public repo** — that path is `.gitignore`d so the audit chain stays offline (paper-grade boundary; INC-39, 2026-04-25). Never `/dev/null`.
 
 Rationale: the policy is zero-tolerance. The one time we bent it (an early incident) produced a 9-day debugging loss. Narrative at [`docs/incident_q3329_post_mortem.md`](docs/incident_q3329_post_mortem.md).
 

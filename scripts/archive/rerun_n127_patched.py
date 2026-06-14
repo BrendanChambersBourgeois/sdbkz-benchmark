@@ -2,7 +2,7 @@
 """Kahan-patch validation #2 — rerun the contaminated n=127 NTRU seeds under
 PATCHED fplll and show the §8 catastrophic-cancellation floor clamp vanish.
 
-Context (see /mnt/hgfs/Research/sessions/ntru_dsd_resume.md, paper §8):
+Context (see sessions/ntru_dsd_resume.md, paper §8):
 The main fplll path (fpylll 0.6.4 PyPI wheel → vendored fplll 5.5.0) produces
 a degenerate final basis on a subset of n=127 NTRU seeds: get_r(i,i) goes
 non-positive, is silently clamped to 1e-300, and the GS log-norm crashes to

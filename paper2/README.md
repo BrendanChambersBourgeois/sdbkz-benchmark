@@ -22,7 +22,7 @@ SD-BKZ difference while d(LN)/DSD sees it — now cross-engine.
 ## Layout
 - `paper2_findings.md` — curated paper-2 results (synthesis + the key
   numbers). The canonical chronological append-log remains
-  `/mnt/hgfs/Research/paper_findings.md` (the §NTRU-tagged entries); this is
+  `paper_findings.md` (the §NTRU-tagged entries); this is
   the organized paper-2 view of it.
 - `figs/` — paper-2 figures (none yet; placeholder).
 

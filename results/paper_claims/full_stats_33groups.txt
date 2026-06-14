@@ -596,4 +596,4 @@ SUGGESTED PARAGRAPH FOR SECTION 4 OF PAPER
   exclude zero in every group. These statistics confirm that the d(LN) advantage
   is not a statistical artifact but a consistent structural phenomenon.
 
-Output saved to: /home/zomg/Desktop/lattice/logs/stats_output.txt
+Output saved to: logs/stats_output.txt

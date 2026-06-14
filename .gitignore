@@ -49,7 +49,7 @@ analysis/background_analyst.py
 
 # Local-only audit chain — retired log captures + dormant scripts.
 # Tarballs + SHA-256 manifests live offline at
-# /mnt/hgfs/Research/archive/. Public repo stays focused on the active
+# archive/. Public repo stays focused on the active
 # reproducibility surface; an internal artifact directory clutters
 # top-level layout for zero reviewer benefit (INC-39, 2026-04-25).
 _archives/

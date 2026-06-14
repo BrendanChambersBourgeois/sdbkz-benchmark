@@ -60,7 +60,7 @@ RUN pip install --no-cache-dir --no-binary=:all: fpylll==0.6.0
 # Non-root runtime — match host UID/GID so bind-mounted volumes don't
 # produce root-owned host files (Incident #32 was triggered specifically
 # by these fplll-sensitivity Docker builds; backlog
-# /mnt/hgfs/Research/backlog/2026-04-20_v3_dockerfile_scope.md §8).
+# backlog/2026-04-20_v3_dockerfile_scope.md §8).
 ARG HOST_UID=1000
 ARG HOST_GID=1000
 RUN if ! getent group ${HOST_GID} >/dev/null; then \

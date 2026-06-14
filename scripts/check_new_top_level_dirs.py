@@ -6,7 +6,7 @@ INC-39 (2026-04-25). Adding a new top-level directory to the public
 repo is almost always either intentional (in which case the allowlist
 below should be edited in the same commit) or accidental (in which
 case the commit should be reworked to put the artifact offline at
-``/mnt/hgfs/Research/_archives/`` or under an existing top-level
+an offline research archive or under an existing top-level
 directory). This guard surfaces the choice instead of letting it slip.
 
 Behaviour:
@@ -137,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
         "If this directory belongs in the public repo, add it to "
         "ALLOWED_TOP_LEVEL in scripts/check_new_top_level_dirs.py "
         "in the same commit. If it does not, move the artifact to "
-        "/mnt/hgfs/Research/_archives/ (offline) or under an existing "
+        "an offline research archive or under an existing "
         "top-level directory before re-staging.",
         file=sys.stderr,
     )
