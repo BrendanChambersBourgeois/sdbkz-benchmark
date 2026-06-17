@@ -267,7 +267,7 @@ Every experiment is a named campaign in \texttt{config/sweep.toml}, fixing
 generator, engine, $n$-grid, $\beta$, $q$, tour count, and seed count so a
 single command reproduces a cell. The dimension-onset sweep
 (Section~\ref{sec:dimonset}) fixes $q=97$, $\beta=20$, 50 tours and sweeps
-$n\in[59,89]$ at 20 seeds each. The fatigue and DSD-onset sweeps
+$n\in[59,89]$ at 20 seeds each ($n=71$ at 40). The fatigue and DSD-onset sweeps
 (Section~\ref{sec:fatigue}) fix $n$ and sweep $q$ across the fatigue point. The
 cross-engine sweeps (Section~\ref{sec:xengine}) fix $n=89$, $\beta=40$, 50 tours
 and sweep a matched $q$-grid on \emph{both} engines---the G6K campaign
@@ -285,7 +285,7 @@ On circulant NTRU at $q=97$ ($\beta=20$, $50$ tours; standard regime
 throughout the sweep, though only marginally so at the smallest dimension:
 $q_\mathrm{fat}(59)\approx100$), the
 SD-BKZ-vs-BKZ advantage has a \emph{sharp} dimension transition, not a smooth
-ramp (20 seeds per $n$):
+ramp (20 seeds per $n$, $n=71$ topped to $40$):
 
 \begin{table}[tbp]
 \centering
@@ -295,7 +295,7 @@ ramp (20 seeds per $n$):
 $n$ & mean adv & std & seeds$>0$ \\
 \midrule
 59--67 & $\sim 0$  & tight & 3--9/20 \\
-71     & $+4.35$   & 5.59  & 16/20 \\
+71     & $+4.33$   & 5.43  & 27/40 \\
 73     & $+9.68$   & 5.21  & 19/20 \\
 79--89 & $+1.5$--$1.7$ & $0.20$--$0.33$ & 20/20 \\
 \bottomrule
@@ -307,7 +307,7 @@ mean spikes to $+4$--$10$ nats, the onset-zone standard deviation
 ${\approx}27\times$ the plateau standard
 deviation; and a stable $+1.5$--$1.7$-nat plateau for $n\!\ge\!79$ (std
 $0.20$--$0.33$, $20/20$ wins). The onset variance is not noise but bimodality: the per-seed advantage
-at $n=71$ ranges from $-6.7$ to $+13.4$ ($n=73$: $-5.1$ to $+16.0$)---SD-BKZ
+at $n=71$ ranges from $-6.7$ to $+13.6$ ($n=73$: $-5.1$ to $+16.0$)---SD-BKZ
 cracks the dense sublattice on most instances and loses outright on the rest.
 The onset spike exceeds the plateau---non-monotonic
 (Figure~\ref{fig:dimonset}; Table~\ref{tab:dimonset}). One scale caveat: the
@@ -321,7 +321,7 @@ to the companion paper.
 \centering
 \includegraphics[width=\linewidth]{figs/dimension_onset}
 \caption{NTRU SD-BKZ dimension-onset ($q=97$, $\beta=20$, 50 tours, 20 seeds
-per $n$, $\pm1\sigma$ band; in the bimodal onset zone $n=71$--$73$ the band is
+per $n$, $n=71$ at $40$, $\pm1\sigma$ band; in the bimodal onset zone $n=71$--$73$ the band is
 a spread indicator only, not a distributional summary). The signed advantage
 is reference-robust at the spike (Section~\ref{sec:bg-obs}); shown here for
 the dimension transition. Recomputed from the per-seed \texttt{advantage}
@@ -392,8 +392,9 @@ sieve engine then shows.
 \paragraph{RHF blindness is engine-independent but regime-dependent.}
 On NTRU at $q=97$, $\beta=40$, the companion paper's thesis reproduces on the
 sieve: at $n=101/113$ the stored Hermite-factor values of the G6K BKZ and
-SD-BKZ bases are bit-identical seed-for-seed, and the same comparison on
-fplll holds to $\le2\times10^{-6}$ across $20$ seeds at each $n$, while
+SD-BKZ bases are bit-identical seed-for-seed, and on fplll the BKZ-vs-SD-BKZ
+Hermite factors hold to $\le2\times10^{-6}$ across $20$ seeds at each of
+$n=67/101/113$ (at $n=67$ to $<2\times10^{-15}$), while
 $d(\mathrm{LN})$ differs. The effect is regime-dependent: at $n=89$---the
 cell containing the short-vector events---the values diverge broadly on every
 seed, fired or not. This is consistent with
@@ -553,6 +554,19 @@ ${\sim}10^{-6}$, max $1.3\times10^{-4}$)
 (\texttt{results/validation/sieve\_vs\_enum\_min\_gs\_clearing.json})---but it is
 aggressive reduction, \emph{not} dense-sublattice discovery, and we label it as
 such.
+
+One dimension further, an 8-prime grid $q\in\{167,197,239,281,317,359,401,439\}$
+at $N=40$ seeds/cell on both engines ($n=113$, $\beta=40$, $50$ tours, $p{=}250$,
+same two-part criterion) does \emph{not} reach the $50\%$ DSD onset: every cell is
+pre-onset and only the top modulus $q=439$ fires at all, so the $n=113,\beta=40$
+onset lies above this grid and is \emph{not pinned} here. The edge is nonetheless
+directional, and cross-engine: at $q=439$ SD-BKZ reaches DSD on $4/40$ seeds
+(fplll) and $11/40$ (G6K) against BKZ's $1/40$ and $2/40$---SD firing ${\approx}4\times$
+(enum) and ${\approx}5.5\times$ (sieve) more often than BKZ on both oracles, G6K the
+larger as at $n=89/101$. We report this as sub-onset edge evidence that the
+SD-before-BKZ direction established at $n=101$ persists at $n=113$---not as a pinned
+onset gap; locating the $n=113,\beta=40$ crossing would require moduli above $439$.
+(Seeds: \verb|results/seeds/ntru{,_g6k}/q{167..439}/p250_mt50/n113_beta40|, $N=40$ each.)
 
 The reference-free observable remains essential on these cells: where the
 min-GS-clearing event fires, the \emph{signed} $d(\mathrm{LN})$ advantage is

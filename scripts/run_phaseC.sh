@@ -30,6 +30,7 @@ DRY=""; [ "${1:-}" = "--dry-run" ] && DRY="--dry-run"
 run_engine() {  # $1 image  $2 workers  $3 seed-tag  $4 backend
   docker run --rm --user "$(id -u):$(id -g)" \
     -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 \
+    -e MKL_NUM_THREADS=1 -e NUMEXPR_NUM_THREADS=1 \
     -v "$PWD":/work -w /work "$1" \
     python3 scripts/run_packed.py --workers "$2" --beta "$BETA" --mt "$MT" \
       --seed-tag "$3" --backend "$4" $DRY $CELLS
@@ -58,6 +59,7 @@ echo ">>> [2/3] fplll half"; run_engine "$IMG_FPLLL" "$W_FPLLL" ntru    fplll
 
 # --- step 2: extract onset (FLAG IS --engine, NOT --seed-tag) --------------
 echo ">>> [3/3] extract onset + tar"
+mkdir -p ops   # don't let tee/tar trip set -e on a fresh clone after a 30h run
 for eng in fplll g6k; do
   docker run --rm -v "$PWD":/work -w /work "$IMG_FPLLL" \
     python3 scripts/extract_dsd_onset.py --n "$N" --beta "$BETA" --engine "$eng" --show-curve \

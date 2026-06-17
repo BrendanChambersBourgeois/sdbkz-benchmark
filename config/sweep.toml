@@ -430,3 +430,38 @@ n_grid = [130]
 tours_by_beta = { "40" = 500 }
 num_seeds = 20
 store_per_tour = false
+
+# -- P2 pre-submission robustness top-ups (backlog P2) ----------------------
+# Single-cell variants of the ntru / ntru_xeng_n89 recipes (the ntru runner
+# iterates n_grid, so a focused cell needs its own n_grid block — not a --n
+# override, which the ntru role ignores). Resumable: existing seeds skipped.
+#   docker run --rm -v "$PWD":/repo -w /repo sdbkz-benchmark:ci \
+#     python3 scripts/run_campaign.py --campaign ntru_n71_topup --workers 20
+#
+# n=71 β=20 q=97: top up the spike cell 20→40 (Cohen's d=0.70 vs plateau;
+# solidifies the "spike at n=71-73" framing). Identical params to [campaigns.ntru]
+# so output lands in the SAME results/seeds/ntru/q97/p250_mt50/n071_beta20 cell.
+[campaigns.ntru_n71_topup]
+description = "NTRU n=71 β=20 q=97 top-up 20->40 (solidify spike framing)"
+generator = "ntru"
+q = 97
+precision = 250
+beta_grid = [20]
+n_grid = [71]
+tours_by_beta = { "20" = 50 }
+num_seeds = 40
+store_per_tour = false
+
+# n=67 β=40 q=97 fplll: restores the Section 6 RHF agreement check (n=67/101/113) with
+# verified data. Identical params to [campaigns.ntru_xeng_n89] / the existing
+# n=101,113 β=40 q=97 fplll cells, so it is a like-for-like cross-dimension match.
+[campaigns.ntru_n67_beta40]
+description = "fplll NTRU n=67 β=40 mt=50 q=97 (restore Section 6 RHF agreement check)"
+generator = "ntru"
+q = 97
+precision = 250
+beta_grid = [40]
+n_grid = [67]
+tours_by_beta = { "40" = 50 }
+num_seeds = 20
+store_per_tour = false
