@@ -21,8 +21,10 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
 from analysis._data import load_all_seeds  # noqa: E402
+from analysis.plots.ntru_crossover_dynamics import fig_ntru_crossover_dynamics  # noqa: E402
 from analysis.plots.ntru_dimension_onset import fig_ntru_dimension_onset  # noqa: E402
 from analysis.plots.ntru_fatigue_phase import fig_ntru_fatigue_phase  # noqa: E402
+from analysis.plots.ntru_onset_sigmoids import fig_ntru_onset_sigmoids  # noqa: E402
 from analysis.plots.ntru_per_position import fig_ntru_per_position  # noqa: E402
 from analysis.plots.ntru_xengine_onset import fig_ntru_xengine_onset  # noqa: E402
 
@@ -49,8 +51,10 @@ def main():
     out3 = fig_ntru_xengine_onset(output_dir=args.output_dir)
     out4 = fig_ntru_fatigue_phase(output_dir=args.output_dir)
     out5 = fig_ntru_per_position(output_dir=args.output_dir)
+    out6 = fig_ntru_onset_sigmoids(output_dir=args.output_dir)
+    out7 = fig_ntru_crossover_dynamics(output_dir=args.output_dir)
 
-    for out in (out1, out3, out4, out5):
+    for out in (out1, out3, out4, out5, out6, out7):
         PIPELINE.info("wrote figure", cat="analysis", path=out)
         print(f"wrote {out}")
     return 0
