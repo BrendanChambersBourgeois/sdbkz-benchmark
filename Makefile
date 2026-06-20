@@ -6,7 +6,7 @@
 #
 # Invoke `make help` for the menu.
 
-.PHONY: help reproduce verify bug-hunt manifest lint-manifest figs paper clean
+.PHONY: help reproduce verify bug-hunt manifest lint-manifest figs figs-paper2 paper clean
 
 help:  ## Show this menu
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -35,8 +35,11 @@ lint-manifest:  ## Fast orphan/ghost lint over seed_manifest.json
 lint-manifest-sha:  ## Full --sha-check lint (recomputes SHA-256 of every seed; slow)
 	python3 scripts/lint_seed_manifest.py --sha-check
 
-figs:  ## Regenerate paper figures into analysis/figures/
+figs:  ## Regenerate paper-1 figures into analysis/figures/
 	python3 analysis/paper_figures.py
+
+figs-paper2:  ## Regenerate paper-2 figures into paper2/latex/figs/
+	python3 analysis/paper2_figures.py
 
 paper:  ## Rebuild the LaTeX PDF in paper1/latex/
 	$(MAKE) -C paper1/latex

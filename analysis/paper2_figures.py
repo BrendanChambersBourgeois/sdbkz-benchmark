@@ -22,7 +22,9 @@ sys.path.insert(0, REPO_ROOT)
 
 from analysis._data import load_all_seeds  # noqa: E402
 from analysis.plots.ntru_dimension_onset import fig_ntru_dimension_onset  # noqa: E402
-from analysis.plots.ntru_dsd_onset_trend import fig_ntru_dsd_onset_trend  # noqa: E402
+from analysis.plots.ntru_fatigue_phase import fig_ntru_fatigue_phase  # noqa: E402
+from analysis.plots.ntru_per_position import fig_ntru_per_position  # noqa: E402
+from analysis.plots.ntru_xengine_onset import fig_ntru_xengine_onset  # noqa: E402
 
 sys.path.insert(0, os.path.join(REPO_ROOT, "scripts"))
 from log import get_logger  # noqa: E402
@@ -44,9 +46,11 @@ def main():
 
     groups = load_all_seeds(campaign=args.campaign, q=97)
     out1 = fig_ntru_dimension_onset(groups, output_dir=args.output_dir)
-    out2 = fig_ntru_dsd_onset_trend(output_dir=args.output_dir)
+    out3 = fig_ntru_xengine_onset(output_dir=args.output_dir)
+    out4 = fig_ntru_fatigue_phase(output_dir=args.output_dir)
+    out5 = fig_ntru_per_position(output_dir=args.output_dir)
 
-    for out in (out1, out2):
+    for out in (out1, out3, out4, out5):
         PIPELINE.info("wrote figure", cat="analysis", path=out)
         print(f"wrote {out}")
     return 0

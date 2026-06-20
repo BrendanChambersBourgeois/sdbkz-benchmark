@@ -7,8 +7,7 @@
 % PAPER 2 (BACKBONE / WORK IN PROGRESS) -- NTRU SD-BKZ + g6k cross-engine.
 % Data paper / technical report. Structure & build modelled on paper 1
 % (../paper1/latex/sdbkz_paper_latex.tex). Sections are scaffolded with the
-% curated results from paper2/paper2_findings.md; [TODO] marks what still
-% needs final numbers / figures / the in-flight Phase-4b q-sweep.
+% curated results from paper2/paper2_findings.md.
 % Build: make   (pdflatex/bibtex/pdflatex x2 -> sdbkz_paper2.pdf)
 % =====================================================================
 
@@ -27,6 +26,11 @@
 
 \keywords{lattice reduction, BKZ, SD-BKZ, NTRU, overstretched, fatigue, dense sublattice discovery, Rankin profile, sieving, G6K}
 
+% Absorb small residual overfull boxes (long monospace tokens / hyphenated
+% compounds) without ugly interword gaps — only acts on lines that would
+% otherwise overflow.
+\emergencystretch=3em
+
 \begin{document}
 \maketitle
 
@@ -37,34 +41,33 @@ structurally blind to a real difference between BKZ and self-dual BKZ
 (SD-BKZ). This report measures what that blind spot hides on \emph{NTRU},
 where it matters most: near the fatigue point, where reduction stops grinding
 toward a shortest vector and instead discovers the dense secret sublattice.
-We report three empirical results, each traceable to per-seed data. First,
-the SD-BKZ advantage on circulant NTRU is not a smooth function of dimension:
-tied with BKZ for $n\!\le\!67$, it spikes at $n\!\approx\!71$--$73$ (mean up
-to $+9.7$ nats, the onset-zone standard deviation ${\approx}27\times$
-the plateau standard deviation), then
-settles into a tight $+1.5$--$1.7$-nat plateau for $n\!\ge\!79$. Second, the defensible NTRU
-observable is \emph{reference-free}---signed $d(\mathrm{LN})$ has no canonical
-fixed point on NTRU and is a reference artifact---and under it SD-BKZ reaches
-dense-sublattice discovery (DSD) at lower modulus than BKZ, the gap
-stepping up with dimension at $\beta=20$---${\approx}0\%$ at $n\!\le\!79$,
-${\approx}19$--$20\%$ at $n\!=\!89$--$101$, then widening to $28\%$ at
-$n\!=\!113$. Third, a second
-engine---the G6K sieve---reproduces the RHF-blindness thesis on a
-fundamentally different oracle and sharpens its scope: at a matched
-$\beta=40$ the engines agree on the DSD onset at $n=89$ (no SD-vs-BKZ
-gap---an honest null at this dimension), and the gap reopens at
-$n=101$ on both oracles---$9\%$ on fplll (SD $257.3$ / BKZ $280.7$)
-and $7\%$ on G6K (SD $249.9$ / BKZ $268.3$); at the transition row
-$q=271$ each engine's SD-BKZ fire set is a near-superset of its BKZ
-set (fplll $36/40$ vs $13/40$, $24{:}1$ SD-only; G6K $39/40$ vs
-$22/40$, $17{:}0$ SD-only). What separates the
-engines at $n=89,\beta=40$ is instead the tail: under SD-BKZ the sieve
-leaves the shortest Gram--Schmidt vector ${\approx}4.9\times$ longer than
-enumeration on identical instances (median log-norm $1.844$ vs $0.255$,
-$+1.59$ nats). We also re-validate, on a
-new modulus family, an fplll GSO numerical fix. All experiments are
-reproducible via a containerised, determinism-gated benchmark.
+We report three empirical results, each traceable to per-seed data.
+First, the SD-BKZ advantage on circulant NTRU is not smooth in dimension: tied
+with BKZ for $n\!\le\!67$, it spikes at $n\!\approx\!71$--$73$ (mean up to
+$+9.7$ nats), then settles to a tight $+1.5$--$1.7$-nat plateau for $n\!\ge\!79$.
+Second, the defensible NTRU observable is \emph{reference-free} (signed
+$d(\mathrm{LN})$ is a reference artifact here), and under it SD-BKZ reaches
+dense-sublattice discovery (DSD) at lower modulus than BKZ, the gap growing with
+dimension at $\beta=20$ (${\approx}0\%$ at $n\!\le\!79$ to $28\%$ at $n\!=\!113$).
+Third, the G6K sieve---a fundamentally different oracle---reproduces the thesis
+and sharpens its scope: at matched $\beta=40$ the engines agree at $n=89$ (an
+honest null) and the gap reopens at $n=101$ on both ($9\%$ fplll, $7\%$ G6K),
+each engine's SD-BKZ firing on a near-superset of BKZ's; what differs between
+engines is the sub-fatigue tail, the sieve clearing the shortest vector
+${\approx}4.9\times$ longer than enumeration. All experiments are reproducible
+via a containerised, determinism-gated benchmark.
 \end{abstract}
+
+\paragraph{Key terms.}
+\begin{description}
+\setlength{\itemsep}{0pt}
+\item[\textnormal{\emph{NTRU lattice}}] a structured lattice hiding a short secret $(f,g)$; recovering it breaks the key.
+\item[\textnormal{\emph{BKZ / SD-BKZ}}] block-reduction algorithms; SD-BKZ also reduces from the dual end each tour.
+\item[\textnormal{\emph{Fatigue point}}] the modulus $q$ where the attack flips from solving SVP to finding the dense sublattice.
+\item[\textnormal{\emph{DSD}}] dense-sublattice discovery---the reduced profile collapsing onto the secret sublattice.
+\item[\textnormal{\emph{RHF}}] Root Hermite Factor: the usual one-number reduction-quality score---blind here.
+\item[\textnormal{\emph{fplll / G6K}}] the two reduction engines: exact enumeration vs.\ randomised sieving.
+\end{description}
 
 \section{Introduction}
 \label{sec:intro}
@@ -99,29 +102,31 @@ Our contributions are primarily empirical and infrastructural:
         construction validated against fplll's SD-BKZ, and confirmation that
         RHF-blindness is engine-independent but regime-dependent---consistent
         with independent observations of RHF-equality under a non-exact
-        oracle~\cite{Rowell2024}.
+        oracle~\cite{ABLR21,Rowell2024}.
   \item A criterion-sensitivity audit of the DSD flag itself: the loose
         $b_1$-only test over-fires on uniformly-reduced sub-fatigue bases,
         manufacturing an apparent cross-engine onset gap that the proper
-        two-part criterion eliminates (Section~\ref{sec:xengine}). We document
-        the trap because it cost us a headline claim, and it will cost others.
+        two-part criterion eliminates (Section~\ref{sec:xengine}); we flag it
+        because it cost us a headline claim.
   \item An independent re-validation of an fplll GSO catastrophic-cancellation
-        fix on a new (NTRU) modulus family (Section~\ref{sec:kahan}).
+        fix on a new (NTRU) modulus family (Appendix~\ref{sec:kahan}).
 \end{itemize}
 
 This is a \emph{technical report / data paper}: the emphasis is on the
 experimental apparatus, the data, and reproducibility, rather than on new
 theory. Closest prior work is Deng and Jia~\cite{DengJia2023}, who give a
-sieving-based self-dual BKZ that puts a G6K Pump oracle in place of
-enumeration and thereby attains comparable or better output quality at
-substantially lower running time, and who observe the SD-vs-BKZ quality gap
-narrowing as the block size grows. Our aim is complementary rather than
+sieving-based self-dual BKZ that puts a G6K Pump oracle in place of enumeration
+and thereby attains comparable or better output quality (against the enumeration
+baseline) at substantially lower running time, and who observe the SD-vs-BKZ
+quality gap narrowing as the block size grows. They do not study NTRU or
+dense-sublattice discovery, and their construction differs from ours---Pump
+called per window inside the self-dual skeleton, versus our full pump-and-jump
+tour followed by a dual tour. Our aim is complementary rather than
 competing: we do not propose a faster oracle but a finer empirical
 characterisation, measuring the SD-vs-BKZ structural difference through the
 reference-free profile observable across a fixed-$\beta$, $q$-swept regime.
-White~\cite{White26} studies dynamic block-size strategies
-within the same Li--Nguyen framework, complementary to the fixed-$\beta$,
-$q$-swept regime characterised here.
+White~\cite{White26} reviews the Li--Nguyen dynamic-analysis framework and
+identifies dual-lattice BKZ as a direction for it, pursued empirically here.
 
 \section{Background}
 \label{sec:background}
@@ -142,12 +147,15 @@ distinguish $B$ from a random $q$-ary lattice: a \emph{$q$-vector head} (rows of
 $qI_n$ that survive reduction as length-$q$ vectors) and a \emph{dense secret
 sublattice} spanned by the rotations of $(f,g)$. A BKZ-reduced NTRU profile
 therefore follows the \emph{ZGSA} (Z-shaped) model---a flat head at $\log q$,
-then a GSA slope---rather than the single-slope GSA line of a random $q$-ary
-lattice.
+then a GSA slope---rather than the single-slope GSA line of a strongly-reduced
+random $q$-ary lattice. (Generic $q$-ary lattices carry a $q$-vector head too;
+the NTRU-specific feature is the \emph{second} slope from the dense sublattice,
+the geometry DEP23~\cite{DEP2023} exploits.)
 
 As $q$ grows at fixed $n$, the secret sublattice becomes relatively denser and
 easier to detect: at the \emph{fatigue point}
-$q_\mathrm{fat}(n)\approx0.004\,n^{2.484}$~\cite{DucasWoerden2021} the attack
+$q_\mathrm{fat}(n)\approx0.004\,n^{2.484}$~\cite{DucasWoerden2021} (an empirical
+fit for $n>100$, extrapolated below that range here, not a universal constant) the attack
 transitions from the standard regime (secret found only through full SVP) to
 the \emph{overstretched} regime, where reduction discovers the dense sublattice
 (\emph{dense-sublattice discovery}, DSD) well before solving SVP. The geometry
@@ -161,7 +169,10 @@ length-$\beta$ projected sublattice windows, sweeping left to right. Self-dual
 BKZ (SD-BKZ)~\cite{EC:MicWal16} alternates a forward (primal) pass with a
 backward pass on the reversed dual basis, so each tour reduces the basis from
 both ends. On LWE-Kannan lattices the companion paper~\cite{Paper1} found the
-two produce bases of indistinguishable Root Hermite Factor yet measurably
+two produce bases of indistinguishable Root Hermite Factor%
+\footnote{We compare RHF \emph{differences} between BKZ and SD-BKZ on the same
+lattice, which are independent of the $d$-vs-$(d{-}1)$ root-normalisation
+convention.} yet measurably
 different Rankin profiles; this report asks how that difference behaves on NTRU
 and across two oracle implementations.
 
@@ -201,7 +212,8 @@ $\#\{i:\log\|\mathbf b_i^\ast\| < \log\sqrt{2n\cdot2/3}+0.5\}\le n+1$,
 \emph{and} the shortest GS vector clears the floor,
 $b_1=\min_i\log\|\mathbf b_i^\ast\| > 1.5$. The count threshold is the
 $q$-independent ternary-secret log-norm $\log\sqrt{2n\cdot2/3}$ ($=2.39$ at
-$n=89$; the empirically measured $b_1$ saturation value is ${\approx}1.96$)
+$n=89$, which bounds from above the measured $q$-independent $b_1$ saturation
+floor ${\approx}1.96$--$1.97$)
 plus a $0.5$-nat margin, evaluated per $n$ ($2.75$ at $n=67$ to $3.01$ at
 $n=113$; Section~\ref{sec:fatigue} reports the sensitivity to freezing it).
 The $b_1>1.5$ half alone is necessary but not sufficient---it
@@ -274,9 +286,42 @@ and sweep a matched $q$-grid on \emph{both} engines---the G6K campaign
 (\texttt{ntru\_g6k\_qsweep}) and the fplll campaign
 (\texttt{ntru\_xeng\_qsweep}) write to leaves that share the same
 $(q,\text{precision},\text{tours},n,\beta)$ key, so a comparator reads the two
-engines cell-for-cell. The Kahan re-validation (Section~\ref{sec:kahan}) runs
+engines cell-for-cell. The Kahan re-validation (Appendix~\ref{sec:kahan}) runs
 $n=127$ at $q\in\{971,1087,1201\}$ through a separate patched-fplll campaign
 whose seeds land in their own tree, never overwriting the canonical seeds.
+Table~\ref{tab:coverage} summarises the full grid: 8{,}156 matched BKZ / SD-BKZ
+reductions across $n\in[59,127]$, two block sizes, and 81 moduli, on both the
+enumeration and sieve oracles.
+
+\begin{table}[t]
+\caption{Experimental coverage. Circulant NTRU (lattice dimension $2n$), each seed a
+matched BKZ / SD-BKZ reduction, on two oracles: fplll enumeration and G6K sieve.
+Default 50 tours, fpylll precision 250 bits (high-$q$ cells at $n\ge89$ use 500--1000
+bits). Totals: 8{,}156 seed pairs over 140 $(n,\beta,q)$ cells, $q\in[97,1811]$,
+$\approx$5{,}840 core-hours. The $n=127$ row also carries 12 Kahan-patched validation
+seeds (Appendix~\ref{sec:kahan}).}
+\label{tab:coverage}
+\centering
+\begin{tabular}{rrcccrr}
+\toprule
+$n$ & $2n$ & $\beta$ & \#$q$ & $q$ range & $N_{\mathrm{fplll}}$ & $N_{\mathrm{G6K}}$ \\
+\midrule
+59  & 118 & 20    & 1  & 97        & 20   & --   \\
+61  & 122 & 20    & 1  & 97        & 20   & --   \\
+67  & 134 & 20,40 & 12 & 97--193   & 340  & 24   \\
+71  & 142 & 20    & 1  & 97        & 40   & --   \\
+73  & 146 & 20    & 1  & 97        & 20   & --   \\
+79  & 158 & 20,40 & 15 & 97--293   & 380  & 20   \\
+83  & 166 & 20    & 1  & 97        & 20   & --   \\
+89  & 178 & 20,40 & 31 & 97--691   & 2508 & 1580 \\
+101 & 202 & 20,40 & 23 & 97--541   & 1480 & 140  \\
+113 & 226 & 20,40 & 25 & 97--1279  & 1060 & 340  \\
+127 & 254 & 20    & 16 & 547--1811 & 152  & --   \\
+\midrule
+\multicolumn{5}{r}{total} & 6040 & 2104 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{The SD-BKZ Advantage Has a Dimension-Onset on NTRU}
 \label{sec:dimonset}
@@ -306,9 +351,10 @@ Three regimes: tied for $n\!\le\!67$; an onset zone at $n=71$--$73$ where the
 mean spikes to $+4$--$10$ nats, the onset-zone standard deviation
 ${\approx}27\times$ the plateau standard
 deviation; and a stable $+1.5$--$1.7$-nat plateau for $n\!\ge\!79$ (std
-$0.20$--$0.33$, $20/20$ wins). The onset variance is not noise but bimodality: the per-seed advantage
-at $n=71$ ranges from $-6.7$ to $+13.6$ ($n=73$: $-5.1$ to $+16.0$)---SD-BKZ
-cracks the dense sublattice on most instances and loses outright on the rest.
+$0.20$--$0.33$, $20/20$ wins). The onset variance is a two-outcome split, not
+Gaussian noise: at $n=71$ the per-seed advantage is positive on $27/40$ seeds
+(SD-BKZ cracks the dense sublattice) and $\le0$ on the other $13$ (it loses
+outright), ranging $-6.7$ to $+13.6$ ($n=73$: $-5.1$ to $+16.0$).
 The onset spike exceeds the plateau---non-monotonic
 (Figure~\ref{fig:dimonset}; Table~\ref{tab:dimonset}). One scale caveat: the
 NTRU $d(\mathrm{LN})$ baseline (${\approx}50$) sits roughly an order of
@@ -321,7 +367,7 @@ to the companion paper.
 \centering
 \includegraphics[width=\linewidth]{figs/dimension_onset}
 \caption{NTRU SD-BKZ dimension-onset ($q=97$, $\beta=20$, 50 tours, 20 seeds
-per $n$, $n=71$ at $40$, $\pm1\sigma$ band; in the bimodal onset zone $n=71$--$73$ the band is
+per $n$, $n=71$ at $40$, $\pm1\sigma$ band; in the two-mode onset zone $n=71$--$73$ the band is
 a spread indicator only, not a distributional summary). The signed advantage
 is reference-robust at the spike (Section~\ref{sec:bg-obs}); shown here for
 the dimension transition. Recomputed from the per-seed \texttt{advantage}
@@ -367,17 +413,20 @@ the grid shifts only the near-zero-gap rows ($n=67$: $166.6/167.5$; $n=79$:
 $181.7/182.5$; $n=113$ BKZ $925.0$, gap $27\%$) and leaves the gap trend
 unchanged---the trend is threshold-robust. $n=127$ is excluded
 (fplll GSO catastrophic cancellation~\cite[\S8]{Paper1}, re-validated
-in Section~\ref{sec:kahan}, plus an off-grid crack). The widening is
-shown in Figure~\ref{fig:dsdgap}.
+in Appendix~\ref{sec:kahan}, plus an off-grid crack). The widening, against
+the fatigue curve, is shown in the phase diagram of Figure~\ref{fig:phase}.
 
 \begin{figure}[tbp]
 \centering
-\includegraphics[width=\linewidth]{figs/dsd_onset_trend}
-\caption{Reference-free DSD-onset modulus (proper two-part criterion,
-Section~\ref{sec:bg-obs}) for SD-BKZ vs BKZ as a function of $n$
-($\beta=20$), with the SD-vs-BKZ gap\% labelled. SD-BKZ reaches
-dense-sublattice discovery at progressively lower $q$ than BKZ; the gap grows
-from ${\approx}0$ to $28\%$. Values mirror Table~\ref{tab:dsdgap}.\label{fig:dsdgap}}
+\includegraphics[width=\linewidth]{figs/fatigue_phase}
+\caption{NTRU fatigue phase diagram ($\beta=20$). The DvW21 fatigue curve
+$q_\mathrm{fat}(n)=0.004\,n^{2.484}$ (an empirical fit) bounds the overstretched
+regime (shaded); within it, the measured reference-free DSD-onset curves
+(two-part criterion, Table~\ref{tab:dsdgap}) show SD-BKZ entering
+dense-sublattice discovery at lower $q$ than BKZ, the gap (band) growing
+${\approx}0\%\to28\%$ with $n$. The measured $50\%$-rate onset is a stricter
+threshold than the asymptotic fatigue fit, so the onset curves sit above
+$q_\mathrm{fat}$ at high $n$.\label{fig:phase}}
 \end{figure}
 
 \section{Cross-Engine: SD-BKZ on a Sieve Oracle}
@@ -386,8 +435,11 @@ from ${\approx}0$ to $28\%$. Values mirror Table~\ref{tab:dsdgap}.\label{fig:dsd
 The G6K engine seam and the self-dual pump-and-jump construction are described
 in Section~\ref{sec:setup-engines}; recall that the construction was validated
 against fplll's \texttt{SD\_VARIANT} by matching the per-tour GS-slope-flattening
-signature ($-0.00039$ vs $-0.00040$). This section reports what the validated
-sieve engine then shows.
+signature ($-0.00039$ vs $-0.00040$). This section reports four things: a
+cross-engine soundness check (Table~\ref{tab:xeng-sound}), an honest DSD-onset
+\emph{null} at $n=89$, the gap reopening at $n\ge101$ (Table~\ref{tab:xengdim}),
+and---on a separate axis---a sieve-vs-enumeration difference in how aggressively
+the sub-fatigue tail is reduced.
 
 \paragraph{RHF blindness is engine-independent but regime-dependent.}
 On NTRU at $q=97$, $\beta=40$, the companion paper's thesis reproduces on the
@@ -397,9 +449,11 @@ Hermite factors hold to $\le2\times10^{-6}$ across $20$ seeds at each of
 $n=67/101/113$ (at $n=67$ to $<2\times10^{-15}$), while
 $d(\mathrm{LN})$ differs. The effect is regime-dependent: at $n=89$---the
 cell containing the short-vector events---the values diverge broadly on every
-seed, fired or not. This is consistent with
+seed, fired or not. (Those short-vector firings are a looser screen than DSD
+collapse, so the same $n=89$ is a DSD-onset \emph{null} below---different
+thresholds, not a contradiction.) This is consistent with
 RHF-equality reported under a non-exact (approximate-enumeration)
-oracle~\cite{Rowell2024}; the present work measures the structure RHF misses.
+oracle~\cite{ABLR21,Rowell2024}; the present work measures the structure RHF misses.
 
 \paragraph{Cross-engine validation of the construction.}
 A dimension-resolved fplll-vs-G6K comparison at $q=97$ ($n=89/101/113$, 20
@@ -433,19 +487,18 @@ $n$ & G6K fired & fplll fired & Jaccard \\
 We run the \emph{same} grid ($n=89$, $\beta=40$, $50$ tours, 15 moduli
 $q\in[97,211]$ including a dense onset window $q\in\{191,193,197,199\}$, 100
 seeds per cell) on both the fplll enumeration engine and the G6K sieve, under
-the \emph{proper} two-part DSD criterion: a basis has reached dense-sublattice
-discovery when its profile has collapsed onto the dense sublattice,
-$\#\{i:\log\|\mathbf{b}_i^\ast\| < \log\sqrt{2n\cdot2/3}+0.5\}\le n+1$,
-with the threshold $\log\sqrt{2n\cdot2/3}+0.5=2.888$ at this $n=89$,
-\emph{and} $\min_i\log\|\mathbf{b}_i^\ast\| > 1.5$. The two-part form matters. The looser
+the \emph{proper} two-part DSD criterion of Section~\ref{sec:bg-obs} (profile
+collapse, $\#\{i:\log\|\mathbf{b}_i^\ast\|<2.888\}\le n+1$ at $n=89$, \emph{and}
+$\min_i\log\|\mathbf{b}_i^\ast\|>1.5$). The two-part form matters. The looser
 $b_1>1.5$ test alone over-fires on uniformly-reduced sub-fatigue bases, where
 the tail is cleared but the profile has not collapsed onto the sublattice:
 read as a DSD flag, it converts the $q=137$ clearing counts of
 Table~\ref{tab:g6konset} ($38$ vs $12$ enum, $61$ vs $23$ sieve) into a
 spurious ``matched cross-engine DSD gap''---a claim an earlier draft of this
 report made, and which the two-part criterion refutes (the audit record is
-\texttt{results/validation/dsd\_criterion\_sensitivity.json}). Under the
-proper criterion the cross-engine picture is a clean \emph{null}: at $q=137$
+\texttt{results/validation/dsd\_criterion\_sensitivity.json}).
+
+Under the proper criterion the cross-engine picture is a clean \emph{null}: at $q=137$
 neither SD-BKZ nor BKZ fires DSD on \emph{either} engine, and the onset is
 pinned by the dense window at 100 seeds per cell---fplll SD $193.7$ / BKZ
 $193.8$, G6K SD $193.1$ / BKZ $194.0$. The fplll gap is $+0.16$ modulus units
@@ -506,7 +559,8 @@ at $n=89$, $\beta=40$ (100 seeds/cell) over a $q$-sweep, for the fplll
 enumeration (left) and G6K sieve (right) engines. Self-dual reduction
 redistributes mass head-down/tail-up in the pre-onset band ($q\in[127,157]$),
 peaking in the last few GS vectors, and is flat at $q\ge181$; both engines
-agree. The redistribution is ${\approx}96\%$ predicted by slope flattening
+agree. (The step at GS position $i=n$ is the $q$-vector-head / reduced-tail
+boundary, not an artifact.) The redistribution is ${\approx}96\%$ predicted by slope flattening
 alone ($R^2=0.957$), so it visualises the flattening rather than a distinct
 mechanism.\label{fig:perpos}}
 \end{figure}
@@ -515,87 +569,76 @@ The cross-engine result at $n=89$ is therefore not a confirmation of the
 $\beta=20$ DSD-onset gap of Section~\ref{sec:fatigue} but a
 \emph{regime constraint at that dimension}: the $\beta=20$ gap does not
 survive the move to $\beta=40$ at $n=89$, and the two-engine picture is
-a flat null. At $n=101,\beta=40$ the picture is different. An 8-prime
-coarse grid $q\in\{127,149,181,211,241,271,307,331\}$ at $N=40$ seeds/cell
-on the fplll engine (run 2026-06-12, $50$ tours, $p{=}250$, same two-part
-criterion as $n=89$) recovers a $9\%$ SD$<$BKZ DSD-onset gap (SD $257.3$,
-BKZ $280.7$, $50\%$-rate crossings; bootstrap $95\%$ CI on the gap
-$[6.1\%, 11.0\%]$), with the transition row $q=271$ showing SD-BKZ
-firing on $36/40$ seeds against BKZ's $13/40$ on identical
-bases---and the seed-wise discordant split is $24$ SD-only versus $1$
-BKZ-only (with $12$ co-fired and $3$ neither), McNemar
-$\chi^2_1=21.16$ ($p<10^{-3}$): SD-BKZ fires on a near-superset of the
-BKZ fire set, the cleanest single-$q$ SD-advantage cell in the corpus.
-The $n=101$ gap survives cross-engine. A matched G6K sweep over the
-transition cells $q\in\{241,271,307\}$ ($N=40$ seeds/cell, run 2026-06-13,
-$50$ tours, $p{=}250$, same two-part criterion) recovers a $7\%$ SD$<$BKZ
-DSD-onset gap (SD $249.9$, BKZ $268.3$; extractor:
-\verb|extract_dsd_onset.py --n 101 --beta 40 --engine g6k|;
-seeds: \texttt{results/seeds/ntru\_g6k/q\{241,271,307\}/p250\_mt50/n101\_beta40}),
-mirroring fplll in direction and magnitude. At the transition row $q=271$
-G6K SD-BKZ fires on $39/40$ seeds against BKZ's $22/40$, a $17{:}0$ SD-only
-discordant split (McNemar $\chi^2_1=17.00$, $p<10^{-4}$)---a near-superset,
-as on fplll. We therefore treat the matched-$\beta$ null as established at
-$n=89$ and the gap as established on \emph{both} engines at $n=101$. What
-the matched-$\beta$
-comparison \emph{does} surface is a structural difference between the oracles
-themselves. The min-GS-clearing event---an aggressively reduced tail
+a flat null.
+
+At $n=101$ and $n=113$ the picture changes (Table~\ref{tab:xengdim},
+Figure~\ref{fig:xengonset}). At $n=101$
+an 8-prime coarse grid ($N=40$ seeds/cell, $50$ tours, $p{=}250$) recovers a
+$9\%$ SD$<$BKZ DSD-onset gap on fplll (bootstrap $95\%$ CI $[6.1\%,11.0\%]$) and
+$7\%$ on G6K; at the transition cell $q=271$ each engine's SD-BKZ fire set is a
+near-superset of its BKZ set, on byte-identical bases (fplll $24{:}1$ SD-only,
+McNemar $\chi^2_1=21.16$; G6K $17{:}0$, $\chi^2_1=17.00$; the $17{:}0$ zero-cell
+split is also significant under an exact sign test, $p\approx1.5\times10^{-5}$).
+We treat the
+matched-$\beta$ null as established at $n=89$ and the gap as established on
+\emph{both} engines at $n=101$. At $n=113$ the $50\%$ onset lies above the grid
+(only $q=439$ fires), but the edge stays directional and cross-engine---SD
+reaching DSD ${\approx}4\times$ (fplll) and ${\approx}5.5\times$ (G6K) more than
+BKZ at $q=439$---sub-onset evidence that the SD-before-BKZ direction persists at
+$n=113$, not a pinned gap (pinning it needs $q>439$).
+
+\begin{table}[tbp]
+\centering
+\caption{Cross-engine DSD-onset beyond $n=89$ ($\beta=40$, $N=40$ seeds/cell,
+two-part criterion). The gap is established on \emph{both} engines at $n=101$;
+at $n=113$ the onset is above the grid (edge evidence). The $n=89$
+matched-$\beta$ null is Table~\ref{tab:g6konset}.\label{tab:xengdim}}
+\begin{tabular}{llccl}
+\toprule
+$n$ & engine & SD onset & BKZ onset & transition cell (SD vs BKZ fire) \\
+\midrule
+101 & fplll & 257.3 & 280.7 & $q{=}271$: $36/40$ vs $13/40$ ($24{:}1$, $\chi^2{=}21.2$) \\
+101 & G6K   & 249.9 & 268.3 & $q{=}271$: $39/40$ vs $22/40$ ($17{:}0$, $\chi^2{=}17.0$) \\
+113 & fplll & ${>}439$ & ${>}439$ & $q{=}439$: $4/40$ vs $1/40$ (edge) \\
+113 & G6K   & ${>}439$ & ${>}439$ & $q{=}439$: $11/40$ vs $2/40$ (edge) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{figs/xengine_onset}
+\caption{Cross-engine reference-free DSD-onset $q$ vs $n$ at $\beta=40$
+(two-part criterion), faceted by oracle (fplll enumeration, left; G6K sieve,
+right). An honest null at $n=89$ (SD${\approx}$BKZ${\approx}q{194}$, dense
+window, 100 seeds/cell); the SD$<$BKZ gap reopens at $n=101$ on both oracles
+($9\%$ fplll, $7\%$ G6K, $N=40$/cell). At $n=113$ the onset lies above the
+$q\le439$ grid (open markers; edge fire counts at $q=439$), shown as edge
+evidence, not a pinned point. Mirrors Tables~\ref{tab:g6konset}
+and~\ref{tab:xengdim}.\label{fig:xengonset}}
+\end{figure}
+
+What the matched-$\beta$ comparison \emph{does} surface is a structural difference
+between the oracles themselves. The min-GS-clearing event---an aggressively reduced tail
 ($\min_i\log\|\mathbf{b}_i^\ast\|>1.5$, short of full DSD collapse)---fires more
 often under SD-BKZ than BKZ on both engines ($38$ vs $12$ on fplll, $61$ vs $23$
 on G6K at $q=137$, 100 seeds), and under SD-BKZ the G6K sieve leaves the
 shortest GS vector far longer than fplll enumeration on identical instances:
 median log-norm $1.844$ (sieve) vs $0.255$ (enum), $+1.59$ nats
 ${\approx}4.9\times$ in vector norm (under plain BKZ the difference is small:
-$0.140$ vs $0.104$). The sieve leaves a more
-aggressively-reduced sub-fatigue tail than enumeration. This is a genuine
+$0.140$ vs $0.104$). The sieve thus reduces the sub-fatigue tail more
+\emph{broadly}---more of its tail vectors clear the floor ($61$ vs fplll's $38$
+at $q=137$)---yet leaves its single shortest vector \emph{longer}: broad, not
+deep. This is a genuine
 cross-engine observation---both engines start from the byte-identical primal
-basis ($100/100$ seeds) and the determinant is conserved (median drift
-${\sim}10^{-6}$, max $1.3\times10^{-4}$)
-(\texttt{results/validation/sieve\_vs\_enum\_min\_gs\_clearing.json})---but it is
-aggressive reduction, \emph{not} dense-sublattice discovery, and we label it as
-such.
-
-One dimension further, an 8-prime grid $q\in\{167,197,239,281,317,359,401,439\}$
-at $N=40$ seeds/cell on both engines ($n=113$, $\beta=40$, $50$ tours, $p{=}250$,
-same two-part criterion) does \emph{not} reach the $50\%$ DSD onset: every cell is
-pre-onset and only the top modulus $q=439$ fires at all, so the $n=113,\beta=40$
-onset lies above this grid and is \emph{not pinned} here. The edge is nonetheless
-directional, and cross-engine: at $q=439$ SD-BKZ reaches DSD on $4/40$ seeds
-(fplll) and $11/40$ (G6K) against BKZ's $1/40$ and $2/40$---SD firing ${\approx}4\times$
-(enum) and ${\approx}5.5\times$ (sieve) more often than BKZ on both oracles, G6K the
-larger as at $n=89/101$. We report this as sub-onset edge evidence that the
-SD-before-BKZ direction established at $n=101$ persists at $n=113$---not as a pinned
-onset gap; locating the $n=113,\beta=40$ crossing would require moduli above $439$.
-(Seeds: \verb|results/seeds/ntru{,_g6k}/q{167..439}/p250_mt50/n113_beta40|, $N=40$ each.)
+basis ($100/100$ seeds) with the determinant conserved (median drift
+${\sim}10^{-6}$).
 
 The reference-free observable remains essential on these cells: where the
 min-GS-clearing event fires, the \emph{signed} $d(\mathrm{LN})$ advantage is
 large and negative on both engines, because an aggressively reduced $q$-ary tail
 is far from the LWE-derived $d(\mathrm{LN})$ reference. Report the unsigned
 profile structure, never the signed advantage.
-
-\section{Re-Validating the fplll GSO Fix on a New Modulus Family}
-\label{sec:kahan}
-
-The companion paper documents a catastrophic-cancellation bug in fplll's
-squared-form GSO update at cryptographic moduli, and a Kahan-compensated fix.
-We re-validate that fix on a new (NTRU) modulus family: on $q\in\{971,1087,1201\}$
-at $n=127$, the five contaminated runs (four BKZ, one SD-BKZ) recover from
-the precision-floor clamp ($b_1 = -345.388$) to $-0.160$, $-0.123$, $-0.060$,
-$-0.070$, and $-0.113$---inside the never-contaminated control band ($-0.03$
-to $-0.43$), within which the patched control runs also remain---and the
-patched build passes all 15 fplll regression tests. The patch removes the
-\emph{catastrophic} cancellation specifically: 208 transient mid-trajectory
-clamps persist at this dimension and precision ($11$ shallower than
-$-0.1$; $157$ in $-0.1$ to $-3.5$; $40$ deeper, down to $-173$); raw values are side-logged while the
-clamped value enters the stored profile. Separately, five of the twenty-four
-patched runs end with $b_1$ at the $-345.388$ floor (one SD-BKZ, four BKZ):
-these are not residual contamination but genuine dense-sublattice cracks---
-the circulant off-grid at $n=127$, the same crack that excludes $n=127$ from
-the trend of Section~\ref{sec:fatigue}---whose collapsed profiles bottom out
-at the clamp floor. The fix is thus validated on two
-modulus families (the companion paper's $q=3329$ LWE, $38\%\!\to\!0\%$
-degeneracy, and this NTRU set).
 
 \section{Discussion}
 \label{sec:discussion}
@@ -619,7 +662,10 @@ tail reduction---the G6K sieve clears the shortest GS vector markedly more than
 fplll enumeration on identical instances. A model that treats SD-BKZ and BKZ as
 RHF-equivalent (as the Root Hermite Factor, blind here, would suggest) misses
 that at $\beta=20$ self-dual reduction reaches dense-sublattice structure at a
-lower modulus than BKZ on identical bases.
+lower modulus than BKZ on identical bases. In estimator terms: scoring the two
+as RHF-equal puts their NTRU DSD onset at the same modulus, whereas SD-BKZ
+reaches it measurably lower---a direction a conservative defender should not
+assume away, though we do not quantify its bit-level impact here.
 
 These findings sit alongside two lines of work. The $\beta=40$ regime and the
 Z-shaped $q$-ary profile geometry match the small-modulus forgery setting of
@@ -636,7 +682,8 @@ Section~\ref{sec:xengine} covers.
 
 We are careful about scope. The dimension-onset spike is shown at $\beta=20$,
 $q=97$; the cross-engine comparison at $\beta=40$, $n=89$. The signed $d(\mathrm{LN})$
-is reported nowhere as a result; and the cross-engine comparison at $\beta=40$,
+is reported only where it is reference-robust (the $n\approx71$--$73$ spike,
+Section~\ref{sec:dimonset}), never in the $q$-onset analysis; and the cross-engine comparison at $\beta=40$,
 $n=89$ is an honest null on the DSD-onset (a regime constraint, not a
 confirmation), its positive content being the sieve-vs-enum tail-reduction
 difference; the matched-$\beta=40$ gap reopens at $n=101$ on both engines ($9\%$ fplll,
@@ -649,24 +696,24 @@ excluded from the onset trend
 (Section~\ref{sec:fatigue}): the fplll GSO cancellation
 ~\cite[\S8]{Paper1} contaminated those cells, and the circulant crack
 there is off-grid---it is a validation target
-(Section~\ref{sec:kahan}), not a trend point.
+(Appendix~\ref{sec:kahan}), not a trend point.
 
 \section{Reproducibility}
 \label{sec:repro}
-Every result traces to per-seed JSON files under \texttt{results/seeds/},
-SHA-256-gated for byte-identity and reproducible across machines from
-digest-pinned containers (Section~\ref{sec:setup-repro}). Each experiment is a
-named campaign in \texttt{config/sweep.toml}, so a cell is regenerated by a
-single \texttt{run\_campaign} invocation naming the campaign, $q$, and seed
-count. The cross-engine soundness records and DSD-onset tables are committed
-under \texttt{results/validation/} with their own reproduction commands; the
-determinism and self-dual-semantics decisions are recorded in ADRs~005--008.
-Each figure has one figure module: Figure~\ref{fig:dimonset} renders
-directly from the per-seed data, and Figure~\ref{fig:dsdgap} mirrors
-Table~\ref{tab:dsdgap}, whose values reproduce from the seeds via
-\verb|extract_dsd_onset.py --trend|. The companion paper's SHA baselines are preserved unchanged: the
-NTRU generator and the G6K engine were added without altering the seed JSON
-schema.
+Beyond the per-seed JSON / SHA-256 / named-campaign apparatus of
+Section~\ref{sec:setup-repro}: the cross-engine soundness records and DSD-onset
+tables are committed under \texttt{results/validation/} with their own
+reproduction commands, and the determinism and self-dual-semantics decisions are
+recorded in ADRs~005--008. Each figure has one module under
+\texttt{analysis/plots/}, all regenerated by \texttt{analysis/paper2\_figures.py}:
+Figure~\ref{fig:dimonset} from the per-seed \texttt{advantage} field,
+Figure~\ref{fig:perpos} from the per-seed GS-log-norm profiles, and
+Figures~\ref{fig:phase} and~\ref{fig:xengonset} mirroring the
+seed-backed onset tables (\verb|extract_dsd_onset.py|). The companion
+paper's SHA baselines are preserved: the NTRU generator and G6K engine were added
+without altering the seed JSON schema. In total the study comprises 8{,}156 matched
+BKZ / SD-BKZ reductions (Table~\ref{tab:coverage}), about 5{,}840 core-hours of
+reduction across both oracles; every cell regenerates from its named campaign.
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -685,6 +732,31 @@ engine-independent: the apparatus measures structure the RHF misses, across
 two oracles. The apparatus---a
 determinism-gated, containerised, two-engine benchmark with per-seed evidence---is
 released so the measurements can be reproduced and extended.
+
+\appendix
+
+\section{Re-Validating the fplll GSO Fix on a New Modulus Family}
+\label{sec:kahan}
+
+The companion paper documents a catastrophic-cancellation bug in fplll's
+squared-form GSO update at cryptographic moduli, and a Kahan-compensated fix.
+We re-validate that fix on a new (NTRU) modulus family: on $q\in\{971,1087,1201\}$
+at $n=127$, the five contaminated runs (four BKZ, one SD-BKZ) recover from
+the precision-floor clamp ($b_1 = -345.388$) to $-0.160$, $-0.123$, $-0.060$,
+$-0.070$, and $-0.113$---inside the never-contaminated control band ($-0.03$
+to $-0.43$), within which the patched control runs also remain---and the
+patched build passes all 15 fplll regression tests. The patch removes the
+\emph{catastrophic} cancellation specifically: 208 transient mid-trajectory
+clamps persist at this dimension and precision ($11$ shallower than
+$-0.1$; $157$ in $-0.1$ to $-3.5$; $40$ deeper, down to $-173$); raw values are
+side-logged while the clamped value enters the stored profile. Separately, five
+of the twenty-four patched runs end with $b_1$ at the $-345.388$ floor (one
+SD-BKZ, four BKZ): these are not residual contamination but genuine
+dense-sublattice cracks---the circulant off-grid at $n=127$, the same crack that
+excludes $n=127$ from the trend of Section~\ref{sec:fatigue}---whose collapsed
+profiles bottom out at the clamp floor. The fix is thus validated on two modulus
+families (the companion paper's $q=3329$ LWE, $38\%\!\to\!0\%$ degeneracy, and
+this NTRU set).
 
 \bibliography{abbrev3,crypto,biblio}
 

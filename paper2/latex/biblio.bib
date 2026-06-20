@@ -36,6 +36,21 @@
                cross-engine self-dual construction here.}
 }
 
+@inproceedings{ABLR21,
+  author    = {Martin R. Albrecht and Shi Bai and Jianwei Li and Joe Rowell},
+  title     = {Lattice Reduction with Approximate Enumeration Oracles:
+               Practical Algorithms and Concrete Performance},
+  booktitle = {Advances in Cryptology -- CRYPTO 2021},
+  series    = {LNCS},
+  volume    = {12826},
+  pages     = {732--759},
+  publisher = {Springer},
+  year      = {2021},
+  doi       = {10.1007/978-3-030-84245-1_25},
+  note      = {IACR ePrint 2020/1260. Approximate-enumeration oracle reaches
+               the same root Hermite factor (RHF) as exact (RHF-blind, independent).}
+}
+
 @phdthesis{Rowell2024,
   author = {Joe Rowell},
   title  = {Theoretical, Practical, and Engineering Aspects of Lattice
@@ -51,32 +66,30 @@
             Noah Stephens-Davidowitz},
   title  = {Recursive Lattice Reduction},
   year   = {2023},
-  note   = {arXiv:2311.15064. Abandons rHF for dense-sublattice density;
-            DSP via Rankin --- conceptual cite for the rHF-blind framing.}
+  note   = {arXiv:2311.15064. Abandons RHF for dense-sublattice density;
+            DSP via Rankin --- conceptual cite for the RHF-blind framing.}
 }
 
 @misc{Paper1,
   author       = {Brendan Chambers-Bourgeois},
-  title        = {{SD-BKZ} vs.\ {BKZ}: A Reproducible Lattice-Reduction
-                  Benchmark via the {Li--Nguyen} {Rankin} Profile},
+  title        = {The Root Hermite Factor is Blind: Structural Differences
+                  in Lattice Reduction Revealed by the {Li--Nguyen} {Rankin}
+                  Profile},
   year         = {2026},
   howpublished = {Zenodo},
-  doi          = {10.5281/zenodo.20518060},
-  url          = {https://zenodo.org/records/20518060},
-  note         = {Companion paper (paper 1): \emph{The Root Hermite Factor is
-                  Blind: Structural Differences in Lattice Reduction Revealed
-                  by the Li--Nguyen Rankin Profile}, contained in the record.
-                  Zenodo is its only release --- no ePrint or other
-                  pre/post-publication.}
+  doi          = {10.5281/zenodo.19686927},
+  url          = {https://github.com/BrendanChambersBourgeois/sdbkz-benchmark},
+  note         = {Companion paper (paper~1).}
 }
 
 @misc{White26,
   author       = {Trill White},
   title        = {Dynamic analysis of lattice basis reduction algorithms},
   year         = {2026},
-  howpublished = {AMSI Summer Research Scholarships 2025--26, Deakin University},
+  howpublished = {AMSI Summer Research Scholarships 2025--26 student report, Deakin University},
   url          = {https://srs.amsi.org.au/wp-content/uploads/sites/92/2026/03/white_trill_srs-report.pdf},
-  note         = {Dynamic block-size strategy within the Li--Nguyen framework.}
+  note         = {Student report: reviews the Li--Nguyen dynamic-analysis
+                  framework and proposes dual-lattice BKZ as a direction for it.}
 }
 
 @inproceedings{DEP2023,
