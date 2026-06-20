@@ -452,6 +452,21 @@ tours_by_beta = { "20" = 50 }
 num_seeds = 40
 store_per_tour = false
 
+# n=73 β=20 q=97: top up the spike cell 20→120 for the Bucket C cross-arch run.
+# Identical params to [campaigns.ntru] so output lands in the SAME
+# results/seeds/ntru/q97/p250_mt50/n073_beta20 cell; resumable skip-existing
+# generates seeds 21–120 (20 already committed).
+[campaigns.ntru_n73_topup]
+description = "NTRU n=73 β=20 q=97 top-up 20->120 for Bucket C (cross-arch)"
+generator = "ntru"
+q = 97
+precision = 250
+beta_grid = [20]
+n_grid = [73]
+tours_by_beta = { "20" = 50 }
+num_seeds = 120
+store_per_tour = false
+
 # n=67 β=40 q=97 fplll: restores the Section 6 RHF agreement check (n=67/101/113) with
 # verified data. Identical params to [campaigns.ntru_xeng_n89] / the existing
 # n=101,113 β=40 q=97 fplll cells, so it is a like-for-like cross-dimension match.
