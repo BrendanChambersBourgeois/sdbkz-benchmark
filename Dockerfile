@@ -84,6 +84,11 @@ WORKDIR /experiment
 # surfaced it on 2026-04-09.
 COPY --chown=${HOST_UID}:${HOST_GID} scripts/ scripts/
 
+# Ship config/ (sweep.toml) so campaign runs are self-contained: a collaborator
+# can `docker run <img> python3 scripts/run_campaign.py --campaign ...` with no
+# host checkout. Without this, run_campaign needs config/sweep.toml bind-mounted.
+COPY --chown=${HOST_UID}:${HOST_GID} config/ config/
+
 # Self-contained image: ship analysis/, tests/, and paper-cited results
 # JSONs so a reviewer can run `pytest tests/` or
 # `python3 analysis/paper_figures.py` against the image with no host
