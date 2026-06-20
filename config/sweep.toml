@@ -300,7 +300,7 @@ store_per_tour = false
 # GROWS as q → fatigue and into the overstretched regime, with SD-onset at
 # lower q than BKZ-onset — the reference-free DSD observable, now on the
 # sieve engine. (The Phase-4a fixed-q=97 sweep across n was the WRONG axis:
-# at fixed q, larger n is harder, so firing fell — INC-41. q is the right
+# at fixed q, larger n is harder, so firing fell. q is the right
 # knob.) Sweep q via --q; match the fplll precision tier per q via
 # --precision (p250 for q<400, p500 for 400–899) so a future fplll β=40
 # match shares the seed paths. RUN IN sdbkz-g6k:ref, 22 workers:
@@ -326,7 +326,7 @@ store_per_tour = false
 # g6k(sieve,β40) vs fplll(enum,β40) onset comparison is apples-to-apples.
 # seed_tag default → results/seeds/ntru/q{q}/p250_mt50/n089_beta40/, the same
 # cells compare_xengine.py reads against ntru_g6k. RUN IN sdbkz-benchmark:ci
-# (rebuilt non-root, INC-40). fplll enum-β40 mt=50 is heavy (~2h/cell) — long:
+# (rebuilt non-root). fplll enum-β40 mt=50 is heavy (~2h/cell) — long:
 #   for q in 97 113 137 157 181 211; do run_campaign --campaign ntru_xeng_qsweep --q $q --precision 250 --workers 22; done
 [campaigns.ntru_xeng_qsweep]
 description = "fplll NTRU β=40 DSD-onset q-sweep at n=89 — cross-engine match"
@@ -346,7 +346,7 @@ store_per_tour = false
 # default → results/seeds/ntru/q{q}/p{prec}_mt50/n113_beta20/. Resumable:
 # skips existing seeds, tops up to 100. PRECISION MUST LADDER BY q to match the
 # existing cells exactly (else the new seeds split into a different p### dir).
-# RUN ON VMWARE (proven stable; made the originals). workers=22 (VM allocation).
+# RUN on the stable host (made the originals). workers=22.
 # Run slow-first (q947 p1000 = ~68min/seed sink) so the long pole starts early:
 #   RUN() { docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/work -w /work sdbkz-benchmark:ci "$@"; }
 #   p1000: for q in 947 1049 1163 1279; do RUN python3 scripts/run_campaign.py --campaign ntru_n113_qsweep --q $q --precision 1000 --seeds 100 --workers 22; done
@@ -354,11 +354,11 @@ store_per_tour = false
 #   p250:  for q in 409 449 487 523; do RUN python3 scripts/run_campaign.py --campaign ntru_n113_qsweep --q $q --precision 250 --seeds 100 --workers 22; done
 # DRY-RUN each first. --seeds works (fix ebcab5f); --beta does NOT (beta_grid sets it).
 # DO NOT use --ulimit stack=-1 (β=20 enum is shallow; the flag broke OpenBLAS
-# thread creation across forks on WSL2 -- dropped). If fork pressure ever
+# thread creation across forks -- dropped). If fork pressure ever
 # recurs, the fix is per-worker thread-pinning env vars (OPENBLAS_NUM_THREADS=1
 # OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1) -- byte-identity
-# RE-VERIFIED safe (verify.sh, n=50 refs matched to digit). The original WSL2
-# crash was the WSL2 VM init dying (p9io/dxgk), not this campaign.
+# RE-VERIFIED safe (verify.sh, n=50 refs matched to digit). The original
+# crash was the host VM init dying (p9io/dxgk), not this campaign.
 # Worker isolates a single seed's PYTHON failure (logs "error:" + continues);
 # a native crash kills only its worker, cell is resumable -- re-fire that q.
 [campaigns.ntru_n113_qsweep]
