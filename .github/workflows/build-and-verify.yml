@@ -304,7 +304,15 @@ jobs:
   # cross-machine reference test — the GitHub runner is a third machine vs
   # the single-machine capture host (ADR-005 cross-machine open item).
   g6k-build-and-verify:
-    runs-on: ubuntu-latest
+    # Pinned to an explicit image (not floating ubuntu-latest) after a SIGILL
+    # (exit 132, illegal instruction) in the determinism-verify step: the g6k
+    # stack emits an instruction beyond the build target on some fleet runners.
+    # The fplll-patched job (same x86-64-v3 flags) is unaffected, so this is
+    # g6k-specific. Pinning the image + the cache-scope bump below force a clean
+    # rebuild on a stable runner. NOTE: GitHub-hosted runners give no hard
+    # microarch guarantee; if SIGILL recurs the real fix is an x86-64-v2
+    # re-baseline of the g6k determinism reference SHA (maintainer decision).
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - name: Checkout
@@ -326,8 +334,10 @@ jobs:
           file: ./Dockerfile.g6k
           tags: sdbkz-g6k:ci
           load: true
-          cache-from: type=gha,scope=g6k
-          cache-to: type=gha,mode=max,scope=g6k
+          # scope bumped g6k -> g6k-v3-1 to evict any layer that produced the
+          # SIGILL-ing binary; forces a clean rebuild on the pinned runner.
+          cache-from: type=gha,scope=g6k-v3-1
+          cache-to: type=gha,mode=max,scope=g6k-v3-1
           build-args: |
             HOST_UID=${{ steps.runner_ids.outputs.uid }}
             HOST_GID=${{ steps.runner_ids.outputs.gid }}
