@@ -23,6 +23,9 @@ figures/*.png
 # Runtime / local caches / VCS
 logs/
 _archives/
+# Local-only cross-arch handoff staging (multi-hundred-MB image tarball + runbook);
+# never part of the image, and shipping it as build context bloats every build.
+handoff/
 .git/
 .github/
 **/__pycache__/
