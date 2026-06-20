@@ -105,6 +105,11 @@ COPY --chown=${HOST_UID}:${HOST_GID} \
      results/profile_decomposition.json results/convergence_headroom.json \
      results/dGSA_summary.json results/seed_manifest.json \
      results/hash_verification.txt results/
+# verify.sh reads this golden reference in-image (NUM_SEEDS=1 repro check);
+# the explicit dest preserves the validation/ subdir without baking the other
+# research artifacts in that directory.
+COPY --chown=${HOST_UID}:${HOST_GID} \
+     results/validation/verify_reference.json results/validation/verify_reference.json
 
 # Ensure /experiment + the to-be-created results/ + logs/ subdirs are
 # writable by the runtime user (verify.sh writes results/, sweep
