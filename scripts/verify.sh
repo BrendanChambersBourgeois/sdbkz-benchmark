@@ -23,16 +23,18 @@ BASE="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 NUM_SEEDS="${NUM_SEEDS:-5}"
 
-# Reference values (n=50, beta=20, seeds 1-5). Only the first NUM_SEEDS
-# lines are consumed at runtime, so NUM_SEEDS=1 runs only seed 1.
-# Format: seed bkz_final_dln sdbkz_final_dln advantage
-read -r -d '' REFERENCE <<'EOF' || true
-1 4.022375 3.811012 0.211363
-2 4.021647 3.846590 0.175056
-3 4.024954 3.742366 0.282588
-4 4.041260 3.718547 0.322714
-5 3.941869 3.629196 0.312673
-EOF
+# Reference values (n=50, beta=20, seeds 1-5), format: seed bkz sd advantage.
+# Read from results/validation/verify_reference.json -- derived by
+# scripts/build_verify_reference.py from the committed, SHA-manifest-gated
+# reference seeds, NOT inline literals (so they cannot be silently edited to
+# mask a regression; the golden is regenerable from its source). Only the first
+# NUM_SEEDS lines are consumed at runtime.
+REF_JSON="$BASE/results/validation/verify_reference.json"
+REFERENCE=$(python3 -c "
+import json
+for r in json.load(open('$REF_JSON'))['seeds']:
+    print(r['seed'], f\"{r['bkz_final_dln']:.6f}\", f\"{r['sdbkz_final_dln']:.6f}\", f\"{r['advantage']:.6f}\")
+")
 
 TOLERANCE=0.0001
 

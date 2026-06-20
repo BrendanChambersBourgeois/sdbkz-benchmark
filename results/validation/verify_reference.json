@@ -1,0 +1,41 @@
+{
+  "config": {
+    "beta": 20,
+    "n": 50,
+    "q": 97
+  },
+  "note": "Known-good reference for verify.sh. Derived by scripts/build_verify_reference.py from the committed, SHA-manifest-gated seeds at results/seeds/main/q97/n050_beta20/. Not hand-edited; regenerate to re-baseline.",
+  "seeds": [
+    {
+      "advantage": 0.21136347216803353,
+      "bkz_final_dln": 4.022375283312222,
+      "sdbkz_final_dln": 3.8110118111441884,
+      "seed": 1
+    },
+    {
+      "advantage": 0.1750563755358705,
+      "bkz_final_dln": 4.021646644011581,
+      "sdbkz_final_dln": 3.84659026847571,
+      "seed": 2
+    },
+    {
+      "advantage": 0.2825879145140826,
+      "bkz_final_dln": 4.024953694586682,
+      "sdbkz_final_dln": 3.7423657800726,
+      "seed": 3
+    },
+    {
+      "advantage": 0.3227135361409812,
+      "bkz_final_dln": 4.041260243828982,
+      "sdbkz_final_dln": 3.718546707688001,
+      "seed": 4
+    },
+    {
+      "advantage": 0.3126733872891929,
+      "bkz_final_dln": 3.941869358668235,
+      "sdbkz_final_dln": 3.6291959713790423,
+      "seed": 5
+    }
+  ],
+  "source": "results/seeds/main/q97/n050_beta20/"
+}
