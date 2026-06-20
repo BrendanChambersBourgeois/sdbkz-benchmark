@@ -462,15 +462,19 @@ def _resolve_generated_utc(deterministic: bool) -> str:
     return dt.datetime.now(tz=dt.UTC).strftime(_UTC_FMT)
 
 
-def walk(results_root: str, generated_utc: str) -> tuple[list[dict], list[tuple[str, str]]]:
+def walk(results_root: str, generated_utc: str | None = None) -> tuple[list[dict], list[tuple[str, str]]]:
     """Scan results_root for seed JSONs via both the legacy-CAMPAIGN_DIRS
     walker and the v1.3 results/seeds/ native walker. Entries dedup by
     canonical (os.path.realpath) destination so a file reachable via
     both a pre-v1.3 symlink and its new canonical path lands once.
-    `generated_utc` stamps every entry's verified_at_utc (single source).
+    `generated_utc` stamps every entry's verified_at_utc (single source);
+    defaults to wall-clock now() when omitted (back-compat with callers/tests
+    that invoke walk(results_root) directly).
 
     Returns (entries, rejects).
     """
+    if generated_utc is None:
+        generated_utc = _resolve_generated_utc(False)
     rejects: list[tuple[str, str]] = []
     # keyed by canonical realpath → entry
     by_real: dict[str, dict] = {}
