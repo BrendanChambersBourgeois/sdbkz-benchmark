@@ -34,15 +34,15 @@ Each backend exposes the same tiny surface the driver needs:
 backend takes its OWN private copy so the driver can reuse `B_init` across
 the bkz/sdbkz variants without aliasing.
 
-OPEN (Phase 3 science — NOT decided here):
-  * g6k has no settled SD-BKZ analog, so `variant="sdbkz"` on the g6k
-    backend raises NotImplementedError rather than silently aliasing plain
-    BKZ. The advantage metric (bkz_final_dln - sdbkz_final_dln) is therefore
-    fplll-only until that semantics is fixed.
-  * Multi-tour g6k determinism (re-seed-per-tour vs re-seed-once) is locked
-    only for the single-tour probe today. The backend re-seeds ONCE at
-    construction, matching the probe; >1 tour determinism is unproven and
-    must be settled before any g6k production seed is generated.
+RESOLVED (Phase 3 science):
+  * g6k SD-BKZ = self-dual pump-BKZ (a primal pump-n-jump tour followed by a
+    dual pass), validated against fplll `BKZ.SD_VARIANT` — see ADR-008. The
+    advantage metric (bkz_final_dln - sdbkz_final_dln) is now defined on both
+    engines; the g6k backend implements both variants (see _G6kBackend.tour).
+  * Multi-tour g6k determinism is settled (ADR-007, Gate 1): the backend
+    re-seeds ONCE at construction and every sub-tour runs threads=1, so >1 tour
+    reduction is deterministic. g6k production seeds are generated on this
+    contract.
 """
 from __future__ import annotations
 

@@ -1,8 +1,8 @@
 # fplll Gram–Schmidt cancellation — numerical findings + mitigation
 
-**Status**: numerical-correctness finding at cryptographic moduli; Kahan-compensated patch ships at [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch). Upstream issue filing queued pre-publication; filing date + issue number will be recorded in the timeline section below once filed.
+**Status**: numerical-correctness finding at cryptographic moduli; Kahan-compensated patch ships at [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch). Filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08; closed unmerged 2026-05-17. The patch ships in-repo and paper §8 stands on its own evidence (cross-vendor reproduction, 0/55 regression). See the timeline section below.
 
-**Paper reference**: §8 of [`paper/sdbkz_paper.pdf`](../../paper/sdbkz_paper.pdf) (LaTeX source: [`paper/latex/sdbkz_paper_latex.tex`](../../paper/latex/sdbkz_paper_latex.tex)).
+**Paper reference**: §8 of [`paper1/latex/sdbkz_paper_latex.pdf`](../../paper1/latex/sdbkz_paper_latex.pdf) (LaTeX source: [`paper1/latex/sdbkz_paper_latex.tex`](../../paper1/latex/sdbkz_paper_latex.tex)).
 
 **Classification**: this is a new instance of a known failure family (fpylll #272 — FP exception on linearly dependent matrices, fplll #237 — numerical stability tests). Not a new bug class. The novelty is (a) a concrete reproducer at canonical ML-KEM parameters, (b) a verified 30-line mitigation, and (c) cross-vendor FP execution reproduction.
 
@@ -142,7 +142,7 @@ Timeline entries are appended, never revised in place. Revision means a new row 
 
 All artefacts are on-repo (no external hosting):
 
-- [`paper/sdbkz_paper.pdf`](../../paper/sdbkz_paper.pdf) — §8 (pages 18–20): full characterization with 100-seed dataset, Wilson CI, BKZ-vs-SD-BKZ symmetry check, cross-machine rate comparison.
+- [`paper1/latex/sdbkz_paper_latex.pdf`](../../paper1/latex/sdbkz_paper_latex.pdf) — §8 (pages 18–20): full characterization with 100-seed dataset, Wilson CI, BKZ-vs-SD-BKZ symmetry check, cross-machine rate comparison.
 - [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch) — single-hunk Kahan-compensation replacement.
 - [`patches/README.md`](../../patches/README.md) — apply instructions, verification notes, scope statement.
 - [`results/seeds/q3329/p1000_mt70/n100_beta30/`](../../results/seeds/q3329/p1000_mt70/n100_beta30/) — 100 lean seed JSONs + 45 fat companions (per-tour trajectories, Gram–Schmidt log-norms, RHF). SHA-256-indexed in `results/seed_manifest.json`.
