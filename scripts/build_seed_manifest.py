@@ -448,17 +448,29 @@ def _classify_v13(
     return entry, None
 
 
-def walk(results_root: str) -> tuple[list[dict], list[tuple[str, str]]]:
+_UTC_FMT = "%Y-%m-%dT%H:%M:%SZ"
+
+
+def _resolve_generated_utc(deterministic: bool) -> str:
+    """Manifest timestamp. Deterministic mode freezes it -- from
+    SOURCE_DATE_EPOCH if set, else epoch 0 -- so a rebuild with no
+    seed-population change yields a byte-identical manifest and does not churn
+    git with wall-clock-only diffs (INC-48). Default: wall-clock now()."""
+    if deterministic:
+        epoch = int(os.environ.get("SOURCE_DATE_EPOCH", "0"))
+        return dt.datetime.fromtimestamp(epoch, tz=dt.UTC).strftime(_UTC_FMT)
+    return dt.datetime.now(tz=dt.UTC).strftime(_UTC_FMT)
+
+
+def walk(results_root: str, generated_utc: str) -> tuple[list[dict], list[tuple[str, str]]]:
     """Scan results_root for seed JSONs via both the legacy-CAMPAIGN_DIRS
     walker and the v1.3 results/seeds/ native walker. Entries dedup by
     canonical (os.path.realpath) destination so a file reachable via
     both a pre-v1.3 symlink and its new canonical path lands once.
+    `generated_utc` stamps every entry's verified_at_utc (single source).
 
     Returns (entries, rejects).
     """
-    generated_utc = dt.datetime.now(tz=dt.UTC).strftime(
-        "%Y-%m-%dT%H:%M:%SZ"
-    )
     rejects: list[tuple[str, str]] = []
     # keyed by canonical realpath → entry
     by_real: dict[str, dict] = {}
@@ -614,6 +626,12 @@ def main() -> int:
         help="write rejected files + reasons to this path (optional; "
         "default: rejects printed to stderr only)",
     )
+    ap.add_argument(
+        "--deterministic",
+        action="store_true",
+        help="freeze generated_utc / verified_at_utc (SOURCE_DATE_EPOCH or "
+        "epoch 0) so a no-population-change rebuild is byte-identical (INC-48)",
+    )
     args = ap.parse_args()
 
     PIPELINE.info(
@@ -624,12 +642,10 @@ def main() -> int:
     )
     t0 = time.time()
 
-    entries, rejects = walk(args.results_root)
+    generated_utc = _resolve_generated_utc(args.deterministic)
+    entries, rejects = walk(args.results_root, generated_utc)
     per_campaign = summarise(entries)
 
-    generated_utc = dt.datetime.now(tz=dt.UTC).strftime(
-        "%Y-%m-%dT%H:%M:%SZ"
-    )
     manifest = {
         "schema_version": SCHEMA_VERSION,
         "generated_utc": generated_utc,

@@ -26,8 +26,8 @@ bug-hunt:  ## Static tag-driven bug hunt over scripts/ + analysis/ + tests/
 	    scripts/ analysis/ tests/
 	python3 scripts/find_bugs_via_tags.py
 
-manifest:  ## Rebuild results/seed_manifest.json from the on-disk tree
-	python3 scripts/build_seed_manifest.py
+manifest:  ## Rebuild results/seed_manifest.json from the on-disk tree (byte-stable)
+	python3 scripts/build_seed_manifest.py --deterministic
 
 lint-manifest:  ## Fast orphan/ghost lint over seed_manifest.json
 	python3 scripts/lint_seed_manifest.py
