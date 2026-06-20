@@ -6,7 +6,7 @@
 #
 # Invoke `make help` for the menu.
 
-.PHONY: help reproduce verify bug-hunt manifest lint-manifest figs figs-paper2 paper clean
+.PHONY: help reproduce verify bug-hunt manifest manifest-patched lint-manifest figs figs-paper2 paper clean
 
 help:  ## Show this menu
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -28,6 +28,9 @@ bug-hunt:  ## Static tag-driven bug hunt over scripts/ + analysis/ + tests/
 
 manifest:  ## Rebuild results/seed_manifest.json from the on-disk tree (byte-stable)
 	python3 scripts/build_seed_manifest.py --deterministic
+
+manifest-patched:  ## Rebuild results/patched_seed_manifest.json (Kahan engine, byte-stable)
+	python3 scripts/build_patched_manifest.py
 
 lint-manifest:  ## Fast orphan/ghost lint over seed_manifest.json
 	python3 scripts/lint_seed_manifest.py

@@ -1,0 +1,153 @@
+{
+ "engine": "fplll-kahan",
+ "manifest_version": 1,
+ "note": "Kahan-compensated fplll GSO build (Dockerfile.fplll_patched, paper Appendix A). Separate SHA set: these hashes are NOT comparable to the stock-fplll seed_manifest (ADR-005 reasoning).",
+ "reference": "paper Appendix A re-validation of the fplll GSO fix on the n=127 NTRU off-grid family.",
+ "seeds": [
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q971/p1000_mt50/n127_beta20/seed0001.json",
+   "precision": 1000,
+   "q": 971,
+   "seed": 1,
+   "sha256": "26146ff311ee22bbd3f6c3cef7960d55a6584f7579e0a6e4c3760be2cfd3c541"
+  },
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q971/p1000_mt50/n127_beta20/seed0002.json",
+   "precision": 1000,
+   "q": 971,
+   "seed": 2,
+   "sha256": "5f7425f8721e5cf761c8aab152367a43737590112957a516948953a534ea6a31"
+  },
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q971/p1000_mt50/n127_beta20/seed0003.json",
+   "precision": 1000,
+   "q": 971,
+   "seed": 3,
+   "sha256": "f97adeb8d074691ee00f2ecea4decd17b2fe224b9acf678e5b671cb38f2a1deb"
+  },
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q971/p1000_mt50/n127_beta20/seed0004.json",
+   "precision": 1000,
+   "q": 971,
+   "seed": 4,
+   "sha256": "41b431aeb9051de5a7b8ef682e686526638a23d9771b5d1495cbaffd939c96eb"
+  },
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q1087/p1000_mt50/n127_beta20/seed0001.json",
+   "precision": 1000,
+   "q": 1087,
+   "seed": 1,
+   "sha256": "733a4d2d42acbe743a1cf529f122b9c6d9f0053515224b28e44f7b6d29b1ef27"
+  },
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q1087/p1000_mt50/n127_beta20/seed0002.json",
+   "precision": 1000,
+   "q": 1087,
+   "seed": 2,
+   "sha256": "450a354f405c02e060cdea4b6738c1fc41cd0dc698d5931e422a11f4be795d7a"
+  },
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q1087/p1000_mt50/n127_beta20/seed0003.json",
+   "precision": 1000,
+   "q": 1087,
+   "seed": 3,
+   "sha256": "1be2d8d4f19a7768ec0d5c337409cdf6c51ad9c0a63980fd2b424f4287b5ae97"
+  },
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q1087/p1000_mt50/n127_beta20/seed0004.json",
+   "precision": 1000,
+   "q": 1087,
+   "seed": 4,
+   "sha256": "a8866f2be0e0fabeeb5f73c9eb1b715b295e20271f3f36eab5acac4c71a1c939"
+  },
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q1201/p1000_mt50/n127_beta20/seed0001.json",
+   "precision": 1000,
+   "q": 1201,
+   "seed": 1,
+   "sha256": "73321ee4df2fa8f19e99d82f624da82e821b7c388447f6e45aa425c6f068af08"
+  },
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q1201/p1000_mt50/n127_beta20/seed0002.json",
+   "precision": 1000,
+   "q": 1201,
+   "seed": 2,
+   "sha256": "b0b08b21f78b257f0ff258880938429a5b705837974802d5b571bfcbc54883d6"
+  },
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q1201/p1000_mt50/n127_beta20/seed0003.json",
+   "precision": 1000,
+   "q": 1201,
+   "seed": 3,
+   "sha256": "a29ab0f797faf371a02ddf8fa161583466fd535ce170ea8764f95e6038e2710d"
+  },
+  {
+   "beta": 20,
+   "campaign": "ntru_patched",
+   "engine": "fplll-kahan",
+   "max_tours": 50,
+   "n": 127,
+   "path": "results/seeds/ntru_patched/q1201/p1000_mt50/n127_beta20/seed0004.json",
+   "precision": 1000,
+   "q": 1201,
+   "seed": 4,
+   "sha256": "bd43c32187bcb94f61d43886e9620d61dd99baaf82e8fd523c4607b842f1eec4"
+  }
+ ],
+ "seeds_generated_utc": "1970-01-01T00:00:00Z"
+}
