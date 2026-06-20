@@ -85,6 +85,10 @@ ALLOWLIST_BASENAMES = frozenset({
     # G6K determinism manifest — a SEPARATE SHA set owned by
     # lint_g6k_manifest.py (ADR-005), intentionally not an fplll seed.
     "g6k_seed_manifest.json",
+    # Patched-fplll (Kahan) validation manifest — its own SHA set, built
+    # by build_patched_manifest.py and gated by test_patched_manifest.py;
+    # mirrors the g6k split, not an fplll canonical seed.
+    "patched_seed_manifest.json",
     "seed_path_crosswalk.csv",
     "summary.json",
     "summary_convergence.json",
