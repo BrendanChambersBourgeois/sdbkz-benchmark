@@ -25,14 +25,18 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, SCRIPT_DIR)
 
+from log import get_logger  # noqa: E402
 from sweep_parallel import result_path  # noqa: E402
 
+PIPELINE = get_logger("build_verify_reference")
 N, BETA, Q, SEEDS = 50, 20, 97, range(1, 6)
 OUT = os.path.join(BASE, "results", "validation", "verify_reference.json")
 _FIELDS = ("bkz_final_dln", "sdbkz_final_dln", "advantage")
 
 
 def main() -> int:
+    PIPELINE.info("build_verify_reference start", cat="verify",
+                  n=N, beta=BETA, q=Q, out=os.path.relpath(OUT, BASE))
     seeds = []
     for s in SEEDS:
         path = result_path(N, BETA, s)
@@ -55,6 +59,8 @@ def main() -> int:
         json.dump(manifest, f, indent=2, sort_keys=True)
         f.write("\n")
     os.replace(tmp, OUT)
+    PIPELINE.info("build_verify_reference complete", cat="verify",
+                  seeds=len(seeds), out=os.path.relpath(OUT, BASE))
     print(f"Wrote {os.path.relpath(OUT, BASE)}: {len(seeds)} reference seeds")
     return 0
 
