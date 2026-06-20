@@ -543,7 +543,12 @@ def per_tour_cost_table_to_dict(table: dict[tuple[int, int], PerTourCost]) -> di
     """Serialise a cost table to a JSON-safe dict (for cache write)."""
     return {
         "schema_version": 1,
-        "generated_utc_epoch": time.time(),
+        # Deterministic provenance stamp (SOURCE_DATE_EPOCH or 0): this file is
+        # committed under results/paper_claims/, and cache freshness uses the
+        # file mtime (not this field), so a wall-clock value here only churns git
+        # on every refresh with no content change (INC-48 class). Frozen so a
+        # refresh with unchanged cost data is byte-identical.
+        "generated_utc_epoch": float(os.environ.get("SOURCE_DATE_EPOCH", "0")),
         "entries": [dataclasses.asdict(v) for v in table.values()],
     }
 
