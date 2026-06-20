@@ -45,8 +45,9 @@ We report three empirical results, each traceable to per-seed data.
 First, the SD-BKZ advantage on circulant NTRU is not smooth in dimension: tied
 with BKZ for $n\!\le\!67$, it spikes at $n\!\approx\!71$--$73$ (mean up to
 $+9.7$ nats), then settles to a tight $+1.5$--$1.7$-nat plateau for $n\!\ge\!79$.
-Second, the defensible NTRU observable is \emph{reference-free} (signed
-$d(\mathrm{LN})$ is a reference artifact here), and under it SD-BKZ reaches
+Second, in the overstretched $q$-onset regime the defensible NTRU observable is
+\emph{reference-free} (there the signed $d(\mathrm{LN})$ becomes a reference
+artifact, unlike on the $q=97$ sweep above), and under it SD-BKZ reaches
 dense-sublattice discovery (DSD) at lower modulus than BKZ, the gap growing with
 dimension at $\beta=20$ (${\approx}0\%$ at $n\!\le\!79$ to $28\%$ at $n\!=\!113$).
 Third, the G6K sieve---a fundamentally different oracle---reproduces the thesis
@@ -150,7 +151,7 @@ therefore follows the \emph{ZGSA} (Z-shaped) model---a flat head at $\log q$,
 then a GSA slope---rather than the single-slope GSA line of a strongly-reduced
 random $q$-ary lattice. (Generic $q$-ary lattices carry a $q$-vector head too;
 the NTRU-specific feature is the \emph{second} slope from the dense sublattice,
-the geometry DEP23~\cite{DEP2023} exploits.)
+the geometry that~\cite{DEP2023} exploits.)
 
 As $q$ grows at fixed $n$, the secret sublattice becomes relatively denser and
 easier to detect: at the \emph{fatigue point}
@@ -289,7 +290,7 @@ $(q,\text{precision},\text{tours},n,\beta)$ key, so a comparator reads the two
 engines cell-for-cell. The Kahan re-validation (Appendix~\ref{sec:kahan}) runs
 $n=127$ at $q\in\{971,1087,1201\}$ through a separate patched-fplll campaign
 whose seeds land in their own tree, never overwriting the canonical seeds.
-Table~\ref{tab:coverage} summarises the full grid: 8{,}156 matched BKZ / SD-BKZ
+Table~\ref{tab:coverage} summarises the full grid: 8{,}144 matched BKZ / SD-BKZ
 reductions across $n\in[59,127]$, two block sizes, and 81 moduli, on both the
 enumeration and sieve oracles.
 
@@ -297,7 +298,7 @@ enumeration and sieve oracles.
 \caption{Experimental coverage. Circulant NTRU (lattice dimension $2n$), each seed a
 matched BKZ / SD-BKZ reduction, on two oracles: fplll enumeration and G6K sieve.
 Default 50 tours, fpylll precision 250 bits (high-$q$ cells at $n\ge89$ use 500--1000
-bits). Totals: 8{,}156 seed pairs over 140 $(n,\beta,q)$ cells, $q\in[97,1811]$,
+bits). Totals: 8{,}144 seed pairs over 140 $(n,\beta,q)$ cells, $q\in[97,1811]$,
 $\approx$5{,}840 core-hours. The $n=127$ row also carries 12 Kahan-patched validation
 seeds (Appendix~\ref{sec:kahan}).}
 \label{tab:coverage}
@@ -408,7 +409,7 @@ $n$ grows---the gap widens with dimension:
 
 \begin{table}[tbp]
 \centering
-\caption{Reference-free DSD-onset (proper two-part criterion): SD-BKZ reaches dense-sublattice discovery at lower $q$ than BKZ for $n\ge89$, the gap growing with $n$; the two engines are indistinguishable at $n\le79$ (SD $171.2$ vs BKZ $171.0$ at $n=79$ is within $N=20$ rounding noise). Onsets are $50\%$-rate crossings, linearly interpolated between grid cells; gap\% is computed from these unrounded onsets (denominator: SD onset). Bracketing cells carry $N=100$ seeds at $n\ge89$ and $N=20$ at $n=67/79$; the $n=113$ endpoint comes from the completed precision ladder.\label{tab:dsdgap}}
+\caption{Reference-free DSD-onset (proper two-part criterion): SD-BKZ reaches dense-sublattice discovery at lower $q$ than BKZ for $n\ge89$, the gap growing with $n$; the two engines are indistinguishable at $n\le79$ (SD $171.2$ vs BKZ $171.0$ at $n=79$ is within $N=20$ rounding noise). Onsets are $50\%$-rate crossings, linearly interpolated between grid cells; gap\% is computed from these unrounded onsets (denominator: SD onset). Bracketing cells carry $N=100$ seeds at $n\ge89$ and $N=20$ at $n=67/79$; the $n=113$ endpoint comes from the completed $q$-sweep (precision $250$--$1000$ bits by $q$, Table~\ref{tab:coverage}).\label{tab:dsdgap}}
 \begin{tabular}{rrrr}
 \toprule
 $n$ & SD onset $q$ & BKZ onset $q$ & gap\% \\
@@ -479,8 +480,10 @@ reference-sensitive advantage and is not reported as a result
 \caption{NTRU convergence dynamics ($\beta=20$, fplll, $N=100$ per cell): mean
 per-tour $d(\mathrm{LN})$ for BKZ and SD-BKZ at a representative overstretched
 $q$ per $n$. SD-BKZ reaches BKZ's converged value (dashed) partway through its
-run (marked) and then surpasses it; the crossover tour grows with
-$n$.\label{fig:crossover}}
+run (marked) and then surpasses it; the crossover tour grows with $n$. The
+absolute $d(\mathrm{LN})$ heights are reference-dependent; the reported result is
+the crossover \emph{tour} (timing against BKZ's own converged value), not the
+curve heights or their end-of-run gap.\label{fig:crossover}}
 \end{figure}
 
 Figure~\ref{fig:phasemap} summarises the whole explored $(n,q)$ plane: the
@@ -666,10 +669,10 @@ split is also significant under an exact sign test, $p\approx1.5\times10^{-5}$).
 We treat the
 matched-$\beta$ null as established at $n=89$ and the gap as established on
 \emph{both} engines at $n=101$. At $n=113$ the $50\%$ onset lies above the grid
-(only $q=439$ fires), but the edge stays directional and cross-engine---SD
-reaching DSD ${\approx}4\times$ (fplll) and ${\approx}5.5\times$ (G6K) more than
-BKZ at $q=439$---sub-onset evidence that the SD-before-BKZ direction persists at
-$n=113$, not a pinned gap (pinning it needs $q>439$).
+(only $q=439$ fires), but the edge stays directional and cross-engine---at $q=439$ SD-BKZ fires on
+$4/40$ seeds vs BKZ's $1/40$ (fplll) and $11/40$ vs $2/40$ (G6K)---sub-onset
+evidence that the SD-before-BKZ direction persists at $n=113$, not a pinned gap
+(pinning it needs $q>439$; the raw counts are small, hence ``edge'').
 
 \begin{table}[tbp]
 \centering
@@ -694,7 +697,7 @@ $n$ & engine & SD onset & BKZ onset & transition cell (SD vs BKZ fire) \\
 \includegraphics[width=\linewidth]{figs/xengine_onset}
 \caption{Cross-engine reference-free DSD-onset $q$ vs $n$ at $\beta=40$
 (two-part criterion), faceted by oracle (fplll enumeration, left; G6K sieve,
-right). An honest null at $n=89$ (SD${\approx}$BKZ${\approx}q{194}$, dense
+right). An honest null at $n=89$ (SD${\approx}$BKZ${\approx}q{=}194$, dense
 window, 100 seeds/cell); the SD$<$BKZ gap reopens at $n=101$ on both oracles
 ($9\%$ fplll, $7\%$ G6K, $N=40$/cell). At $n=113$ the onset lies above the
 $q\le439$ grid (open markers; edge fire counts at $q=439$), shown as edge
@@ -766,8 +769,10 @@ Section~\ref{sec:xengine} covers.
 
 We are careful about scope. The dimension-onset spike is shown at $\beta=20$,
 $q=97$; the cross-engine comparison at $\beta=40$, $n=89$. The signed $d(\mathrm{LN})$
-is reported only where it is reference-robust (the $n\approx71$--$73$ spike,
-Section~\ref{sec:dimonset}), never in the $q$-onset analysis; and the cross-engine comparison at $\beta=40$,
+is reported only on the $q=97$ dimension sweep (Section~\ref{sec:dimonset}),
+where it is reference-robust---verified under three independent references at the
+onset (Section~\ref{sec:fatigue})---and never in the $q$-onset analysis, where it
+is a reference artifact; and the cross-engine comparison at $\beta=40$,
 $n=89$ is an honest null on the DSD-onset (a regime constraint, not a
 confirmation), its positive content being the sieve-vs-enum tail-reduction
 difference; the matched-$\beta=40$ gap reopens at $n=101$ on both engines ($9\%$ fplll,
@@ -800,7 +805,7 @@ and~\ref{fig:xengonset} from the two-part DSD criterion
 Figure~\ref{fig:crossover} from the per-seed per-tour
 \texttt{*\_dln\_per\_tour} arrays. The companion
 paper's SHA baselines are preserved: the NTRU generator and G6K engine were added
-without altering the seed JSON schema. In total the study comprises 8{,}156 matched
+without altering the seed JSON schema. In total the study comprises 8{,}144 matched
 BKZ / SD-BKZ reductions (Table~\ref{tab:coverage}), about 5{,}840 core-hours of
 reduction across both oracles; every cell regenerates from its named campaign.
 
