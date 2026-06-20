@@ -21,13 +21,11 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
 from analysis._data import load_all_seeds  # noqa: E402
-from analysis.plots.ntru_advantage_violins import fig_ntru_advantage_violins  # noqa: E402
 from analysis.plots.ntru_crossover_dynamics import fig_ntru_crossover_dynamics  # noqa: E402
 from analysis.plots.ntru_dimension_onset import fig_ntru_dimension_onset  # noqa: E402
 from analysis.plots.ntru_fatigue_phase import fig_ntru_fatigue_phase  # noqa: E402
 from analysis.plots.ntru_onset_sigmoids import fig_ntru_onset_sigmoids  # noqa: E402
 from analysis.plots.ntru_per_position import fig_ntru_per_position  # noqa: E402
-from analysis.plots.ntru_per_position_dims import fig_ntru_per_position_dims  # noqa: E402
 from analysis.plots.ntru_phase_map import fig_ntru_phase_map  # noqa: E402
 from analysis.plots.ntru_xengine_onset import fig_ntru_xengine_onset  # noqa: E402
 
@@ -56,11 +54,9 @@ def main():
     out5 = fig_ntru_per_position(output_dir=args.output_dir)
     out6 = fig_ntru_onset_sigmoids(output_dir=args.output_dir)
     out7 = fig_ntru_crossover_dynamics(output_dir=args.output_dir)
-    out8 = fig_ntru_advantage_violins(groups, output_dir=args.output_dir)
-    out9 = fig_ntru_per_position_dims(output_dir=args.output_dir)
-    out10 = fig_ntru_phase_map(output_dir=args.output_dir)
+    out8 = fig_ntru_phase_map(output_dir=args.output_dir)
 
-    for out in (out1, out3, out4, out5, out6, out7, out8, out9, out10):
+    for out in (out1, out3, out4, out5, out6, out7, out8):
         PIPELINE.info("wrote figure", cat="analysis", path=out)
         print(f"wrote {out}")
     return 0
