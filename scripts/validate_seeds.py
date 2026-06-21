@@ -36,7 +36,6 @@ from __future__ import annotations
 
 import argparse
 import glob
-import hashlib
 import json
 import math
 import os
@@ -46,6 +45,8 @@ from collections.abc import Iterator
 from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _seed_hash import science_hash  # noqa: E402,I001
+
 try:
     from log import get_logger  # noqa: E402
     log = get_logger("validate_seeds")
@@ -76,7 +77,6 @@ REFERENCE_HASHES = {
     "n100_beta20_seed3.json":
         "862851ac85da7987267a40bc711e41b512997b901383770ff4e8631ed0dc9cb2",
 }
-SHA_EXCLUDE_KEYS = {"bkz_time", "sdbkz_time", "timestamp", "status"}
 
 
 # ---------------------------------------------------------------------------
@@ -439,8 +439,7 @@ class SeedValidator:
 
         # 7. SHA-256 spot-check (if enabled and this file has a reference)
         if self.sha_check and fname in REFERENCE_HASHES:
-            det = {k: v for k, v in sorted(d.items()) if k not in SHA_EXCLUDE_KEYS}
-            h = hashlib.sha256(json.dumps(det, sort_keys=True).encode()).hexdigest()
+            h = science_hash(d)
             expected_hash = REFERENCE_HASHES[fname]
             if h != expected_hash:
                 self._err(f"SHA-256 MISMATCH {label}: got {h[:16]}… expected {expected_hash[:16]}…",

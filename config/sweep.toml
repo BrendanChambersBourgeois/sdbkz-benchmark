@@ -441,28 +441,82 @@ store_per_tour = false
 # n=71 β=20 q=97: top up the spike cell 20→40 (Cohen's d=0.70 vs plateau;
 # solidifies the "spike at n=71-73" framing). Identical params to [campaigns.ntru]
 # so output lands in the SAME results/seeds/ntru/q97/p250_mt50/n071_beta20 cell.
+# -- Cross-arch top-ups (all seed_tag=ntru_xarch) ---------------------------
+# These extend the onset/shoulder/plateau cells INSIDE the ntru_xarch tree, NOT
+# the canonical ntru/ tree. Run after the ntru_xarch verify campaign (which
+# writes seeds 1-20 per cell); these bump num_seeds so the SAME seed_tag fills
+# seeds 21+ (skip-existing makes them resumable). Canonical results/seeds/ntru/
+# is never written. Onset cells (n=71,73) carry the largest N -- the bimodal
+# win/lose split there benefits most from extra seeds (Fig 1). Promotion of any
+# of these into canonical ntru/ is a separate, deliberate maintainer action.
 [campaigns.ntru_n71_topup]
-description = "NTRU n=71 β=20 q=97 top-up 20->40 (solidify spike framing)"
+description = "NTRU n=71 β=20 q=97 cross-arch top-up into ntru_xarch (onset)"
 generator = "ntru"
+seed_tag = "ntru_xarch"
 q = 97
 precision = 250
 beta_grid = [20]
 n_grid = [71]
 tours_by_beta = { "20" = 50 }
-num_seeds = 40
+num_seeds = 300
 store_per_tour = false
 
-# n=73 β=20 q=97: top up the spike cell 20→120 for the Bucket C cross-arch run.
-# Identical params to [campaigns.ntru] so output lands in the SAME
-# results/seeds/ntru/q97/p250_mt50/n073_beta20 cell; resumable skip-existing
-# generates seeds 21–120 (20 already committed).
 [campaigns.ntru_n73_topup]
-description = "NTRU n=73 β=20 q=97 top-up 20->120 for Bucket C (cross-arch)"
+description = "NTRU n=73 β=20 q=97 cross-arch top-up into ntru_xarch (onset spike)"
 generator = "ntru"
+seed_tag = "ntru_xarch"
 q = 97
 precision = 250
 beta_grid = [20]
 n_grid = [73]
+tours_by_beta = { "20" = 50 }
+num_seeds = 300
+store_per_tour = false
+
+[campaigns.ntru_n67_topup]
+description = "NTRU n=67 β=20 q=97 cross-arch top-up into ntru_xarch (onset shoulder)"
+generator = "ntru"
+seed_tag = "ntru_xarch"
+q = 97
+precision = 250
+beta_grid = [20]
+n_grid = [67]
+tours_by_beta = { "20" = 50 }
+num_seeds = 250
+store_per_tour = false
+
+[campaigns.ntru_n79_topup]
+description = "NTRU n=79 β=20 q=97 cross-arch top-up into ntru_xarch (plateau shoulder)"
+generator = "ntru"
+seed_tag = "ntru_xarch"
+q = 97
+precision = 250
+beta_grid = [20]
+n_grid = [79]
+tours_by_beta = { "20" = 50 }
+num_seeds = 200
+store_per_tour = false
+
+[campaigns.ntru_n83_topup]
+description = "NTRU n=83 β=20 q=97 cross-arch top-up into ntru_xarch (plateau, optional)"
+generator = "ntru"
+seed_tag = "ntru_xarch"
+q = 97
+precision = 250
+beta_grid = [20]
+n_grid = [83]
+tours_by_beta = { "20" = 50 }
+num_seeds = 120
+store_per_tour = false
+
+[campaigns.ntru_n89_topup]
+description = "NTRU n=89 β=20 q=97 cross-arch top-up into ntru_xarch (plateau, optional)"
+generator = "ntru"
+seed_tag = "ntru_xarch"
+q = 97
+precision = 250
+beta_grid = [20]
+n_grid = [89]
 tours_by_beta = { "20" = 50 }
 num_seeds = 120
 store_per_tour = false
