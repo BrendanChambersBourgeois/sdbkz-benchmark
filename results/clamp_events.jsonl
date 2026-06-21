@@ -449,3 +449,8 @@
 {"ts": "2026-06-07T02:55:40.535921+00:00", "script": "run_campaign", "ctx": "active", "position": 225, "raw_value": -18.87863715090642}
 {"ts": "2026-06-07T03:02:58.686727+00:00", "script": "run_campaign", "ctx": "active", "position": 225, "raw_value": -0.1384108746032287}
 {"ts": "2026-06-07T03:16:52.284475+00:00", "script": "run_campaign", "ctx": "active", "position": 225, "raw_value": -365.86369108460167}
+{"ts": "2026-06-20T20:15:13.973821+00:00", "script": "run_campaign", "ctx": "active", "position": 222, "raw_value": -0.8565836725402818}
+{"ts": "2026-06-20T20:17:09.833544+00:00", "script": "run_campaign", "ctx": "active", "position": 217, "raw_value": -156.5307119575855}
+{"ts": "2026-06-20T21:05:16.944420+00:00", "script": "run_campaign", "ctx": "active", "position": 225, "raw_value": -0.5510522417733291}
+{"ts": "2026-06-21T01:33:34.969795+00:00", "script": "run_campaign", "ctx": "active", "position": 215, "raw_value": -1.1751378422673349}
+{"ts": "2026-06-21T05:46:15.505708+00:00", "script": "run_campaign", "ctx": "active", "position": 218, "raw_value": -1.1046674552067954}
