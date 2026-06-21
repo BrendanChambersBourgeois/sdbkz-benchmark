@@ -112,6 +112,39 @@ def test_convergence_matches_migrate():
     ) == mig.new_path_for(entry)
 
 
+# ---------------- ntru_xarch (cross-architecture regeneration) -----------
+
+
+def test_ntru_xarch_path_is_separate_tree():
+    """ntru_xarch mirrors the ntru q/p{prec}_mt{mt} layout but routes to its
+    own root so externally-regenerated seeds never collide with canonical
+    ntru/ seeds."""
+    p = sp.seed_path_for(
+        "ntru_xarch", n=73, beta=20, seed=1,
+        q=97, precision=250, max_tours=50,
+    )
+    assert p == os.path.join(
+        "results", "seeds", "ntru_xarch", "q97", "p250_mt50",
+        "n073_beta20", "seed0001.json",
+    )
+    # Must differ from the canonical ntru/ path for the same (n, β, seed).
+    ntru_p = sp.seed_path_for(
+        "ntru", n=73, beta=20, seed=1,
+        q=97, precision=250, max_tours=50,
+    )
+    assert p != ntru_p
+    assert "/ntru_xarch/" in p and "/ntru_xarch/" not in ntru_p
+
+
+def test_ntru_xarch_requires_precision_and_max_tours():
+    with pytest.raises(ValueError, match="precision"):
+        sp.seed_path_for("ntru_xarch", n=73, beta=20, seed=1)
+    with pytest.raises(ValueError, match="max_tours"):
+        sp.seed_path_for(
+            "ntru_xarch", n=73, beta=20, seed=1, precision=250,
+        )
+
+
 # ---------------- structural / error-handling checks ---------------------
 
 

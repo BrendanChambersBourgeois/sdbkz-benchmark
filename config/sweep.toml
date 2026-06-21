@@ -480,3 +480,21 @@ n_grid = [67]
 tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
+
+# -- NTRU cross-architecture regeneration -----------------------------------
+# Mirrors [campaigns.ntru] exactly but routes output to a separate seed_tag
+# (results/seeds/ntru_xarch/...), so the beta20 grid can be regenerated on a
+# different machine without deleting or colliding with the committed
+# results/seeds/ntru/ tree. Compare to ntru/ by science-field hash. Same
+# separate-tag pattern as ntru_patched and ntru_g6k.
+[campaigns.ntru_xarch]
+description = "NTRU beta20 grid, separate seed_tag for cross-architecture seed regeneration"
+generator = "ntru"
+seed_tag = "ntru_xarch"
+q = 97
+precision = 250
+beta_grid = [20]
+n_grid = [59, 61, 67, 71, 73, 79, 83, 89]
+tours_by_beta = { "20" = 50 }
+num_seeds = 20
+store_per_tour = false

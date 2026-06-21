@@ -21,7 +21,7 @@ NEW_LAYOUT_ROOT = os.path.join("results", "seeds")
 _KNOWN_CAMPAIGNS = frozenset({
     "main", "q3329", "cliff500", "fplll_sensitivity",
     "tours3x", "convergence", "ntru", "ntru_patched", "ntru_g6k",
-    "estimator_probe",
+    "ntru_xarch", "estimator_probe",
 })
 
 
@@ -119,6 +119,15 @@ def seed_dir_for(
         mt = int(_require(max_tours, "max_tours", campaign))
         leaf_dir = os.path.join(
             NEW_LAYOUT_ROOT, "ntru_g6k", f"q{q}", f"p{p}_mt{mt}", n_beta
+        )
+    elif campaign == "ntru_xarch":
+        # Cross-architecture capability test: same layout as ntru, separate
+        # root so externally-regenerated seeds never mix with the canonical
+        # fplll ntru/ tree. Compared to ntru/ by science-field hash.
+        p = int(_require(precision, "precision", campaign))
+        mt = int(_require(max_tours, "max_tours", campaign))
+        leaf_dir = os.path.join(
+            NEW_LAYOUT_ROOT, "ntru_xarch", f"q{q}", f"p{p}_mt{mt}", n_beta
         )
     elif campaign == "estimator_probe":
         # Paper-3 feasibility: higher-tours LWE reruns to disambiguate the
