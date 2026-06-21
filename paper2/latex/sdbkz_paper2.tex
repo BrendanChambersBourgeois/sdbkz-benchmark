@@ -298,8 +298,8 @@ enumeration and sieve oracles.
 \caption{Experimental coverage. Circulant NTRU (lattice dimension $2n$), each seed a
 matched BKZ / SD-BKZ reduction, on two oracles: fplll enumeration and G6K sieve.
 Default 50 tours, fpylll precision 250 bits (high-$q$ cells at $n\ge89$ use 500--1000
-bits). Totals: 8{,}144 seed pairs over 140 $(n,\beta,q)$ cells, $q\in[97,1811]$,
-$\approx$5{,}840 core-hours. The $n=127$ row also carries 12 Kahan-patched validation
+bits). Totals: 8{,}704 seed pairs over 147 $(n,\beta,q)$ cells, $q\in[97,1811]$,
+$\approx$6{,}430 core-hours. The $n=127$ row also carries 12 Kahan-patched validation
 seeds (Appendix~\ref{sec:kahan}).}
 \label{tab:coverage}
 \centering
@@ -316,10 +316,10 @@ $n$ & $2n$ & $\beta$ & \#$q$ & $q$ range & $N_{\mathrm{fplll}}$ & $N_{\mathrm{G6
 83  & 166 & 20    & 1  & 97        & 20   & --   \\
 89  & 178 & 20,40 & 31 & 97--691   & 2508 & 1580 \\
 101 & 202 & 20,40 & 23 & 97--541   & 1480 & 140  \\
-113 & 226 & 20,40 & 25 & 97--1279  & 1060 & 340  \\
+113 & 226 & 20,40 & 25 & 97--1279  & 1340 & 620  \\
 127 & 254 & 20    & 16 & 547--1811 & 152  & --   \\
 \midrule
-\multicolumn{5}{r}{total} & 6040 & 2104 \\
+\multicolumn{5}{r}{total} & 6320 & 2384 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -638,26 +638,30 @@ McNemar $\chi^2_1=21.16$; G6K $17{:}0$, $\chi^2_1=17.00$; the $17{:}0$ zero-cell
 split is also significant under an exact sign test, $p\approx1.5\times10^{-5}$).
 We treat the
 matched-$\beta$ null as established at $n=89$ and the gap as established on
-\emph{both} engines at $n=101$. At $n=113$ the $50\%$ onset lies above the grid
-(only $q=439$ fires), but the edge stays directional and cross-engine---at $q=439$ SD-BKZ fires on
-$4/40$ seeds vs BKZ's $1/40$ (fplll) and $11/40$ vs $2/40$ (G6K)---sub-onset
-evidence that the SD-before-BKZ direction persists at $n=113$, not a pinned gap
-(pinning it needs $q>439$; the raw counts are small, hence ``edge'').
+\emph{both} engines at $n=101$ and $n=113$. At $n=113$ the extended $q$-grid
+$\{487,\dots,859\}$ now \emph{locates} the onset on both oracles (fplll SD
+$464.6$ / BKZ $499.0$, $7\%$ gap; G6K SD $456.3$ / BKZ $482.2$, $6\%$ gap), so it
+is a pinned cross-engine gap, not an edge. At the transition cell $q=487$ SD-BKZ
+fires on a strict superset of BKZ's seeds on both oracles---fplll $34/40$ vs
+$15/40$ ($19{:}0$ discordant, McNemar $\chi^2_1=19.0$), G6K $36/40$ vs $22/40$
+($14{:}0$, $\chi^2_1=14.0$); both zero-cell splits are significant under an exact
+sign test ($p\approx1.9\times10^{-6}$ and $6.1\times10^{-5}$). The onset brackets
+the fatigue estimate $q_{\mathrm{fat}}(113)\approx503$.
 
 \begin{table}[tbp]
 \centering
 \caption{Cross-engine DSD-onset beyond $n=89$ ($\beta=40$, $N=40$ seeds/cell,
-two-part criterion). The gap is established on \emph{both} engines at $n=101$;
-at $n=113$ the onset is above the grid (edge evidence). The $n=89$
-matched-$\beta$ null is Table~\ref{tab:g6konset}.\label{tab:xengdim}}
+two-part criterion). The gap is established on \emph{both} engines at $n=101$ and
+$n=113$ (the extended $q$-grid $\{487,\dots,859\}$ locates the $n=113$ onset). The
+$n=89$ matched-$\beta$ null is Table~\ref{tab:g6konset}.\label{tab:xengdim}}
 \begin{tabular}{llccl}
 \toprule
 $n$ & engine & SD onset & BKZ onset & transition cell (SD vs BKZ fire) \\
 \midrule
 101 & fplll & 257.3 & 280.7 & $q{=}271$: $36/40$ vs $13/40$ ($24{:}1$, $\chi^2{=}21.2$) \\
 101 & G6K   & 249.9 & 268.3 & $q{=}271$: $39/40$ vs $22/40$ ($17{:}0$, $\chi^2{=}17.0$) \\
-113 & fplll & ${>}439$ & ${>}439$ & $q{=}439$: $4/40$ vs $1/40$ (edge) \\
-113 & G6K   & ${>}439$ & ${>}439$ & $q{=}439$: $11/40$ vs $2/40$ (edge) \\
+113 & fplll & 464.6 & 499.0 & $q{=}487$: $34/40$ vs $15/40$ ($19{:}0$, $\chi^2{=}19.0$) \\
+113 & G6K   & 456.3 & 482.2 & $q{=}487$: $36/40$ vs $22/40$ ($14{:}0$, $\chi^2{=}14.0$) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -668,10 +672,10 @@ $n$ & engine & SD onset & BKZ onset & transition cell (SD vs BKZ fire) \\
 \caption{Cross-engine reference-free DSD-onset $q$ vs $n$ at $\beta=40$
 (two-part criterion), faceted by oracle (fplll enumeration, left; G6K sieve,
 right). An honest null at $n=89$ (SD${\approx}$BKZ${\approx}q{=}194$, dense
-window, 100 seeds/cell); the SD$<$BKZ gap reopens at $n=101$ on both oracles
-($9\%$ fplll, $7\%$ G6K, $N=40$/cell). At $n=113$ the onset lies above the
-$q\le439$ grid (open markers; edge fire counts at $q=439$), shown as edge
-evidence, not a pinned point. Mirrors Tables~\ref{tab:g6konset}
+window, 100 seeds/cell); the SD$<$BKZ gap reopens at $n=101$ ($9\%$ fplll, $7\%$
+G6K) and persists at $n=113$ ($7\%$ fplll, $6\%$ G6K), $N=40$/cell. The extended
+$q$-grid $\{487,\dots,859\}$ locates the $n=113$ onset (a pinned point, no longer
+a $>$grid edge). Mirrors Tables~\ref{tab:g6konset}
 and~\ref{tab:xengdim}.\label{fig:xengonset}}
 \end{figure}
 
@@ -773,8 +777,8 @@ and~\ref{fig:xengonset} from the two-part DSD criterion
 Figure~\ref{fig:crossover} from the per-seed per-tour
 \texttt{*\_dln\_per\_tour} arrays. The companion
 paper's SHA baselines are preserved: the NTRU generator and G6K engine were added
-without altering the seed JSON schema. In total the study comprises 8{,}144 matched
-BKZ / SD-BKZ reductions (Table~\ref{tab:coverage}), about 5{,}840 core-hours of
+without altering the seed JSON schema. In total the study comprises 8{,}704 matched
+BKZ / SD-BKZ reductions (Table~\ref{tab:coverage}), about 6{,}430 core-hours of
 reduction across both oracles; every cell regenerates from its named campaign.
 
 \section{Conclusion}
