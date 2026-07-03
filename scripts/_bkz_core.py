@@ -129,6 +129,59 @@ def dln_trajectory(
     return dln
 
 
+def _secret_recovery(
+    B: IntegerMatrix,
+    secret_f: Any,
+    secret_g: Any,
+    n: int,
+) -> dict[str, Any]:
+    """Cancellation-free crack detector from the EXACT integer reduced basis.
+
+    The GSO-based DSD criterion fails at high n (fpylll ``get_r`` cancels ->
+    -345 sentinel; see INC-51). This reads the planted secret instead: the
+    circulant NTRU short vector is ``s = (g, f)`` (ternary), and its n cyclic
+    rotations span the dense sublattice (every rotation is a lattice vector).
+    Integer row norms are exact, so this works at any dimension.
+
+    Returns:
+      secret_norm2  ||(g, f)||^2 (the target short-vector length, squared)
+      min_norm2     min over reduced-basis rows of the exact integer ||b||^2
+      recovered     min_norm2 <= secret_norm2 (a dense-sublattice vector found;
+                    in the overstretched regime the only vectors that short ARE
+                    the secret rotations) -- layout-independent primary signal
+      exact_match   some row equals +/- a cyclic rotation of s (strict bonus)
+    """
+    f = [int(x) for x in secret_f]
+    g = [int(x) for x in secret_g]
+    secret_norm2 = sum(x * x for x in g) + sum(x * x for x in f)
+
+    # n cyclic rotations of s=(g, f); store both signs as canonical tuples.
+    rots: set[tuple[int, ...]] = set()
+    for i in range(n):
+        gr = tuple(g[(k - i) % n] for k in range(n))
+        fr = tuple(f[(k - i) % n] for k in range(n))
+        s = gr + fr
+        rots.add(s)
+        rots.add(tuple(-x for x in s))
+
+    min_norm2: Optional[int] = None
+    exact_match = False
+    for i in range(B.nrows):
+        row = tuple(int(B[i, j]) for j in range(B.ncols))
+        nrm2 = sum(x * x for x in row)
+        if min_norm2 is None or nrm2 < min_norm2:
+            min_norm2 = nrm2
+        if row in rots:
+            exact_match = True
+
+    return {
+        "secret_norm2": secret_norm2,
+        "min_norm2": min_norm2,
+        "recovered": min_norm2 is not None and min_norm2 <= secret_norm2,
+        "exact_match": exact_match,
+    }
+
+
 def run_single(
     *,
     L: list[list[int]],
@@ -146,6 +199,8 @@ def run_single(
     floor_mode: str = "safe",
     always_emit_store_per_tour: bool = False,
     backend: str = FPLLL_BACKEND,
+    secret_f: Any = None,
+    secret_g: Any = None,
 ) -> dict[str, Any]:
     """Run BKZ and SD-BKZ on a single (n, beta, seed) lattice.
 
@@ -269,6 +324,18 @@ def run_single(
             stag_rankin = [float(x) for x in full_m["rankin"]]
             stag_rhf = full_m["rhf"]
             stag_gs = [float(x) for x in full_m["gs_lognorms"]]
+
+        # Cancellation-free crack readout from the EXACT integer reduced basis
+        # (INC-51): the GSO-based DSD criterion fails at high n, but integer row
+        # norms vs the planted secret are exact at any dimension. Additive only;
+        # only emitted for NTRU callers that pass the secret (LWE-Kannan and any
+        # caller without secret_f/g is byte-identical to before).
+        if secret_f is not None and secret_g is not None:
+            rec = _secret_recovery(engine.gso().B, secret_f, secret_g, n)
+            result["secret_norm2"] = rec["secret_norm2"]
+            result[f"min_actual_norm2_{variant}"] = rec["min_norm2"]
+            result[f"secret_recovered_{variant}"] = rec["recovered"]
+            result[f"secret_exact_match_{variant}"] = rec["exact_match"]
 
         result[f"{variant}_dln_per_tour"] = dln_per_tour
         result[f"{variant}_final_dln"] = dln_per_tour[-1]

@@ -309,7 +309,7 @@ def _ntru_seed_worker(task: tuple) -> tuple:
             L=L, n=n, active_block_start=m_start, active_block_end=m_end,
             beta=beta, seed=seed, q=q, precision=precision,
             max_tours=max_tours, log_clamp_fn=_ntru_log_clamp,
-            backend=backend,
+            backend=backend, secret_f=f, secret_g=g,
         )
         os.makedirs(os.path.dirname(out), exist_ok=True)
         # Write atomically (tmp + rename) so a crash mid-write never leaves a
@@ -391,7 +391,7 @@ def _dispatch_ntru(
                         active_block_start=m_start, active_block_end=m_end,
                         beta=beta, seed=seed, q=q,
                         precision=campaign.precision, max_tours=max_tours,
-                        log_clamp_fn=None,
+                        log_clamp_fn=None, secret_f=f, secret_g=g,
                     )
                     print(f"  n={n:3d} β={beta} seed={seed}: dim={2 * n} "
                           f"verified, advantage={r['advantage']:+.6f}")
@@ -500,6 +500,23 @@ def main() -> int:
     # the new tail (21..100); the original 20 stay byte-identical.
     if args.seeds is not None:
         campaign = dataclasses.replace(campaign, num_seeds=args.seeds)
+    # --n / --beta SUBSET the grid for the NTRU runner, which iterates
+    # campaign.n_grid × beta_grid (the q3329/convergence/tours3x runners read the
+    # scalar n/beta computed below instead, so they already honour --n/--beta).
+    # Without this fold, --n is cosmetic for NTRU — the runner would still sweep the
+    # campaign's full n_grid. Fold them in like q / precision / seeds above so one
+    # multi-n campaign (e.g. ntru_onset_boundary) drives a single (n, β) cell per run.
+    # No-op when the flag is omitted, so existing full-grid NTRU campaigns are
+    # unchanged. --beta must have a tours_by_beta entry (can't run without a tour count).
+    if args.n is not None:
+        campaign = dataclasses.replace(campaign, n_grid=(args.n,))
+    if args.beta is not None:
+        if args.beta not in campaign.tours_by_beta:
+            print(f"ERROR: --beta {args.beta} has no tours_by_beta entry "
+                  f"(have {sorted(campaign.tours_by_beta)}); add it to the campaign "
+                  f"before overriding", file=sys.stderr)
+            return 2
+        campaign = dataclasses.replace(campaign, beta_grid=(args.beta,))
 
     n = args.n if args.n is not None else campaign.n_grid[0]
     beta = args.beta if args.beta is not None else campaign.beta_grid[0]

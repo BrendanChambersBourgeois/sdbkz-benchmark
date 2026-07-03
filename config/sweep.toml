@@ -552,3 +552,156 @@ n_grid = [59, 61, 67, 71, 73, 79, 83, 89]
 tours_by_beta = { "20" = 50 }
 num_seeds = 20
 store_per_tour = false
+
+# -- NTRU n=157 β=40 DSD-onset frontier (long-soak) -------------------------
+# Pushes the cross-engine DSD-onset trend (n=89/101/113 in Fig 6) to the next
+# frontier n=157, β=40. q=1109 sits just below the fatigue estimate
+# q_fat(157) ≈ 0.004·157^2.484 ≈ 1143 (ratio 0.97, matching the n=113 q=487
+# zero-cell at q_fat 503): the near-onset window where SD-BKZ is expected to
+# find the dense sublattice while plain BKZ does not (a discordant SD-only
+# McNemar cell). Reference-free two-part DSD criterion via extract_dsd_onset.
+# Heavy: fplll enum-β40 mt=50 at n=157 (lattice dim 314) is multi-day/seed;
+# resumable (skips existing, atomic tmp+os.replace) so safe to interrupt /
+# leave unattended. Default seed_tag → results/seeds/ntru/q1109/p500_mt50/
+# n157_beta40/ (brand-new cell, no collision). RUN IN sdbkz-benchmark:ci.
+#   python3 scripts/run_campaign.py --campaign ntru_n157_onset --workers 20
+[campaigns.ntru_n157_onset]
+description = "NTRU n=157 β=40 DSD-onset frontier (q≈0.97·q_fat, long-soak)"
+generator = "ntru"
+q = 1109
+precision = 500
+beta_grid = [40]
+n_grid = [157]
+tours_by_beta = { "40" = 50 }
+num_seeds = 20
+store_per_tour = false
+
+# -- NTRU n=157 β=40 deep-convergence soak (mt=580, ~72h/seed) ---------------
+# Same cell as ntru_n157_onset (n=157, β=40, q=1109, p500) but 580 tours
+# instead of 50. The mt=50 cell ran to max_tours_reached with 0/20 DSD on
+# both oracles (a clean null at q=1109); this asks whether deep convergence
+# eventually triggers the dense-sublattice collapse — i.e. is the onset
+# tours-limited rather than q-limited. Linear in tours: measured 0.124h/tour
+# at this cell → ~72h/seed (>48h soak target). Resumable (skip-existing +
+# atomic writes); ~144MB RSS/seed, 20-wide fits the 15GB box with margin.
+# Separate path p500_mt580 → no collision with the mt=50 cell. RUN IN
+# sdbkz-benchmark:ci (here run natively — soak, not canonical-SHA science).
+#   python3 scripts/run_campaign.py --campaign ntru_n157_deep --workers 20
+[campaigns.ntru_n157_deep]
+description = "NTRU n=157 β=40 deep-convergence soak (mt=580, ~72h/seed)"
+generator = "ntru"
+q = 1109
+precision = 500
+beta_grid = [40]
+n_grid = [157]
+tours_by_beta = { "40" = 580 }
+num_seeds = 20
+store_per_tour = false
+
+# -- NTRU n=157 β=40 DSD-onset q-sweep (LOCATE the onset above q=1109) --------
+# The q=1109 cell (ntru_n157_onset, mt=50) is a clean 0/20 null on both oracles
+# -> the n=157 onset sits ABOVE q=1109. β=40 onset tracks q_fat (cf. n=113:
+# SD 464.6 / BKZ 499.0 vs q_fat(113)≈503), and q_fat(157)≈1143, yet q=1109
+# (0.97·q_fat) fired nothing -> the onset/q_fat ratio rises with n. Sweep q
+# upward to bracket BOTH the SD-BKZ and (higher) BKZ 50%-DSD crossings, giving
+# the 4th dimension point above n=89/101/113 for the Fig-6 trend. Same family
+# as ntru_qsweep / ntru_g6k_qsweep: ONE block, swept via --q. p500 matches the
+# q=1109 anchor (clean, 0 clamp events at q1109); watch results/clamp_events
+# .jsonl on the top cells. mt=50 (onset convention, ~6h/seed), N=20/cell.
+# Default seed_tag -> results/seeds/ntru/q{q}/p500_mt50/n157_beta40/ (new cells).
+# RUN IN sdbkz-benchmark:ci (here native — soak/onset scouting). Sweep:
+#   for q in 1201 1301 1451 1601 1801; do \
+#     python3 scripts/run_campaign.py --campaign ntru_n157_qsweep --q $q --workers 20; done
+[campaigns.ntru_n157_qsweep]
+description = "NTRU n=157 β=40 DSD-onset q-sweep (locate onset above q=1109)"
+generator = "ntru"
+q = 1201
+precision = 500
+beta_grid = [40]
+n_grid = [157]
+tours_by_beta = { "40" = 50 }
+num_seeds = 20
+store_per_tour = false
+
+# -- NTRU n=157 β=40 PATCHED DSD-onset q-sweep (the trustworthy one) ----------
+# The p500-native n=157 cells are GSO-contaminated (min(gs)=-345 catastrophic
+# cancellation on 17/20 BKZ, 11/20 SD legs) -> DSD verdict UNRESOLVABLE, same
+# wall as n=127. This reruns the onset sweep under Kahan-patched fplll
+# (patches/fplll_gso_kahan.patch, image sdbkz-fplll-patched) which at n=127
+# cleanly separated BKZ-cancellation (-345 -> ~-0.1) from genuine SD-BKZ cracks
+# (stay -345). seed_tag -> results/seeds/ntru_patched/ (canonical ntru/ never
+# touched). p1000 + mt=50 (onset convention, matches n=89/101/113 trend cells;
+# n=127 patched also used p1000). Locates the n=157 onset for BOTH oracles AND
+# resolves q=1109 as the anchor point. RUN INSIDE the patched image:
+#   for q in 1109 1201 1301 1451 1601 1801; do \
+#     docker run --rm -v "$PWD":/work -w /work sdbkz-fplll-patched:val2 \
+#       python3 scripts/run_campaign.py --campaign ntru_n157_patched_qsweep \
+#       --q $q --workers 20; done
+[campaigns.ntru_n157_patched_qsweep]
+description = "NTRU n=157 β=40 patched-fplll DSD-onset q-sweep (clean GSO, onset)"
+generator = "ntru"
+seed_tag = "ntru_patched"
+q = 1201
+precision = 1000
+beta_grid = [40]
+n_grid = [157]
+tours_by_beta = { "40" = 50 }
+num_seeds = 40
+store_per_tour = false
+
+# -- NTRU n=181 β=40 DSD-onset q-sweep — 5th trend point (n=89/101/113/157→181) -
+# Uses the cancellation-free secret-recovery readout (secret_recovered_{bkz,sdbkz}
+# via exact integer reduced-basis norms), which is independent of the fplll-enum
+# GSO and so runs NATIVE on dim 362 — no g6k, no patched image. q_fat(181)≈1622;
+# the n=157 onset landed at 1.93×q_fat (q=2203) and onset/q_fat rises with n, so
+# this sweep probes 1.9/2.1/2.3×q_fat. seed_tag default "ntru" (canonical tree).
+# All q PRIME (NTRU needs f invertible in Z_q[x]/(x^n−1)) — verified build_ntru ok.
+# Run native (no Docker):
+#   for q in 3083 3407 3733; do \
+#     python3 scripts/run_campaign.py --campaign ntru_n181_qsweep --q $q --workers 20; done
+[campaigns.ntru_n181_qsweep]
+description = "NTRU n=181 β=40 DSD-onset q-sweep (5th trend point, recovery readout, native fplll)"
+generator = "ntru"
+q = 3083
+precision = 500
+beta_grid = [40]
+n_grid = [181]
+tours_by_beta = { "40" = 50 }
+num_seeds = 20
+store_per_tour = false
+
+# -- NTRU β=40 DSD-onset BOUNDARY map — q*(n) edge-tracing across the n-ladder ----
+# Goal: trace the onset boundary q*(n) = the q where β=40 FIRST cracks the planted
+# secret, as a function of n. NOT a dense n×q grid (days of compute, most cells are
+# deep-null or deep-crack we don't care about). Instead EDGE-BISECT per n:
+#   1. probe a high q (deep overstretch → near-certain crack) to confirm reachability
+#   2. bisect q downward to the first-crack edge → q*(n)  (~3–4 cells/n, not 8+)
+# Both --n and --q are CLI overrides (run_campaign.py:463,475), so one config drives
+# the whole ladder. Same cancellation-free recovery readout → NATIVE at every dim
+# (no g6k / no patched image). seed_tag default "ntru" (canonical tree). num_seeds=20
+# per cell; bump --seeds near the edge if a cell sits at a low single-digit rate.
+#
+# n-ladder (ALL PRIME — NTRU needs f invertible in Z_q[x]/(x^n−1)); q_fat=0.004·n^2.484
+# (scripts/generators/ntru.py); onset/q_fat RISES super-linearly with n, so the q
+# band widens up the ladder. PRIME q at representative multiples (pick/bisect within):
+#   n=157 dim=314 q_fat=1139 │ 1.9×→2179 2.2×→2521 2.5×→2851 2.8×→3191 3.1×→3533
+#   n=181 dim=362 q_fat=1622 │ 1.9×→3083 2.2×→3571 2.5×→4057 2.8×→4547 3.1×→5039
+#   n=211 dim=422 q_fat=2375 │ 1.9×→4513 2.2×→5227 2.5×→5939 2.8×→6653 3.1×→7369
+#   n=241 dim=482 q_fat=3304 │ 1.9×→6277 2.2×→7283 2.5×→8263 2.8×→9257 3.1×→10243
+#   n=271 dim=542 q_fat=4421 │ 1.9×→8419 2.2×→9733 2.5×→11057 2.8×→12379 3.1×→13709
+# (regenerate for any n: prime ≥ int(q_fat·mult), q_fat=0.004·n**2.484)
+# Cost climbs fast with dim: n=181≈4.7h/cell, n=211≈7–8h, n=241+ worse → climb one
+# rung at a time, do NOT pre-queue the whole ladder. Find each q*(n) before the next n.
+# Example (n=211 reachability probe, then bisect):
+#   python3 scripts/run_campaign.py --campaign ntru_onset_boundary --n 211 --q 7369 --workers 20
+#   python3 scripts/run_campaign.py --campaign ntru_onset_boundary --n 211 --q 5939 --workers 20
+[campaigns.ntru_onset_boundary]
+description = "NTRU β=40 DSD-onset boundary q*(n) — edge-bisection across n-ladder (recovery readout, native fplll)"
+generator = "ntru"
+q = 3083
+precision = 500
+beta_grid = [40]
+n_grid = [157, 181, 211, 241, 271]
+tours_by_beta = { "40" = 50 }
+num_seeds = 20
+store_per_tour = false
