@@ -483,12 +483,35 @@ def _load_convergence_files(
             n_val, beta_val, len(bkz_trajs))
 
 
+def _seed_has_sentinel(seed: SeedDict) -> bool:
+    """True if either variant's stored GS profile carries the -345 clamp
+    sentinel (gs_lognorm < -300). Such a seed's dln/advantage/rankin were
+    computed off a catastrophically-cancelled double-precision GSO and are
+    untrustworthy, so they must not enter an aggregate (deep audit 2026-07-04
+    finding 2). The recovery verdict is unaffected -- only the GSO metrics are."""
+    for variant in ("bkz", "sdbkz"):
+        gs = seed.get(f"gs_lognorms_{variant}") or []
+        if any(x is not None and x < -300.0 for x in gs):
+            return True
+    return False
+
+
 def _group_advantages(groups: Groups) -> dict[GroupKey, np.ndarray]:
-    """Extract advantages as numpy arrays per group."""
-    return {
-        k: np.array([d["advantage"] for d in v])
-        for k, v in groups.items()
-    }
+    """Extract advantages as numpy arrays per group, dropping clamp-poisoned
+    seeds (their advantage = bkz_final_dln - sdbkz_final_dln is corrupt)."""
+    out: dict[GroupKey, np.ndarray] = {}
+    dropped = 0
+    for k, v in groups.items():
+        clean = [d["advantage"] for d in v if not _seed_has_sentinel(d)]
+        dropped += len(v) - len(clean)
+        out[k] = np.array(clean)
+    if dropped:
+        warnings.warn(
+            f"_group_advantages: dropped {dropped} clamp-poisoned seed(s) "
+            f"(gs_lognorm < -300) from advantage aggregates",
+            stacklevel=2,
+        )
+    return out
 
 
 def _per_position_improvement(seed_data: SeedDict) -> np.ndarray | None:

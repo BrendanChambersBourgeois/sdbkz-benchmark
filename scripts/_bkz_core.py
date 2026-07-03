@@ -234,18 +234,23 @@ def run_single(
     if store_per_tour or always_emit_store_per_tour:
         result["store_per_tour"] = bool(store_per_tour)
 
-    def _metrics(M: Any, full: bool) -> dict[str, Any]:
+    def _metrics(M: Any, full: bool, ctx: str = "") -> dict[str, Any]:
+        # ctx attributes any clamp events to this (n,beta,q,seed,variant) leg in
+        # the results/clamp_events.jsonl side-log so the 87k events can be joined
+        # back to seeds. It affects ONLY the clamp-log string, never the returned
+        # metrics -- per-seed JSON bytes are unchanged (audit 2026-07-04 finding 2;
+        # per CLAUDE.md the counter goes to the side-log, NOT the seed schema).
         return metrics_from_gso(M, dim, m, ln_p, full=full,
                                 log_clamp_fn=log_clamp_fn,
                                 warn_on_clamp=warn_on_clamp,
-                                active_end=end)
+                                active_end=end, clamp_ctx=ctx)
 
     # Initial quality (LLL-reduced, no BKZ yet)
     B_init = IntegerMatrix.from_matrix(L)
     LLL.reduction(B_init)
     M_init = GSO.Mat(B_init)
     M_init.update_gso()
-    init = _metrics(M_init, full=True)
+    init = _metrics(M_init, full=True, ctx=f"n{n} b{beta} q{q} s{seed} init")
     result["initial_dln"] = init["dln"]
     result["initial_rhf"] = init["rhf"]
     result["initial_rankin_profile"] = [float(x) for x in init["rankin"]]
@@ -262,6 +267,7 @@ def run_single(
             seed=seed, precision=precision,
         )
 
+        vctx = f"n{n} b{beta} q{q} s{seed} {variant}"
         dln_per_tour = []
         deltas = []
         rankin_per_tour = []
@@ -280,14 +286,14 @@ def run_single(
 
             M = engine.gso()
             if store_per_tour:
-                metrics = _metrics(M, full=True)
+                metrics = _metrics(M, full=True, ctx=vctx)
                 rankin_per_tour.append([float(x) for x in metrics["rankin"]])
                 gs_lognorms_per_tour.append(
                     [float(x) for x in metrics["gs_lognorms"]]
                 )
                 rhf_per_tour.append(float(metrics["rhf"]))
             else:
-                metrics = _metrics(M, full=False)
+                metrics = _metrics(M, full=False, ctx=vctx)
             dln_per_tour.append(metrics["dln"])
 
             delta = float(np.mean(np.abs(
@@ -305,7 +311,7 @@ def run_single(
 
             if delta < STAGNATION_THRESHOLD:
                 stag_tour = t
-                full_m = _metrics(M, full=True)
+                full_m = _metrics(M, full=True, ctx=vctx)
                 stag_rankin = [float(x) for x in full_m["rankin"]]
                 stag_rhf = full_m["rhf"]
                 stag_gs = [float(x) for x in full_m["gs_lognorms"]]
@@ -320,7 +326,7 @@ def run_single(
         if stag_tour is None:
             stag_tour = tours_run
             M_final = engine.gso()
-            full_m = _metrics(M_final, full=True)
+            full_m = _metrics(M_final, full=True, ctx=vctx)
             stag_rankin = [float(x) for x in full_m["rankin"]]
             stag_rhf = full_m["rhf"]
             stag_gs = [float(x) for x in full_m["gs_lognorms"]]
