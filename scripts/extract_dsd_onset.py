@@ -27,6 +27,14 @@ value 2.888 across the n-grid (the pre-2026-06-11 behaviour) shifts only the
 near-zero-gap rows (n=67 -> 166.6/167.5, n=79 -> 181.7/182.5, n=113 BKZ ->
 925.0) and leaves the gap trend unchanged (1,0,19,20,28 -> ...,27).
 
+Scoring is recovery-first: when a seed carries the cancellation-free
+``secret_recovered_{variant}`` field (n>=157 frontier), that exact-integer verdict
+is used; pre-fix seeds that lack it fall back to the GSO ``_is_dsd`` criterion
+above -- so the committed n<=113 tab:dsdgap trend is byte-identical while the
+n>=157 frontier no longer false-nulls cracked-but-clamped bases (deep audit
+2026-07-04, finding 3). Onsets are always PER-VARIANT 50%-rate crossings; do not
+conflate with onset_driver's first-crack search signal.
+
 Pure analysis -- reads results/seeds/, never runs a reduction. Reused for both
 engines (fplll tree results/seeds/ntru/, g6k tree results/seeds/ntru_g6k/) and
 any n / beta.
@@ -44,6 +52,7 @@ import json
 import math
 import os
 import sys
+from typing import Optional
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from log import get_logger  # noqa: E402
@@ -79,14 +88,65 @@ def _is_dsd(seed: dict, variant: str, n: int) -> bool:
     return short <= n + 1 and min(gs) > B1_FLOOR
 
 
+def _is_recovered(seed: dict, variant: str) -> Optional[bool]:
+    """Cancellation-free crack verdict (INC-51): True iff the reduced basis
+    found a vector at least as short as the planted secret (exact integer
+    norms, computed in _bkz_core._secret_recovery). Authoritative at high n
+    where the GSO-based _is_dsd clamps to the -345 sentinel. Returns None when
+    the field is absent (pre-fix seeds) so callers can fall back to _is_dsd."""
+    return seed.get(f"secret_recovered_{variant}")
+
+
+SENTINEL_LOGNORM = -300.0          # gs_lognorm <= this = the -345.4 clamp sentinel
+
+
+def _seed_is_poisoned(seed: dict, variant: str) -> bool:
+    """True if this leg's GS profile carries the -345 clamp sentinel, so the
+    GSO-based _is_dsd verdict for it is untrustworthy (the sentinel drags min(gs)
+    below B1_FLOOR, forcing a deterministic -- and possibly false -- non-fire)."""
+    gs = seed.get(f"gs_lognorms_{variant}") or []
+    return any(x is not None and x < SENTINEL_LOGNORM for x in gs)
+
+
+def _seed_fires(seed: dict, variant: str, n: int) -> bool:
+    """Crack verdict for one seed/variant. Prefer the cancellation-free
+    secret-recovery field when present (authoritative at any dimension); fall
+    back to the GSO-based _is_dsd only for pre-fix seeds that lack it. This is
+    the fix for extract producing false nulls on the n>=157 frontier, where
+    cracked bases have min(gs) below B1_FLOOR yet the recovery field is True."""
+    rec = _is_recovered(seed, variant)
+    if rec is not None:
+        return bool(rec)
+    return _is_dsd(seed, variant, n)
+
+
 def _cell_rate(tree: str, n: int, beta: int, q: int, variant: str):
-    """(fires, total) for one (tree, n, beta, q) cell, or None if absent."""
+    """(fires, total) for one (tree, n, beta, q) cell, or None if absent.
+
+    Each seed is scored by _seed_fires (recovery field first, _is_dsd fallback).
+    Byte-identity note: pre-fix cells (no recovery field) score exactly as before
+    via _is_dsd. A clamp-poisoned pre-fix leg still scores a deterministic non-fire
+    under _is_dsd (unchanged), but is flagged here so the untrustworthy verdict is
+    visible rather than silent -- warning goes to stderr/pipeline, not stdout, so
+    the committed trend table is unaffected."""
     pat = os.path.join(BASE, "results", "seeds", tree, f"q{q}",
                        "p*_mt*", f"n{n:03d}_beta{beta:02d}", "seed*.json")
     files = sorted(glob.glob(pat))
     if not files:
         return None
-    fires = sum(_is_dsd(json.load(open(f)), variant, n) for f in files)
+    fires = poisoned_fallback = 0
+    for f in files:
+        seed = json.load(open(f))
+        if _is_recovered(seed, variant) is None and _seed_is_poisoned(seed, variant):
+            poisoned_fallback += 1
+        fires += _seed_fires(seed, variant, n)
+    if poisoned_fallback:
+        PIPELINE.warning(
+            f"cell n={n} beta={beta} q={q} {variant}: {poisoned_fallback}/"
+            f"{len(files)} pre-fix seed(s) clamp-poisoned, scored by _is_dsd "
+            f"(untrustworthy); regenerate with the recovery readout",
+            cat="analysis", n=n, beta=beta, q=q, variant=variant,
+            poisoned=poisoned_fallback)
     return fires, len(files)
 
 

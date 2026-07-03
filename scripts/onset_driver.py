@@ -125,6 +125,13 @@ def _cell_seeds(n, q):
 def verdict(n, q):
     """'CRACK' | 'NULL' | None (INCOMPLETE).
 
+    CRACK = FIRST-CRACK of the cell (any one seed recovered, either oracle). This
+    is a bisection-SEARCH signal ONLY -- it is NOT the paper's onset estimand.
+    The reportable onset is the per-variant 50%-rate crossing computed by
+    scripts/extract_dsd_onset.py; first-crack sits systematically lower (~3.4%
+    quantile at N=20) and is not variant-attributable. Never put this q on a
+    q*(n) trend axis (deep audit 2026-07-04, finding 4).
+
     INCOMPLETE (None) means: fewer than SEEDS files, OR any seed is not
     status=completed, OR any seed lacks BOTH recovery keys. Critically, an absent
     recovery key is treated as INCOMPLETE (re-run), never silently as NULL -- that
