@@ -285,7 +285,7 @@ def _ntru_seed_worker(task: tuple) -> tuple:
     from generators import build_ntru, get_metric_span
 
     (n, beta, seed, q, precision, max_tours, generator, seed_tag,
-     backend) = task
+     backend, metric_float_type) = task
     out = seed_path_for(seed_tag, n=n, beta=beta, seed=seed, q=q,
                         precision=precision, max_tours=max_tours)
     if os.path.exists(out):
@@ -310,6 +310,7 @@ def _ntru_seed_worker(task: tuple) -> tuple:
             beta=beta, seed=seed, q=q, precision=precision,
             max_tours=max_tours, log_clamp_fn=_ntru_log_clamp,
             backend=backend, secret_f=f, secret_g=g,
+            metric_float_type=metric_float_type,
         )
         os.makedirs(os.path.dirname(out), exist_ok=True)
         # Write atomically (tmp + rename) so a crash mid-write never leaves a
@@ -392,6 +393,7 @@ def _dispatch_ntru(
                         beta=beta, seed=seed, q=q,
                         precision=campaign.precision, max_tours=max_tours,
                         log_clamp_fn=None, secret_f=f, secret_g=g,
+                        metric_float_type=campaign.metric_float_type,
                     )
                     print(f"  n={n:3d} β={beta} seed={seed}: dim={2 * n} "
                           f"verified, advantage={r['advantage']:+.6f}")
@@ -408,7 +410,7 @@ def _dispatch_ntru(
     tasks = [
         (n, beta, seed, q, campaign.precision,
          campaign.tours_by_beta[beta], campaign.generator, seed_tag,
-         campaign.backend)
+         campaign.backend, campaign.metric_float_type)
         for n in campaign.n_grid
         for beta in campaign.beta_grid
         for seed in range(1, campaign.num_seeds + 1)

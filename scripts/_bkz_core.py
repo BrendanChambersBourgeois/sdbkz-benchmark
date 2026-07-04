@@ -201,12 +201,20 @@ def run_single(
     backend: str = FPLLL_BACKEND,
     secret_f: Any = None,
     secret_g: Any = None,
+    metric_float_type: str = "double",
 ) -> dict[str, Any]:
     """Run BKZ and SD-BKZ on a single (n, beta, seed) lattice.
 
     Returns a result dict matching the schema of the legacy run_single
     copies. Callers (sweep_parallel, sweep_cloud, q3329_verify)
     supply their per-script knobs as kwargs.
+
+    ``metric_float_type`` gates the MEASUREMENT GSO only (init + per-tour +
+    final); the reduction itself is always mpfr. Default "double" is the
+    historical byte-identical path; "mpfr" (at ``precision``, set globally
+    below) removes the catastrophic get_r cancellation at frontier dims
+    (n>=157) that otherwise clamps gs_lognorms to the -345 sentinel. The
+    integer secret-recovery readout is GSO-independent and unaffected.
     """
     FPLLL.set_precision(precision)
     FPLLL.set_random_seed(seed)
@@ -248,7 +256,10 @@ def run_single(
     # Initial quality (LLL-reduced, no BKZ yet)
     B_init = IntegerMatrix.from_matrix(L)
     LLL.reduction(B_init)
-    M_init = GSO.Mat(B_init)
+    if metric_float_type == "double":
+        M_init = GSO.Mat(B_init)
+    else:
+        M_init = GSO.Mat(B_init, float_type=metric_float_type)
     M_init.update_gso()
     init = _metrics(M_init, full=True, ctx=f"n{n} b{beta} q{q} s{seed} init")
     result["initial_dln"] = init["dln"]
@@ -265,6 +276,7 @@ def run_single(
         engine = make_backend(
             backend, B_init=B_init, beta=beta, variant=variant,
             seed=seed, precision=precision,
+            metric_float_type=metric_float_type,
         )
 
         vctx = f"n{n} b{beta} q{q} s{seed} {variant}"

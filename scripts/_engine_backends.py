@@ -65,9 +65,10 @@ class _FplllBackend:
     """
 
     def __init__(self, *, B_init: IntegerMatrix, beta: int, variant: str,
-                 precision: int) -> None:
+                 precision: int, metric_float_type: str = "double") -> None:
         self.beta = beta
         self.precision = precision
+        self.metric_float_type = metric_float_type
         # Copy: the driver reuses B_init across variants; never alias it.
         self.B = IntegerMatrix(B_init)
         flags = BKZ.MAX_LOOPS | BKZ.AUTO_ABORT
@@ -81,7 +82,16 @@ class _FplllBackend:
                       precision=self.precision)
 
     def gso(self) -> Any:
-        M = GSO.Mat(self.B)
+        # metric_float_type gates ONLY this measurement GSO (the reduction in
+        # tour() is already mpfr). Default "double" keeps the historical call
+        # byte-identical; "mpfr" (at the ambient FPLLL precision the driver
+        # set) removes the catastrophic get_r cancellation at frontier dims
+        # (deep audit 2026-07-04 finding 1: dim 334 double GSO yields r<=0 ->
+        # the -345 clamp sentinel; mpfr yields 0 such positions).
+        if self.metric_float_type == "double":
+            M = GSO.Mat(self.B)
+        else:
+            M = GSO.Mat(self.B, float_type=self.metric_float_type)
         M.update_gso()
         return M
 
@@ -147,17 +157,27 @@ class _G6kBackend:
 
 
 def make_backend(name: str, *, B_init: IntegerMatrix, beta: int,
-                 variant: str, seed: int, precision: int) -> Any:
+                 variant: str, seed: int, precision: int,
+                 metric_float_type: str = "double") -> Any:
     """Build the per-variant reducer for `name` ('fplll' | 'g6k').
 
     `variant` is "bkz" or "sdbkz"; `seed` and `precision` are taken by both
     signatures so the driver can call uniformly (each backend uses only what
-    it needs). Raises ValueError on an unknown backend name.
+    it needs). `metric_float_type` gates the fplll backend's MEASUREMENT
+    GSO only ("double" = historical, "mpfr" = cancellation-free at high
+    dim); the g6k backend measures through the Siever's own GSO and rejects
+    any non-default value. Raises ValueError on an unknown backend name.
     """
     if name == FPLLL_BACKEND:
         return _FplllBackend(B_init=B_init, beta=beta, variant=variant,
-                             precision=precision)
+                             precision=precision,
+                             metric_float_type=metric_float_type)
     if name == G6K_BACKEND:
+        if metric_float_type != "double":
+            raise ValueError(
+                "metric_float_type is fplll-only; the g6k backend measures "
+                f"through the Siever's GSO (got {metric_float_type!r})"
+            )
         return _G6kBackend(B_init=B_init, beta=beta, variant=variant,
                            seed=seed)
     raise ValueError(

@@ -285,3 +285,45 @@ def test_load_all_returns_every_campaign(tmp_path):
     out = _config.load_all_campaigns(path=p)
     assert set(out.keys()) == {"toy"}
     assert out["toy"].name == "toy"
+
+
+# ---------------------------------------------------------------------------
+# metric_float_type (track 2 E): gates the measurement GSO's float type.
+# ---------------------------------------------------------------------------
+
+def test_metric_float_type_defaults_to_double(tmp_path):
+    c = _config.load_campaign("toy", path=_write(tmp_path, MINIMAL))
+    assert c.metric_float_type == "double"
+
+
+def test_metric_float_type_mpfr_round_trips(tmp_path):
+    body = MINIMAL.replace(
+        '[campaigns.toy]',
+        '[campaigns.toy]\nmetric_float_type = "mpfr"',
+    )
+    c = _config.load_campaign("toy", path=_write(tmp_path, body))
+    assert c.metric_float_type == "mpfr"
+
+
+def test_metric_float_type_unknown_raises(tmp_path):
+    body = MINIMAL.replace(
+        '[campaigns.toy]',
+        '[campaigns.toy]\nmetric_float_type = "quad"',
+    )
+    with pytest.raises(_config.ConfigError, match="unknown metric_float_type"):
+        _config.load_campaign("toy", path=_write(tmp_path, body))
+
+
+def test_metric_float_type_mpfr_rejected_on_g6k_backend(tmp_path):
+    body = MINIMAL.replace(
+        '[campaigns.toy]',
+        '[campaigns.toy]\nbackend = "g6k"\nmetric_float_type = "mpfr"',
+    )
+    with pytest.raises(_config.ConfigError, match="fplll-only"):
+        _config.load_campaign("toy", path=_write(tmp_path, body))
+
+
+def test_real_onset_boundary_campaign_uses_mpfr_metric():
+    c = _config.load_campaign("ntru_onset_boundary")
+    assert c.metric_float_type == "mpfr"
+    assert c.backend == "fplll"

@@ -705,3 +705,9 @@ n_grid = [157, 181, 211, 241, 271]
 tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
+# Frontier dims (n>=157): double-precision measurement GSO catastrophically
+# cancels (get_r<=0 -> -345 clamp sentinel poisons gs_lognorms/dln/advantage).
+# mpfr metric GSO removes it (feasibility probe 2026-07-04: dim 334 double=3
+# cancels, mpfr=0; +~2.6s/call =~ +260s/seed at mt=50, ~2-3% of seed runtime).
+# Crack verdicts (secret_recovered_*) are GSO-independent either way.
+metric_float_type = "mpfr"

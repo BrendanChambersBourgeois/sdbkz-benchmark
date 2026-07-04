@@ -51,6 +51,7 @@ CAMPAIGN_FIELDS: frozenset[str] = frozenset({
     "generator",
     "seed_tag",
     "backend",
+    "metric_float_type",
 })
 
 # Top-level (non-campaign) keys allowed in the TOML root. `default` is
@@ -99,6 +100,12 @@ class Campaign:
     # Threaded through to _bkz_core.run_single(backend=…). A g6k campaign MUST
     # run inside the g6k image (sdbkz-g6k:ref); the fplll image has no g6k.
     backend: str = "fplll"
+    # Float type for the MEASUREMENT GSO only (the reduction is always mpfr).
+    # "double" (default) = the historical byte-identical path; "mpfr" removes
+    # the catastrophic get_r cancellation at frontier dims (n>=157) that
+    # clamps gs_lognorms to the -345 sentinel (deep audit 2026-07-04 finding
+    # 1). fplll-only: a g6k campaign must leave this at "double".
+    metric_float_type: str = "double"
 
 
 def _read_toml(path: str) -> dict[str, Any]:
@@ -244,6 +251,18 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
             f"{ctx}: unknown backend {backend!r}; expected 'fplll' or 'g6k'"
         )
 
+    metric_float_type = str(merged.get("metric_float_type", "double"))
+    if metric_float_type not in ("double", "mpfr"):
+        raise ConfigError(
+            f"{ctx}: unknown metric_float_type {metric_float_type!r}; "
+            "expected 'double' or 'mpfr'"
+        )
+    if backend == "g6k" and metric_float_type != "double":
+        raise ConfigError(
+            f"{ctx}: metric_float_type={metric_float_type!r} is fplll-only; "
+            "the g6k backend measures through the Siever's GSO"
+        )
+
     # seed_tag must name a known output tree (else a typo only surfaces at
     # worker runtime inside seed_dir_for). Validate here to fail fast.
     seed_tag_val = merged.get("seed_tag")
@@ -269,6 +288,7 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
         seed_tag=(str(merged["seed_tag"]) if merged.get("seed_tag")
                   else None),
         backend=backend,
+        metric_float_type=metric_float_type,
     )
 
 

@@ -292,3 +292,41 @@ def test_clamp_path_warn_on_clamp_emits_warning(capsys):
     captured = capsys.readouterr()
     assert "WARNING" in captured.out
     assert "2" in captured.out  # two clamp events
+
+
+# ---------------------------------------------------------------------------
+# metric_float_type gate (track 2 E, deep audit 2026-07-04 finding 1): the
+# MEASUREMENT GSO can be lifted to mpfr without touching the reduction path.
+# At tiny dim there is no cancellation, so double and mpfr metrics must agree
+# to fp noise and the result schema must be identical.
+# ---------------------------------------------------------------------------
+
+def test_metric_float_type_mpfr_same_schema_and_close_values(tiny_result):
+    r_mpfr = run_single(
+        L=_basis(20, 97, 1),
+        n=20, active_block_start=kannan_m(20), active_block_end=_lwe_end(20),
+        beta=10, seed=1, q=97, precision=100, max_tours=5,
+        log_clamp_fn=None, metric_float_type="mpfr",
+    )
+    assert set(r_mpfr.keys()) == set(tiny_result.keys())
+    assert r_mpfr["bkz_final_dln"] == pytest.approx(
+        tiny_result["bkz_final_dln"], abs=1e-9)
+    assert r_mpfr["advantage"] == pytest.approx(
+        tiny_result["advantage"], abs=1e-9)
+
+
+def test_metric_float_type_default_is_double():
+    import inspect
+
+    sig = inspect.signature(run_single)
+    assert sig.parameters["metric_float_type"].default == "double"
+
+
+def test_make_backend_rejects_mpfr_metric_on_g6k():
+    from _engine_backends import make_backend
+    from fpylll import IntegerMatrix
+
+    B = IntegerMatrix.identity(4)
+    with pytest.raises(ValueError, match="fplll-only"):
+        make_backend("g6k", B_init=B, beta=2, variant="bkz", seed=1,
+                     precision=100, metric_float_type="mpfr")
