@@ -116,3 +116,89 @@ def test_known_skips_incomplete_cells(repo):
     _write_cell(repo, 167, 3061, [_seed()] * (od.SEEDS - 2))               # partial
     k = od.known(167)
     assert k == {2657: "NULL"}
+
+
+# ---------------------------------------------------------------------------
+# Audit 2026-07-04 #3 hardening: densification, variant rates, lock pid-reuse.
+# ---------------------------------------------------------------------------
+
+def _seed_rates(bkz, sd):
+    j = _seed()
+    j["secret_recovered_bkz"] = bkz
+    j["secret_recovered_sdbkz"] = sd
+    return j
+
+
+def test_variant_rates(repo):
+    seeds = [_seed_rates(True, True)] * 5 + [_seed_rates(False, True)] * 5 \
+        + [_seed_rates(False, False)] * (od.SEEDS - 10)
+    _write_cell(repo, 157, 2411, seeds)
+    assert od._variant_rates(157, 2411) == pytest.approx((0.25, 0.5))
+
+
+def test_variant_rates_incomplete_is_none(repo):
+    _write_cell(repo, 157, 2411, [_seed_rates(True, True)] * (od.SEEDS - 1))
+    assert od._variant_rates(157, 2411) is None
+
+
+def test_densify_stops_when_both_variants_cross(repo, monkeypatch):
+    # highest crack cell already at bkz 55% / sd 60% -> no extra cells run.
+    seeds = [_seed_rates(True, True)] * 11 + \
+            [_seed_rates(False, True)] * 1 + \
+            [_seed_rates(False, False)] * (od.SEEDS - 12)
+    _write_cell(repo, 157, 2411, seeds)
+    ran = []
+    monkeypatch.setattr(od, "run_cell", lambda n, q, d, dry: ran.append(q) or True)
+    od._densify(157, deadline=float("inf"), dry=False)
+    assert ran == []
+
+
+def test_densify_steps_up_until_target(repo, monkeypatch):
+    # crack cell at 5%/10% -> densify probes upward; fake each new cell landing
+    # at 60%/60% so exactly one extra cell is needed.
+    seeds = [_seed_rates(False, True)] * 2 + \
+            [_seed_rates(True, False)] * 1 + \
+            [_seed_rates(False, False)] * (od.SEEDS - 3)
+    _write_cell(repo, 157, 2203, seeds)
+    ran = []
+
+    def fake_run_cell(n, q, deadline, dry):
+        ran.append(q)
+        _write_cell(repo, n, q, [_seed_rates(True, True)] * 12
+                    + [_seed_rates(False, False)] * (od.SEEDS - 12))
+        return True
+
+    monkeypatch.setattr(od, "run_cell", fake_run_cell)
+    od._densify(157, deadline=float("inf"), dry=False)
+    assert len(ran) == 1
+    assert ran[0] > 2203                    # probed ABOVE the first-crack
+    assert od.isprime(ran[0])
+
+
+def test_densify_no_cracks_is_noop(repo, monkeypatch):
+    _write_cell(repo, 173, 3631, [_seed_rates(False, False)] * od.SEEDS)
+    ran = []
+    monkeypatch.setattr(od, "run_cell", lambda n, q, d, dry: ran.append(q) or True)
+    od._densify(173, deadline=float("inf"), dry=False)
+    assert ran == []
+
+
+def test_lock_reclaims_reused_pid(repo, monkeypatch, tmp_path):
+    # A live pid whose cmdline is NOT onset_driver = pid reuse -> reclaim.
+    lock = tmp_path / "onset_driver.lock"
+    monkeypatch.setattr(od, "LOCK", lock)
+    lock.write_text("1")                    # pid 1 = init, alive, not our driver
+    assert od._acquire_lock() is True
+    assert lock.read_text() == str(__import__("os").getpid())
+
+
+def test_lock_blocks_on_live_onset_driver(repo, monkeypatch, tmp_path):
+    import os
+    lock = tmp_path / "onset_driver.lock"
+    monkeypatch.setattr(od, "LOCK", lock)
+    lock.write_text(str(os.getpid()))       # this pytest process is "alive"
+    monkeypatch.setattr(
+        od.Path, "read_bytes",
+        lambda self: b"python3\0scripts/onset_driver.py\0",
+    )
+    assert od._acquire_lock() is False

@@ -23,6 +23,9 @@ logs/*
 !logs/.gitkeep
 *.log
 nohup.out
+# Clamp side-log: unbounded append under load (89k+ lines during frontier
+# campaigns); preserved locally + via sync_research.sh, not in git history.
+results/clamp_events.jsonl
 
 # External papers
 white_trill_srs-report.pdf

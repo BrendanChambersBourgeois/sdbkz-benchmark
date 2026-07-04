@@ -598,6 +598,28 @@ tours_by_beta = { "40" = 580 }
 num_seeds = 20
 store_per_tour = false
 
+# -- NTRU n=167 β=40 deep-tours WALL CONTROL (mt=580) --------------------------
+# The month run calls n>=167 a beta-WALL from mt=50 cells (best-vector ratio
+# saturates 40-58x the secret). This control distinguishes a true beta-wall
+# from a tour-budget artifact: same cell as the established n=167 wall point
+# q=3061 (2.3x q_fat, ratio ~40x at mt=50) but 580 tours. If mt=580 cracks (or
+# the ratio collapses), the "wall" is a tour-budget artifact and every WALL
+# verdict needs re-scoping (audit 2026-07-04 #3, major 4). Separate path
+# p500_mt580 -> no collision with the mt=50 cell. 8 seeds = 8 workers, ~1-2
+# days. RUN IN ISOLATION (not wired into onset_driver, which pins mt=50):
+#   python3 scripts/run_campaign.py --campaign ntru_n167_wall_deep --workers 8
+[campaigns.ntru_n167_wall_deep]
+description = "NTRU n=167 β=40 deep-tours wall control (mt=580 at the q=3061 wall cell)"
+generator = "ntru"
+q = 3061
+precision = 500
+beta_grid = [40]
+n_grid = [167]
+tours_by_beta = { "40" = 580 }
+num_seeds = 8
+store_per_tour = false
+metric_float_type = "mpfr"
+
 # -- NTRU n=157 β=40 DSD-onset q-sweep (LOCATE the onset above q=1109) --------
 # The q=1109 cell (ntru_n157_onset, mt=50) is a clean 0/20 null on both oracles
 # -> the n=157 onset sits ABOVE q=1109. β=40 onset tracks q_fat (cf. n=113:

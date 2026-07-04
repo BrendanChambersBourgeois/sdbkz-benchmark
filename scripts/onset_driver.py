@@ -56,6 +56,36 @@ TOL_MULT = 0.12      # stop bisecting once (crack-null)/q_fat <= this
 QCAP_MULT = 5.0      # hard backstop; the ratio-plateau test usually fires first
 CELL_TIMEOUT_H = 40  # kill+skip a cell exceeding this (hang guard); >> any real
                      #   cell (largest observed ~19h at n=181 high q)
+CELL_ATTEMPTS = 2    # run a failing/stalled cell this many times total before
+                     #   abandoning the n (bounded retry: survivors on disk skip,
+                     #   so attempt 2 only reruns the missing seeds). Replaces the
+                     #   old raise-CellFailure-and-exit path, which let ONE
+                     #   unwritable seed restart-loop the service into systemd's
+                     #   StartLimitBurst and silently kill the month run
+                     #   (audit 2026-07-04 #3, major 1).
+
+# --- pool-stall watchdog ------------------------------------------------------
+# A native worker crash (segfault/abort in fplll/MPFR) kills the pool worker
+# without a Python exception; mp.Pool.imap_unordered then blocks forever and the
+# only escape used to be the full CELL_TIMEOUT_H burn (audit 2026-07-04 #3,
+# major 2). A live 20-worker cell accumulates ~1200 CPU-seconds per wall-minute;
+# a hung pool accumulates ~0. Poll the child's process group and declare a stall
+# when the group gains < STALL_CPU_S CPU-seconds over STALL_WINDOW_S of wall.
+POLL_S = 60          # proc.poll()/CPU sample cadence
+STALL_WINDOW_S = 30 * 60
+STALL_CPU_S = 60.0
+
+# --- post-bracket densification (the paper estimand needs it) -----------------
+# Bisection converges on FIRST-CRACK from below and never probes q above it, but
+# the reportable onset (extract_dsd_onset per-variant 50%-rate crossing) sits
+# ABOVE first-crack (n=157: first-crack q2203 = SD 10%; SD 50% crossing ~q2354).
+# Without graded-rate cells above first-crack the crossing cannot be
+# interpolated (audit 2026-07-04 #3, major 5). After bracketing, keep stepping
+# q upward in fine steps until both variants cross 50% or the cell budget runs
+# out (BKZ lags SD and may stay unbracketed -- logged, acceptable).
+DENSIFY_MAX = 3      # extra cells above the highest crack
+DENSIFY_STEP = 0.10  # x q_fat -- finer than the hunt STEP_MULT
+DENSIFY_TARGET = 0.5
 
 # --- ratio-based wall detection ----------------------------------------------
 # ratio r(cell) = min_seed( min(min_actual_norm2_bkz, _sdbkz) / secret_norm2 ).
@@ -198,15 +228,6 @@ def known(n):
     return out
 
 
-class CellFailure(Exception):
-    """A cell that finished with a nonzero rc or produced no complete verdict.
-
-    Raised so main() exits nonzero and systemd retries (resuming from disk) rather
-    than the driver silently treating the empty cell as absent and sprinting the
-    rest of the ladder producing nothing (audit wf_8f1b8c57-b6e MUST-FIX #3).
-    """
-
-
 def _kill_group(proc):
     """SIGTERM then SIGKILL the child's whole process group (the 20-worker pool
     orphans and keeps burning cores otherwise). Child is its own session leader."""
@@ -221,7 +242,52 @@ def _kill_group(proc):
         pass
 
 
+def _group_cpu(pid):
+    """Cumulative CPU seconds of the child's whole process group (pool included),
+    via `ps -o times`. None if unreadable (group already gone / ps failure)."""
+    try:
+        pgid = os.getpgid(pid)
+        out = subprocess.run(["ps", "-g", str(pgid), "-o", "times="],
+                             capture_output=True, text=True, timeout=30).stdout
+        vals = [int(x) for x in out.split()]
+        return float(sum(vals)) if vals else None
+    except (ProcessLookupError, subprocess.TimeoutExpired, ValueError, OSError):
+        return None
+
+
+def _wait_with_watchdog(proc):
+    """Wait for the cell child. Returns its int rc, or 'timeout' | 'stalled'.
+
+    'stalled' = the child's process group gained < STALL_CPU_S CPU-seconds over
+    STALL_WINDOW_S of wall clock -- the hung-pool signature (a segfaulted worker
+    leaves imap_unordered blocked with ~0 CPU). Seed-file mtimes are NOT used:
+    seeds flush clustered at the end of a cell, so hours of zero new files are
+    normal while CPU keeps accumulating.
+    """
+    t0 = time.time()
+    cpu_hi = 0.0
+    fresh = time.time()
+    while True:
+        rc = proc.poll()
+        if rc is not None:
+            return rc
+        if time.time() - t0 > CELL_TIMEOUT_H * 3600:
+            return "timeout"
+        cpu = _group_cpu(proc.pid)
+        if cpu is not None and cpu > cpu_hi + STALL_CPU_S:
+            cpu_hi = cpu
+            fresh = time.time()
+        if time.time() - fresh > STALL_WINDOW_S:
+            return "stalled"
+        time.sleep(POLL_S)
+
+
 def run_cell(n, q, deadline, dry):
+    """Run one cell to a verdict. Bounded retry: CELL_ATTEMPTS total, resuming
+    from disk each time (existing complete seeds skip; run_campaign quarantines
+    a corrupt seed JSON aside and regenerates it). Returns True on a verdict,
+    False to abandon this n (deadline, or attempts exhausted) -- the ladder
+    continues either way; the driver process never exits on a cell failure."""
     if time.time() >= deadline:
         log(f"DEADLINE hit -- skip n={n} q={q}")
         return False
@@ -233,33 +299,34 @@ def run_cell(n, q, deadline, dry):
     if dry:
         log(f"[dry-run] would run campaign {CAMPAIGN} --n {n} --q {q}")
         return True
-    # child run_campaign emits its own structured records to pipeline.jsonl; drop
-    # console stdout, keep stderr (inherited) for crashes. start_new_session so a
-    # hung cell's whole worker pool can be killed as a group.
-    proc = subprocess.Popen(
-        ["python3", "scripts/run_campaign.py", "--campaign", CAMPAIGN,
-         "--n", str(n), "--q", str(q), "--workers", str(WORKERS)],
-        cwd=REPO, stdout=subprocess.DEVNULL, start_new_session=True,
-    )
-    try:
-        rc = proc.wait(timeout=CELL_TIMEOUT_H * 3600)
-    except subprocess.TimeoutExpired:
-        log(f"TIMEOUT n={n} q={q} after {CELL_TIMEOUT_H}h -- killing worker group, "
-            f"abandoning n={n} (a hang is q-specific; other n continue)",
-            n=n, q=q, event="timeout")
-        _kill_group(proc)
-        return False
-    v = verdict(n, q)
-    r = cell_ratio(n, q)
-    if rc != 0 or v is None:
-        log(f"FAIL  n={n} q={q}: run_campaign rc={rc}, verdict={v} -- cell did not "
-            f"complete; halting for systemd retry (resumes from disk)",
-            n=n, q=q, rc=rc, event="cell_fail")
-        raise CellFailure(f"n={n} q={q} rc={rc} verdict={v}")
-    log(f"DONE  n={n} q={q} -> {v} (ratio={r:.2f})" if r else
-        f"DONE  n={n} q={q} -> {v}", n=n, q=q, verdict=v,
-        ratio=round(r, 3) if r else None)
-    return True
+    for attempt in range(1, CELL_ATTEMPTS + 1):
+        # child run_campaign emits its own structured records to pipeline.jsonl;
+        # drop console stdout, keep stderr (inherited) for crashes.
+        # start_new_session so a hung cell's whole pool dies as a group.
+        proc = subprocess.Popen(
+            ["python3", "scripts/run_campaign.py", "--campaign", CAMPAIGN,
+             "--n", str(n), "--q", str(q), "--workers", str(WORKERS)],
+            cwd=REPO, stdout=subprocess.DEVNULL, start_new_session=True,
+        )
+        rc = _wait_with_watchdog(proc)
+        if rc in ("timeout", "stalled"):
+            log(f"{rc.upper()} n={n} q={q} attempt {attempt}/{CELL_ATTEMPTS} "
+                f"-- killing worker group", n=n, q=q, event=rc, attempt=attempt)
+            _kill_group(proc)
+            continue
+        v = verdict(n, q)
+        if rc == 0 and v is not None:
+            r = cell_ratio(n, q)
+            log(f"DONE  n={n} q={q} -> {v} (ratio={r:.2f})" if r else
+                f"DONE  n={n} q={q} -> {v}", n=n, q=q, verdict=v,
+                ratio=round(r, 3) if r else None)
+            return True
+        log(f"FAIL  n={n} q={q} attempt {attempt}/{CELL_ATTEMPTS}: "
+            f"run_campaign rc={rc}, verdict={v} -- cell did not complete",
+            n=n, q=q, rc=rc, event="cell_fail", attempt=attempt)
+    log(f"GIVE UP n={n} q={q} after {CELL_ATTEMPTS} attempts -- abandoning n={n}, "
+        f"ladder continues", n=n, q=q, event="cell_abandoned")
+    return False
 
 
 def _wall_reached(n, nulls):
@@ -281,6 +348,57 @@ def _wall_reached(n, nulls):
     (_, r_prev), (_, r_last) = ratios[-2], ratios[-1]
     plateau = r_last >= IMPROVE * r_prev          # failed to fall like a cliff
     return plateau and WALL_LO < r_last < WALL_HI  # settled in the saturated band
+
+
+def _variant_rates(n, q):
+    """(bkz_rate, sdbkz_rate) over the cell's seeds, or None if incomplete."""
+    files = _cell_seeds(n, q)
+    if len(files) < SEEDS:
+        return None
+    cb = cs = 0
+    for f in files:
+        try:
+            j = json.load(open(f))
+        except Exception:
+            return None
+        cb += bool(j.get("secret_recovered_bkz"))
+        cs += bool(j.get("secret_recovered_sdbkz"))
+    return cb / len(files), cs / len(files)
+
+
+def _densify(n, deadline, dry):
+    """Fill graded-rate cells ABOVE the first-crack so the paper estimand (the
+    per-variant 50%-rate crossing, scripts/extract_dsd_onset.py) is
+    interpolatable. Bisection alone never probes q > first-crack, but the 50%
+    crossing sits above it (see DENSIFY_* note). Steps q upward in
+    DENSIFY_STEP*q_fat increments until both variants reach DENSIFY_TARGET or
+    DENSIFY_MAX cells are spent; a still-unbracketed BKZ crossing is logged and
+    left to a manual follow-up (BKZ lags SD by design of the phenomenon)."""
+    k = known(n)
+    cracks = sorted(q for q, v in k.items() if v == "CRACK")
+    if not cracks:
+        return
+    qf = qfat(n)
+    q = cracks[-1]
+    for _ in range(DENSIFY_MAX):
+        rates = _variant_rates(n, q)
+        if rates and min(rates) >= DENSIFY_TARGET:
+            log(f"n={n}: densify done -- both variants >= "
+                f"{DENSIFY_TARGET:.0%} at q={q} (bkz={rates[0]:.0%}, "
+                f"sd={rates[1]:.0%})", n=n, event="densify_done")
+            return
+        nq = nextprime(q + DENSIFY_STEP * qf)
+        if nq > qf * QCAP_MULT:
+            log(f"n={n}: densify hit QCAP at q={nq} -- stopping", n=n)
+            return
+        if not run_cell(n, nq, deadline, dry):
+            return
+        q = nq
+    rates = _variant_rates(n, q)
+    log(f"n={n}: densify budget spent at q={q} "
+        f"(bkz={rates[0]:.0%}, sd={rates[1]:.0%})" if rates else
+        f"n={n}: densify budget spent at q={q}",
+        n=n, event="densify_budget")
 
 
 def trace_n(n, deadline, dry):
@@ -312,19 +430,23 @@ def trace_n(n, deadline, dry):
                 hn = max(lower_nulls)
                 if lc - hn <= tol:
                     log(f"n={n}: q*({n}) BRACKETED ({hn} null, {lc} crack] "
-                        f"~ {lc/qf:.2f}x q_fat -- done", n=n,
-                        q_star_mult=round(lc / qf, 3))
+                        f"~ {lc/qf:.2f}x q_fat -- densifying for the 50% "
+                        f"crossing", n=n, q_star_mult=round(lc / qf, 3))
+                    _densify(n, deadline, dry)
                     return
                 nq = nextprime((hn + lc) // 2)
                 if nq <= hn or nq >= lc:
                     log(f"n={n}: bisect converged at prime gap ({hn},{lc}) "
-                        f"~ {lc/qf:.2f}x -- done", n=n,
-                        q_star_mult=round(lc / qf, 3))
+                        f"~ {lc/qf:.2f}x -- densifying for the 50% crossing",
+                        n=n, q_star_mult=round(lc / qf, 3))
+                    _densify(n, deadline, dry)
                     return
             else:
                 nq = prevprime(int(lc - STEP_MULT * qf))
                 if nq <= qf:
-                    log(f"n={n}: crack down to ~q_fat -- onset ~ {lc/qf:.2f}x", n=n)
+                    log(f"n={n}: crack down to ~q_fat -- onset ~ {lc/qf:.2f}x; "
+                        f"densifying for the 50% crossing", n=n)
+                    _densify(n, deadline, dry)
                     return
         if nq in tried:
             log(f"n={n}: next q={nq} already attempted this run -- stop", n=n)
@@ -337,20 +459,39 @@ def trace_n(n, deadline, dry):
 def _acquire_lock():
     """Refuse to start if another driver is live (prevents cron@reboot double-run).
 
-    Stale lock (pid dead) is reclaimed. Returns True on success.
+    Stale lock (pid dead) is reclaimed. A live pid whose /proc cmdline is NOT an
+    onset_driver is a REUSED pid (SIGKILL left the lock; the pid was recycled) --
+    reclaimed too, else the month run silently never restarts (audit 2026-07-04
+    #3, minor 6). Returns True on success.
     """
     LOCK.parent.mkdir(parents=True, exist_ok=True)
     if LOCK.exists():
         try:
             old = int(LOCK.read_text().strip())
-            os.kill(old, 0)          # raises if pid gone
-            log(f"another onset_driver (pid {old}) holds the lock -- exiting")
-            return False
-        except (ValueError, ProcessLookupError):
-            log("stale lock found -- reclaiming")
-        except PermissionError:
-            log("lock pid alive (not ours) -- exiting")
-            return False
+        except ValueError:
+            old = None
+            log("unparseable lock -- reclaiming")
+        if old is not None:
+            alive = True
+            try:
+                os.kill(old, 0)          # raises if pid gone
+            except ProcessLookupError:
+                alive = False
+                log("stale lock found -- reclaiming")
+            except PermissionError:
+                pass                     # alive, foreign user -- check cmdline
+            if alive:
+                try:
+                    cmd = Path(f"/proc/{old}/cmdline").read_bytes() \
+                        .replace(b"\0", b" ").decode(errors="replace")
+                except OSError:
+                    cmd = ""
+                if "onset_driver" in cmd:
+                    log(f"another onset_driver (pid {old}) holds the lock "
+                        f"-- exiting")
+                    return False
+                log(f"lock pid {old} alive but not an onset_driver "
+                    f"(pid reuse) -- reclaiming")
     LOCK.write_text(str(os.getpid()))
     return True
 
@@ -425,9 +566,6 @@ def main(argv=None):
             log(f"---- tracing n={n} (q_fat~{qfat(n):.0f}) ----", n=n)
             trace_n(n, deadline, args.dry_run)
         log("==== onset_driver complete or deadline ====")
-    except CellFailure as e:
-        log(f"HALT -- {e}; exiting nonzero for supervised retry")
-        return 1
     finally:
         if not args.dry_run and LOCK.exists():
             try:

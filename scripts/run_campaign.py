@@ -267,6 +267,30 @@ def _ntru_log_clamp(ctx: str, position: int, raw_value: float) -> None:
               script_name="run_campaign", log_path=_CLAMP_LOG_FILE)
 
 
+def _resume_skip_valid(path: str) -> bool:
+    """True if an existing seed JSON parses (safe to resume-skip)."""
+    import json
+    try:
+        with open(path) as fh:
+            json.load(fh)
+        return True
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+        return False
+
+
+def _quarantine_corrupt(path: str) -> str:
+    """Move a corrupt seed JSON aside (suffix .corrupt, numbered if needed) so
+    the seed regenerates. The bytes are preserved, never deleted; the suffix
+    keeps it out of every *.json glob (verdicts, manifest, extract)."""
+    bad = path + ".corrupt"
+    i = 1
+    while os.path.exists(bad):
+        i += 1
+        bad = f"{path}.corrupt{i}"
+    os.replace(path, bad)
+    return bad
+
+
 def _ntru_seed_worker(task: tuple) -> tuple:
     """Pool worker: build + structurally verify + BKZ one NTRU (n, β, seed),
     then write its per-seed JSON. Returns (n, β, seed, advantage|None,
@@ -289,7 +313,17 @@ def _ntru_seed_worker(task: tuple) -> tuple:
     out = seed_path_for(seed_tag, n=n, beta=beta, seed=seed, q=q,
                         precision=precision, max_tours=max_tours)
     if os.path.exists(out):
-        return (n, beta, seed, None, "skip")
+        if _resume_skip_valid(out):
+            return (n, beta, seed, None, "skip")
+        # Corrupt/unparseable seed JSON: quarantine aside (never delete data --
+        # CLAUDE.md) and fall through to regenerate. Without this an existence-
+        # only skip wedges the cell forever: the file is never regenerated and
+        # every verdict read fails on it (audit 2026-07-04 #3, major 1).
+        bad = _quarantine_corrupt(out)
+        PIPELINE.error(
+            "corrupt seed quarantined", cat="seed", n=n, beta=beta, seed=seed,
+            q=q, precision=precision, seed_tag=seed_tag, quarantined_to=bad,
+        )
     L, f, g = build_ntru(n, q, seed=seed)
     if len(L) != 2 * n:
         return (n, beta, seed, None, "dim_err")
