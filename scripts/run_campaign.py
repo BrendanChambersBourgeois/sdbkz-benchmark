@@ -319,7 +319,19 @@ def _ntru_seed_worker(task: tuple) -> tuple:
         # CLAUDE.md) and fall through to regenerate. Without this an existence-
         # only skip wedges the cell forever: the file is never regenerated and
         # every verdict read fails on it (audit 2026-07-04 #3, major 1).
-        bad = _quarantine_corrupt(out)
+        # The rename itself can fail (read-only dir, ENOSPC); contain it to
+        # this seed's status tuple instead of letting it propagate through
+        # imap_unordered and abort the whole cell (audit #4 2026-07-05).
+        try:
+            bad = _quarantine_corrupt(out)
+        except OSError as e:
+            PIPELINE.error(
+                "corrupt seed quarantine FAILED", cat="seed", n=n, beta=beta,
+                seed=seed, q=q, precision=precision, seed_tag=seed_tag,
+                error=f"{type(e).__name__}: {e}",
+            )
+            return (n, beta, seed, None,
+                    f"error: quarantine {type(e).__name__}: {e}")
         PIPELINE.error(
             "corrupt seed quarantined", cat="seed", n=n, beta=beta, seed=seed,
             q=q, precision=precision, seed_tag=seed_tag, quarantined_to=bad,

@@ -202,3 +202,50 @@ def test_lock_blocks_on_live_onset_driver(repo, monkeypatch, tmp_path):
         lambda self: b"python3\0scripts/onset_driver.py\0",
     )
     assert od._acquire_lock() is False
+
+
+# ---------------------------------------------------------------------------
+# Audit #4 (2026-07-05) residuals: legacy-schema cell guard, anchored lock match.
+# ---------------------------------------------------------------------------
+
+def test_legacy_cell_detected_and_abandons(repo):
+    # pre-INC-51 schema: parseable, completed, no recovery keys anywhere.
+    seeds = [_seed(drop_keys=("secret_recovered_bkz",
+                              "secret_recovered_sdbkz"))] * od.SEEDS
+    _write_cell(repo, 113, 631, seeds)
+    assert od._legacy_cell(113, 631) is True
+    assert od.run_cell(113, 631, deadline=float("inf"), dry=True) is False
+
+
+def test_modern_cell_not_legacy(repo):
+    _write_cell(repo, 167, 2657, [_seed()] * od.SEEDS)
+    assert od._legacy_cell(167, 2657) is False
+
+
+def test_partial_cell_not_legacy(repo):
+    seeds = [_seed(drop_keys=("secret_recovered_bkz",
+                              "secret_recovered_sdbkz"))] * (od.SEEDS - 1)
+    _write_cell(repo, 113, 631, seeds)
+    assert od._legacy_cell(113, 631) is False   # incomplete -> normal re-run
+
+
+def test_lock_reclaims_recycled_pid_running_related_tool(repo, monkeypatch,
+                                                         tmp_path):
+    # audit #4: `tail -f scripts/onset_driver.py` on a recycled pid must NOT
+    # block the restart -- only a python interpreter running onset_driver.py.
+    import os
+    lock = tmp_path / "onset_driver.lock"
+    monkeypatch.setattr(od, "LOCK", lock)
+    lock.write_text(str(os.getpid()))           # alive pid
+    monkeypatch.setattr(
+        od.Path, "read_bytes",
+        lambda self: b"tail\0-f\0scripts/onset_driver.py\0",
+    )
+    assert od._acquire_lock() is True           # reclaimed
+
+    lock.write_text(str(os.getpid()))
+    monkeypatch.setattr(
+        od.Path, "read_bytes",
+        lambda self: b"python3\0-m\0pytest\0tests/test_onset_driver.py\0",
+    )
+    assert od._acquire_lock() is True           # test file basename != driver

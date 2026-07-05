@@ -282,6 +282,28 @@ def _wait_with_watchdog(proc):
         time.sleep(POLL_S)
 
 
+def _legacy_cell(n, q):
+    """True if the cell is fully populated with parseable, completed seeds that
+    ALL lack the recovery keys -- the pre-INC-51 schema (e.g. the published
+    n=113 beta40 q569-859 Fig6 cells). Such a cell can never verdict: the seeds
+    parse, so run_campaign's resume-skip keeps them, and re-running regenerates
+    nothing. Detect it up front instead of burning CELL_ATTEMPTS on it
+    (audit #4 2026-07-05)."""
+    files = _cell_seeds(n, q)
+    if len(files) < SEEDS:
+        return False
+    for f in files:
+        try:
+            j = json.load(open(f))
+        except Exception:
+            return False
+        if j.get("status") != "completed":
+            return False
+        if "secret_recovered_bkz" in j or "secret_recovered_sdbkz" in j:
+            return False
+    return True
+
+
 def run_cell(n, q, deadline, dry):
     """Run one cell to a verdict. Bounded retry: CELL_ATTEMPTS total, resuming
     from disk each time (existing complete seeds skip; run_campaign quarantines
@@ -294,6 +316,12 @@ def run_cell(n, q, deadline, dry):
     if verdict(n, q) is not None:
         log(f"n={n} q={q} already complete -- skip")
         return True
+    if _legacy_cell(n, q):
+        log(f"LEGACY n={n} q={q}: cell complete on the pre-recovery-key schema "
+            f"-- cannot verdict and re-running regenerates nothing; abandoning "
+            f"n={n} (published data untouched; drop this n from the ladder)",
+            n=n, q=q, event="legacy_cell")
+        return False
     mult = round(q / qfat(n), 3)
     log(f"START n={n} q={q} ({mult}x q_fat)", n=n, q=q, mult=mult)
     if dry:
@@ -482,11 +510,19 @@ def _acquire_lock():
                 pass                     # alive, foreign user -- check cmdline
             if alive:
                 try:
-                    cmd = Path(f"/proc/{old}/cmdline").read_bytes() \
-                        .replace(b"\0", b" ").decode(errors="replace")
+                    argv = Path(f"/proc/{old}/cmdline").read_bytes() \
+                        .decode(errors="replace").split("\0")
                 except OSError:
-                    cmd = ""
-                if "onset_driver" in cmd:
+                    argv = []
+                # Anchored match: a python interpreter running THIS script.
+                # A loose "onset_driver in cmdline" substring false-blocks on
+                # a recycled pid running e.g. `tail -f scripts/onset_driver.py`
+                # or `pytest tests/test_onset_driver.py` (audit #4 2026-07-05;
+                # basename of test_onset_driver.py does not match).
+                is_driver = argv and "python" in os.path.basename(argv[0]) \
+                    and any(os.path.basename(a) == "onset_driver.py"
+                            for a in argv)
+                if is_driver:
                     log(f"another onset_driver (pid {old}) holds the lock "
                         f"-- exiting")
                     return False
