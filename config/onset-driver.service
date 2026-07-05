@@ -1,0 +1,34 @@
+[Unit]
+Description=NTRU DSD-onset boundary driver (adaptive q*(n) tracer)
+After=default.target
+# StartLimit* are [Unit]-section directives. In [Service] systemd silently
+# drops StartLimitIntervalSec ("Unknown key name ... ignoring", verified on
+# systemd 255) and the interval falls back to the ~10s default, which
+# RestartSec=60 can never trip -- a persistent crash would restart-loop
+# forever instead of entering 'failed' (audit #4 2026-07-05, major 1).
+StartLimitIntervalSec=1800
+StartLimitBurst=5
+
+[Service]
+Type=simple
+# SYSTEM-unit installs ONLY: uncomment User=/Group= so a root-run unit does
+# not write root-owned seeds into the zomg-owned results/ tree (audit
+# 2026-07-04 #3, minor 7). MUST stay commented for a --user install: the
+# unprivileged user manager cannot setgid, so an active Group= fails the
+# service at runtime with status=216/GROUP (observed 2026-07-05; note
+# systemd-analyze verify does NOT catch this -- it is a runtime failure).
+#User=zomg
+#Group=zomg
+WorkingDirectory=/home/zomg/Desktop/lattice
+ExecStart=/usr/bin/python3 scripts/onset_driver.py --budget-h 720
+# Clean exit (ladder done / deadline) => stay stopped. Crash => restart after a
+# cooldown. The lockfile in the driver makes a double-launch a safe no-op.
+# Cell failures no longer exit the process (bounded in-driver retry, then the
+# ladder continues), so restarts here mean the driver ITSELF died -- the
+# start-limit below is a genuine crash-loop breaker, not a wedge hazard.
+Restart=on-failure
+RestartSec=60
+Nice=0
+
+[Install]
+WantedBy=default.target

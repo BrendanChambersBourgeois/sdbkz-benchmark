@@ -73,3 +73,5 @@ paper2/latex/*.pdf
 # cross_engine_seed_scatter). Generated locally for paper-2 figure candidates; check in
 # once selected and moved to paper2/figs/, not from here.
 analysis/plots_findings/
+# Driver runtime lock lives here; never commit
+results/logs/
