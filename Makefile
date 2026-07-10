@@ -47,6 +47,9 @@ figs:  ## Regenerate paper-1 figures into analysis/figures/
 figs-paper2:  ## Regenerate paper-2 figures into paper2/latex/figs/
 	python3 analysis/paper2_figures.py
 
+paper2-claims:  ## Rebuild results/paper_claims/paper2_claims.json (claim provenance ledger)
+	python3 scripts/build_paper2_claims.py
+
 paper:  ## Rebuild the LaTeX PDF in paper1/latex/
 	$(MAKE) -C paper1/latex
 

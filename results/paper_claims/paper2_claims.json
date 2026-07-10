@@ -1,0 +1,1311 @@
+{
+  "by_status": {
+    "DERIVED": 2,
+    "DERIVED-UNRESOLVED": 4,
+    "POINTER": 27,
+    "RECOMPUTED": 29
+  },
+  "description": "Paper-2 \u00a76-\u00a77 claim -> source -> method -> verified-value ledger (deep-audit finding 6). See scripts/build_paper2_claims.py.",
+  "generated_utc_epoch": 0.0,
+  "guard_invariant": true,
+  "n_match": 58,
+  "n_records": 62,
+  "records": [
+    {
+      "claim_id": "bootstrap_ci_n101_fplll_rate_gap",
+      "match": true,
+      "method": "per-cell nonparametric bootstrap (each q-cell resampled independently, SD/BKZ paired within cell), B=10000, rng_seed=20260710; estimand=SD-BKZ onset percent gap; per resample recompute both 50%-onsets via unrounded _interp_onset over the 14 full-seed q-cells; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
+      "note": "point est +9.098 vs tex +9.00 (percent); CI [+6.059,+11.117] vs tex [+6.10,+11.00]. 40 seeds/cell over q=[127, 149, 181, 211, 241, 271, 307, 331, 337, 367, 397, 409, 431, 463]. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B.",
+      "paper_value": {
+        "ci": [
+          6.1,
+          11.0
+        ],
+        "point": 9.0
+      },
+      "recomputed_value": {
+        "B": 10000,
+        "ci": [
+          6.059,
+          11.117
+        ],
+        "point": 9.098,
+        "rng_seed": 20260710,
+        "seed_universe": 40
+      },
+      "slice": "derived",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt*/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "DERIVED",
+      "tex_lines": [
+        634
+      ],
+      "verbatim": "9% gap, CI [6.1%, 11.0%]"
+    },
+    {
+      "claim_id": "bootstrap_ci_n89_fplll_onset_gap",
+      "match": true,
+      "method": "per-cell nonparametric bootstrap (each q-cell resampled independently, SD/BKZ paired within cell), B=10000, rng_seed=20260710; estimand=SD-BKZ onset modulus gap; per resample recompute both 50%-onsets via unrounded _interp_onset over the 15 full-seed q-cells; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
+      "note": "point est +0.161 vs tex +0.16 (modulus); CI [-0.061,+0.487] vs tex [-0.04,+0.46]. 100 seeds/cell over q=[97, 113, 127, 131, 137, 139, 149, 151, 157, 181, 191, 193, 197, 199, 211]. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B.",
+      "paper_value": {
+        "ci": [
+          -0.04,
+          0.46
+        ],
+        "point": 0.16
+      },
+      "recomputed_value": {
+        "B": 10000,
+        "ci": [
+          -0.061,
+          0.487
+        ],
+        "point": 0.161,
+        "rng_seed": 20260710,
+        "seed_universe": 100
+      },
+      "slice": "derived",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt*/n089_beta40/",
+        "kind": "seeds"
+      },
+      "status": "DERIVED",
+      "tex_lines": [
+        562
+      ],
+      "verbatim": "+0.16 units, CI [-0.04, +0.46] (spans 0)"
+    },
+    {
+      "claim_id": "bootstrap_ci_n89_g6k_onset_gap",
+      "match": false,
+      "method": "per-cell nonparametric bootstrap (each q-cell resampled independently, SD/BKZ paired within cell), B=10000, rng_seed=20260710; estimand=SD-BKZ onset modulus gap; per resample recompute both 50%-onsets via unrounded _interp_onset over the 15 full-seed q-cells; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
+      "note": "point est +0.817 vs tex +0.82 (modulus); CI [+0.273,+3.169] vs tex [+0.28,+2.19]. 100 seeds/cell over q=[97, 113, 127, 131, 137, 139, 149, 151, 157, 181, 191, 193, 197, 199, 211]. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B. Point est and lower bound reproduce (0.273 vs 0.28); the UPPER bound is wider under this recipe (3.17 vs 2.19). The g6k SD onset sits ~0.14 above the q=193 cell (rate 0.49, one seed short of 0.5), so resamples that push SD just below the crossing send the gap far up -> a long, recipe-sensitive right tail. The original 2.19 needs the exact committed rng_seed/B/interp-edge handling (not in any repo file) to reproduce byte-for-byte.",
+      "paper_value": {
+        "ci": [
+          0.28,
+          2.19
+        ],
+        "point": 0.82
+      },
+      "recomputed_value": {
+        "B": 10000,
+        "ci": [
+          0.273,
+          3.169
+        ],
+        "point": 0.817,
+        "rng_seed": 20260710,
+        "seed_universe": 100
+      },
+      "slice": "derived",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt*/n089_beta40/",
+        "kind": "seeds"
+      },
+      "status": "DERIVED-UNRESOLVED",
+      "tex_lines": [
+        563
+      ],
+      "verbatim": "+0.82 units, CI [+0.28, +2.19]"
+    },
+    {
+      "claim_id": "cost_core_hours",
+      "match": false,
+      "method": "sum_cells seeds*(bkz_spt+sdbkz_spt)*tours/3600; per-tour cost mapped to nearest (n,beta) in the 37-cell cost table; seeds/tours from manifests over the 147 paper-2 coverage cells (8704 seed-pairs, 17 (n,beta,tours) rows)",
+      "note": "per-(n,beta) core-hour breakdown: n101_b20=349, n101_b40=1809, n113_b20=653, n113_b40=3909, n127_b20=121, n59_b20=5, n61_b20=5, n67_b20=62, n67_b40=63, n71_b20=8, n73_b20=4, n79_b20=103, n79_b40=35, n83_b20=5, n89_b20=309, n89_b40=6559. Nearest-(n,beta) cost interpolation (cost table covers 37/147 cells); G6K cells priced with the same (fplll-measured) per-tour table for lack of a G6K cost table -> underprices the sieve. Computed total 13999 core-h is 2.18x the tex '~6,430'. The dominant term is n=89 beta=40 (1500 fplll + 1580 G6K pairs @ ~2.13 core-h/pair). The per-tour table was sampled at higher precision than the bulk p250 runs, so this method OVER-estimates; the tex '~6,430' has no committed derivation to check against. Per plan step 4b: material miss -> match:false, escalate via paper_findings.md, do NOT edit tex.",
+      "paper_value": 6430.0,
+      "recomputed_value": 13999.0,
+      "slice": "derived",
+      "source": {
+        "cost": "results/paper_claims/per_tour_cost_table.json",
+        "kind": "cost_table+manifest",
+        "manifests": [
+          "results/seed_manifest.json",
+          "results/g6k_seed_manifest.json"
+        ]
+      },
+      "status": "DERIVED-UNRESOLVED",
+      "tex_lines": [
+        302,
+        781
+      ],
+      "verbatim": "about 6,430 core-hours of reduction across both oracles"
+    },
+    {
+      "claim_id": "coverage_cells",
+      "match": true,
+      "method": "union of distinct (n,beta,q) cells across both engines (POINTER)",
+      "note": "fplll cells 142 + g6k cells 41, union 147 (g6k cells are a subset overlap of fplll q-grid).",
+      "paper_value": 147,
+      "recomputed_value": 147,
+      "slice": "pointer",
+      "source": {
+        "field": "|distinct (n,beta,q) over paper-2 fplll UNION g6k|",
+        "kind": "seed_manifest",
+        "path": "results/seed_manifest.json + results/g6k_seed_manifest.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        301
+      ],
+      "verbatim": "147 (n,beta,q) cells, q in [97,1811]"
+    },
+    {
+      "claim_id": "coverage_fplll_total",
+      "match": true,
+      "method": "filter seed_manifest to paper-2 fplll dimensions and count (POINTER)",
+      "note": "excludes n>=157 frontier onset runs (157/167/173/181, 420 seeds) that live in the same 'ntru' campaign but not the paper-2 grid.",
+      "paper_value": 6320,
+      "recomputed_value": 6320,
+      "slice": "pointer",
+      "source": {
+        "field": "count(seeds where campaign=='ntru' and n in P2_FPLLL_N)",
+        "kind": "seed_manifest",
+        "path": "results/seed_manifest.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        331
+      ],
+      "verbatim": "tab:coverage total N_fplll = 6320"
+    },
+    {
+      "claim_id": "coverage_g6k_total",
+      "match": true,
+      "method": "count entire committed g6k manifest (POINTER)",
+      "note": "whole g6k manifest is paper-2 (n in {67,79,89,101,113}).",
+      "paper_value": 2384,
+      "recomputed_value": 2384,
+      "slice": "pointer",
+      "source": {
+        "field": "len(seeds)",
+        "kind": "seed_manifest",
+        "path": "results/g6k_seed_manifest.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        331
+      ],
+      "verbatim": "tab:coverage total N_G6K = 2384"
+    },
+    {
+      "claim_id": "coverage_seed_pairs",
+      "match": true,
+      "method": "paper-2 fplll seed count + g6k seed count (POINTER)",
+      "note": "6320 + 2384 = 8704. NOTE tex line 293 prose still says stale 8,144 (pre-B-ingest = 8704-560); separate one-token tex bug, out of ledger scope.",
+      "paper_value": 8704,
+      "recomputed_value": 8704,
+      "slice": "pointer",
+      "source": {
+        "field": "N_fplll(6320) + N_G6K(2384)",
+        "kind": "seed_manifest",
+        "path": "results/seed_manifest.json + results/g6k_seed_manifest.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        301
+      ],
+      "verbatim": "8,704 seed pairs over 147 (n,beta,q) cells"
+    },
+    {
+      "claim_id": "gap_n101_fplll",
+      "match": true,
+      "method": "round(100*(bkz_onset-sd_onset)/sd_onset) for n=101 fplll",
+      "note": "gap% derived from the two recomputed onsets above.",
+      "paper_value": 9,
+      "recomputed_value": 9,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        634,
+        661,
+        793
+      ],
+      "verbatim": "fplll n=101: 9% SD-vs-BKZ onset gap"
+    },
+    {
+      "claim_id": "gap_n101_g6k",
+      "match": true,
+      "method": "round(100*(bkz_onset-sd_onset)/sd_onset) for n=101 g6k",
+      "note": "gap% derived from the two recomputed onsets above.",
+      "paper_value": 7,
+      "recomputed_value": 7,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        634,
+        662,
+        793
+      ],
+      "verbatim": "g6k n=101: 7% SD-vs-BKZ onset gap"
+    },
+    {
+      "claim_id": "gap_n113_fplll",
+      "match": true,
+      "method": "round(100*(bkz_onset-sd_onset)/sd_onset) for n=113 fplll",
+      "note": "gap% derived from the two recomputed onsets above.",
+      "paper_value": 7,
+      "recomputed_value": 7,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        643,
+        663
+      ],
+      "verbatim": "fplll n=113: 7% SD-vs-BKZ onset gap"
+    },
+    {
+      "claim_id": "gap_n113_g6k",
+      "match": true,
+      "method": "round(100*(bkz_onset-sd_onset)/sd_onset) for n=113 g6k",
+      "note": "gap% derived from the two recomputed onsets above.",
+      "paper_value": 6,
+      "recomputed_value": 6,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        644,
+        664
+      ],
+      "verbatim": "g6k n=113: 6% SD-vs-BKZ onset gap"
+    },
+    {
+      "claim_id": "gap_n89_fplll",
+      "match": true,
+      "method": "round(100*(bkz_onset-sd_onset)/sd_onset) for n=89 fplll",
+      "note": "gap% derived from the two recomputed onsets above.",
+      "paper_value": 0,
+      "recomputed_value": 0,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n089_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        560,
+        561,
+        562,
+        586
+      ],
+      "verbatim": "fplll n=89: 0% SD-vs-BKZ onset gap (null / dense window)"
+    },
+    {
+      "claim_id": "gap_n89_g6k",
+      "match": true,
+      "method": "round(100*(bkz_onset-sd_onset)/sd_onset) for n=89 g6k",
+      "note": "gap% derived from the two recomputed onsets above.",
+      "paper_value": 0,
+      "recomputed_value": 0,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt50/n089_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        560,
+        561,
+        563,
+        586
+      ],
+      "verbatim": "g6k n=89: 0% SD-vs-BKZ onset gap (null / dense window)"
+    },
+    {
+      "claim_id": "gs0_n89_fired_seed19",
+      "match": true,
+      "method": "round(gs0, 3) of the jointly-fired seed-19 first GS log-norm (POINTER)",
+      "note": "fplll==g6k bit-identical = 2.331720; both fire (<3.5). g6k-only fire is seed 17 (g6k gs0 2.364).",
+      "paper_value": 2.332,
+      "recomputed_value": 2.332,
+      "slice": "pointer",
+      "source": {
+        "field": "data.per_seed[seed=19].{fplll,g6k}_sdbkz_gs0",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n89_mt50.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        523,
+        531
+      ],
+      "verbatim": "the jointly-fired n=89 seed matches exactly (2.332)"
+    },
+    {
+      "claim_id": "jaccard_n101",
+      "match": true,
+      "method": "verbatim copy of committed jaccard_agreement (POINTER)",
+      "note": "n=101/113 Jaccard 1.00 is vacuous (0/0, neither engine fires).",
+      "paper_value": 1.0,
+      "recomputed_value": 1.0,
+      "slice": "pointer",
+      "source": {
+        "field": "data.jaccard_agreement",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n101_mt50.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        520,
+        521,
+        534
+      ],
+      "verbatim": "Jaccard n=101 = 1.00 (0/0 vacuous)"
+    },
+    {
+      "claim_id": "jaccard_n113",
+      "match": true,
+      "method": "verbatim copy of committed jaccard_agreement (POINTER)",
+      "note": "n=101/113 Jaccard 1.00 is vacuous (0/0, neither engine fires).",
+      "paper_value": 1.0,
+      "recomputed_value": 1.0,
+      "slice": "pointer",
+      "source": {
+        "field": "data.jaccard_agreement",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n113_mt50.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        520,
+        521,
+        534
+      ],
+      "verbatim": "Jaccard n=113 = 1.00 (0/0 vacuous)"
+    },
+    {
+      "claim_id": "jaccard_n89",
+      "match": true,
+      "method": "verbatim copy of committed jaccard_agreement (POINTER)",
+      "note": "n=101/113 Jaccard 1.00 is vacuous (0/0, neither engine fires).",
+      "paper_value": 0.5,
+      "recomputed_value": 0.5,
+      "slice": "pointer",
+      "source": {
+        "field": "data.jaccard_agreement",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n89_mt50.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        520,
+        521,
+        534
+      ],
+      "verbatim": "Jaccard n=89 = 0.50 (real)"
+    },
+    {
+      "claim_id": "mcnemar_chi2_n101_fplll",
+      "match": true,
+      "method": "(b-c)^2/(b+c) from the recomputed discordant counts",
+      "note": "McNemar chi-square, no continuity correction.",
+      "paper_value": 21.16,
+      "recomputed_value": 21.16,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q271/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        636,
+        637,
+        638,
+        661
+      ],
+      "verbatim": "fplll n=101 transition (q=271): chi2=21.16"
+    },
+    {
+      "claim_id": "mcnemar_chi2_n101_g6k",
+      "match": true,
+      "method": "(b-c)^2/(b+c) from the recomputed discordant counts",
+      "note": "McNemar chi-square, no continuity correction.",
+      "paper_value": 17.0,
+      "recomputed_value": 17.0,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q271/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        636,
+        662
+      ],
+      "verbatim": "g6k n=101 transition (q=271): chi2=17.0"
+    },
+    {
+      "claim_id": "mcnemar_chi2_n113_fplll",
+      "match": true,
+      "method": "(b-c)^2/(b+c) from the recomputed discordant counts",
+      "note": "McNemar chi-square, no continuity correction.",
+      "paper_value": 19.0,
+      "recomputed_value": 19.0,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q487/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        645,
+        646,
+        647,
+        648,
+        663
+      ],
+      "verbatim": "fplll n=113 transition (q=487): chi2=19.0"
+    },
+    {
+      "claim_id": "mcnemar_chi2_n113_g6k",
+      "match": true,
+      "method": "(b-c)^2/(b+c) from the recomputed discordant counts",
+      "note": "McNemar chi-square, no continuity correction.",
+      "paper_value": 14.0,
+      "recomputed_value": 14.0,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q487/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        645,
+        664
+      ],
+      "verbatim": "g6k n=113 transition (q=487): chi2=14.0"
+    },
+    {
+      "claim_id": "mcnemar_counts_n101_fplll",
+      "match": true,
+      "method": "per-seed _seed_fires vectors at q=271; b=#(SD-only), c=#(BKZ-only) over N=40 seeds",
+      "note": "N=40 seeds in the transition cell.",
+      "paper_value": "24:1",
+      "recomputed_value": "24:1",
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q271/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        636,
+        637,
+        638,
+        661
+      ],
+      "verbatim": "fplll n=101 transition (q=271): 24:1 discordant"
+    },
+    {
+      "claim_id": "mcnemar_counts_n101_g6k",
+      "match": true,
+      "method": "per-seed _seed_fires vectors at q=271; b=#(SD-only), c=#(BKZ-only) over N=40 seeds",
+      "note": "N=40 seeds in the transition cell.",
+      "paper_value": "17:0",
+      "recomputed_value": "17:0",
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q271/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        636,
+        662
+      ],
+      "verbatim": "g6k n=101 transition (q=271): 17:0 discordant"
+    },
+    {
+      "claim_id": "mcnemar_counts_n113_fplll",
+      "match": true,
+      "method": "per-seed _seed_fires vectors at q=487; b=#(SD-only), c=#(BKZ-only) over N=40 seeds",
+      "note": "N=40 seeds in the transition cell.",
+      "paper_value": "19:0",
+      "recomputed_value": "19:0",
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q487/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        645,
+        646,
+        647,
+        648,
+        663
+      ],
+      "verbatim": "fplll n=113 transition (q=487): 19:0 discordant"
+    },
+    {
+      "claim_id": "mcnemar_counts_n113_g6k",
+      "match": true,
+      "method": "per-seed _seed_fires vectors at q=487; b=#(SD-only), c=#(BKZ-only) over N=40 seeds",
+      "note": "N=40 seeds in the transition cell.",
+      "paper_value": "14:0",
+      "recomputed_value": "14:0",
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q487/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        645,
+        664
+      ],
+      "verbatim": "g6k n=113 transition (q=487): 14:0 discordant"
+    },
+    {
+      "claim_id": "mings_b1_fplll_bkz",
+      "match": true,
+      "method": "verbatim copy of committed b1 (#seeds min(gs)>1.5) field (POINTER)",
+      "note": "fplll BKZ min-GS-clearing count @ q137 N=100.",
+      "paper_value": 12,
+      "recomputed_value": 12,
+      "slice": "pointer",
+      "source": {
+        "field": "data_n89_beta40_mt50_p250.q137_N100_tight.fplll.BKZ.b1",
+        "kind": "validation_json",
+        "path": "results/validation/sieve_vs_enum_min_gs_clearing.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        585,
+        688
+      ],
+      "verbatim": "min-GS-clearing @ q=137: 38/100 12/100 61/100 23/100"
+    },
+    {
+      "claim_id": "mings_b1_fplll_sd",
+      "match": true,
+      "method": "verbatim copy of committed b1 (#seeds min(gs)>1.5) field (POINTER)",
+      "note": "fplll SD min-GS-clearing count @ q137 N=100.",
+      "paper_value": 38,
+      "recomputed_value": 38,
+      "slice": "pointer",
+      "source": {
+        "field": "data_n89_beta40_mt50_p250.q137_N100_tight.fplll.SD.b1",
+        "kind": "validation_json",
+        "path": "results/validation/sieve_vs_enum_min_gs_clearing.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        585,
+        688
+      ],
+      "verbatim": "min-GS-clearing @ q=137: 38/100 12/100 61/100 23/100"
+    },
+    {
+      "claim_id": "mings_b1_g6k_bkz",
+      "match": true,
+      "method": "verbatim copy of committed b1 (#seeds min(gs)>1.5) field (POINTER)",
+      "note": "g6k BKZ min-GS-clearing count @ q137 N=100.",
+      "paper_value": 23,
+      "recomputed_value": 23,
+      "slice": "pointer",
+      "source": {
+        "field": "data_n89_beta40_mt50_p250.q137_N100_tight.g6k.BKZ.b1",
+        "kind": "validation_json",
+        "path": "results/validation/sieve_vs_enum_min_gs_clearing.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        585,
+        688
+      ],
+      "verbatim": "min-GS-clearing @ q=137: 38/100 12/100 61/100 23/100"
+    },
+    {
+      "claim_id": "mings_b1_g6k_sd",
+      "match": true,
+      "method": "verbatim copy of committed b1 (#seeds min(gs)>1.5) field (POINTER)",
+      "note": "g6k SD min-GS-clearing count @ q137 N=100.",
+      "paper_value": 61,
+      "recomputed_value": 61,
+      "slice": "pointer",
+      "source": {
+        "field": "data_n89_beta40_mt50_p250.q137_N100_tight.g6k.SD.b1",
+        "kind": "validation_json",
+        "path": "results/validation/sieve_vs_enum_min_gs_clearing.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        585,
+        688
+      ],
+      "verbatim": "min-GS-clearing @ q=137: 38/100 12/100 61/100 23/100"
+    },
+    {
+      "claim_id": "mings_med_fplll_bkz",
+      "match": true,
+      "method": "verbatim copy of committed median-min-GS field (POINTER)",
+      "note": "fplll BKZ @ q137 N=100 tight cell; artifact_check PASSED 2026-06-08.",
+      "paper_value": 0.104,
+      "recomputed_value": 0.104,
+      "slice": "pointer",
+      "source": {
+        "field": "data_n89_beta40_mt50_p250.q137_N100_tight.fplll.BKZ.med_min_gs",
+        "kind": "validation_json",
+        "path": "results/validation/sieve_vs_enum_min_gs_clearing.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        589
+      ],
+      "verbatim": "median min_i log||b*_i||: 0.255 / 0.104 / 1.844 / 0.140"
+    },
+    {
+      "claim_id": "mings_med_fplll_sd",
+      "match": true,
+      "method": "verbatim copy of committed median-min-GS field (POINTER)",
+      "note": "fplll SD @ q137 N=100 tight cell; artifact_check PASSED 2026-06-08.",
+      "paper_value": 0.255,
+      "recomputed_value": 0.255,
+      "slice": "pointer",
+      "source": {
+        "field": "data_n89_beta40_mt50_p250.q137_N100_tight.fplll.SD.med_min_gs",
+        "kind": "validation_json",
+        "path": "results/validation/sieve_vs_enum_min_gs_clearing.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        589
+      ],
+      "verbatim": "median min_i log||b*_i||: 0.255 / 0.104 / 1.844 / 0.140"
+    },
+    {
+      "claim_id": "mings_med_g6k_bkz",
+      "match": true,
+      "method": "verbatim copy of committed median-min-GS field (POINTER)",
+      "note": "g6k BKZ @ q137 N=100 tight cell; artifact_check PASSED 2026-06-08.",
+      "paper_value": 0.14,
+      "recomputed_value": 0.14,
+      "slice": "pointer",
+      "source": {
+        "field": "data_n89_beta40_mt50_p250.q137_N100_tight.g6k.BKZ.med_min_gs",
+        "kind": "validation_json",
+        "path": "results/validation/sieve_vs_enum_min_gs_clearing.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        589
+      ],
+      "verbatim": "median min_i log||b*_i||: 0.255 / 0.104 / 1.844 / 0.140"
+    },
+    {
+      "claim_id": "mings_med_g6k_sd",
+      "match": true,
+      "method": "verbatim copy of committed median-min-GS field (POINTER)",
+      "note": "g6k SD @ q137 N=100 tight cell; artifact_check PASSED 2026-06-08.",
+      "paper_value": 1.844,
+      "recomputed_value": 1.844,
+      "slice": "pointer",
+      "source": {
+        "field": "data_n89_beta40_mt50_p250.q137_N100_tight.g6k.SD.med_min_gs",
+        "kind": "validation_json",
+        "path": "results/validation/sieve_vs_enum_min_gs_clearing.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        589
+      ],
+      "verbatim": "median min_i log||b*_i||: 0.255 / 0.104 / 1.844 / 0.140"
+    },
+    {
+      "claim_id": "mings_nats",
+      "match": true,
+      "method": "1.844 - 0.255 = 1.589 (light arithmetic on two POINTER fields)",
+      "note": "exact nats = 1.5890; tex rounds to +1.59.",
+      "paper_value": 1.59,
+      "recomputed_value": 1.59,
+      "slice": "pointer",
+      "source": {
+        "field": "g6k.SD.med_min_gs - fplll.SD.med_min_gs (q137_N100_tight)",
+        "kind": "validation_json",
+        "path": "results/validation/sieve_vs_enum_min_gs_clearing.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        688
+      ],
+      "verbatim": "median log-norm 1.844 (sieve) vs 0.255 (enum), +1.59 nats"
+    },
+    {
+      "claim_id": "mings_ratio",
+      "match": true,
+      "method": "exp(1.589) = 4.899 (light arithmetic on POINTER fields)",
+      "note": "exact ratio = 4.8988; tex rounds to ~4.9x.",
+      "paper_value": 4.9,
+      "recomputed_value": 4.9,
+      "slice": "pointer",
+      "source": {
+        "field": "exp(g6k.SD.med_min_gs - fplll.SD.med_min_gs)",
+        "kind": "validation_json",
+        "path": "results/validation/sieve_vs_enum_min_gs_clearing.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        689
+      ],
+      "verbatim": "~4.9x in vector norm"
+    },
+    {
+      "claim_id": "onset_n101_fplll_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru', n=101, beta=40, variant='bkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 280.7,
+      "recomputed_value": 280.7,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        634,
+        661,
+        793
+      ],
+      "verbatim": "fplll SD 257.3 / BKZ 280.7 (9% gap)"
+    },
+    {
+      "claim_id": "onset_n101_fplll_sd",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru', n=101, beta=40, variant='sdbkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 257.3,
+      "recomputed_value": 257.3,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        634,
+        661,
+        793
+      ],
+      "verbatim": "fplll SD 257.3 / BKZ 280.7 (9% gap)"
+    },
+    {
+      "claim_id": "onset_n101_g6k_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru_g6k', n=101, beta=40, variant='bkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 268.3,
+      "recomputed_value": 268.3,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        634,
+        662,
+        793
+      ],
+      "verbatim": "g6k SD 249.9 / BKZ 268.3 (7% gap)"
+    },
+    {
+      "claim_id": "onset_n101_g6k_sd",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru_g6k', n=101, beta=40, variant='sdbkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 249.9,
+      "recomputed_value": 249.9,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        634,
+        662,
+        793
+      ],
+      "verbatim": "g6k SD 249.9 / BKZ 268.3 (7% gap)"
+    },
+    {
+      "claim_id": "onset_n113_fplll_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru', n=113, beta=40, variant='bkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 499.0,
+      "recomputed_value": 499.0,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        643,
+        663
+      ],
+      "verbatim": "fplll SD 464.6 / BKZ 499.0 (7% gap)"
+    },
+    {
+      "claim_id": "onset_n113_fplll_sd",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru', n=113, beta=40, variant='sdbkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 464.6,
+      "recomputed_value": 464.6,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        643,
+        663
+      ],
+      "verbatim": "fplll SD 464.6 / BKZ 499.0 (7% gap)"
+    },
+    {
+      "claim_id": "onset_n113_g6k_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru_g6k', n=113, beta=40, variant='bkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 482.2,
+      "recomputed_value": 482.2,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        644,
+        664
+      ],
+      "verbatim": "g6k SD 456.3 / BKZ 482.2 (6% gap)"
+    },
+    {
+      "claim_id": "onset_n113_g6k_sd",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru_g6k', n=113, beta=40, variant='sdbkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 456.3,
+      "recomputed_value": 456.3,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        644,
+        664
+      ],
+      "verbatim": "g6k SD 456.3 / BKZ 482.2 (6% gap)"
+    },
+    {
+      "claim_id": "onset_n89_fplll_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru', n=89, beta=40, variant='bkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 193.8,
+      "recomputed_value": 193.8,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n089_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        560,
+        561,
+        562,
+        586
+      ],
+      "verbatim": "fplll SD 193.7 / BKZ 193.8 (null window)"
+    },
+    {
+      "claim_id": "onset_n89_fplll_sd",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru', n=89, beta=40, variant='sdbkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 193.7,
+      "recomputed_value": 193.7,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n089_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        560,
+        561,
+        562,
+        586
+      ],
+      "verbatim": "fplll SD 193.7 / BKZ 193.8 (null window)"
+    },
+    {
+      "claim_id": "onset_n89_g6k_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru_g6k', n=89, beta=40, variant='bkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 194.0,
+      "recomputed_value": 194.0,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt50/n089_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        560,
+        561,
+        563,
+        586
+      ],
+      "verbatim": "g6k SD 193.1 / BKZ 194.0 (null window)"
+    },
+    {
+      "claim_id": "onset_n89_g6k_sd",
+      "match": true,
+      "method": "extract_dsd_onset.onset_for(tree='ntru_g6k', n=89, beta=40, variant='sdbkz', rate=0.5)",
+      "note": "50%-DSD-rate onset, linearly interpolated between bracketing q-cells; byte-identical to the CLI / figure path.",
+      "paper_value": 193.1,
+      "recomputed_value": 193.1,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt50/n089_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        560,
+        561,
+        563,
+        586
+      ],
+      "verbatim": "g6k SD 193.1 / BKZ 194.0 (null window)"
+    },
+    {
+      "claim_id": "per_position_slope_flatten_r2",
+      "match": false,
+      "method": "per-position mean diff d_i over q-sweep; single-parameter slope-flattening fit d_i ~ a*(i - ibar); R^2 = 1 - SS_res/SS_tot",
+      "note": "PROSE/CAPTION-ONLY number (sdbkz_paper2.tex:604,621); no code or committed file contains 0.957 (finding 6 item 7.6). Data path is byte-identical to analysis/plots/ntru_per_position._per_position_mean (same glob, _fat exclusion, shape guard, per-position mean over 100 seeds/cell of gs_sdbkz-gs_bkz). The 'pure slope-flattening' model d_i ~ a*(i - ibar) (intercept ~0 by determinant conservation) does NOT reproduce 0.957 to <=0.001 under any documented recipe: the value is underdetermined and scatters across 0.94-0.96 with engine/q-band/tail choice. Closest principled candidate: 'fplll | band[127,157] | position | tail=1'=0.9563 (rounds to 0.956, |delta|=0.0007). Primary plain recipe ('both | band[127,157] | position | tail=0')=0.9531. Tried both documented refinements (i) tail-restrict i>=n and (ii) BKZ-profile-slope predictor -- neither lands within tol. Full candidate landscape [fplll | band[127,157] | position | tail=1=0.9563; fplll | band-in-fig | bkzslope | tail=0=0.9562; g6k | band[127,157] | position | tail=1=0.9554; fplll | q137 | position | tail=0=0.9554; g6k | band-in-fig | position | tail=1=0.9552; both | fig-QS(all) | position | tail=1=0.9601; both | q137 | position | tail=0=0.9605; both | band[127,157] | position | tail=0=0.9531; both | band[127,157] | position | tail=1=0.9614; fplll | band[127,157] | bkzslope | tail=0=0.9615; fplll | q137 | bkzslope | tail=0=0.9618; fplll | band-in-fig | position | tail=0=0.9522; fplll | band[127,157] | position | tail=0=0.9619; fplll | fig-QS(all) | position | tail=0=0.9520; g6k | q137 | position | tail=0=0.9517; both | band-in-fig | position | tail=1=0.9628; fplll | fig-QS(all) | bkzslope | tail=1=0.9507; both | band-in-fig | position | tail=0=0.9504; g6k | band[127,157] | bkzslope | tail=1=0.9499; both | band[127,157] | bkzslope | tail=0=0.9499; fplll | band-in-fig | position | tail=1=0.9642; both | fig-QS(all) | position | tail=0=0.9475; fplll | fig-QS(all) | position | tail=1=0.9670; g6k | band-in-fig | position | tail=0=0.9460; g6k | fig-QS(all) | position | tail=1=0.9453; g6k | q137 | bkzslope | tail=0=0.9706; g6k | q137 | bkzslope | tail=1=0.9434; both | fig-QS(all) | bkzslope | tail=1=0.9417; both | band-in-fig | bkzslope | tail=0=0.9414; both | q137 | bkzslope | tail=0=0.9728; g6k | band[127,157] | position | tail=0=0.9398; g6k | fig-QS(all) | position | tail=0=0.9391; fplll | band-in-fig | bkzslope | tail=1=0.9390; both | q137 | position | tail=1=0.9384; both | band-in-fig | bkzslope | tail=1=0.9369; both | band[127,157] | bkzslope | tail=1=0.9360; g6k | band-in-fig | bkzslope | tail=1=0.9307; g6k | band[127,157] | bkzslope | tail=0=0.9303; g6k | fig-QS(all) | bkzslope | tail=1=0.9251; fplll | band[127,157] | bkzslope | tail=1=0.9197; g6k | band-in-fig | bkzslope | tail=0=0.9182; g6k | q137 | position | tail=1=0.9168; both | q137 | bkzslope | tail=1=0.9004; fplll | fig-QS(all) | bkzslope | tail=0=0.8989; fplll | q137 | position | tail=1=0.8880; both | fig-QS(all) | bkzslope | tail=0=0.8713; g6k | fig-QS(all) | bkzslope | tail=0=0.8331; fplll | q137 | bkzslope | tail=1=0.8222]. Per plan Step 4a, recording DERIVED-UNRESOLVED rather than shipping a different R^2 as the paper number; needs a human call on the exact engine/band the author used (or the tex value is an unbacked ~ estimate).",
+      "paper_value": 0.957,
+      "recomputed_value": 0.9531,
+      "slice": "r2",
+      "source": {
+        "data_path": "analysis/plots/ntru_per_position._per_position_mean",
+        "field": "gs_lognorms_sdbkz - gs_lognorms_bkz (per-position mean over seeds)",
+        "glob": "results/seeds/{ntru,ntru_g6k}/q*/*/n089_beta40/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "DERIVED-UNRESOLVED",
+      "tex_lines": [
+        604,
+        621
+      ],
+      "verbatim": "a fit to pure slope-flattening explains ~96% of the per-position signal (R^2=0.957)"
+    },
+    {
+      "claim_id": "rhf_fplll_le_2e-6_n101_113",
+      "match": false,
+      "method": "max abs fplll_rhf_diff over 20 seeds at n=101/113 (POINTER)",
+      "note": "STRICT MAX VIOLATES the <=2e-6 bound: max|fplll_rhf_diff| = 1.76e-05 (n=101) / 1.52e-05 (n=113). The MEDIAN does hold (~1.3e-06 n=101 / ~2.2e-06 n=113); ~2-3 outlier seeds per cell reach 1-1.8e-5. tex n=67 leg not checkable (no g6k_sd_xengine_n67 file committed). Flag for human: either the <=2e-6 is a median/typical bound (relax tex wording) or the outlier seeds need explaining. Do NOT edit tex from the ledger.",
+      "paper_value": 2e-06,
+      "recomputed_value": 1.762453703335609e-05,
+      "slice": "pointer",
+      "source": {
+        "field": "max_seed |data.per_seed[*].fplll_rhf_diff|",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n{101,113}_mt50.json"
+      },
+      "status": "DERIVED-UNRESOLVED",
+      "tex_lines": [
+        504,
+        505,
+        506
+      ],
+      "verbatim": "on fplll the BKZ-vs-SD-BKZ Hermite factors hold to <=2x10^-6 across 20 seeds at each of n=67/101/113"
+    },
+    {
+      "claim_id": "rhf_g6k_bit_identical_n101_113",
+      "match": true,
+      "method": "max abs g6k_rhf_diff over 20 seeds at n=101 and n=113 (POINTER)",
+      "note": "g6k SD-BKZ vs BKZ RHF is bit-identical (0.0 exactly) on all 40 seeds.",
+      "paper_value": 0.0,
+      "recomputed_value": 0.0,
+      "slice": "pointer",
+      "source": {
+        "field": "max_seed |data.per_seed[*].g6k_rhf_diff|",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n{101,113}_mt50.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        503,
+        504
+      ],
+      "verbatim": "at n=101/113 the stored Hermite-factor values of the G6K BKZ and SD-BKZ bases are bit-identical seed-for-seed"
+    },
+    {
+      "claim_id": "signtest_p_n101_g6k",
+      "match": true,
+      "method": "exact sign-test on all-one-direction discordants: two-sided; two-sided=2*sum(comb(b+c,i),i<=min(b,c))/2**(b+c)",
+      "note": "Exact binomial sign-test. Paper cites the two-sided p. two-sided=1.526e-05, one-sided=7.629e-06. PAPER SIDEDNESS INCONSISTENCY: g6k n=101 cites two-sided (1.5e-5) while n=113 (fplll/g6k) cite one-sided (1.9e-6/6.1e-5); the task-specified two-sided formula alone only reproduces g6k n=101.",
+      "paper_value": 1.5e-05,
+      "recomputed_value": 1.52587890625e-05,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q271/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        636,
+        662
+      ],
+      "verbatim": "g6k n=101 transition (q=271): sign p~=1.5e-05 (two-sided)"
+    },
+    {
+      "claim_id": "signtest_p_n113_fplll",
+      "match": true,
+      "method": "exact sign-test on all-one-direction discordants: one-sided; two-sided=2*sum(comb(b+c,i),i<=min(b,c))/2**(b+c)",
+      "note": "Exact binomial sign-test. Paper cites the one-sided p. two-sided=3.815e-06, one-sided=1.907e-06. PAPER SIDEDNESS INCONSISTENCY: g6k n=101 cites two-sided (1.5e-5) while n=113 (fplll/g6k) cite one-sided (1.9e-6/6.1e-5); the task-specified two-sided formula alone only reproduces g6k n=101.",
+      "paper_value": 1.9e-06,
+      "recomputed_value": 1.9073486328125e-06,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q487/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        645,
+        646,
+        647,
+        648,
+        663
+      ],
+      "verbatim": "fplll n=113 transition (q=487): sign p~=1.9e-06 (one-sided)"
+    },
+    {
+      "claim_id": "signtest_p_n113_g6k",
+      "match": true,
+      "method": "exact sign-test on all-one-direction discordants: one-sided; two-sided=2*sum(comb(b+c,i),i<=min(b,c))/2**(b+c)",
+      "note": "Exact binomial sign-test. Paper cites the one-sided p. two-sided=1.221e-04, one-sided=6.104e-05. PAPER SIDEDNESS INCONSISTENCY: g6k n=101 cites two-sided (1.5e-5) while n=113 (fplll/g6k) cite one-sided (1.9e-6/6.1e-5); the task-specified two-sided formula alone only reproduces g6k n=101.",
+      "paper_value": 6.1e-05,
+      "recomputed_value": 6.103515625e-05,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q487/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_lines": [
+        645,
+        664
+      ],
+      "verbatim": "g6k n=113 transition (q=487): sign p~=6.1e-05 (one-sided)"
+    },
+    {
+      "claim_id": "slope_flatten_fplll",
+      "match": true,
+      "method": "verbatim copy of committed SD-minus-BKZ slope delta (POINTER)",
+      "note": "ADR-008 3-tour cross-engine validation; same_direction=True.",
+      "paper_value": -0.00039,
+      "recomputed_value": -0.00039,
+      "slice": "pointer",
+      "source": {
+        "field": "data.sd_minus_bkz_delta.slope.fplll",
+        "kind": "validation_json",
+        "path": "results/validation/adr008_sd_cross_engine.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        247,
+        248,
+        494,
+        495
+      ],
+      "verbatim": "per-tour GS-slope-flattening signature (-0.00039 vs G6K -0.00040)"
+    },
+    {
+      "claim_id": "slope_flatten_g6k",
+      "match": true,
+      "method": "verbatim copy of committed SD-minus-BKZ slope delta (POINTER)",
+      "note": "ADR-008 3-tour cross-engine validation; same_direction=True.",
+      "paper_value": -0.0004,
+      "recomputed_value": -0.0004,
+      "slice": "pointer",
+      "source": {
+        "field": "data.sd_minus_bkz_delta.slope.g6k",
+        "kind": "validation_json",
+        "path": "results/validation/adr008_sd_cross_engine.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        247,
+        248,
+        494,
+        495
+      ],
+      "verbatim": "per-tour GS-slope-flattening signature (-0.00039 vs G6K -0.00040)"
+    },
+    {
+      "claim_id": "xeng_fired_n101_fplll",
+      "match": true,
+      "method": "count of fplll_fired_seeds over 20 matched seeds (POINTER)",
+      "note": "fplll fired 0/20 at q=97.",
+      "paper_value": 0,
+      "recomputed_value": 0,
+      "slice": "pointer",
+      "source": {
+        "field": "len(data.fplll_fired_seeds) of data.matched_seeds",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n101_mt50.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        534,
+        535,
+        536
+      ],
+      "verbatim": "tab:xeng-sound n=101 fplll fired 0/20"
+    },
+    {
+      "claim_id": "xeng_fired_n101_g6k",
+      "match": true,
+      "method": "count of g6k_fired_seeds over 20 matched seeds (POINTER)",
+      "note": "g6k fired 0/20 at q=97.",
+      "paper_value": 0,
+      "recomputed_value": 0,
+      "slice": "pointer",
+      "source": {
+        "field": "len(data.g6k_fired_seeds) of data.matched_seeds",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n101_mt50.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        534,
+        535,
+        536
+      ],
+      "verbatim": "tab:xeng-sound n=101 g6k fired 0/20"
+    },
+    {
+      "claim_id": "xeng_fired_n113_fplll",
+      "match": true,
+      "method": "count of fplll_fired_seeds over 20 matched seeds (POINTER)",
+      "note": "fplll fired 0/20 at q=97.",
+      "paper_value": 0,
+      "recomputed_value": 0,
+      "slice": "pointer",
+      "source": {
+        "field": "len(data.fplll_fired_seeds) of data.matched_seeds",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n113_mt50.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        534,
+        535,
+        536
+      ],
+      "verbatim": "tab:xeng-sound n=113 fplll fired 0/20"
+    },
+    {
+      "claim_id": "xeng_fired_n113_g6k",
+      "match": true,
+      "method": "count of g6k_fired_seeds over 20 matched seeds (POINTER)",
+      "note": "g6k fired 0/20 at q=97.",
+      "paper_value": 0,
+      "recomputed_value": 0,
+      "slice": "pointer",
+      "source": {
+        "field": "len(data.g6k_fired_seeds) of data.matched_seeds",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n113_mt50.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        534,
+        535,
+        536
+      ],
+      "verbatim": "tab:xeng-sound n=113 g6k fired 0/20"
+    },
+    {
+      "claim_id": "xeng_fired_n89_fplll",
+      "match": true,
+      "method": "count of fplll_fired_seeds over 20 matched seeds (POINTER)",
+      "note": "fplll fired 1/20 at q=97.",
+      "paper_value": 1,
+      "recomputed_value": 1,
+      "slice": "pointer",
+      "source": {
+        "field": "len(data.fplll_fired_seeds) of data.matched_seeds",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n89_mt50.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        534,
+        535,
+        536
+      ],
+      "verbatim": "tab:xeng-sound n=89 fplll fired 1/20"
+    },
+    {
+      "claim_id": "xeng_fired_n89_g6k",
+      "match": true,
+      "method": "count of g6k_fired_seeds over 20 matched seeds (POINTER)",
+      "note": "g6k fired 2/20 at q=97.",
+      "paper_value": 2,
+      "recomputed_value": 2,
+      "slice": "pointer",
+      "source": {
+        "field": "len(data.g6k_fired_seeds) of data.matched_seeds",
+        "kind": "validation_json",
+        "path": "results/validation/g6k_sd_xengine_n89_mt50.json"
+      },
+      "status": "POINTER",
+      "tex_lines": [
+        534,
+        535,
+        536
+      ],
+      "verbatim": "tab:xeng-sound n=89 g6k fired 2/20"
+    }
+  ],
+  "schema_version": 1,
+  "unresolved": [
+    "bootstrap_ci_n89_g6k_onset_gap",
+    "cost_core_hours",
+    "per_position_slope_flatten_r2",
+    "rhf_fplll_le_2e-6_n101_113"
+  ]
+}
