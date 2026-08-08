@@ -385,12 +385,18 @@ class SeedValidator:
                     else:
                         self._err(msg, cat="integrity", file=fname, field=key)
 
-        # 5f. Tour count consistency
+        # 5f. Tour count consistency. The real invariant is "a run may not exceed
+        # its OWN declared budget" -- check bkz_tours_run against the seed's
+        # max_tours, which is campaign-agnostic and admits deliberate deep-tour
+        # campaigns (mt580 wall-control, mt1000 anchors). Fall back to the onset
+        # convention cap only for legacy seeds that predate the max_tours field, so
+        # detection is preserved there (INC-53: the hardcoded {40:100} cap flagged
+        # the legitimate 580-tour wall-control seeds as errors and failed the sync).
         if "bkz_tours_run" in d and "beta" in d:
             tours = d["bkz_tours_run"]
-            max_tours = {20: 50, 30: 70, 40: 100}.get(d["beta"])
-            if max_tours and (tours < 1 or tours > max_tours):
-                self._err(f"{label}: bkz_tours={tours} (max={max_tours})",
+            cap = d.get("max_tours") or {20: 50, 30: 70, 40: 100}.get(d["beta"])
+            if cap and (tours < 1 or tours > cap):
+                self._err(f"{label}: bkz_tours={tours} (max={cap})",
                           cat="schema", file=fname)
             if "bkz_dln_per_tour" in d:
                 if len(d["bkz_dln_per_tour"]) != tours:
