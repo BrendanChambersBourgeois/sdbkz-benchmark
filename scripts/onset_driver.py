@@ -104,7 +104,14 @@ IMPROVE = 0.70       # "still falling" = newest r < IMPROVE * previous r (a clif
 
 # default ladder: the crack->wall transition lives between n=157 (crack ~1.9x) and
 # n=173/181 (wall). 167 is live already; map its neighbours to pin the boundary.
-DEFAULT_LADDER = [167, 163, 179, 149, 139, 127]  # all prime; nearest-boundary first
+# Extension (2026-07-15, workflow-picked): 173 self-verdicts as a beta-WALL on
+# existing data (free bound, 0 new cells); 151/137/131/109 fill the steep rising
+# leg for a gap-free onset-vs-dim curve. Resumable: relaunch skips completed cells.
+# A relaunch re-opens 167/163 (their hunts never walled -> they climb toward QCAP);
+# kept FIRST by user choice (2026-07-16 "let it ride") so the frontier upper-crack
+# bound gets pinned before the gap-fills; 179 stays walled (skips); 149/139/127
+# already bracketed; 173 walls free; gap-fills 151/137/131/109 run after.
+DEFAULT_LADDER = [167, 163, 179, 149, 139, 127, 173, 151, 137, 131, 109]  # prime; nearest-boundary first
 
 LOCK = REPO / "results" / "logs" / "onset_driver.lock"
 
@@ -429,7 +436,7 @@ def _densify(n, deadline, dry):
         n=n, event="densify_budget")
 
 
-def trace_n(n, deadline, dry):
+def trace_n(n, deadline, dry, push_wall=False):
     qf = qfat(n)
     tol = TOL_MULT * qf
     tried = set()
@@ -438,7 +445,11 @@ def trace_n(n, deadline, dry):
         cracks = sorted(q for q, v in k.items() if v == "CRACK")
         nulls = sorted(q for q, v in k.items() if v == "NULL")
         if not cracks:
-            if _wall_reached(n, nulls):
+            if push_wall and _wall_reached(n, nulls):
+                log(f"n={n}: wall band reached but --push-walls set -- "
+                    f"climbing past q={max(nulls)} ({max(nulls)/qf:.2f}x q_fat) "
+                    f"toward QCAP {QCAP_MULT}x", n=n, event="push_wall")
+            elif _wall_reached(n, nulls):
                 r = cell_ratio(n, max(nulls))
                 log(f"n={n}: beta-WALL -- NULL ratio plateaued at {r:.1f}x secret "
                     f"through q={max(nulls)} ({max(nulls)/qf:.2f}x q_fat); "
@@ -567,6 +578,12 @@ def main(argv=None):
                     help="n values to trace, in order (all must be prime)")
     ap.add_argument("--budget-h", type=float, default=30 * 24,
                     help="wallclock budget in hours (default 720 = 30 days)")
+    ap.add_argument("--push-walls", type=int, nargs="+", default=[],
+                    metavar="N",
+                    help="dims for which to IGNORE the beta-wall early-stop and "
+                         "keep climbing q to the QCAP backstop (5x q_fat). For "
+                         "re-sampling a dim that was declared walled on too few "
+                         "low-q cells -- e.g. n=173 (only sampled to 2.81x).")
     ap.add_argument("--dry-run", action="store_true",
                     help="plan and log decisions but spawn no campaigns")
     args = ap.parse_args(argv)
@@ -581,6 +598,11 @@ def main(argv=None):
     low = [n for n in args.ladder if n < 100]
     if low:
         print(f"ERROR: n<100 not supported (path padding mismatch): {low}",
+              file=sys.stderr)
+        return 2
+    stray = [n for n in args.push_walls if n not in args.ladder]
+    if stray:
+        print(f"ERROR: --push-walls dims not in ladder: {stray}",
               file=sys.stderr)
         return 2
 
@@ -600,7 +622,7 @@ def main(argv=None):
                 log("DEADLINE -- stopping before next n")
                 break
             log(f"---- tracing n={n} (q_fat~{qfat(n):.0f}) ----", n=n)
-            trace_n(n, deadline, args.dry_run)
+            trace_n(n, deadline, args.dry_run, push_wall=(n in args.push_walls))
         log("==== onset_driver complete or deadline ====")
     finally:
         if not args.dry_run and LOCK.exists():
