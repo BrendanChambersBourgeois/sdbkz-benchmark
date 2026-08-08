@@ -75,3 +75,8 @@ paper2/latex/*.pdf
 analysis/plots_findings/
 # Driver runtime lock lives here; never commit
 results/logs/
+
+# forever_runner runtime state (not tracked)
+results/logs/forever_worklist.done
+results/logs/forever_worklist.failed
+results/logs/forever_runner.lock

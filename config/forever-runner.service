@@ -1,0 +1,28 @@
+[Unit]
+Description=Forever runner — worklist experiments + never-idle ntru_b2 seed filler
+After=default.target
+# StartLimit* are [Unit]-section directives (systemd silently drops them in
+# [Service]). A persistent CRASH loop is broken here; a clean exit is NOT
+# restarted (see Restart= below).
+StartLimitIntervalSec=1800
+StartLimitBurst=5
+
+[Service]
+Type=simple
+# --user install: leave User=/Group= commented (an unprivileged manager cannot
+# setgid; an active Group= fails at runtime 216/GROUP). System install only:
+#User=zomg
+#Group=zomg
+WorkingDirectory=/home/zomg/Desktop/lattice
+ExecStart=/usr/bin/python3 scripts/forever_runner.py
+# Restart=on-failure, NOT always (B2 review): the loop is designed to NEVER exit
+# on empty (it falls back to filler), so ANY exit is a bug/stop worth leaving
+# stopped-and-visible rather than silently relaunched. A clean exit-0 = an
+# intended stop (e.g. stop-loud after repeated systemic failures). The lockfile
+# makes a double-launch a safe no-op.
+Restart=on-failure
+RestartSec=60
+Nice=0
+
+[Install]
+WantedBy=default.target

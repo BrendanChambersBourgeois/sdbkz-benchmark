@@ -1,0 +1,28 @@
+# forever_runner worklist — one experiment per line, top = highest priority.
+# The runner runs the first line it hasn't finished yet (tracked in results/logs/forever_worklist.done,
+# so this file is NEVER rewritten by the runner — edit it freely while it runs).
+# When every line is done, the runner falls back to the low-value ntru_b2 seed
+# filler so the box never idles. Inject higher-value work = add a line (or reorder).
+#
+# FORMAT:  <campaign> [--n N] [--q Q] [--beta B] [--seeds S] [--workers W] [@budget_h=H]
+#   - <campaign> must exist in config/sweep.toml.
+#   - @budget_h=H  optional wall-clock cap for that line (kills at ~boundary, moves on).
+#   - blank lines and # comments ignored.
+#   - to RE-run a completed line, remove its entry from results/logs/forever_worklist.done (or tweak the line).
+#
+# ---- REAL SCIENCE (drains top-to-bottom before any filler) --------------------
+#
+# #1 highest value (B2 science review): the bumped-beta wall test — can it CRACK the
+#    n=179 beta40 near-miss (ratio 57 @ 2.909x) with a stronger blocksize? A crack
+#    means the n>=173 "walls" are reduction-budget artifacts, not fundamental.
+#    Bootstrap ONE seed first to cost the un-costed beta50 (estimator has no beta>40 data):
+ntru_wall_beta_bump --n 179 --q 4591 --beta 50 --seeds 1 --workers 1
+#    then the full 10-seed beta{50,60} grid (only after eyeballing the bootstrap cost —
+#    beta60 at dim 358 could be 15-40h/seed; delete this line if the cost is too high):
+ntru_wall_beta_bump --n 179 --q 4591 --workers 10
+#    confirmation dim:
+ntru_wall_beta_bump --n 181 --q 4703 --workers 10
+#
+# ---- EXAMPLES you can uncomment / add (frontier q-cells, onset-knee topups) ----
+# ntru_onset_boundary --n 173 --q 5501 --workers 20      # push 173 past its wall stop
+# ntru_onset_boundary --n 191 --q 4513 --workers 20      # extend ladder to a new prime

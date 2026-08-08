@@ -733,3 +733,61 @@ store_per_tour = false
 # cancels, mpfr=0; +~2.6s/call =~ +260s/seed at mt=50, ~2-3% of seed runtime).
 # Crack verdicts (secret_recovered_*) are GSO-independent either way.
 metric_float_type = "mpfr"
+
+# -- NTRU n>=179 BUMPED-BETA wall test — budget-artifact vs fundamental wall ------
+# The month run calls n=173/179 a beta-WALL at beta=40 (best-vector ratio saturates
+# ~46.9x the secret; n=179's CLOSEST approach was ratio 57 at q=4591=2.909x q_fat,
+# never cracked). Open question: is that wall a REDUCTION-BUDGET artifact (crack it
+# with a stronger blocksize) or a FUNDAMENTAL hardness wall (bigger beta still fails)?
+# Controlled test: FIX the exact beta=40 near-miss cell (n=179, q=4591) and vary ONLY
+# beta upward. beta=40 control already on disk (results/.../n179_beta40); this adds
+# beta=50 and beta=60. A crack at beta>=50 => the n>=173 walls are budget-limited and
+# every WALL verdict needs re-scoping vs blocksize. Still NULL at beta=60 => the wall
+# is (blocksize-)fundamental up to beta=60. Mirrors ntru_n167_wall_deep (that varied
+# TOURS; this varies BETA — the stronger lever). Distinct path segment n179_beta{50,60}
+# => no collision with the beta=40 cells. Same cancellation-free recovery readout +
+# mpfr metric GSO (dim 358) => native fplll, no g6k/patched image.
+#
+# COST IS UNKNOWN: the estimator has ZERO beta>40 rows (whole corpus is beta20/40) and
+# refuses to predict; BKZ cost climbs steeply with blocksize, so beta=60 at dim 358
+# could be ~15-40h/seed. MANDATORY: cost with a 1-seed bootstrap BEFORE the full grid:
+#   python3 scripts/run_campaign.py --campaign ntru_wall_beta_bump --n 179 --q 4591 \
+#     --beta 50 --seeds 1 --workers 1      # measure, then estimate the 10-seed grid
+# Full grid once costed (10 seeds, RUN IN ISOLATION — not wired into onset_driver):
+#   python3 scripts/run_campaign.py --campaign ntru_wall_beta_bump --n 179 --q 4591 --workers 10
+# Confirmation dim after n=179 lands (n=181 qf~1622, 2.9x -> prime near 4703):
+#   python3 scripts/run_campaign.py --campaign ntru_wall_beta_bump --n 181 --q 4703 --workers 10
+# -- forever-runner idle-FILLER: extra statistical power, separate tree ---------
+# The never-idle floor for scripts/forever_runner.py. When the worklist is empty
+# the runner adds seeds to this campaign one step at a time. seed_tag=ntru_b2 =>
+# a SEPARATE results/seeds/ntru_b2/ tree (registered in _seed_paths, excluded from
+# the canonical manifest), so the filler can NEVER touch or re-open a published
+# cell's N (the 2026-08-08 B2 review's core integrity fix). Same study config as
+# ntru_onset_boundary (β40 mt50 p500 mpfr, cancellation-free recovery readout) so
+# the extra-power seeds are directly comparable to the frontier cells they mirror.
+# num_seeds is a high ceiling the runner ratchets toward; --n/--q pick the cell.
+# NOT run directly — the runner drives it. Default cell = the n=167 crack frontier.
+[campaigns.ntru_b2_backfill]
+description = "forever-runner idle-filler — extra-power seeds in the separate ntru_b2 tree"
+generator = "ntru"
+seed_tag = "ntru_b2"
+q = 3167
+precision = 500
+beta_grid = [40]
+n_grid = [167]
+tours_by_beta = { "40" = 50 }
+num_seeds = 200
+store_per_tour = false
+metric_float_type = "mpfr"
+
+[campaigns.ntru_wall_beta_bump]
+description = "NTRU n>=179 bumped-beta wall test (budget-artifact vs fundamental; beta 50/60 at the beta=40 near-miss cell)"
+generator = "ntru"
+q = 4591
+precision = 500
+beta_grid = [50, 60]
+n_grid = [179, 181]
+tours_by_beta = { "50" = 50, "60" = 50 }
+num_seeds = 10
+store_per_tour = false
+metric_float_type = "mpfr"

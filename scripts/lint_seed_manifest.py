@@ -75,6 +75,9 @@ NON_MANIFEST_SEED_TREES = frozenset({
     # Patched-fplll (Kahan) validation campaign — its own tree by
     # design, never overwrites or joins the canonical seeds.
     "ntru_patched",
+    # forever-runner idle-filler tree — extra statistical power written to a
+    # separate tree so it never re-opens a published cell's N (B2 review).
+    "ntru_b2",
 })
 
 # Filenames we explicitly do not flag (informational only, known

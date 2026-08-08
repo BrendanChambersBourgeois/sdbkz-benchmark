@@ -22,6 +22,11 @@ _KNOWN_CAMPAIGNS = frozenset({
     "main", "q3329", "cliff500", "fplll_sensitivity",
     "tours3x", "convergence", "ntru", "ntru_patched", "ntru_g6k",
     "ntru_xarch", "estimator_probe",
+    # forever-runner idle-filler tree (never-idle seed-topup). SEPARATE by
+    # design so the filler can NEVER touch/re-open a published cell (the B2
+    # review's core integrity fix); excluded from the canonical fplll manifest
+    # below, like ntru_patched/ntru_g6k.
+    "ntru_b2",
 })
 
 
@@ -138,6 +143,14 @@ def seed_dir_for(
         mt = int(_require(max_tours, "max_tours", campaign))
         leaf_dir = os.path.join(
             NEW_LAYOUT_ROOT, "estimator_probe", f"q{q}", f"p{p}_mt{mt}", n_beta
+        )
+    elif campaign == "ntru_b2":
+        # forever-runner idle-filler: same layout as ntru, separate root so the
+        # extra-power seeds never touch or re-open a published cell's N.
+        p = int(_require(precision, "precision", campaign))
+        mt = int(_require(max_tours, "max_tours", campaign))
+        leaf_dir = os.path.join(
+            NEW_LAYOUT_ROOT, "ntru_b2", f"q{q}", f"p{p}_mt{mt}", n_beta
         )
     else:
         raise AssertionError("unreachable")  # pragma: no cover
