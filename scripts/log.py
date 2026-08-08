@@ -29,10 +29,13 @@ import sys
 import uuid
 from typing import Any
 
-# JSONL log file location
+# JSONL log file location. PIPELINE_LOG overrides the canonical path so a
+# --dry-run (or any throwaway invocation) can write off the real log instead of
+# polluting it with phantom cells (2026-07 dry-runs left 15 START-only lines in
+# the canonical file). Set PIPELINE_LOG=/scratch/foo.jsonl before launch to divert.
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG_DIR = os.path.join(_REPO_ROOT, "logs")
-LOG_FILE = os.path.join(LOG_DIR, "pipeline.jsonl")
+LOG_FILE = os.environ.get("PIPELINE_LOG") or os.path.join(LOG_DIR, "pipeline.jsonl")
 
 # Custom level for known incidents (between WARNING and ERROR)
 INCIDENT = 35
