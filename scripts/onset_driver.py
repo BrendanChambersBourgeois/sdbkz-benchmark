@@ -587,6 +587,8 @@ def main(argv=None):
     ap.add_argument("--dry-run", action="store_true",
                     help="plan and log decisions but spawn no campaigns")
     args = ap.parse_args(argv)
+    if args.dry_run:
+        os.environ["PIPELINE_LOG_TAG"] = "dryrun"   # central log, marked synthetic
 
     bad = [n for n in args.ladder if not isprime(n)]
     if bad:

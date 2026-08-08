@@ -97,6 +97,14 @@ class JsonlHandler(logging.Handler):
         }
         if _RUN_ID:
             entry["run_id"] = _RUN_ID
+        # Synthetic-run marker: dry-runs / tests / scouting keep logging to the
+        # CENTRAL pipeline.jsonl (single source of truth) but stamp a `tag` so
+        # analysis + monitoring can filter them out instead of losing them. Set
+        # PIPELINE_LOG_TAG=dryrun|test|... before/at launch. Read at emit time so
+        # a script can set it in main() after import.
+        tag = os.environ.get("PIPELINE_LOG_TAG")
+        if tag:
+            entry["tag"] = tag
         # Merge any extra context
         ctx = getattr(record, "ctx", {})
         if ctx:

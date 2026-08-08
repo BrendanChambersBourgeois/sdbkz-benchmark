@@ -527,6 +527,8 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true",
                     help="print the resolved dispatch invocation; do not run")
     args = ap.parse_args()
+    if args.dry_run:
+        os.environ["PIPELINE_LOG_TAG"] = "dryrun"   # central log, marked synthetic
 
     try:
         campaign = load_campaign(args.campaign)

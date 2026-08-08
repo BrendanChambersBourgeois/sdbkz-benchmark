@@ -190,6 +190,8 @@ def main(argv=None) -> int:
     ap.add_argument("--max-iters", type=int, default=0,
                     help="stop after N iterations (0 = forever; used by --dry-run/tests)")
     args = ap.parse_args(argv)
+    if args.dry_run:
+        os.environ["PIPELINE_LOG_TAG"] = "dryrun"   # central log, marked synthetic
 
     if not args.dry_run and not acquire_lock():
         return 0
