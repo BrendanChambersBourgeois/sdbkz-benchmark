@@ -14,9 +14,15 @@ r(i,i) = ‖b_i‖² − Σ_{k<i} μ(i,k)² · ‖b*_k‖²
 
 is computed as a naive in-place subtract loop with no compensation, reorthogonalisation, or sign check. When `b_i` is nearly in the span of preceding `b*_k` — exactly the regime BKZ drives the basis into — the two large positive operands cancel and the residual loses precision, occasionally flipping sign.
 
-**Fix:** replace the naive loop with a Kahan-compensated subtraction that maintains a running residual and folds the low-order bits lost on each step back into the accumulator.
+**Fix:** replace the naive loop with a Kahan-compensated subtraction that maintains a running residual and folds the low-order bits lost on each step back into the accumulator. Code only — no test files, so the patch touches just `fplll/gso_interface.cpp` and `fplll/gso_interface.h`.
 
-**Measured effect:** degeneracy rate drops from 38.0% (38/100 unpatched) to 0% (0/55 patched) at the same parameters. The patch passes all 15 fplll regression tests (`make check`).
+**Measured effect:** degeneracy rate drops from 38.0% (38/100 unpatched) to 0% (0/55 patched) at the same parameters. Passes all 15 fplll regression tests (`make check`) unchanged.
+
+## `fplll_gso_kahan_tests.patch`
+
+Optional regression test, kept in a separate diff so the code fix above stays test-free. Adds `tests/test_gso_kahan.cpp` (+ the `tests/Makefile.am` wiring): two near-degenerate bases on which the plain subtraction leaves a nonpositive `r(i,i)` (min `r = -0.625` and `-2.125`) with the `double` backend, while the compensated form keeps every GS norm positive. Fixtures hold under FMA contraction of the mul/sub pair. With this applied, `make check` runs 16/16.
+
+Apply **after** `fplll_gso_kahan.patch`.
 
 ### Applying
 
@@ -25,6 +31,7 @@ git clone https://github.com/fplll/fplll.git
 cd fplll
 git checkout 1987472            # fplll HEAD as of 2025-10-15, verified 15/15 make check pass
 git apply /path/to/sdbkz-benchmark/patches/fplll_gso_kahan.patch
+git apply /path/to/sdbkz-benchmark/patches/fplll_gso_kahan_tests.patch   # optional
 ./autogen.sh && ./configure && make && make check
 sudo make install
 ```
@@ -35,6 +42,6 @@ Rebuild fpylll against the patched fplll afterwards.
 
 ### Status
 
-This is a **new instance** of an already-open failure family in fpylll/fplll (related: fpylll #272). **Filed upstream** on 2026-05-08 as [`fplll/fplll#550`](https://github.com/fplll/fplll/pull/550) — single-commit patch on branch `BrendanChambersBourgeois:fix/gso-kahan-cancellation`, passes 15/15 `make check`, clang-format 18 clean. Maintainer review pending as of filing; this patch file in the repo will continue to track the local-applied form regardless of upstream merge cadence. If you ship the patch in a downstream distribution, cite the paper.
+This is a **new instance** of an already-open failure family in fpylll/fplll (related: fpylll #272). Kept **local to this repo** — applied out-of-tree against a stock fplll checkout, not submitted upstream. Maintained on the local fork branch `fix/gso-kahan-cancellation` as two commits (code fix, then the test), clang-format 18 clean. If you ship the patch in a downstream distribution, cite the paper.
 
 All `q=97` results in the paper are unaffected and do not require this patch. Only `q=3329` (and presumably other cryptographic moduli at `n≥100`) trigger the cancellation.

@@ -1,0 +1,151 @@
+From c0b00f8873fc0b0ee8a6d813eca4eeb8f9dfa368 Mon Sep 17 00:00:00 2001
+From: BrendanChambersBourgeois <brendanchambersbou@gmail.com>
+Date: Thu, 13 Aug 2026 09:16:29 +1000
+Subject: [PATCH] tests: add test_gso_kahan for the compensated GSO update
+
+Two near-degenerate bases on which the plain subtraction leaves a nonpositive
+r(i, i) (min r = -0.625 and -2.125) with the double backend; the compensated
+form in update_gso_row keeps every GS norm positive. The fixtures also hold
+under FMA contraction of the mul/sub pair.
+---
+ tests/Makefile.am        |   3 +-
+ tests/test_gso_kahan.cpp | 106 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 108 insertions(+), 1 deletion(-)
+ create mode 100644 tests/test_gso_kahan.cpp
+
+diff --git a/tests/Makefile.am b/tests/Makefile.am
+index 95b97d4c..dd76fea1 100755
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -43,7 +43,7 @@ AM_CPPFLAGS = -I$(TOPSRCDIR) -I$(TOPSRCDIR)/fplll -I$(TOPBUILDDIR) -DTESTDATADIR
+ STAGEDIR := $(realpath -s $(TOPBUILDDIR)/.libs)
+ AM_LDFLAGS = -L$(STAGEDIR) -Wl,-rpath,$(STAGEDIR) -lfplll -no-install $(LIBQD_LIBS)
+ 
+-TESTS = test_nr test_lll test_enum test_cvp test_svp test_bkz test_pruner test_gso test_lll_gram test_hlll test_svp_gram test_bkz_gram test_counter test_babai test_ceil
++TESTS = test_nr test_lll test_enum test_cvp test_svp test_bkz test_pruner test_gso test_gso_kahan test_lll_gram test_hlll test_svp_gram test_bkz_gram test_counter test_babai test_ceil
+ 
+ test_pruner_LDADD=$(LIBQD_LIBS)
+ 
+@@ -55,6 +55,7 @@ test_cvp_SOURCES = test_cvp.cpp
+ test_bkz_SOURCES = test_bkz.cpp
+ test_pruner_SOURCES = test_pruner.cpp
+ test_gso_SOURCES = test_gso.cpp
++test_gso_kahan_SOURCES = test_gso_kahan.cpp
+ test_lll_gram_SOURCES = test_lll_gram.cpp
+ test_hlll_SOURCES = test_hlll.cpp
+ test_svp_gram_SOURCES = test_svp_gram.cpp
+diff --git a/tests/test_gso_kahan.cpp b/tests/test_gso_kahan.cpp
+new file mode 100644
+index 00000000..7c66096b
+--- /dev/null
++++ b/tests/test_gso_kahan.cpp
+@@ -0,0 +1,106 @@
++/* Copyright (C) 2026 Brendan Chambers-Bourgeois
++
++   This file is part of fplll. fplll is free software: you
++   can redistribute it and/or modify it under the terms of the GNU Lesser
++   General Public License as published by the Free Software Foundation,
++   either version 2.1 of the License, or (at your option) any later version.
++
++   fplll is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++   GNU Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public License
++   along with fplll. If not, see <http://www.gnu.org/licenses/>. */
++
++#include "test_utils.h"
++#include <fplll/gso.h>
++#include <fplll/gso_interface.h>
++#include <fplll/nr/matrix.h>
++
++using namespace std;
++using namespace fplll;
++
++/* Regression fixtures for the Kahan-compensated subtraction in update_gso_row.
++   Each basis has a near-dependent last row whose Gram-Schmidt residual r(i, i)
++   is O(1) while <b_i, b_i> is ~10^15: forming r(i, i) subtracts two ~10^15
++   double quantities. With the plain subtraction the double backend loses the
++   residual and reports a nonpositive r(i, i) (min r = -0.625 for the 10x10 and
++   -2.125 for the 13x13 case); the compensated subtraction keeps every diagonal
++   positive. The fixtures were selected so both verdicts also hold when the
++   mul/sub pair is contracted to an FMA, so the test is stable across IEEE-754
++   builds and codegen. */
++static const long BASIS_10[10][10] = {
++    {10000000, 2, 0, 0, 1, 0, 0, -2, 0, -1},
++    {2, 84, -2, 1, 2, -1, 1, -2, 1, -1},
++    {0, -1, 10000000, 0, -2, 0, 0, -2, 0, 0},
++    {0, 1, 0, 270, 1, 1, 1, 0, 1, 1},
++    {1, 0, -1, 2, 10000000, -2, -2, 2, 2, -2},
++    {2, -2, 1, 0, -2, 10000000, 0, 1, -1, 0},
++    {-2, 1, 1, 0, -2, -2, 143, 0, 1, 0},
++    {1, 2, 2, 2, -1, -1, 1, 232, -2, -1},
++    {-1, -2, 2, 1, 0, 2, -1, 0, 10000000, 0},
++    {10000003, 336, 40000007, 1096, 40000002, 39999986, 281, 928, 20000004, -12}};
++
++static const long BASIS_13[13][13] = {{10000000, -2, -1, -1, -1, -1, -2, -2, 0, 1, -2, -2, -1},
++                                      {0, 169, 2, 2, -2, 2, 2, 1, 0, -1, 2, 1, 0},
++                                      {-1, 2, 120, 2, -1, 2, -2, 0, 1, 1, 1, 1, 2},
++                                      {0, -1, 2, 10000000, -1, 1, 0, 2, 1, 1, 0, 1, 0},
++                                      {-1, 2, -1, 0, 370, 1, 2, 1, 1, -1, 0, -1, -2},
++                                      {1, -2, 0, 0, 0, 383, -1, 0, 2, 0, 1, 1, -1},
++                                      {1, 0, -2, 0, 1, -2, 10000000, 0, -2, 0, 0, 1, 1},
++                                      {1, 0, 0, 1, -2, 0, -2, 10000000, 0, -1, 0, 1, -2},
++                                      {-1, 2, 1, 0, -1, -2, -2, -2, 10000000, -2, -2, 0, -2},
++                                      {-1, 0, -1, -1, 2, -1, -2, -2, 2, 10000000, 0, -2, 0},
++                                      {0, -1, 1, 2, 2, -2, 2, 1, -1, -1, 10000000, 1, 2},
++                                      {-1, 1, 0, -1, 0, 0, -1, 2, 2, 0, 2, 10000000, 1},
++                                      {39999999, 351, 238, 40000010, 359, 1535, 39999981, 19999996,
++                                       40000015, 19999998, 30000010, 30000007, -6}};
++
++// Assert that every diagonal r(i, i) of the GSO of A is strictly positive.
++template <class ZT, class FT> int check_positive_diagonal(ZZ_mat<ZT> &A)
++{
++  int status = 0;
++  ZZ_mat<ZT> U;
++  ZZ_mat<ZT> UT;
++  MatGSO<Z_NR<ZT>, FP_NR<FT>> M(A, U, UT, GSO_INT_GRAM);
++  M.update_gso();
++
++  FP_NR<FT> r;
++  for (int i = 0; i < A.get_rows(); i++)
++  {
++    M.get_r(r, i, i);
++    if (r.cmp(0.0) <= 0)
++    {
++      cerr << "r(" << i << ", " << i << ") = " << r << " must be positive." << endl;
++      status = 1;
++    }
++  }
++  return status;
++}
++
++template <class ZT, class FT, int N> int test_fixture(const long basis[N][N])
++{
++  ZZ_mat<ZT> A;
++  A.resize(N, N);
++  for (int i = 0; i < N; i++)
++    for (int j = 0; j < N; j++)
++      A[i][j] = basis[i][j];
++  return check_positive_diagonal<ZT, FT>(A);
++}
++
++int main(int /*argc*/, char ** /*argv*/)
++{
++  int status = 0;
++
++  // double: the backend the compensated subtraction protects.
++  status |= test_fixture<mpz_t, double, 10>(BASIS_10);
++  status |= test_fixture<mpz_t, double, 13>(BASIS_13);
++
++  // mpfr must stay positive too (the loop composes with any FT).
++  status |= test_fixture<mpz_t, mpfr_t, 13>(BASIS_13);
++
++  if (status == 0)
++    cerr << "All tests passed." << endl;
++  return status;
++}
+-- 
+2.43.0
+
