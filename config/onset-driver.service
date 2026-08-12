@@ -12,14 +12,14 @@ StartLimitBurst=5
 [Service]
 Type=simple
 # SYSTEM-unit installs ONLY: uncomment User=/Group= so a root-run unit does
-# not write root-owned seeds into the zomg-owned results/ tree (audit
+# not write root-owned seeds into the user-owned results/ tree (audit
 # 2026-07-04 #3, minor 7). MUST stay commented for a --user install: the
 # unprivileged user manager cannot setgid, so an active Group= fails the
 # service at runtime with status=216/GROUP (observed 2026-07-05; note
 # systemd-analyze verify does NOT catch this -- it is a runtime failure).
-#User=zomg
-#Group=zomg
-WorkingDirectory=/home/zomg/Desktop/lattice
+#User=youruser
+#Group=youruser
+WorkingDirectory=%h/Desktop/lattice
 ExecStart=/usr/bin/python3 scripts/onset_driver.py --budget-h 720
 # Clean exit (ladder done / deadline) => stay stopped. Crash => restart after a
 # cooldown. The lockfile in the driver makes a double-launch a safe no-op.

@@ -11,9 +11,9 @@ StartLimitBurst=5
 Type=simple
 # --user install: leave User=/Group= commented (an unprivileged manager cannot
 # setgid; an active Group= fails at runtime 216/GROUP). System install only:
-#User=zomg
-#Group=zomg
-WorkingDirectory=/home/zomg/Desktop/lattice
+#User=youruser
+#Group=youruser
+WorkingDirectory=%h/Desktop/lattice
 ExecStart=/usr/bin/python3 scripts/forever_runner.py
 # Restart=on-failure, NOT always (B2 review): the loop is designed to NEVER exit
 # on empty (it falls back to filler), so ANY exit is a bug/stop worth leaving

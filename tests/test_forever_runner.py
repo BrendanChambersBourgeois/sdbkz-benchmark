@@ -6,7 +6,9 @@ targets the least-sampled ntru_b2 cell, and the worklist is consumed via a
 done-log (never rewritten, comments/blanks skipped, completed lines not retried).
 """
 import os
+import subprocess
 import sys
+import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
 
@@ -84,11 +86,53 @@ def test_loop_never_raises_out(tmp_path, monkeypatch):
     assert rc == 1                                        # stop-loud, NOT an uncaught raise
 
 
+def test_effective_timeout_default_and_override():
+    # INC-54: no @budget_h -> finite DEFAULT backstop (never unbounded); explicit wins up OR down.
+    assert fr._effective_timeout_s(None) == fr.DEFAULT_MAX_WALL_H * 3600
+    assert fr._effective_timeout_s(14) == 14 * 3600
+    assert fr._effective_timeout_s(0.5) == 1800
+
+
+class _FakeProc:
+    """A child that never finishes -> wait() always times out (a hot-wedge)."""
+    pid = 999999
+    def poll(self):
+        return None
+    def wait(self, timeout=None):
+        raise subprocess.TimeoutExpired(cmd="x", timeout=timeout)
+
+
+def test_wall_cap_kills_wedge_and_returns_intended_stop(tmp_path, monkeypatch):
+    _wire(tmp_path, monkeypatch)
+    killed = {"n": 0}
+    monkeypatch.setattr(fr.subprocess, "Popen", lambda *a, **k: _FakeProc())
+    monkeypatch.setattr(fr, "_kill_child_group", lambda p: killed.__setitem__("n", killed["n"] + 1))
+    # no @budget_h -> the DEFAULT wall cap must fire, kill the group, and return 0 (not a fail loop)
+    assert fr._run_campaign(["--campaign", "x", "--n", "179"], budget_h=None, dry=False) == 0
+    assert killed["n"] == 1
+    assert fr._CURRENT_CHILD is None                      # ref cleared in finally
+    # explicit @budget_h path also kills + returns intended-stop
+    assert fr._run_campaign(["--campaign", "x"], budget_h=2, dry=False) == 0
+    assert killed["n"] == 2
+
+
+def test_kill_child_group_reaps_detached_process(tmp_path):
+    # real process in its OWN session (as _run_campaign spawns) must be reaped by group-kill.
+    p = subprocess.Popen(["sleep", "60"], start_new_session=True)
+    assert p.poll() is None
+    fr._kill_child_group(p)
+    time.sleep(0.2)
+    assert p.poll() is not None                           # dead, not orphaned
+    # idempotent + safe on an already-dead / None child
+    fr._kill_child_group(p)
+    fr._kill_child_group(None)
+
+
 def test_dry_run_spawns_no_subprocess(tmp_path, monkeypatch):
     _wire(tmp_path, monkeypatch)
-    import subprocess
     def forbidden(*a, **k):
         raise AssertionError("dry-run must not spawn a subprocess")
+    monkeypatch.setattr(subprocess, "Popen", forbidden)
     monkeypatch.setattr(subprocess, "run", forbidden)
     (tmp_path / "worklist.txt").write_text("ntru_wall_beta_bump --n 179\n")
     assert fr.main(["--dry-run"]) == 0                    # one pass, no spawn

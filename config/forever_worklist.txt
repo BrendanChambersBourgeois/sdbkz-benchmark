@@ -10,18 +10,26 @@
 #   - blank lines and # comments ignored.
 #   - to RE-run a completed line, remove its entry from results/logs/forever_worklist.done (or tweak the line).
 #
+# COST-PROBE CONVENTION: to cost an un-costed config, use `--seeds 8 --workers 8 @budget_h=14`,
+#   NOT `--seeds 1 --workers 1` with no cap.
+#   One fplll seed = one core (beta-enum single-threaded), so a 1-seed probe idles ~23 cores for its whole
+#   run. 8 parallel seeds have the SAME wall time but pin 8 cores and return 8 cost samples (MAD/spread)
+#   vs 1 — strictly better recon. (2026-08-11 owner: "test while using CPU at higher %".)
+#   ALWAYS @budget_h on a probe: an un-costed config can hot-wedge with no self-terminate (INC-54 below).
+#
 # ---- REAL SCIENCE (drains top-to-bottom before any filler) --------------------
 #
-# #1 highest value (B2 science review): the bumped-beta wall test — can it CRACK the
-#    n=179 beta40 near-miss (ratio 57 @ 2.909x) with a stronger blocksize? A crack
-#    means the n>=173 "walls" are reduction-budget artifacts, not fundamental.
-#    Bootstrap ONE seed first to cost the un-costed beta50 (estimator has no beta>40 data):
-ntru_wall_beta_bump --n 179 --q 4591 --beta 50 --seeds 1 --workers 1
-#    then the full 10-seed beta{50,60} grid (only after eyeballing the bootstrap cost —
-#    beta60 at dim 358 could be 15-40h/seed; delete this line if the cost is too high):
-ntru_wall_beta_bump --n 179 --q 4591 --workers 10
-#    confirmation dim:
-ntru_wall_beta_bump --n 181 --q 4703 --workers 10
+# #1 the bumped-beta wall test (B2 science review): can a stronger blocksize CRACK the
+#    n=179 beta40 near-miss (ratio 57 @ 2.909x)? DISABLED 2026-08-12 (INC-54): the beta50
+#    probe HOT-WEDGED for ~25h inside ONE fplll enumeration call (voluntary_ctxt_switches=1,
+#    zero heartbeats, 1 core pinned) and never returned. Root cause = fplll enum ceiling
+#    ~dim 300 (memory: n157_fplll_ceiling); n=179 is dim 358, far past it. beta40 works there
+#    (shorter enum) but beta50's enum radius blows up. fplll is the WRONG TOOL at dim >=~300 —
+#    re-route the wall test to g6k (needs sdbkz-g6k:ci image; memory: g6k_vm_image_gap), do
+#    NOT re-enable on fplll. Lines kept commented as a record:
+# ntru_wall_beta_bump --n 179 --q 4591 --beta 50 --seeds 8 --workers 8 @budget_h=14   # ONLY via g6k
+# ntru_wall_beta_bump --n 179 --q 4591 --workers 10                                    # ONLY via g6k
+# ntru_wall_beta_bump --n 181 --q 4703 --workers 10                                    # ONLY via g6k
 #
 # ---- EXAMPLES you can uncomment / add (frontier q-cells, onset-knee topups) ----
 # ntru_onset_boundary --n 173 --q 5501 --workers 20      # push 173 past its wall stop

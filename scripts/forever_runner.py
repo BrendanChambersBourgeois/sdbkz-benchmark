@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import signal
 import subprocess
 import sys
 import time
@@ -44,6 +45,13 @@ LOCK = REPO / "results" / "logs" / "forever_runner.lock"
 
 FLOOR_SLEEP_S = 60          # top-of-loop sleep: makes busy-spin structurally impossible
 MAX_CONSEC_FAIL = 3         # stop LOUD after this many back-to-back failures (systemic)
+# Hard wall-clock backstop for ANY campaign child that has no explicit @budget_h.
+# INC-54: a beta50 probe hot-wedged ~25h inside one fplll enum call (1 core pinned,
+# no heartbeat) and, with timeout=None, would have run forever -- the R1 watchdog's
+# CPU-idle gate cannot see a single-core wedge on a 24-core box. A finite default cap
+# turns every wedge into a self-terminate. A line that legitimately needs longer MUST
+# carry an explicit @budget_h=H (which overrides this, up OR down).
+DEFAULT_MAX_WALL_H = 24
 FILLER_CAMPAIGN = "ntru_b2_backfill"
 FILLER_STEP = 10            # seeds added per idle-filler step
 FILLER_WORKERS = 10
@@ -52,6 +60,43 @@ FILLER_WORKERS = 10
 # it only runs when the worklist (real science) is empty.
 FILLER_CELLS = [(167, 3167), (173, 4073), (179, 4591)]
 FILLER_CEILING_START = 60
+
+
+# --------------------------------------------------- child process + signal safety
+_CURRENT_CHILD: subprocess.Popen[bytes] | None = None   # the in-flight campaign, for kill-on-signal
+
+
+def _kill_child_group(p: subprocess.Popen[bytes] | None) -> None:
+    """SIGTERM then SIGKILL the child's whole process group. run_campaign spawns its
+    own worker pool; killing only the direct child would orphan the wedged workers
+    (exactly the INC-54 enum worker), so we signal the session group started via
+    start_new_session=True."""
+    if p is None or p.poll() is not None:
+        return
+    try:
+        pgid = os.getpgid(p.pid)
+        os.killpg(pgid, signal.SIGTERM)
+        try:
+            p.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            os.killpg(pgid, signal.SIGKILL)
+    except (ProcessLookupError, OSError):
+        pass
+
+
+def _install_signal_handlers() -> None:
+    """On SIGTERM/SIGINT (systemd stop, Ctrl-C): kill the in-flight child group and
+    RELEASE THE LOCK before dying. INC-54: without this, a stop leaves a stale lock
+    (acquire_lock reclaims a dead-pid lock on the next start, but prompt release is
+    cleaner and lets a same-second restart re-lock without the reclaim path)."""
+    def _term(signum, _frame):
+        log.info(f"signal {signum} -- killing child, releasing lock, exiting",
+                 cat="runner", event="signal_exit")
+        _kill_child_group(_CURRENT_CHILD)
+        release_lock()
+        os._exit(0)                       # cleanup already done; skip further loop code
+    for s in (signal.SIGTERM, signal.SIGINT):
+        signal.signal(s, _term)
 
 
 # --------------------------------------------------------------------------- lock
@@ -122,17 +167,38 @@ def _record(logfile: Path, rc: int, line: str) -> None:
 
 
 # --------------------------------------------------------------------- execution
+def _effective_timeout_s(budget_h: float | None) -> float:
+    """Wall cap in seconds: an explicit @budget_h wins (up OR down); otherwise the
+    DEFAULT_MAX_WALL_H backstop so a wedge can never run unbounded (INC-54)."""
+    h = budget_h if budget_h is not None else DEFAULT_MAX_WALL_H
+    return h * 3600
+
+
 def _run_campaign(args: list[str], budget_h: float | None, dry: bool) -> int:
+    global _CURRENT_CHILD
     cmd = [sys.executable, str(REPO / "scripts" / "run_campaign.py"), *args]
     if dry:
         log.info(f"[dry-run] would run: {' '.join(args)}", cat="runner")
         return 0
-    timeout = budget_h * 3600 if budget_h else None
+    timeout = _effective_timeout_s(budget_h)
+    # Own session/process-group so a timeout kill reaps the worker pool too, not just
+    # the run_campaign parent (else the wedged enum worker is orphaned -- INC-54).
+    p = subprocess.Popen(cmd, cwd=str(REPO), start_new_session=True)
+    _CURRENT_CHILD = p
     try:
-        return subprocess.run(cmd, cwd=str(REPO), timeout=timeout).returncode
+        return p.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
-        log.info(f"line hit budget_h={budget_h} -- moving on", cat="runner")
-        return 0                                  # budget reached = an intended stop, not a failure
+        _kill_child_group(p)
+        if budget_h is not None:
+            log.info(f"line hit budget_h={budget_h} -- moving on", cat="runner",
+                     event="budget")
+        else:
+            log.error(f"WALL-CAP: no @budget_h and ran > {DEFAULT_MAX_WALL_H}h -- "
+                      f"killed (likely hot-wedge, INC-54); moving on", cat="runner",
+                      event="wall_cap")
+        return 0                                  # capped stop = intended, not a failure loop
+    finally:
+        _CURRENT_CHILD = None
 
 
 def run_worklist_line(line: str, dry: bool) -> int:
@@ -195,6 +261,8 @@ def main(argv=None) -> int:
 
     if not args.dry_run and not acquire_lock():
         return 0
+    if not args.dry_run:
+        _install_signal_handlers()               # release lock + kill child on stop (INC-54)
     consec_fail = 0
     it = 0
     try:
