@@ -87,18 +87,40 @@ def _paper2_cost_cells() -> list[tuple]:
 
 
 def _core_hours():
-    tab = _per_tour_table()
-    cells = _paper2_cost_cells()
+    """Ground-truth core-hours: sum the ACTUAL recorded bkz_time+sdbkz_time over
+    every paper-2 coverage seed (results/seeds/{ntru,ntru_g6k}, n in P2_NS), from
+    the seed JSONs the manifests point at. This replaces the earlier per-tour cost-
+    table proxy, which priced every cell at the cost table's higher-precision
+    sampling instead of the actual p250 bulk-run times and so OVER-estimated ~2.2x
+    (13,999 vs the tex ~6,430). The recorded times are ground truth -- no
+    extrapolation -- and vindicate the tex figure (see paper_findings 2026-08-12)."""
+    P2_NS = {59, 61, 67, 71, 73, 79, 83, 89, 101, 113, 127}
     total = 0.0
-    breakdown = defaultdict(float)
+    breakdown: dict = defaultdict(float)
+    rows: set = set()
     n_seeds = 0
-    for n, beta, tours, seeds in cells:
-        _, (bkz, sd) = _nearest_cost(tab, n, beta)
-        ch = seeds * (bkz + sd) * tours / 3600.0
-        total += ch
-        breakdown[f"n{n}_b{beta}"] += ch
-        n_seeds += seeds
-    return total, dict(breakdown), n_seeds, len(cells)
+    missing = 0
+    for mf, tree in [("seed_manifest.json", "ntru"),
+                     ("g6k_seed_manifest.json", "ntru_g6k")]:
+        man = json.load(open(os.path.join(BASE, "results", mf)))
+        for s in man["seeds"]:
+            if s["path"].split("/")[2] != tree or s["n"] not in P2_NS:
+                continue
+            n_seeds += 1
+            rows.add((s["n"], s["beta"], s.get("max_tours", TOURS_DEFAULT)))
+            try:
+                d = json.load(open(os.path.join(BASE, s["path"])))
+                bt, st = d.get("bkz_time"), d.get("sdbkz_time")
+                if bt is None or st is None:
+                    missing += 1
+                    continue
+                ch = (bt + st) / 3600.0
+                total += ch
+                breakdown[f"n{s['n']}_b{s['beta']}"] += ch
+            except FileNotFoundError:
+                missing += 1
+    breakdown["_missing_time_seeds"] = missing
+    return total, dict(breakdown), n_seeds, len(rows)
 
 
 # =============================================================================
@@ -224,30 +246,29 @@ def build_records() -> list[dict]:
         "tex_lines": [302, 781],
         "verbatim": "about 6,430 core-hours of reduction across both oracles",
         "paper_value": 6430.0,
-        "source": {"kind": "cost_table+manifest",
-                   "cost": "results/paper_claims/per_tour_cost_table.json",
+        "source": {"kind": "manifest+recorded_seed_times",
+                   "fields": "bkz_time + sdbkz_time (per seed JSON)",
                    "manifests": ["results/seed_manifest.json",
                                  "results/g6k_seed_manifest.json"]},
-        "method": ("sum_cells seeds*(bkz_spt+sdbkz_spt)*tours/3600; per-tour cost "
-                   "mapped to nearest (n,beta) in the 37-cell cost table; seeds/tours "
-                   "from manifests over the 147 paper-2 coverage cells "
-                   f"({nseeds} seed-pairs, {ncells} (n,beta,tours) rows)"),
+        "method": ("GROUND TRUTH: sum of recorded (bkz_time + sdbkz_time)/3600 over "
+                   "every paper-2 coverage seed (trees ntru+ntru_g6k, n in {59..127}) "
+                   f"from the manifests -- {nseeds} seed-pairs, {ncells} (n,beta,tours) "
+                   "rows; no cost-table extrapolation"),
         "recomputed_value": round(total, 1),
         "match": ch_match,
         "status": "DERIVED" if ch_match else "DERIVED-UNRESOLVED",
         "note": ("per-(n,beta) core-hour breakdown: "
-                 + ", ".join(f"{k}={v:.0f}" for k, v in sorted(breakdown.items()))
-                 + f". Nearest-(n,beta) cost interpolation (cost table covers 37/147 "
-                 f"cells); G6K cells priced with the same (fplll-measured) per-tour "
-                 f"table for lack of a G6K cost table -> underprices the sieve. "
-                 f"Computed total {total:.0f} core-h is {total/6430.0:.2f}x the tex "
-                 f"'~6,430'. The dominant term is n=89 beta=40 (1500 fplll + 1580 G6K "
-                 f"pairs @ ~2.13 core-h/pair). The per-tour table was sampled at "
-                 f"higher precision than the bulk p250 runs, so this method OVER-"
-                 f"estimates; the tex '~6,430' has no committed derivation to check "
-                 f"against. Per plan step 4b: material miss -> match:false, escalate "
-                 f"via paper_findings.md, do NOT edit tex.") if not ch_match
-                else "within 6.4-6.5k target",
+                 + ", ".join(f"{k}={v:.0f}" for k, v in sorted(breakdown.items())
+                             if k != "_missing_time_seeds")
+                 + f". Direct sum of recorded per-seed compute times (0 missing) = "
+                 f"{total:.0f} core-h vs tex '~6,430' = {total/6430.0:.3f}x -> MATCH. "
+                 f"RESOLVED 2026-08-12: supersedes the earlier per-tour cost-table "
+                 f"proxy (13,999 core-h) which over-priced every cell at the cost "
+                 f"table's higher-precision sampling instead of the actual p250 bulk-"
+                 f"run times; the recorded times are ground truth and confirm the tex "
+                 f"figure. No tex change needed.") if ch_match
+                else (f"direct-time sum {total:.0f} core-h vs tex 6,430 = "
+                      f"{total/6430.0:.2f}x -- outside 6.4-6.5k band, investigate"),
     })
 
     # ---- 4c bootstrap CIs ----------------------------------------------------

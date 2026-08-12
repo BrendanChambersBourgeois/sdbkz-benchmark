@@ -1,14 +1,14 @@
 {
   "by_status": {
-    "DERIVED": 2,
-    "DERIVED-UNRESOLVED": 4,
+    "DERIVED": 3,
+    "DERIVED-UNRESOLVED": 3,
     "POINTER": 27,
     "RECOMPUTED": 29
   },
   "description": "Paper-2 \u00a76-\u00a77 claim -> source -> method -> verified-value ledger (deep-audit finding 6). See scripts/build_paper2_claims.py.",
   "generated_utc_epoch": 0.0,
   "guard_invariant": true,
-  "n_match": 58,
+  "n_match": 59,
   "n_records": 62,
   "records": [
     {
@@ -112,21 +112,21 @@
     },
     {
       "claim_id": "cost_core_hours",
-      "match": false,
-      "method": "sum_cells seeds*(bkz_spt+sdbkz_spt)*tours/3600; per-tour cost mapped to nearest (n,beta) in the 37-cell cost table; seeds/tours from manifests over the 147 paper-2 coverage cells (8704 seed-pairs, 17 (n,beta,tours) rows)",
-      "note": "per-(n,beta) core-hour breakdown: n101_b20=349, n101_b40=1809, n113_b20=653, n113_b40=3909, n127_b20=121, n59_b20=5, n61_b20=5, n67_b20=62, n67_b40=63, n71_b20=8, n73_b20=4, n79_b20=103, n79_b40=35, n83_b20=5, n89_b20=309, n89_b40=6559. Nearest-(n,beta) cost interpolation (cost table covers 37/147 cells); G6K cells priced with the same (fplll-measured) per-tour table for lack of a G6K cost table -> underprices the sieve. Computed total 13999 core-h is 2.18x the tex '~6,430'. The dominant term is n=89 beta=40 (1500 fplll + 1580 G6K pairs @ ~2.13 core-h/pair). The per-tour table was sampled at higher precision than the bulk p250 runs, so this method OVER-estimates; the tex '~6,430' has no committed derivation to check against. Per plan step 4b: material miss -> match:false, escalate via paper_findings.md, do NOT edit tex.",
+      "match": true,
+      "method": "GROUND TRUTH: sum of recorded (bkz_time + sdbkz_time)/3600 over every paper-2 coverage seed (trees ntru+ntru_g6k, n in {59..127}) from the manifests -- 8704 seed-pairs, 17 (n,beta,tours) rows; no cost-table extrapolation",
+      "note": "per-(n,beta) core-hour breakdown: n101_b20=284, n101_b40=892, n113_b20=526, n113_b40=2014, n127_b20=148, n59_b20=0, n61_b20=0, n67_b20=8, n67_b40=5, n71_b20=3, n73_b20=2, n79_b20=33, n79_b40=6, n83_b20=3, n89_b20=225, n89_b40=2262. Direct sum of recorded per-seed compute times (0 missing) = 6411 core-h vs tex '~6,430' = 0.997x -> MATCH. RESOLVED 2026-08-12: supersedes the earlier per-tour cost-table proxy (13,999 core-h) which over-priced every cell at the cost table's higher-precision sampling instead of the actual p250 bulk-run times; the recorded times are ground truth and confirm the tex figure. No tex change needed.",
       "paper_value": 6430.0,
-      "recomputed_value": 13999.0,
+      "recomputed_value": 6411.0,
       "slice": "derived",
       "source": {
-        "cost": "results/paper_claims/per_tour_cost_table.json",
-        "kind": "cost_table+manifest",
+        "fields": "bkz_time + sdbkz_time (per seed JSON)",
+        "kind": "manifest+recorded_seed_times",
         "manifests": [
           "results/seed_manifest.json",
           "results/g6k_seed_manifest.json"
         ]
       },
-      "status": "DERIVED-UNRESOLVED",
+      "status": "DERIVED",
       "tex_lines": [
         302,
         781
@@ -1304,7 +1304,6 @@
   "schema_version": 1,
   "unresolved": [
     "bootstrap_ci_n89_g6k_onset_gap",
-    "cost_core_hours",
     "per_position_slope_flatten_r2",
     "rhf_fplll_le_2e-6_n101_113"
   ]
