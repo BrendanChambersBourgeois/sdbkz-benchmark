@@ -304,14 +304,16 @@ jobs:
   # cross-machine reference test — the GitHub runner is a third machine vs
   # the single-machine capture host (ADR-005 cross-machine open item).
   g6k-build-and-verify:
-    # Pinned to an explicit image (not floating ubuntu-latest) after a SIGILL
-    # (exit 132, illegal instruction) in the determinism-verify step: the g6k
-    # stack emits an instruction beyond the build target on some fleet runners.
-    # The fplll-patched job (same x86-64-v3 flags) is unaffected, so this is
-    # g6k-specific. Pinning the image + the cache-scope bump below force a clean
-    # rebuild on a stable runner. NOTE: GitHub-hosted runners give no hard
-    # microarch guarantee; if SIGILL recurs the real fix is an x86-64-v2
-    # re-baseline of the g6k determinism reference SHA (maintainer decision).
+    # Build target is x86-64-v2 (SSE4.2/POPCNT), the universal x86-64 floor.
+    # History: was x86-64-v3, but the g6k stack SIGILLed (exit 132, illegal
+    # instruction) on `import g6k.siever` on v2-only fleet runners that lack
+    # AVX2. Pinning the runner image + rerunning did not fix it (INC-55, 3
+    # consecutive fails); the real fix, now applied, is the v2 re-baseline in
+    # Dockerfile.g6k. v2 imports on every GitHub-hosted runner. Changing -march
+    # changed the determinism reference SHA, so the manifest reference is reset
+    # to PENDING until re-captured at v2 (the lint --require-ref step below
+    # keeps this job red until then; the determinism-verify step is gated
+    # behind it). See INC-55.
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -327,17 +329,17 @@ jobs:
           echo "uid=$(id -u)" >> "$GITHUB_OUTPUT"
           echo "gid=$(id -g)" >> "$GITHUB_OUTPUT"
 
-      - name: Build G6K image (source-build fplll → fpylll → g6k, x86-64-v3)
+      - name: Build G6K image (source-build fplll → fpylll → g6k, x86-64-v2)
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
         with:
           context: .
           file: ./Dockerfile.g6k
           tags: sdbkz-g6k:ci
           load: true
-          # scope bumped g6k -> g6k-v3-1 to evict any layer that produced the
-          # SIGILL-ing binary; forces a clean rebuild on the pinned runner.
-          cache-from: type=gha,scope=g6k-v3-1
-          cache-to: type=gha,mode=max,scope=g6k-v3-1
+          # scope bumped g6k-v3-1 -> g6k-v2-1 to evict every cached layer built
+          # under the old x86-64-v3 target; forces a clean v2 rebuild.
+          cache-from: type=gha,scope=g6k-v2-1
+          cache-to: type=gha,mode=max,scope=g6k-v2-1
           build-args: |
             HOST_UID=${{ steps.runner_ids.outputs.uid }}
             HOST_GID=${{ steps.runner_ids.outputs.gid }}
@@ -346,18 +348,19 @@ jobs:
         run: |
           # Enforces threads==1 contract, fplll-manifest disjointness, and
           # (vacuously until Phase 4 seeds) ghost/drift. Host python is fine —
-          # the lint reads JSON only, no g6k import. --require-ref: the
-          # canonical reference SHA is committed (Phase 1 done), so a manifest
-          # that reverts to the PENDING sentinel is now a hard failure.
+          # the lint reads JSON only, no g6k import. --require-ref treats the
+          # PENDING sentinel as a hard failure: expected RED until the v2
+          # reference SHA is re-captured (INC-55), which gates the verify step
+          # below so it cannot run against an unset reference.
           python3 scripts/lint_g6k_manifest.py --require-ref
 
       - name: G6K determinism verify (single-threaded SHA gate)
         run: |
-          # Regenerate the reference probe inside the pinned image and SHA-
-          # compare. The reference is captured (Phase 1 done), so this is a
-          # HARD byte-identity gate: only exit 0 passes. PENDING (exit 4) can
-          # no longer occur with a filled reference and, if it somehow does,
-          # is treated as a failure alongside SHA drift (exit 1).
+          # Regenerate the reference probe inside the image and SHA-compare.
+          # HARD byte-identity gate: only exit 0 passes; SHA drift (exit 1) or
+          # PENDING (exit 4) both fail. Currently unreached — the lint step
+          # above fails first while the v2 reference is PENDING (INC-55). Once
+          # the reference is re-captured at v2 this becomes the live gate.
           docker run --rm sdbkz-g6k:ci bash scripts/verify_g6k.sh
 
       - name: G6K diagnostic banner on failure
@@ -365,5 +368,6 @@ jobs:
         run: |
           echo "::error::G6K build or determinism verify failed."
           echo "  - threads>1 anywhere is a contract violation (Phase 0)."
-          echo "  - SHA drift means the x86-64-v3 build is not bit-identical."
+          echo "  - a PENDING reference (INC-55, v2 re-capture owed) fails lint --require-ref."
+          echo "  - SHA drift means the x86-64-v2 build is not bit-identical."
           echo "  - check Dockerfile.g6k pins (fplll 1987472 / fpylll e25ade8 / g6k c71e084)."
