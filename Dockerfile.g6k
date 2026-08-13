@@ -18,14 +18,27 @@
 FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c
 
 # -- Reproducible compilation target ----------------------------------------
-# -march=x86-64-v3 (NOT -march=native). Phase 0 used -march=native, which
+# -march=x86-64-v2 (NOT -march=native). Phase 0 used -march=native, which
 # bakes the *build host's* exact ISA into the binary and breaks cross-
-# machine bit-identity. x86-64-v3 (AVX2/BMI2/FMA, ~Haswell+) is the common
-# floor across the two target machines (Intel 13900K, AMD 9950X3D) and is
-# what the determinism contract pins. Set as ENV so all three source
-# builds (fplll, fpylll, g6k) inherit it — do NOT pass -march=native here.
-ENV CFLAGS="-O3 -march=x86-64-v3 -Wp,-U_FORTIFY_SOURCE" \
-    CXXFLAGS="-O3 -march=x86-64-v3 -Wp,-U_FORTIFY_SOURCE"
+# machine bit-identity. Was x86-64-v3 (AVX2/BMI2/FMA, ~Haswell+), the floor
+# for the two target machines (Intel 13900K, AMD 9950X3D) — but the
+# GitHub-hosted CI fleet has drifted to include v2-only runners that lack
+# AVX2, so a v3 binary SIGILLs on `import g6k.siever` in the determinism
+# gate (INC-55; 3 consecutive fails, rerun mitigation exhausted 2026-08-13).
+# x86-64-v2 (SSE4.2/POPCNT, ~Nehalem+) is the universal x86-64 floor and
+# clears every runner, at the cost of AVX2/FMA sieve speed in CI. Set as ENV
+# so all three source builds (fplll, fpylll, g6k) inherit it.
+#
+# WARNING — this CHANGES the compiled binary, hence the g6k determinism
+# reference SHA. After this edit the reference MUST be re-captured at v2
+# (Phase 1: run scripts/verify_g6k.sh in the freshly built image, commit the
+# new reference) before the HARD byte-identity gate can pass. The v2 output
+# is still bit-identical *across* v2 machines (v2 ⊂ both targets); only the
+# anchor value moves off the historical v3 baseline. Alternative considered:
+# keep v3 and pin the CI job to a fixed-microarch runner (leaves the SHA
+# untouched) — see INC-55.
+ENV CFLAGS="-O3 -march=x86-64-v2 -Wp,-U_FORTIFY_SOURCE" \
+    CXXFLAGS="-O3 -march=x86-64-v2 -Wp,-U_FORTIFY_SOURCE"
 
 # make -j parallelism. Defaults to all cores; override at build time with
 # --build-arg BUILD_JOBS=4 to coexist with other CPU-heavy work on the

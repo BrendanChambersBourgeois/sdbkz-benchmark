@@ -15,7 +15,7 @@ Determinism contract (Phase 0 verdict, 2026-06-04 — non-negotiable):
                                       # this fixes the sieve RNG. (There is
                                       # NO SieverParams["seed"] knob in this
                                       # build — it is a no-op; see below.)
-    same machine / -march=x86-64-v3 build
+    same machine / -march=x86-64-v2 build
     default sieve params
 
 threads > 1 is REJECTED (SystemExit 3), not warned: a multi-threaded run
@@ -119,7 +119,7 @@ def probe(n: int, beta: int, seed: int, threads: int = 1,
         "engine": "g6k",
         "n": n, "beta": beta, "seed": seed, "threads": 1,
         "tours": tours, "reseed": reseed,
-        "march": "x86-64-v3",
+        "march": "x86-64-v2",
         "basis_sha256": _sha(basis_bytes),
         "rprof_sha256": _sha(rprof_bytes),
         "r0": f"{rprof[0]:.10e}",

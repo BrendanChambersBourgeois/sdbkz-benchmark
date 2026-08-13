@@ -13,7 +13,7 @@ set -euo pipefail
 # Determinism contract (non-negotiable, Phase 0 verdict 2026-06-04):
 #   threads=1 + FPLLL.set_random_seed(S) before basis AND again before the
 #   sieve (g6k samples via fplll's global RNG) + same machine /
-#   -march=x86-64-v3 build + default sieve params. NOTE: SieverParams has no
+#   -march=x86-64-v2 build + default sieve params. NOTE: SieverParams has no
 #   "seed" key in this build — it is a no-op, not part of the contract.
 #   threads>1 is rejected by g6k_probe.py itself (exit 3).
 #
@@ -21,7 +21,7 @@ set -euo pipefail
 #   FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb
 #                                       81954b6f06f519fcc348b67f6483d3c
 #   apt mirror: snapshot.debian.org/archive/debian/20240614T000000Z/
-#   fplll @1987472 · fpylll @e25ade8 (0.6.4) · g6k @c71e084 · march x86-64-v3
+#   fplll @1987472 · fpylll @e25ade8 (0.6.4) · g6k @c71e084 · march x86-64-v2
 #
 # Exit codes:
 #   0  SHA matches reference (PASS)

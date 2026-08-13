@@ -7,7 +7,8 @@
   "fplll_random_seed_for_basis": "FPLLL.set_random_seed(S) before IntegerMatrix.random \u2014 fixes the input basis",
   "fplll_random_seed_for_sieve": "FPLLL.set_random_seed(S) again immediately before sieving \u2014 the g6k sampler draws from fplll's global RNG, so this is what fixes the sieve RNG",
   "siever_params_seed": "NOT a knob \u2014 SieverParams has no 'seed' key in fpylll e25ade8 / g6k c71e084; setting one is a silently-ignored no-op (verified 2026-06-04). Determinism comes from threads=1 + the two FPLLL re-seeds above, NOT from any g6k-level seed.",
-  "march": "x86-64-v3",
+  "march": "x86-64-v2",
+  "march_note": "Was x86-64-v3 (2026-06-04). Dropped to x86-64-v2 on 2026-08-13 after INC-55: the GitHub-hosted CI fleet drifted to include v2-only runners that lack AVX2, so a v3 g6k binary SIGILLs on import in the determinism gate (3 consecutive fails, rerun mitigation exhausted). v2 (SSE4.2/POPCNT) is the universal x86-64 floor. The reference SHAs below are RESET to the pending sentinel and MUST be re-captured from a clean v2 Dockerfile.g6k build.",
   "sieve_params": "library defaults",
   "rejects": "threads>1 (multi-threaded sieve is a nondeterministic insertion-order race; no seed fixes it \u2014 Phase 0 verdict 2026-06-04)"
  },
@@ -26,12 +27,20 @@
   "beta": 60,
   "seed": 42,
   "threads": 1,
-  "march": "x86-64-v3",
-  "basis_sha256": "cf22519d529d243c31584f4fb1e81bc7100579198fa8275a79a38689c522cf9e",
-  "rprof_sha256": "d4faf05a194bd7a342c2740722e02ec73b52130fcf9bef60b960aa848d35eba7",
-  "captured_on": "2026-06-04",
-  "captured_machine": "single-machine capture (build host). Confirmed bit-identical across 2 in-image runs. CROSS-MACHINE confirmation pending: the second target (the other of 13900K / 9950X3D) and the GitHub CI runner have not yet been verified against this reference. The x86-64-v3 pin makes cross-machine bit-identity the expectation, not a guarantee \u2014 the first CI run on the GitHub runner is the de-facto cross-machine test.",
-  "capture_note": "Captured from a clean Dockerfile.g6k build (sdbkz-g6k:ref): docker run --rm sdbkz-g6k:ref python3 scripts/g6k_probe.py --n 80 --beta 60 --seed 42 --json. To re-verify after any pin change, rebuild and run scripts/lint_g6k_manifest.py --sha-check --require-ref."
+  "march": "x86-64-v2",
+  "basis_sha256": "PENDING-FIRST-BUILD",
+  "rprof_sha256": "PENDING-FIRST-BUILD",
+  "captured_on": "PENDING (v2 re-capture owed; v3 reference retired 2026-08-13, see previous_v3_reference)",
+  "captured_machine": "RESET pending v2 re-capture. The x86-64-v3 reference was retired on 2026-08-13 after INC-55 (v3 binary SIGILLs on v2-only GitHub runners). Re-capture from a clean v2 Dockerfile.g6k build; v2 is the universal x86-64 floor so cross-machine bit-identity across the two targets AND the CI fleet becomes the expectation.",
+  "capture_note": "Captured from a clean Dockerfile.g6k build (sdbkz-g6k:ref): docker run --rm sdbkz-g6k:ref python3 scripts/g6k_probe.py --n 80 --beta 60 --seed 42 --json. To re-verify after any pin change, rebuild and run scripts/lint_g6k_manifest.py --sha-check --require-ref.",
+  "previous_v3_reference": {
+   "march": "x86-64-v3",
+   "basis_sha256": "cf22519d529d243c31584f4fb1e81bc7100579198fa8275a79a38689c522cf9e",
+   "rprof_sha256": "d4faf05a194bd7a342c2740722e02ec73b52130fcf9bef60b960aa848d35eba7",
+   "captured_on": "2026-06-04",
+   "retired_on": "2026-08-13",
+   "retired_reason": "INC-55: v3 (AVX2) binary SIGILLs on v2-only GitHub CI runners; build target dropped to x86-64-v2, which changes the compiled binary and hence these SHAs. Kept here for provenance only \u2014 NOT a valid gate value."
+  }
  },
  "seeds": [
   {
