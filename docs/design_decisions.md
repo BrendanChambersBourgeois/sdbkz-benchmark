@@ -46,7 +46,7 @@ The six legacy scripts now import from `_math_core` + `_bkz_core`; their local `
 
 **Intended**:
 - **Single source of truth**: every variant runs the same math. Drift is structurally impossible — changing `_math_core.metrics_from_gso` changes it for every caller, full stop.
-- **Bit-identical output across the migration**: the v1.2-consolidation merge was gated on `scripts/confirm_v1_2.py` (30 seeds × 4 run_single paths, byte-compared to v1.1.0 baselines) and `scripts/test_math_core_parity.py` (576 comparisons across 6 legacy copies). 0 failures.
+- **Bit-identical output across the migration**: the v1.2-consolidation merge was gated on `scripts/archive/confirm_v1_2.py` (30 seeds × 4 run_single paths, byte-compared to v1.1.0 baselines) and `scripts/archive/test_math_core_parity.py` (576 comparisons across 6 legacy copies). 0 failures. (Both one-shot verifiers were retired to `scripts/archive/` at v2.0.0.)
 - **Faster onboarding**: a new reader follows one import chain (variant script → `_bkz_core.run_single` → `_math_core`) instead of re-reading the same ~150 lines in six files.
 - **Defensive-clamp invariant concentrated in one place**: the "log raw value before substituting" discipline now lives at exactly one call site. Any future runner that wants clamp handling must use the shared helper; there is no second implementation to drift from.
 
@@ -57,8 +57,8 @@ The six legacy scripts now import from `_math_core` + `_bkz_core`; their local `
 
 ### Verification artefacts
 
-- `scripts/test_math_core_parity.py` — standalone 576-comparison parity check (60 `ln_fixed_point` pairs × 6 legacy copies + 36 `build_lwe_kannan` pairs × 6 legacy copies). Runs in ~0.2 s. 0 failures on v1.2.0 tree.
-- `scripts/confirm_v1_2.py` — end-to-end 30-seed confirmation across 4 `run_single` paths, byte-compared against v1.1.0 baseline JSONs.
+- `scripts/archive/test_math_core_parity.py` — standalone 576-comparison parity check (60 `ln_fixed_point` pairs × 6 legacy copies + 36 `build_lwe_kannan` pairs × 6 legacy copies). Runs in ~0.2 s. 0 failures on v1.2.0 tree.
+- `scripts/archive/confirm_v1_2.py` — end-to-end 30-seed confirmation across 4 `run_single` paths, byte-compared against v1.1.0 baseline JSONs.
 - `tests/test_math_core_edge_cases.py` — pytest suite covering clamp semantics, `log_clamp` schema, `ln_fixed_point` boundaries, `build_lwe_kannan` determinism, `metrics_from_gso` sensitivity to negative `get_r` values. 17 tests, ~0.2 s.
 
 ---
@@ -265,7 +265,7 @@ Rejected because:
 
 ## ADR-005 — G6K as a separate, single-threaded, SHA-locked sieve path (Phase 1)
 
-**Status**: scaffolded 2026-06-04 on branch `generators-refactor`. Build + manifest only — no engine seam, no seeds, no science (those are Phase 2 / Phase 4). Reference SHA capture deferred to the first canonical build.
+**Status**: scaffolded 2026-06-04 on branch `generators-refactor`; determinism reference captured 2026-08-13. The CI `g6k-build-and-verify` job is a hard byte-identity gate (build target `x86-64-v2` after INC-55 — see decision 3).
 
 ### Context
 
@@ -281,7 +281,7 @@ Phase 0 recon (2026-06-04, `/tmp/g6k_phase0_report.md`) settled the blocker ques
 
 1. **Contract is `threads=1`, non-negotiable.** `g6k_probe.py` rejects `threads>1` with exit 3 rather than warning — an MT hash that got recorded would silently poison the reference. `lint_g6k_manifest.py` invariant (1) enforces `threads==1` on the contract, the reference, and every seed entry.
 2. **Source-build, not the wheel.** `Dockerfile.g6k` source-builds fplll (@`1987472`) → fpylll (@`e25ade8`, reports 0.6.4) → g6k (@`c71e084`). The PyPI `fpylll` wheel bundles its own fplll and ships no headers, so G6K's C++ kernel cannot link against it. Base image digest-pinned + apt via snapshot.debian.org per ADR-004.
-3. **`-march=x86-64-v2`, NOT `-march=native`.** Native bakes the build host's exact ISA and breaks cross-machine bit-identity. Originally pinned at `x86-64-v3` (AVX2/BMI2/FMA), the common floor across the two target machines (Intel 13900K, AMD 9950X3D). Dropped to `x86-64-v2` (SSE4.2/POPCNT, universal x86-64 floor) on 2026-08-13 after **INC-55**: the GitHub-hosted CI fleet drifted to include v2-only runners lacking AVX2, so a v3 g6k binary raised `SIGILL` on `import g6k.siever` in the determinism gate (3 consecutive fails, rerun mitigation exhausted). v2 clears every runner at the cost of AVX2/FMA sieve speed in CI. Changing `-march` changes the compiled binary, so the reference SHAs were reset to the `PENDING-FIRST-BUILD` sentinel and must be re-captured from a clean v2 build (old v3 values retained under `reference.previous_v3_reference` in the manifest for provenance). Phase 0 hashes were `-march=native` and are therefore **not** valid references here.
+3. **`-march=x86-64-v2`, NOT `-march=native`.** Native bakes the build host's exact ISA and breaks cross-machine bit-identity. Originally pinned at `x86-64-v3` (AVX2/BMI2/FMA), the common floor across the two target machines (Intel 13900K, AMD 9950X3D). Dropped to `x86-64-v2` (SSE4.2/POPCNT, universal x86-64 floor) on 2026-08-13 after **INC-55**: the GitHub-hosted CI fleet drifted to include v2-only runners lacking AVX2, so a v3 g6k binary raised `SIGILL` on `import g6k.siever` in the determinism gate (3 consecutive fails, rerun mitigation exhausted). v2 clears every runner at the cost of AVX2/FMA sieve speed in CI. Changing `-march` changes the compiled binary, so the reference SHAs were reset to the `PENDING-FIRST-BUILD` sentinel and **re-captured at v2 on 2026-08-13** — the v2 SHAs came out *identical* to the retired v3 values (`basis cf22519d…`, `rprof d4faf05a…`) because the n=80/β60/seed42 probe is FMA-invariant, so the pin fixed the SIGILL with zero movement of the determinism anchor. Old v3 values are retained under `reference.previous_v3_reference` in the manifest for provenance. Phase 0 hashes were `-march=native` and are therefore **not** valid references here.
 4. **Separate manifest, never merged.** `results/g6k_seed_manifest.json` is distinct from `results/seed_manifest.json`. The two engines produce non-comparable hashes; merging them would invite cross-engine confusion in any downstream SHA audit. `lint_g6k_manifest.py` invariant (3a) enforces disjointness of both `path` and `sha256` between the two manifests.
 5. **Separate CI job.** `.github/workflows/build-and-verify.yml` gains a `g6k-build-and-verify` job independent of the fplll regression job, so a still-pending g6k reference cannot mask — and a g6k drift cannot be confused with — the fplll byte-identity proof.
 
@@ -291,7 +291,9 @@ Both manifests carry `{path, sha256}` records and it is tempting to fold g6k see
 
 ### Capturing the reference
 
-The reference SHA is `PENDING-FIRST-BUILD` in the manifest until a clean pinned build on a target machine fills it:
+The reference SHA is **captured** in the manifest (`reference.basis_sha256` / `rprof_sha256`, `march` `x86-64-v2`, `captured_on` 2026-08-13). The CI `g6k-build-and-verify` job is a hard gate — `lint_g6k_manifest.py --require-ref` fails on the `PENDING-FIRST-BUILD` sentinel, then `verify_g6k.sh` regenerates the probe in-image and requires an exact SHA match.
+
+To re-capture after any pin change (e.g. a future `-march` bump):
 
 ```
 docker build -f Dockerfile.g6k -t sdbkz-g6k:ref .
@@ -300,8 +302,6 @@ docker run --rm sdbkz-g6k:ref python3 scripts/g6k_probe.py --n 80 --beta 60 --se
 # set reference.captured_on, then:
 python3 scripts/lint_g6k_manifest.py --sha-check --require-ref   # must be green
 ```
-
-Then flip the CI g6k-verify step from PENDING-tolerant (exit 4 = warning) to a hard gate, and add `--require-ref` to the CI lint step.
 
 ### Consequences
 
@@ -315,7 +315,7 @@ Then flip the CI g6k-verify step from PENDING-tolerant (exit 4 = warning) to a h
 
 - `Dockerfile.g6k`, `scripts/g6k_probe.py`, `scripts/verify_g6k.sh`, `scripts/lint_g6k_manifest.py`, `results/g6k_seed_manifest.json` — the scaffold.
 - `/tmp/g6k_phase0_report.md` — Phase 0 determinism recon (not committed; the SHA-table evidence behind the `threads=1` contract).
-- Dry-run gate (Phase 1): `docker build -f Dockerfile.g6k --check .` lints the Dockerfile; `python3 scripts/lint_g6k_manifest.py` is green in scaffold state; `scripts/verify_g6k.sh` reports PENDING (exit 4) until the reference is captured.
+- Dry-run gate: `docker build -f Dockerfile.g6k --check .` lints the Dockerfile; `python3 scripts/lint_g6k_manifest.py --sha-check --require-ref` is green (reference captured); `scripts/verify_g6k.sh` regenerates the probe in-image and requires an exact SHA-256 match (hard gate).
 
 ---
 

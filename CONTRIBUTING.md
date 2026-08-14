@@ -90,7 +90,7 @@ prior commit 2b5365c). lint_seed_manifest --sha-check: 0 orphan /
 Before every commit:
 
 ```bash
-python3 -m pytest tests/                                  # ~10s, 214 tests
+python3 -m pytest tests/                                  # ~10s, 337 tests
 python3 scripts/lint_seed_manifest.py                     # ~0.1s
 python3 -m ruff check scripts/ analysis/                  # ~0.2s
 python3 -m mypy                                           # ~3s, strict on _*_core
@@ -118,7 +118,7 @@ Figure SHA-256 byte-identity is the hard invariant for anything analysis-side. A
 
 Every committed script must emit structured events through `scripts/log.py::get_logger`. `scripts/lint_logging.py` scans `scripts/` + `analysis/` on every CI run and fails if any entry-point file uses bare `print()` without a matching PIPELINE emit.
 
-The append-only event stream at `logs/pipeline.jsonl` is the answer to "what happened during this session / sweep / incident". Queryable with `jq`; see [`COOKBOOK.md`](COOKBOOK.md) (when the cookbook ships — Phase 7).
+The append-only event stream at `logs/pipeline.jsonl` is the answer to "what happened during this session / sweep / incident". Queryable with `jq`; see [`COOKBOOK.md`](COOKBOOK.md) and [`docs/pipeline_log_queries.md`](docs/pipeline_log_queries.md).
 
 ## Data discipline
 

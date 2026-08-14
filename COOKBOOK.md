@@ -22,7 +22,7 @@ Runs 5 reference seeds (n=50, β=20) and compares against known-good values. Sho
 python3 analysis/paper_figures.py
 ```
 
-Regenerates all 12 figures into `analysis/figures/`. To regenerate one specific figure, edit the bottom of `paper_figures.py` to call only the function you want. Each figure function (`fig_dimension_scaling`, `fig_3x_tour_test`, etc.) is independently callable.
+Regenerates all 13 figures into `analysis/figures/`. `analysis/paper_figures.py` is an argparse CLI — run `python3 analysis/paper_figures.py --help` for its flags (campaign selectors + legacy directory overrides). Each figure function (`fig_dimension_scaling`, `fig_3x_tour_test`, etc.) is also independently callable if you import the module.
 
 ---
 
@@ -136,7 +136,7 @@ mkdir -p results/corrupted
 mv results/seeds/main/q97/n<bad>_beta<bad>/seed<bad>.json results/corrupted/
 ```
 
-The `results/corrupted/` folder is gitignored. See `CHANGELOG.txt` in the project notes for the q=3329 500-bit precision incidents that drove this convention.
+The `results/corrupted/` folder is gitignored. See [`docs/incident_q3329_post_mortem.md`](docs/incident_q3329_post_mortem.md) for the q=3329 precision incidents that drove this convention.
 
 ---
 

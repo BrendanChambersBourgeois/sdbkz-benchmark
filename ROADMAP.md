@@ -16,20 +16,25 @@ A visible project-management artefact. Tracks what's shipped, what's next, what'
 | `v1.5.0`  | 2026-04-22 | Public flip: repo flipped private → public + Zenodo concept DOI `10.5281/zenodo.19686927` minted (per-version v1.5.0 `10.5281/zenodo.19686928`; v2.0.0 later `10.5281/zenodo.20518060`); CITATION.cff + README badges (CI / DOI / MIT / CC-BY / Python); ePrint route abandoned in favour of Zenodo as the citation anchor. |
 | `v1.5.1`  | 2026-05-16 | Phase 1: Holm-Bonferroni adjusted p-values + Cliff's δ added alongside Cohen's d across the 33-cell main grid; ADR-003; `analysis/_stats_helpers.py` (88 LOC) + 19 pytest cases. Phase 2: Dockerfile base-image digest pinned to `python:3.12.3-bookworm@sha256:25dee7f1...3d3c` across all 4 Dockerfiles + apt rewritten to `snapshot.debian.org/.../20240614T000000Z/`; ADR-004; Zenodo v1.5.0 deposit content audit (`docs/audits/2026-05-14_zenodo_v1.5.0_contents.md`). Data: n=150 β=40 mt1000 (20 seeds) — material finding that the cliff is non-monotone past n=140 (cliff bottoms in the n=130–140 band; n=150 shallower by 0.36 nats). Paper §Limitations rewritten in LaTeX + HTML; PDF 31→32 pages; bracket count six→seven dimensions. Manifest 4,701 → 4,721. |
 | `v1.5.2`  | 2026-05-19 | Data-only bundle: n=160 β=40 mt1000 (20 seeds, q=97, 250-bit MPFR, 1000 tours). Mean advantage at t=1000 = −1.788 nats (range [−2.225, −1.542], 0/20 win); BKZ per-tour Δ = +0.741, SD-BKZ = +0.048. Confirms the v1.5.1 "cliff bottoms in n=130–140 band" framing: bracket now eight dims +2.101 / +0.159 / −0.328 / −1.038 / −1.857 / −2.420 / −2.064 / −1.788; BKZ per-tour improvement +1.06 / +0.92 / +0.74 at n=140 / 150 / 160 (monotone softening past the bottom). Estimator extrapolation + monotone clamp from the v1.5.1→v1.5.2 cycle also folded in (predicted 80h vs observed 83.5h — within 4%). Manifest 4,721 → 4,741. No paper §Limitations text edit; bracket sentence in LaTeX + HTML remains accurate at seven-dim. |
+| `v2.0.0`  | 2026-06-03 | **Breaking layout drop.** 4,387 back-compat symlinks removed across 14 dirs — canonical `results/seeds/<campaign>/…` is the sole source of truth, with `results/seed_path_crosswalk.csv` as the permanent old→new reconciler. Phase 4 CI gates (mypy / ruff / coverage / figure-parity), TOML campaign config (`config/sweep.toml` + `scripts/_config.py`), script consolidation (`run_*.py` 15 → 6, single dispatcher `run_campaign.py`; 5 one-shot verifiers → `scripts/archive/`), q=3329 §8 clamp regression gate. Zenodo v2.0.0 version DOI `10.5281/zenodo.20518060`. See CHANGELOG `[2.0.0]`. |
 
 See [`CHANGELOG.md`](CHANGELOG.md) for per-release details (Keep-a-Changelog format, append-only).
 
 ## In flight
 
+Post-v2.0.0 work on `main` (unreleased, no tag cut yet):
+
 | target | scope |
 |--------|-------|
-| Unreleased | v2.0.0 candidate on `main`. Since v1.5.2 the branch has accumulated 28 commits; 27 are already on origin, 1 remains local pending the next push cue. Bundle contents: Phase 4 CI gates (mypy / ruff / cov / figure-parity), paper §Limitations eight-dim fold, estimator extrapolation + monotone clamp, TOML campaign config foundation (`config/sweep.toml` + `scripts/_config.py`), v2.0.0 layout drop (4,387 back-compat symlinks deleted across 14 dirs; canonical `results/seeds/<campaign>/...` is the sole source of truth; `results/seed_path_crosswalk.csv` is the permanent old→new reconciler), 6-subagent pre-tag audit + Tier 1/2 fixes, script consolidation (`scripts/run_*.py` 15 → 6; single dispatcher `scripts/run_campaign.py`), 5 one-shot verification scripts moved to `scripts/archive/`, q=3329 §8 clamp regression gate (3 new tests), n=140 β=40 mt1000 fattened 20 → 100 seeds (holiday compute window). Paper §Reproducibility extended; CI validate_seeds step rewritten to walk the campaign tree. Held local pending end-of-cycle bug+value audit and push cue. |
+| paper 2 (NTRU + cross-engine) | `paper2/` in-progress technical report: NTRU dense-sublattice-discovery (DSD) onset and a cross-engine (fplll enumeration vs G6K sieving) study. G6K wired as a second reduction engine behind a determinism-gated seam (own manifest `results/g6k_seed_manifest.json`, `lint_g6k_manifest.py`). §7 four-discrepancy reconciliation closed; core-hours corrected to recorded-time ground truth. Remaining: three §-text edits (RHF wording / bootstrap CI / R²≈0.95) + AWS §8 rerun on the corrected Kahan patch. |
+| NTRU frontier campaigns | never-idle `forever_runner` filling the NTRU overstretched grid; DSD-onset boundary traced past n=167 (n=173 soft-wall). Estimator-sized sweeps; g6k needed for n≥157 (fplll enum ceiling ~dim 300). |
 
 ## Planned next
 
 | target   | scope                                                                  |
 |----------|------------------------------------------------------------------------|
-| `v2.0.0` | Tag the breaking layout change when the local audit + push cue arrives. CHANGELOG `## Unreleased` block already pre-drafted as v2.0.0 with breaking-change callout, Removed/Changed/Preserved/Added sections, and a paper §Reproducibility seed-layout note pointing at `results/seed_path_crosswalk.csv` as the pre-v2 reconciler. |
+| paper 2 tag | Cut a release once §-text edits + the AWS §8 rerun land and paper2 is submission-ready. |
+| g6k n≥157 | Extend the cross-engine study past the fplll enum ceiling once g6k determinism at dim ≥ 314 is characterised. |
 
 ## External waits
 
@@ -48,7 +53,7 @@ Items with rough designs but no current motivator. Each has an explicit revisit 
 | Campaign config file (`config/sweep.toml`)      | ≥2 new runners per month, cross-script constant drift, or a future seed-index rev wanting per-campaign provenance |
 | Post-v1.5 sweep candidates (A–F)                | Compute window opens AND reviewer/collaborator asks a data-shaped question                                       |
 
-Priority ranking for the sweep candidates: tier 1 = A (fplll 5→10 seeds per version), D (main-sweep variance check); tier 2 = B (q=3329 n=110/120 variance), C (cliff precision at β=50); tier 3 = E (convergence to 1000 tours), F (3x tours broader at β=30). Designs maintained internally until a trigger fires. **Tier 3 item E partially executed**: n=90 / n=140 / n=150 β=30 1000-tour extensions shipped post-flip; n=130 β=40 1000-tour run currently in flight.
+Priority ranking for the sweep candidates: tier 1 = A (fplll 5→10 seeds per version), D (main-sweep variance check); tier 2 = B (q=3329 n=110/120 variance), C (cliff precision at β=50); tier 3 = E (convergence to 1000 tours), F (3x tours broader at β=30). Designs maintained internally until a trigger fires. **Tier 3 item E partially executed**: n=90 / n=140 / n=150 β=30 1000-tour extensions shipped post-flip; n=130 β=40 1000-tour run since shipped. Post-v2 effort has shifted to the NTRU frontier + cross-engine study (see In flight).
 
 ## Project-management artefacts
 

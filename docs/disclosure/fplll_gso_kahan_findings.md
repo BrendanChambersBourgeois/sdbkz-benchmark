@@ -1,6 +1,6 @@
 # fplll Gram–Schmidt cancellation — numerical findings + mitigation
 
-**Status**: numerical-correctness finding at cryptographic moduli; Kahan-compensated patch ships at [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch). Filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08; closed unmerged 2026-05-17. The patch ships in-repo and paper §8 stands on its own evidence (cross-vendor reproduction, 0/55 regression). See the timeline section below.
+**Status**: numerical-correctness finding at cryptographic moduli. Kahan-compensated patch ships split: [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch) (code only) + [`patches/fplll_gso_kahan_tests.patch`](../../patches/fplll_gso_kahan_tests.patch) (separate regression-test diff). Filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08; closed unmerged 2026-05-17 ("likely AI generated"). Per the 2026-08-13 owner decision the corrected patch is kept **local-only** — not resubmitted or reopened. It ships in-repo and paper §8 stands on its own evidence (cross-vendor reproduction, 0/55 regression). See the timeline section below.
 
 **Paper reference**: §8 of [`paper1/latex/sdbkz_paper_latex.pdf`](../../paper1/latex/sdbkz_paper_latex.pdf) (LaTeX source: [`paper1/latex/sdbkz_paper_latex.tex`](../../paper1/latex/sdbkz_paper_latex.tex)).
 
@@ -104,9 +104,9 @@ for (int k = 0; k < j; k++)
 r(i, j) = ftmp1;
 ```
 
-The full patch is a single 30-line hunk at [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch).
+The patch ships split in two: [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch) — code only, touching `fplll/gso_interface.cpp` and `fplll/gso_interface.h` (corrected Kahan sign + member scratch) — and [`patches/fplll_gso_kahan_tests.patch`](../../patches/fplll_gso_kahan_tests.patch), a separate diff adding `tests/test_gso_kahan.cpp` + `tests/Makefile.am` wiring. Apply code first, tests after.
 
-**Measured effect**: degeneracy rate drops from **38.0% (38/100 unpatched)** to **0% (0/55 patched)** at identical parameters (n=100, β=30, q=3329, 1000-bit MPFR). All 15 fplll regression tests (`make check`) pass. Patch applies cleanly to fplll HEAD commit `1987472` (2025-10-15) and to fplll 5.5.0 (vendored inside fpylll 0.6.4).
+**Measured effect**: degeneracy rate drops from **38.0% (38/100 unpatched)** to **0% (0/55 patched)** at identical parameters (n=100, β=30, q=3329, 1000-bit MPFR). Code-only leaves all 15 fplll regression tests (`make check`) passing; the tests patch adds `test_gso_kahan` for 16/16. Applies cleanly to fplll HEAD commit `1987472` (2025-10-15) and to fplll 5.5.0 (vendored inside fpylll 0.6.4).
 
 **Cost**: ~3× the inner-loop FP op count in the affected hot spot. Negligible at the outer-loop level since `update_gso_row` is amortised over a full tour. No change to the algorithm or public API.
 
@@ -125,7 +125,9 @@ The full patch is a single 30-line hunk at [`patches/fplll_gso_kahan.patch`](../
 | 2026-04-18 | Draft upstream issue text prepared (maintained internally pre-filing)                 |
 | 2026-04-22 | Repo flipped public; Zenodo concept DOI `10.5281/zenodo.19686928` minted (per-version DOI for v1.5.0: `10.5281/zenodo.19686929`). Patch + README + this findings doc all published as part of the Zenodo-archived v1.5.0 ZIP. |
 | 2026-05-08 | Upstream filing complete — pull request `fplll/fplll#550` ("gso: Kahan-compensated subtraction in update_gso_row") opened from branch `BrendanChambersBourgeois:fix/gso-kahan-cancellation`. Single commit `ebcedf53`; passes 15/15 `make check`; `make check-style` clean under clang-format 18 (CI's apt version). PR body cites Zenodo DOI for the per-seed evidence + reproducer. |
-| TBD (gated on upstream issue + reviewer feedback)  | CVE status evaluated (likely N/A — numerical-correctness finding, not an exploitable vulnerability) |
+| 2026-05-17 | PR `fplll/fplll#550` **closed unmerged** by the maintainer ("likely AI generated"). Finding did not land upstream. |
+| 2026-08-13 | Review of the shipped patch found the Kahan compensation sign was flipped (inert); corrected (`c = (t − ftmp1) + y`), moved scratch to member vars, hardened the regression test, and **split** the deliverable into a code-only patch + a separate tests patch (local fork commits `21445c51` code, `c0b00f88` tests; 16/16 `make check`). Owner decision: keep the corrected patch **local-only** — not resubmitted or reopened upstream. |
+| 2026-08-13 | CVE status resolved **N/A** — numerical-correctness finding, not an exploitable vulnerability; no upstream engagement pending. |
 
 Timeline entries are appended, never revised in place. Revision means a new row with `(revised YYYY-MM-DD: …)` annotation.
 
@@ -143,8 +145,9 @@ Timeline entries are appended, never revised in place. Revision means a new row 
 All artefacts are on-repo (no external hosting):
 
 - [`paper1/latex/sdbkz_paper_latex.pdf`](../../paper1/latex/sdbkz_paper_latex.pdf) — §8 (pages 18–20): full characterization with 100-seed dataset, Wilson CI, BKZ-vs-SD-BKZ symmetry check, cross-machine rate comparison.
-- [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch) — single-hunk Kahan-compensation replacement.
-- [`patches/README.md`](../../patches/README.md) — apply instructions, verification notes, scope statement.
+- [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch) — code-only Kahan-compensation replacement (`gso_interface.cpp`/`.h`).
+- [`patches/fplll_gso_kahan_tests.patch`](../../patches/fplll_gso_kahan_tests.patch) — separate regression-test diff (`tests/test_gso_kahan.cpp` + `Makefile.am`), `make check` 16/16.
+- [`patches/README.md`](../../patches/README.md) — apply instructions (code then tests), verification notes, scope statement.
 - [`results/seeds/q3329/p1000_mt70/n100_beta30/`](../../results/seeds/q3329/p1000_mt70/n100_beta30/) — 100 lean seed JSONs + 45 fat companions (per-tour trajectories, Gram–Schmidt log-norms, RHF). SHA-256-indexed in `results/seed_manifest.json`.
 - [`results/clamp_events.jsonl`](../../results/clamp_events.jsonl) — append-only log of every defensive clamp fire during the q=3329 campaign. Raw pre-clamp `get_r()` values preserved.
 - [`hash_verification.txt`](../../hash_verification.txt) — cross-environment SHA-256 reconciliation.

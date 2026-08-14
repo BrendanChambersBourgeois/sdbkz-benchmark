@@ -14,12 +14,13 @@ Example (illustrative; `generated_utc` and per-entry timestamps drift on every r
   "generated_utc": "2026-04-18T12:50:44Z",
   "results_root": "results",
   "campaigns": {
-    "main":              { "total_seeds": 3505, "tags": ["cloud"],                 "q_values": [97] },
-    "q3329":             { "total_seeds":  332, "tags": ["cloud", "degenerate", "fat", "intermediate"], "q_values": [3329] },
-    "cliff500":          { "total_seeds":   20, "tags": [],                         "q_values": [97] },
-    "fplll_sensitivity": { "total_seeds":   15, "tags": ["v5.4.3", "v5.4.4", "v5.4.5"], "q_values": [97] },
+    "ntru":              { "total_seeds": 6740, "tags": [],                         "q_values": [97, 113, "...", 5869] },
+    "main":              { "total_seeds": 3593, "tags": ["cloud"],                 "q_values": [97] },
+    "q3329":             { "total_seeds":  353, "tags": ["cloud", "degenerate", "fat", "intermediate"], "q_values": [3329] },
     "tours3x":           { "total_seeds":  500, "tags": ["3x"],                    "q_values": [97] },
-    "convergence":       { "total_seeds":   40, "tags": ["test"],                  "q_values": [97] }
+    "convergence":       { "total_seeds":  340, "tags": ["test"],                  "q_values": [97] },
+    "cliff500":          { "total_seeds":   20, "tags": [],                         "q_values": [97] },
+    "fplll_sensitivity": { "total_seeds":   15, "tags": ["v5.4.3", "v5.4.4", "v5.4.5"], "q_values": [97] }
   },
   "seeds": [ <entry>, <entry>, ... ]
 }
@@ -37,13 +38,13 @@ Every entry has these fields. None are optional unless marked.
 
 | field              | type           | notes                                                                                       |
 |--------------------|----------------|---------------------------------------------------------------------------------------------|
-| `campaign`         | string         | One of: `main`, `q3329`, `cliff500`, `fplll_sensitivity`, `tours3x`, `convergence`.         |
+| `campaign`         | string         | One of: `ntru`, `main`, `q3329`, `tours3x`, `convergence`, `cliff500`, `fplll_sensitivity`. |
 | `path`             | string         | Repo-root-relative path. Post-v1.3.x points at `results/seeds/<campaign>/...`.               |
 | `n`                | int            | Secret dimension.                                                                           |
 | `beta`             | int            | BKZ block size.                                                                             |
 | `seed`             | int            | Per-group seed number.                                                                     |
-| `q`                | int            | LWE modulus. Values observed: 97 (main sweep), 3329 (ML-KEM).                               |
-| `precision`        | int or null    | MPFR precision in bits. `null` for tours3x (runs at implicit 250).                          |
+| `q`                | int            | Modulus. 97 (main/q97 sweeps), 3329 (ML-KEM, q3329 campaign), and ~100 distinct values 97–5869 across the `ntru` overstretched sweep. |
+| `precision`        | int or null    | MPFR precision in bits. `null` for tours3x (runs at implicit 250); `ntru` uses 250 / 500 / 1000. |
 | `max_tours`        | int or null    | Tour budget. `null` for tours3x (varies per subcampaign).                                   |
 | `store_per_tour`   | bool or null   | Whether the seed JSON includes per-tour trajectories.                                       |
 | `advantage`        | float or null  | Mean SD-BKZ advantage (nats). `null` for fat-companion entries; they carry no aggregate.    |
@@ -79,11 +80,14 @@ The mapping from pre-v1.3 directory to v1.3 campaign:
 
 \* The cloud-sourced q=3329 seeds (10 AWS-Batch seeds at n=100 β=30 documented in paper §8.2) migrate from `main` to `q3329` per the "campaign = intent" principle. The `build_seed_manifest.py` walker handles this reassignment based on `q` field content, not source directory.
 
+The `ntru` campaign has no pre-v1.3 directory — it is a **post-v1.3 native campaign** (the paper-2 NTRU dense-sublattice-discovery sweep, `forever_runner.py` + `run_campaign.py`) written directly into `results/seeds/ntru/` with no legacy migration. It is now the largest campaign in the manifest (6,740 seeds). Its bases are Ducas–van Woerden NTRU circulants of lattice dimension `2n`; `q` sweeps the overstretched range (~100 distinct moduli, 97–5869).
+
 ## New path layout (v1.3)
 
 Per campaign:
 
 ```
+ntru:              seeds/ntru/q{q}/p{precision}_mt{max_tours}/n{n:03d}_beta{beta:02d}/seed{seed:04d}.json
 main:              seeds/main/q97/n{n:03d}_beta{beta:02d}/seed{seed:04d}[_cloud].json
 q3329:             seeds/q3329/p{precision}_mt{max_tours}/n{n:03d}_beta{beta:02d}/seed{seed:04d}[_fat].json
 cliff500:          seeds/cliff500/q97/n{n:03d}_beta{beta:02d}/seed{seed:04d}.json
