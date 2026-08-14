@@ -18,25 +18,27 @@
 FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c
 
 # -- Reproducible compilation target ----------------------------------------
-# -march=x86-64-v2 (NOT -march=native). Phase 0 used -march=native, which
-# bakes the *build host's* exact ISA into the binary and breaks cross-
-# machine bit-identity. Was x86-64-v3 (AVX2/BMI2/FMA, ~Haswell+), the floor
-# for the two target machines (Intel 13900K, AMD 9950X3D) — but the
-# GitHub-hosted CI fleet has drifted to include v2-only runners that lack
-# AVX2, so a v3 binary SIGILLs on `import g6k.siever` in the determinism
-# gate (INC-55; 3 consecutive fails, rerun mitigation exhausted 2026-08-13).
-# x86-64-v2 (SSE4.2/POPCNT, ~Nehalem+) is the universal x86-64 floor and
-# clears every runner, at the cost of AVX2/FMA sieve speed in CI. Set as ENV
-# so all three source builds (fplll, fpylll, g6k) inherit it.
+# -march=x86-64-v2 (NOT -march=native). -march=native bakes the build host's
+# exact ISA into the binary and breaks cross-machine bit-identity — the whole
+# point of the determinism gate. x86-64-v2 (SSE4.2/POPCNT, ~Nehalem+) is the
+# universal x86-64 floor: it produces a binary that is byte-identical on every
+# machine AND runs on every GitHub-hosted runner (INC-55: the fleet drifted to
+# include v2-only runners, and an AVX2/FMA binary SIGILLs on `import
+# g6k.siever` there).
 #
-# WARNING — this CHANGES the compiled binary, hence the g6k determinism
-# reference SHA. After this edit the reference MUST be re-captured at v2
-# (Phase 1: run scripts/verify_g6k.sh in the freshly built image, commit the
-# new reference) before the HARD byte-identity gate can pass. The v2 output
-# is still bit-identical *across* v2 machines (v2 ⊂ both targets); only the
-# anchor value moves off the historical v3 baseline. Alternative considered:
-# keep v3 and pin the CI job to a fixed-microarch runner (leaves the SHA
-# untouched) — see INC-55.
+# CRITICAL (INC-55, 2026-08-14): g6k's own `./configure` defaults to
+# `--enable-native`, which detects the build host's SIMD and APPENDS AVX2/FMA
+# flags on top of our CXXFLAGS — silently overriding the v2 target. Setting
+# these ENV vars alone does nothing for the g6k siever (disassembly showed
+# AVX2 `ymm`/`vfmadd` in the "v2" .so). The g6k configure below MUST pass
+# `--disable-native` for this v2 target to actually take effect. fplll/fpylll
+# honour the ENV directly.
+#
+# WARNING — this determines the g6k determinism reference SHA. Any change to
+# the effective target (e.g. adding/removing --disable-native) changes the
+# binary, so the reference MUST be re-captured (run scripts/g6k_probe.py in the
+# freshly built image, write the SHAs into results/g6k_seed_manifest.json)
+# before the HARD byte-identity gate can pass.
 ENV CFLAGS="-O3 -march=x86-64-v2 -Wp,-U_FORTIFY_SOURCE" \
     CXXFLAGS="-O3 -march=x86-64-v2 -Wp,-U_FORTIFY_SOURCE"
 
@@ -128,7 +130,7 @@ RUN git clone https://github.com/fplll/g6k.git /tmp/g6k \
     && cd /tmp/g6k \
     && git checkout ${G6K_COMMIT} \
     && autoreconf -i \
-    && ./configure --with-max-sieving-dim=${G6K_MAX_SIEVING_DIM} \
+    && ./configure --disable-native --with-max-sieving-dim=${G6K_MAX_SIEVING_DIM} \
     && pip install --no-cache-dir --no-build-isolation . \
     && rm -rf /tmp/g6k
 
