@@ -52,6 +52,7 @@ CAMPAIGN_FIELDS: frozenset[str] = frozenset({
     "seed_tag",
     "backend",
     "metric_float_type",
+    "seed_wall_s",
 })
 
 # Top-level (non-campaign) keys allowed in the TOML root. `default` is
@@ -106,6 +107,15 @@ class Campaign:
     # clamps gs_lognorms to the -345 sentinel (deep audit 2026-07-04 finding
     # 1). fplll-only: a g6k campaign must leave this at "double".
     metric_float_type: str = "double"
+    # Per-seed wall-clock cap in SECONDS (None = off, the historical
+    # unbounded path). When set, the NTRU runner runs each seed in its own
+    # subprocess and SIGKILLs any seed exceeding this many seconds, logging
+    # it to results/wall_cap_events.jsonl and moving on — the wave is not
+    # stalled by one wedged seed (INC-56: g6k β≥50 past dim ~300 hot-wedges
+    # per-seed like the fplll enum, and an outer `timeout docker run` does
+    # NOT cap the container). Off by default so every existing campaign keeps
+    # the byte-identical mp.Pool path untouched.
+    seed_wall_s: int | None = None
 
 
 def _read_toml(path: str) -> dict[str, Any]:
@@ -263,6 +273,17 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
             "the g6k backend measures through the Siever's GSO"
         )
 
+    seed_wall_raw = merged.get("seed_wall_s")
+    if seed_wall_raw is None:
+        seed_wall_s = None
+    else:
+        seed_wall_s = int(seed_wall_raw)
+        if seed_wall_s <= 0:
+            raise ConfigError(
+                f"{ctx}: seed_wall_s must be a positive integer (seconds) "
+                f"or omitted, got {seed_wall_raw!r}"
+            )
+
     # seed_tag must name a known output tree (else a typo only surfaces at
     # worker runtime inside seed_dir_for). Validate here to fail fast.
     seed_tag_val = merged.get("seed_tag")
@@ -289,6 +310,7 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
                   else None),
         backend=backend,
         metric_float_type=metric_float_type,
+        seed_wall_s=seed_wall_s,
     )
 
 

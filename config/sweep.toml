@@ -782,7 +782,14 @@ metric_float_type = "mpfr"
 
 [campaigns.ntru_wall_beta_bump]
 description = "NTRU n>=179 bumped-beta wall test (budget-artifact vs fundamental; beta 50/60 at the beta=40 near-miss cell)"
+# 2026-08-19: re-routed to the g6k backend (INC-54: fplll enum wedges past dim
+# ~300; beta50 at dim 358 hot-wedged 25h). MUST RUN INSIDE sdbkz-g6k:dim384
+# (MAX_SIEVING_DIM=384 >= dim 362; dim256 image refuses n>=129... wall dims).
+# seed_tag=ntru_g6k keeps engine trees separate — never merge sieve seeds into
+# the canonical fplll results/seeds/ntru/ ladder.
 generator = "ntru"
+backend = "g6k"
+seed_tag = "ntru_g6k"
 q = 4591
 precision = 500
 beta_grid = [50, 60]
@@ -790,4 +797,12 @@ n_grid = [179, 181]
 tours_by_beta = { "50" = 50, "60" = 50 }
 num_seeds = 10
 store_per_tour = false
-metric_float_type = "mpfr"
+# metric_float_type dropped 2026-08-19: mpfr is fplll-only; g6k measures
+# through the Siever's GSO (run_campaign validation rejects mpfr+g6k).
+# Per-seed wall cap 4h (INC-56): non-wedged β50/n179 seeds land in ~20 min; the
+# hot-wedge ran 11h+ with no return. 14400 s = ~6-12× the legit worst case,
+# far below the wedge — a wedged seed is SIGKILLed + logged to
+# results/wall_cap_events.jsonl and the wave continues. This is the in-container
+# guard that replaces the broken outer `timeout docker run` (which never caps the
+# container). Applies to every cell of this campaign (β50/60 × n179/181).
+seed_wall_s = 14400

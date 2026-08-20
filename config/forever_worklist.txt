@@ -31,6 +31,47 @@
 # ntru_wall_beta_bump --n 179 --q 4591 --workers 10                                    # ONLY via g6k
 # ntru_wall_beta_bump --n 181 --q 4703 --workers 10                                    # ONLY via g6k
 #
+# #2 n=173 matched-ratio wall extension (2026-08-15). WHY: the "frontier dies 167->173"
+#    headline is confounded by SAMPLING, not just dimension. n=167 was pushed to 4.97x q_fat
+#    (SD DSD-rate wanders 20-45%, never crosses 50% => soft-wall); n=173 was only sampled to
+#    3.43x (q4967, SD 0-10%). At MATCHED ratio 173 does run lower (~4% vs 167's ~15%) but that
+#    band is noisy (n=20) and 173 was NEVER sampled in 167's hot 3.5-5.0x band. These 5 cells
+#    close that gap: does 173 climb to 167's ~30% plateau (=> frontier is a sampling floor, 173
+#    crackable at high q, HEADLINE CHANGE) or stay flat ~5% (=> real dim-driven wall, headline
+#    STRENGTHENED with matched-ratio data)? Either outcome is a clean frontier-death datapoint.
+#    Design = onset_driver's own --push-walls 173 grid (0.30x q_fat step from the q4967 max-null
+#    to QCAP 5.0x=7250): q 5407/5843/6287/6733/7177 = 3.73/4.03/4.34/4.64/4.95x, all prime.
+#    COST (MEASURED same-regime, NOT estimator — it under-predicts 2.3x here): existing n=173
+#    cells ran median 9.9h(q4513)->10.8h(q4967), rising ~1h/450q => ~11-15h/seed at these q;
+#    20 seeds/20 workers = 1 wave, so ~11-15h/cell, ~60-66h total. No @budget_h => the 24h
+#    DEFAULT_MAX_WALL_H backstop kills a hang without clipping legit work. beta=40 short-enum
+#    (dim 346, push173 proved tractable to q4967, no INC-54 wedge). Writes to canonical
+#    results/seeds/ntru/ (no seed_tag) so extract_dsd_onset merges with the existing 173 ladder.
+ntru_onset_boundary --n 173 --q 5407 --workers 20
+ntru_onset_boundary --n 173 --q 5843 --workers 20
+ntru_onset_boundary --n 173 --q 6287 --workers 20
+ntru_onset_boundary --n 173 --q 6733 --workers 20
+ntru_onset_boundary --n 173 --q 7177 --workers 20
+#    ^ DONE 2026-08-18: dim-driven wall CONFIRMED (SD 0-10% flat across 167's hot band vs
+#      167's 20-45% plateau; no 50% crossing to QCAP 5x). paper_findings 2026-08-18.
+#
+# #3 n=157 BKZ-onset extension (2026-08-18). WHY: the 50%-DSD-crossing frontier readout over
+#    the landed corpus shows the CLEAN onset tiers: 149/151 both oracles cross; 157 SD crosses
+#    (q2354 = 2.07x q_fat) but BKZ NEVER — its grid stops at q2411 = 2.12x with BKZ at 15%,
+#    i.e. 157 is UNDER-SAMPLED exactly where the BKZ crossing should sit. At n=163 BKZ lags SD
+#    by 1.31x (SD 2.47x vs BKZ 3.23x) => expected 157 BKZ crossing ~2.7-3.0x. These 4 cells
+#    extend the 157 ladder 2.29->3.07x to (a) pin the 157 BKZ onset = 4th dim point for the
+#    onset-gap trend (89/101/113/157), (b) chart SD's post-onset climb at the last clean-onset
+#    dim (saturates high like 149/151 vs wobbles like 167's soft-wall — gradient story).
+#    COST (MEASURED, q2203/q2411 cells): ~7.7h/seed flat => ~8h/cell (20 seeds/20 workers,
+#    1 wave), ~32h total. 24h DEFAULT_MAX_WALL_H backstop clears. All q prime, canonical
+#    results/seeds/ntru/ tree (merges with existing 157 ladder), campaign ntru_n157_qsweep
+#    (n157 beta40 mt50 p500 mpfr — dim 314, beta40 short-enum, no INC-54 wedge).
+ntru_n157_qsweep --q 2609 --workers 20
+ntru_n157_qsweep --q 2903 --workers 20
+ntru_n157_qsweep --q 3203 --workers 20
+ntru_n157_qsweep --q 3499 --workers 20
+#
 # ---- EXAMPLES you can uncomment / add (frontier q-cells, onset-knee topups) ----
 # ntru_onset_boundary --n 173 --q 5501 --workers 20      # push 173 past its wall stop
 # ntru_onset_boundary --n 191 --q 4513 --workers 20      # extend ladder to a new prime

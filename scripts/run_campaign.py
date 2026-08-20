@@ -390,6 +390,121 @@ def _ntru_seed_worker(task: tuple) -> tuple:
     return (n, beta, seed, r["advantage"], "ok")
 
 
+# Per-seed wall-cap side log. A wedged seed (INC-56: g6k β≥50 past dim ~300
+# hot-wedges in native code and never returns) is SIGKILLed and recorded here,
+# never in the per-seed JSON (SHA byte-identity). Same jsonl-side-file discipline
+# as results/clamp_events.jsonl.
+_WALL_CAP_LOG_FILE = os.path.join(REPO_ROOT, "results", "wall_cap_events.jsonl")
+
+
+def _log_wall_cap_kill(task: tuple, elapsed_s: float, cap_s: int) -> None:
+    """Append one wall-cap kill event (never mutates a seed JSON)."""
+    import json
+    n, beta, seed, q, precision, max_tours, generator, seed_tag = task[:8]
+    rec = {
+        "event": "wall_cap_kill",
+        "run_id": get_run_id(),
+        "n": n, "beta": beta, "seed": seed, "q": q,
+        "precision": precision, "seed_tag": seed_tag,
+        "elapsed_s": round(elapsed_s, 1), "cap_s": cap_s,
+    }
+    try:
+        os.makedirs(os.path.dirname(_WALL_CAP_LOG_FILE), exist_ok=True)
+        with open(_WALL_CAP_LOG_FILE, "a") as fh:
+            fh.write(json.dumps(rec) + "\n")
+    except OSError as e:  # a full/RO disk must not abort the wave
+        PIPELINE.error("wall_cap log write failed", cat="seed",
+                       error=f"{type(e).__name__}: {e}")
+
+
+def _seed_worker_to_queue(task: tuple, out_q: Any) -> None:
+    """Process target: run one seed, push its status tuple to the parent.
+
+    Thin wrapper around `_ntru_seed_worker` (which writes the seed JSON as a
+    side effect and returns (n,β,seed,adv,status)). Used only by the capped
+    scheduler; the return goes on a queue so the parent can tally without the
+    pool. A last-resort except guarantees the parent never blocks waiting on a
+    result that a crashing worker failed to enqueue.
+    """
+    try:
+        out_q.put(_ntru_seed_worker(task))
+    except BaseException as e:  # noqa: BLE001 -- must always report SOMETHING
+        n, beta, seed = task[0], task[1], task[2]
+        out_q.put((n, beta, seed, None, f"error: {type(e).__name__}: {e}"))
+
+
+def _run_tasks_capped(
+    tasks: list, nproc: int, seed_timeout_s: int,
+) -> tuple[list, list]:
+    """One-subprocess-per-seed scheduler with a hard per-seed wall cap.
+
+    Keeps at most `nproc` seeds running; SIGKILLs any seed that exceeds
+    `seed_timeout_s` wall-seconds (terminate → 5 s grace → kill), logs it to
+    results/wall_cap_events.jsonl, and launches the next pending seed — so one
+    wedged seed never stalls the wave. Uses the default (fork) mp context, so
+    each seed's per-process fpylll/g6k init + run_single re-seed is identical to
+    the mp.Pool path; determinism is unaffected.
+
+    Returns (results, killed) where results is a list of (n,β,seed,adv,status)
+    tuples for seeds that finished, and killed is a list of (task, elapsed_s).
+    """
+    import multiprocessing as mp
+    import queue as _queue
+    import time
+
+    ctx = mp.get_context()
+    out_q = ctx.Queue()
+    pending = list(tasks)
+    running: dict = {}
+    results: list = []
+    killed: list = []
+    POLL_S = 2.0
+
+    def _drain() -> None:
+        while True:
+            try:
+                results.append(out_q.get_nowait())
+            except _queue.Empty:
+                return
+
+    def _launch() -> None:
+        while pending and len(running) < nproc:
+            task = pending.pop(0)
+            p = ctx.Process(target=_seed_worker_to_queue, args=(task, out_q))
+            p.start()
+            running[p] = (task, time.monotonic())
+
+    _launch()
+    while running:
+        time.sleep(POLL_S)
+        _drain()
+        now = time.monotonic()
+        for p in list(running):
+            task, t0 = running[p]
+            elapsed = now - t0
+            if not p.is_alive():
+                p.join()
+                del running[p]
+            elif elapsed > seed_timeout_s:
+                p.terminate()
+                p.join(5)
+                if p.is_alive():
+                    p.kill()
+                    p.join()
+                del running[p]
+                killed.append((task, elapsed))
+                _log_wall_cap_kill(task, elapsed, seed_timeout_s)
+                PIPELINE.error(
+                    "seed wall-cap kill", cat="seed",
+                    n=task[0], beta=task[1], seed=task[2], q=task[3],
+                    seed_tag=task[7], elapsed_s=round(elapsed, 1),
+                    cap_s=seed_timeout_s,
+                )
+        _launch()
+    _drain()
+    return results, killed
+
+
 def _dispatch_ntru(
     campaign: Campaign, *, dry_run: bool, persist: bool, workers: int = 22,
 ) -> int:
@@ -473,12 +588,17 @@ def _dispatch_ntru(
 
     nproc = max(1, min(workers, (os.cpu_count() or 2), len(tasks)))
     total = len(tasks)
-    print(f"NTRU: {total} tasks across {nproc} workers ...")
     done = written = 0
     advs: dict[int, list] = {}
-    with mp.Pool(nproc) as pool:
-        for n, beta, seed, adv, status in pool.imap_unordered(
-                _ntru_seed_worker, tasks):
+
+    if campaign.seed_wall_s:
+        # Capped path (INC-56): one subprocess per seed, hard per-seed wall cap,
+        # wedged seeds SIGKILLed + logged, wave continues. Opt-in only — every
+        # campaign without seed_wall_s keeps the byte-identical mp.Pool path below.
+        print(f"NTRU: {total} tasks across {nproc} workers, "
+              f"per-seed wall cap {campaign.seed_wall_s}s ...")
+        results, killed = _run_tasks_capped(tasks, nproc, campaign.seed_wall_s)
+        for n, beta, seed, adv, status in results:
             done += 1
             if status == "ok":
                 written += 1
@@ -490,6 +610,31 @@ def _dispatch_ntru(
             else:
                 print(f"  [{done}/{total}] ERROR n={n} seed={seed}: {status}",
                       file=sys.stderr)
+        for task, elapsed in killed:
+            done += 1
+            print(f"  [{done}/{total}] WALL-CAP KILL n={task[0]} β={task[1]} "
+                  f"seed={task[2]}: {elapsed:.0f}s > {campaign.seed_wall_s}s "
+                  f"(logged, skipped)", file=sys.stderr)
+        if killed:
+            print(f"NTRU wall-cap: {len(killed)} seed(s) killed over "
+                  f"{campaign.seed_wall_s}s -> results/wall_cap_events.jsonl",
+                  file=sys.stderr)
+    else:
+        print(f"NTRU: {total} tasks across {nproc} workers ...")
+        with mp.Pool(nproc) as pool:
+            for n, beta, seed, adv, status in pool.imap_unordered(
+                    _ntru_seed_worker, tasks):
+                done += 1
+                if status == "ok":
+                    written += 1
+                    advs.setdefault(n, []).append(adv)
+                    print(f"  [{done}/{total}] n={n:3d} β={beta} seed={seed}: "
+                          f"advantage={adv:+.6f}")
+                elif status == "skip":
+                    print(f"  [{done}/{total}] n={n:3d} β={beta} seed={seed}: skip")
+                else:
+                    print(f"  [{done}/{total}] ERROR n={n} seed={seed}: {status}",
+                          file=sys.stderr)
     for n in sorted(advs):
         a = advs[n]
         print(f"  n={n}: mean advantage={sum(a) / len(a):+.4f} "
@@ -524,6 +669,11 @@ def main() -> int:
                     help="override campaign q (e.g. an NTRU fatigue q-sweep)")
     ap.add_argument("--precision", type=int, default=None,
                     help="override campaign MPFR precision")
+    ap.add_argument("--seed-timeout-s", type=int, default=None,
+                    help="per-seed wall-clock cap in seconds (NTRU runner): "
+                         "SIGKILL + skip + log any seed exceeding it (INC-56). "
+                         "Overrides the campaign's seed_wall_s; omit = campaign "
+                         "default / off.")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the resolved dispatch invocation; do not run")
     args = ap.parse_args()
@@ -550,6 +700,14 @@ def main() -> int:
     # the new tail (21..100); the original 20 stay byte-identical.
     if args.seeds is not None:
         campaign = dataclasses.replace(campaign, num_seeds=args.seeds)
+    # --seed-timeout-s overrides the campaign's seed_wall_s (per-seed wall cap,
+    # INC-56). Folded like q/precision/seeds. Positive-only; <=0 is a usage error.
+    if args.seed_timeout_s is not None:
+        if args.seed_timeout_s <= 0:
+            print("ERROR: --seed-timeout-s must be a positive integer (seconds)",
+                  file=sys.stderr)
+            return 2
+        campaign = dataclasses.replace(campaign, seed_wall_s=args.seed_timeout_s)
     # --n / --beta SUBSET the grid for the NTRU runner, which iterates
     # campaign.n_grid × beta_grid (the q3329/convergence/tours3x runners read the
     # scalar n/beta computed below instead, so they already honour --n/--beta).
