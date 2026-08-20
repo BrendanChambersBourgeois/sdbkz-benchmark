@@ -799,10 +799,23 @@ num_seeds = 10
 store_per_tour = false
 # metric_float_type dropped 2026-08-19: mpfr is fplll-only; g6k measures
 # through the Siever's GSO (run_campaign validation rejects mpfr+g6k).
-# Per-seed wall cap 4h (INC-56): non-wedged β50/n179 seeds land in ~20 min; the
-# hot-wedge ran 11h+ with no return. 14400 s = ~6-12× the legit worst case,
-# far below the wedge — a wedged seed is SIGKILLed + logged to
-# results/wall_cap_events.jsonl and the wave continues. This is the in-container
-# guard that replaces the broken outer `timeout docker run` (which never caps the
-# container). Applies to every cell of this campaign (β50/60 × n179/181).
+# Per-seed wall cap (INC-56 mechanism; replaces the broken outer `timeout docker
+# run`, which signals the CLI and never caps the container). A capped seed is
+# SIGKILLed + logged to results/wall_cap_events.jsonl and the wave continues.
+#
+# !!! THE VALUE BELOW IS KNOWN-WRONG AND KILLS EVERY SEED BY CONSTRUCTION !!!
+# MEASURED cost of a healthy β50/n179 seed (seeds 1-4, both legs to
+# max_tours_reached): bkz_time 15681-16018 s PLUS sdbkz_time 31565-32446 s
+# = 13.13-13.46 h, worst case 48464 s. 14400 s is 0.30× that. On 2026-08-20 all
+# 16 remaining seeds were killed at the cap: wave 1 had finished the entire
+# 50-tour BKZ leg and died 2.6-8.9 min into SD-BKZ tour 1. There was NO wedge.
+# The retracted "~20 min per seed" rationale was the mtime SPREAD of four seeds
+# that started within 0.1 s of each other — `timestamp` is a START stamp
+# (_bkz_core.py:235). See incidents.md INC-56/INC-57 correction 2026-08-20 and
+# the feedback_use_estimator lesson (never eyeball seed-flush mtime spans).
+#
+# TODO(owner): raise to >= 72000 (20 h) before relaunching. Left at the old value
+# deliberately — raising it commits ~13.2 h/seed of compute and that budget call
+# is yours, not the agent's. β60 is separately blocked on the g6k gauss_sieve
+# assertion and must not be relaunched until that is triaged.
 seed_wall_s = 14400
