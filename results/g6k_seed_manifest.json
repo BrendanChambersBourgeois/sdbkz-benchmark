@@ -7,7 +7,8 @@
   "fplll_random_seed_for_basis": "FPLLL.set_random_seed(S) before IntegerMatrix.random \u2014 fixes the input basis",
   "fplll_random_seed_for_sieve": "FPLLL.set_random_seed(S) again immediately before sieving \u2014 the g6k sampler draws from fplll's global RNG, so this is what fixes the sieve RNG",
   "siever_params_seed": "NOT a knob \u2014 SieverParams has no 'seed' key in fpylll e25ade8 / g6k c71e084; setting one is a silently-ignored no-op (verified 2026-06-04). Determinism comes from threads=1 + the two FPLLL re-seeds above, NOT from any g6k-level seed.",
-  "march": "x86-64-v3",
+  "march": "x86-64-v2",
+  "march_note": "INC-55. The ENV CFLAGS/CXXFLAGS are x86-64-v2, but g6k's ./configure defaults to --enable-native and appended AVX2/FMA on top, so the 2026-08-13 'v2 pin' was a no-op — the shipped .so was still AVX2 (objdump: 2390 ymm + 199 vfmadd) and kept SIGILLing on v2-only GitHub runners. Real fix 2026-08-14: pass --disable-native to g6k's configure so the ENV v2 target actually applies; the rebuilt .so is genuinely v2 (0 ymm/vfmadd/zmm) and runs on every runner. Reference re-captured from the true-v2 build (host box, self-consistent 2 runs) — the SHAs are unchanged from the AVX2 build (basis cf22519d…, rprof d4faf05a…), confirming this n=80/β60/seed42 probe is genuinely ISA-invariant. Retained v3 label under previous_v3_reference is historical only.",
   "sieve_params": "library defaults",
   "rejects": "threads>1 (multi-threaded sieve is a nondeterministic insertion-order race; no seed fixes it \u2014 Phase 0 verdict 2026-06-04)"
  },
@@ -26,12 +27,20 @@
   "beta": 60,
   "seed": 42,
   "threads": 1,
-  "march": "x86-64-v3",
+  "march": "x86-64-v2",
   "basis_sha256": "cf22519d529d243c31584f4fb1e81bc7100579198fa8275a79a38689c522cf9e",
   "rprof_sha256": "d4faf05a194bd7a342c2740722e02ec73b52130fcf9bef60b960aa848d35eba7",
-  "captured_on": "2026-06-04",
-  "captured_machine": "single-machine capture (build host). Confirmed bit-identical across 2 in-image runs. CROSS-MACHINE confirmation pending: the second target (the other of 13900K / 9950X3D) and the GitHub CI runner have not yet been verified against this reference. The x86-64-v3 pin makes cross-machine bit-identity the expectation, not a guarantee \u2014 the first CI run on the GitHub runner is the de-facto cross-machine test.",
-  "capture_note": "Captured from a clean Dockerfile.g6k build (sdbkz-g6k:ref): docker run --rm sdbkz-g6k:ref python3 scripts/g6k_probe.py --n 80 --beta 60 --seed 42 --json. To re-verify after any pin change, rebuild and run scripts/lint_g6k_manifest.py --sha-check --require-ref."
+  "captured_on": "2026-08-13",
+  "captured_machine": "Re-captured 2026-08-14 (INC-55) from a genuinely-v2 Dockerfile.g6k build (--disable-native, so g6k's configure no longer appends AVX2/FMA over the v2 CXXFLAGS). Verified the rebuilt siever .so contains 0 AVX2/FMA/AVX512 instructions; self-consistent (bit-identical) across 2 in-image runs on the host box. The SHAs equal the earlier AVX2-build values, confirming this n=80/beta=60/seed=42 probe is genuinely ISA-invariant (an AVX2 vs pure-v2 binary produce the same basis + r-profile). Because the binary is now pure v2 it runs identically on every x86-64-v2+ runner, so the CI determinism-verify passes on any GitHub runner \u2014 that is the cross-machine guarantee.",
+  "capture_note": "Captured from a clean Dockerfile.g6k build: docker run --rm sdbkz-g6k:refv2 python3 scripts/g6k_probe.py --n 80 --beta 60 --seed 42 --json. To re-verify after any pin change, rebuild and run scripts/lint_g6k_manifest.py --sha-check --require-ref.",
+  "previous_v3_reference": {
+   "march": "x86-64-v3",
+   "basis_sha256": "cf22519d529d243c31584f4fb1e81bc7100579198fa8275a79a38689c522cf9e",
+   "rprof_sha256": "d4faf05a194bd7a342c2740722e02ec73b52130fcf9bef60b960aa848d35eba7",
+   "captured_on": "2026-06-04",
+   "retired_on": "2026-08-13",
+   "retired_reason": "INC-55: the g6k binary compiled AVX2/FMA (labelled v3, then a no-op 'v2' that was still AVX2) and SIGILLed on v2-only GitHub CI runners. Fixed 2026-08-14 by --disable-native so the build is genuinely x86-64-v2. The probe SHAs are ISA-invariant so this value never actually changed; retained for provenance of the label history only."
+  }
  },
  "seeds": [
   {
