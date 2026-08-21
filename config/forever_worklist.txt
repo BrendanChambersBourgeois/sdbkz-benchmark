@@ -71,6 +71,24 @@ ntru_n157_qsweep --q 2609 --workers 20
 ntru_n157_qsweep --q 2903 --workers 20
 ntru_n157_qsweep --q 3203 --workers 20
 ntru_n157_qsweep --q 3499 --workers 20
+#    ^ DONE 2026-08-20: BKZ onset pinned at 2740 (2.40x q_fat), SD 2354 (2.07x), lag 1.16x.
+#      paper_findings 2026-08-20.
+#
+# #4 n=163 BKZ-onset extension (2026-08-21). WHY: 163 is the last clean-onset dim and
+#    the steepest onset-gap point (31% vs 16% at 157), but its BKZ crossing q=4049 is the
+#    GRID EDGE at exactly 0.50/20 (prior cells 0.20-0.35) -- one seed flips the readout.
+#    Same under-sampling #3 fixed at 157. 5 cells 3.37->3.85x q_fat: pin the 163 BKZ onset
+#    (5th gap-trend point) + chart SD post-onset (saturates like 149/151 vs stalls ~60%
+#    = 167 soft-wall precursor). COST MEASURED (bkz_time+sdbkz_time, q3793/3919/4049
+#    cells): 8.3h/seed flat, 20 seeds/20 workers = 1 wave, ~8.3h/cell, ~42h total.
+#    24h DEFAULT_MAX_WALL_H backstop clears. beta40 dim 326 short-enum, no INC-54 wedge.
+#    --n is a CLI override (163 not in n_grid, same as the 173 lines). Canonical
+#    results/seeds/ntru/ tree, merges with the existing 163 ladder (2503-4049).
+ntru_onset_boundary --n 163 --q 4211 --workers 20
+ntru_onset_boundary --n 163 --q 4357 --workers 20
+ntru_onset_boundary --n 163 --q 4507 --workers 20
+ntru_onset_boundary --n 163 --q 4657 --workers 20
+ntru_onset_boundary --n 163 --q 4813 --workers 20
 #
 # ---- EXAMPLES you can uncomment / add (frontier q-cells, onset-knee topups) ----
 # ntru_onset_boundary --n 173 --q 5501 --workers 20      # push 173 past its wall stop
