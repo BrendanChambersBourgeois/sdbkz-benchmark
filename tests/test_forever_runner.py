@@ -137,3 +137,38 @@ def test_dry_run_spawns_no_subprocess(tmp_path, monkeypatch):
     (tmp_path / "worklist.txt").write_text("ntru_wall_beta_bump --n 179\n")
     assert fr.main(["--dry-run"]) == 0                    # one pass, no spawn
     assert not fr.DONE_LOG.exists()                       # dry-run must NOT mark lines done
+
+
+# ---------------------------------------------------------------------------
+# Ultrareview PR #3 (2026-08-21): lock = shared _pidlock; refusal is a FAILURE
+# exit so Restart=on-failure retries and `systemctl status` shows it, instead of
+# exit-0 reading as an intended stop (never-idle floor silently dead).
+# ---------------------------------------------------------------------------
+
+def test_lock_reclaims_recycled_pid_running_related_tool(tmp_path, monkeypatch):
+    from pathlib import Path
+    lock = tmp_path / "forever_runner.lock"
+    monkeypatch.setattr(fr, "LOCK", lock)
+    lock.write_text(str(os.getpid()))                 # alive pid (this pytest)
+    monkeypatch.setattr(Path, "read_bytes",
+                        lambda self: b"tail\0-f\0scripts/forever_runner.py\0")
+    assert fr.acquire_lock() is True                  # reclaimed, not blocked
+    assert lock.read_text() == str(os.getpid())
+    fr.release_lock()
+    assert not lock.exists()
+
+
+def test_lock_blocks_on_live_runner_and_main_exits_nonzero(tmp_path, monkeypatch):
+    from pathlib import Path
+    lock = tmp_path / "forever_runner.lock"
+    monkeypatch.setattr(fr, "LOCK", lock)
+    lock.write_text(str(os.getpid()))
+    monkeypatch.setattr(Path, "read_bytes",
+                        lambda self: b"/usr/bin/python3\0scripts/forever_runner.py\0")
+    assert fr.acquire_lock() is False
+    spawned = []
+    monkeypatch.setattr(fr, "_install_signal_handlers", lambda: spawned.append("sig"))
+    rc = fr.main([])                                  # not dry-run -> takes the lock path
+    assert rc != 0                                    # on-failure restart, visible status
+    assert spawned == []                              # refused before any work
+    assert lock.read_text() == str(os.getpid())       # holder's lock untouched

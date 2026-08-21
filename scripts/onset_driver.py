@@ -41,6 +41,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 from _config import ConfigError, load_campaign  # noqa: E402
+from _pidlock import acquire_pidlock, release_pidlock  # noqa: E402
 from log import get_logger, new_run_id  # noqa: E402
 
 PIPELINE = get_logger("onset_driver")
@@ -498,49 +499,15 @@ def trace_n(n, deadline, dry, push_wall=False):
 def _acquire_lock():
     """Refuse to start if another driver is live (prevents cron@reboot double-run).
 
-    Stale lock (pid dead) is reclaimed. A live pid whose /proc cmdline is NOT an
-    onset_driver is a REUSED pid (SIGKILL left the lock; the pid was recycled) --
-    reclaimed too, else the month run silently never restarts (audit 2026-07-04
-    #3, minor 6). Returns True on success.
+    Stale lock (pid dead) is reclaimed. A live pid whose /proc cmdline is NOT a
+    python interpreter running onset_driver.py is a REUSED pid (SIGKILL left the
+    lock; the pid was recycled) -- reclaimed too, else the month run silently
+    never restarts (audit 2026-07-04 #3 minor 6; anchored match audit #4).
+    Ultrareview PR #3 (2026-08-21): the exists()->write_text() pair was a TOCTOU
+    (two racers both passed the check and both "held" the lock); now the shared
+    _pidlock helper does an atomic create. Returns True on success.
     """
-    LOCK.parent.mkdir(parents=True, exist_ok=True)
-    if LOCK.exists():
-        try:
-            old = int(LOCK.read_text().strip())
-        except ValueError:
-            old = None
-            log("unparseable lock -- reclaiming")
-        if old is not None:
-            alive = True
-            try:
-                os.kill(old, 0)          # raises if pid gone
-            except ProcessLookupError:
-                alive = False
-                log("stale lock found -- reclaiming")
-            except PermissionError:
-                pass                     # alive, foreign user -- check cmdline
-            if alive:
-                try:
-                    argv = Path(f"/proc/{old}/cmdline").read_bytes() \
-                        .decode(errors="replace").split("\0")
-                except OSError:
-                    argv = []
-                # Anchored match: a python interpreter running THIS script.
-                # A loose "onset_driver in cmdline" substring false-blocks on
-                # a recycled pid running e.g. `tail -f scripts/onset_driver.py`
-                # or `pytest tests/test_onset_driver.py` (audit #4 2026-07-05;
-                # basename of test_onset_driver.py does not match).
-                is_driver = argv and "python" in os.path.basename(argv[0]) \
-                    and any(os.path.basename(a) == "onset_driver.py"
-                            for a in argv)
-                if is_driver:
-                    log(f"another onset_driver (pid {old}) holds the lock "
-                        f"-- exiting")
-                    return False
-                log(f"lock pid {old} alive but not an onset_driver "
-                    f"(pid reuse) -- reclaiming")
-    LOCK.write_text(str(os.getpid()))
-    return True
+    return acquire_pidlock(LOCK, "onset_driver.py", log)
 
 
 def _check_campaign():
@@ -627,12 +594,8 @@ def main(argv=None):
             trace_n(n, deadline, args.dry_run, push_wall=(n in args.push_walls))
         log("==== onset_driver complete or deadline ====")
     finally:
-        if not args.dry_run and LOCK.exists():
-            try:
-                if int(LOCK.read_text().strip()) == os.getpid():
-                    LOCK.unlink()
-            except (ValueError, FileNotFoundError):
-                pass
+        if not args.dry_run:
+            release_pidlock(LOCK)
     return 0
 
 

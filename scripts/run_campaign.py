@@ -397,17 +397,9 @@ def _ntru_seed_worker(task: tuple) -> tuple:
 _WALL_CAP_LOG_FILE = os.path.join(REPO_ROOT, "results", "wall_cap_events.jsonl")
 
 
-def _log_wall_cap_kill(task: tuple, elapsed_s: float, cap_s: int) -> None:
-    """Append one wall-cap kill event (never mutates a seed JSON)."""
+def _append_seed_event(rec: dict) -> None:
+    """Append one event record to results/wall_cap_events.jsonl (never a seed JSON)."""
     import json
-    n, beta, seed, q, precision, max_tours, generator, seed_tag = task[:8]
-    rec = {
-        "event": "wall_cap_kill",
-        "run_id": get_run_id(),
-        "n": n, "beta": beta, "seed": seed, "q": q,
-        "precision": precision, "seed_tag": seed_tag,
-        "elapsed_s": round(elapsed_s, 1), "cap_s": cap_s,
-    }
     try:
         os.makedirs(os.path.dirname(_WALL_CAP_LOG_FILE), exist_ok=True)
         with open(_WALL_CAP_LOG_FILE, "a") as fh:
@@ -415,6 +407,35 @@ def _log_wall_cap_kill(task: tuple, elapsed_s: float, cap_s: int) -> None:
     except OSError as e:  # a full/RO disk must not abort the wave
         PIPELINE.error("wall_cap log write failed", cat="seed",
                        error=f"{type(e).__name__}: {e}")
+
+
+def _task_fields(task: tuple) -> dict:
+    n, beta, seed, q, precision, max_tours, generator, seed_tag = task[:8]
+    return {"run_id": get_run_id(), "n": n, "beta": beta, "seed": seed, "q": q,
+            "precision": precision, "seed_tag": seed_tag}
+
+
+def _log_wall_cap_kill(task: tuple, elapsed_s: float, cap_s: int) -> None:
+    """Append one wall-cap kill event (never mutates a seed JSON)."""
+    _append_seed_event({"event": "wall_cap_kill", **_task_fields(task),
+                        "elapsed_s": round(elapsed_s, 1), "cap_s": cap_s})
+
+
+def _log_worker_crash(task: tuple, elapsed_s: float, exitcode: int) -> None:
+    """Append one worker-crash event: the seed subprocess died WITHOUT reporting
+    (SIGSEGV/SIGABRT in fplll, MPFR or the g6k siever, or an external SIGKILL such
+    as the OOM killer) -- ultrareview PR #3 (2026-08-21). Negative exitcode =
+    -signal (multiprocessing convention)."""
+    import signal as _signal
+    sig = None
+    if exitcode is not None and exitcode < 0:
+        try:
+            sig = _signal.Signals(-exitcode).name
+        except ValueError:
+            sig = f"signal {-exitcode}"
+    _append_seed_event({"event": "worker_crash", **_task_fields(task),
+                        "elapsed_s": round(elapsed_s, 1), "exitcode": exitcode,
+                        "signal": sig})
 
 
 def _seed_worker_to_queue(task: tuple, out_q: Any) -> None:
@@ -445,8 +466,13 @@ def _run_tasks_capped(
     each seed's per-process fpylll/g6k init + run_single re-seed is identical to
     the mp.Pool path; determinism is unaffected.
 
-    Returns (results, killed) where results is a list of (n,β,seed,adv,status)
-    tuples for seeds that finished, and killed is a list of (task, elapsed_s).
+    Returns (results, killed, crashed): results = (n,β,seed,adv,status) tuples
+    for seeds that reported back; killed = (task, elapsed_s) for wall-cap kills;
+    crashed = (task, elapsed_s, exitcode) for workers that exited non-zero
+    WITHOUT reporting (native SIGSEGV/SIGABRT, external SIGKILL) -- ultrareview
+    PR #3: previously these vanished from the tally, so a wave could end with
+    done < total and no log line. len(results)+len(killed)+len(crashed) ==
+    len(tasks) always; a mismatch is logged as an error, never raised.
     """
     import multiprocessing as mp
     import queue as _queue
@@ -458,6 +484,7 @@ def _run_tasks_capped(
     running: dict = {}
     results: list = []
     killed: list = []
+    exited_nonzero: dict = {}            # (n,β,seed) -> (task, elapsed, exitcode)
     POLL_S = 2.0
 
     def _drain() -> None:
@@ -485,6 +512,8 @@ def _run_tasks_capped(
             if not p.is_alive():
                 p.join()
                 del running[p]
+                if p.exitcode != 0:      # died without a normal return
+                    exited_nonzero[tuple(task[:3])] = (task, elapsed, p.exitcode)
             elif elapsed > seed_timeout_s:
                 p.terminate()
                 p.join(5)
@@ -502,7 +531,27 @@ def _run_tasks_capped(
                 )
         _launch()
     _drain()
-    return results, killed
+    # Reconcile: a non-zero exit whose result DID arrive (e.g. SIGKILLed after the
+    # put) is not a crash; one with no result is.
+    delivered = {tuple(r[:3]) for r in results}
+    crashed: list = []
+    for key, (task, elapsed, code) in exited_nonzero.items():
+        if key in delivered:
+            continue
+        crashed.append((task, elapsed, code))
+        _log_worker_crash(task, elapsed, code)
+        PIPELINE.error(
+            "seed worker crashed without reporting", cat="seed",
+            n=task[0], beta=task[1], seed=task[2], q=task[3],
+            seed_tag=task[7], elapsed_s=round(elapsed, 1), exitcode=code,
+        )
+    if len(results) + len(killed) + len(crashed) != len(tasks):
+        PIPELINE.error(
+            "capped scheduler tally mismatch", cat="seed",
+            tasks=len(tasks), results=len(results), killed=len(killed),
+            crashed=len(crashed),
+        )
+    return results, killed, crashed
 
 
 def _dispatch_ntru(
@@ -597,7 +646,8 @@ def _dispatch_ntru(
         # campaign without seed_wall_s keeps the byte-identical mp.Pool path below.
         print(f"NTRU: {total} tasks across {nproc} workers, "
               f"per-seed wall cap {campaign.seed_wall_s}s ...")
-        results, killed = _run_tasks_capped(tasks, nproc, campaign.seed_wall_s)
+        results, killed, crashed = _run_tasks_capped(
+            tasks, nproc, campaign.seed_wall_s)
         for n, beta, seed, adv, status in results:
             done += 1
             if status == "ok":
@@ -615,10 +665,18 @@ def _dispatch_ntru(
             print(f"  [{done}/{total}] WALL-CAP KILL n={task[0]} β={task[1]} "
                   f"seed={task[2]}: {elapsed:.0f}s > {campaign.seed_wall_s}s "
                   f"(logged, skipped)", file=sys.stderr)
+        for task, elapsed, code in crashed:
+            done += 1
+            print(f"  [{done}/{total}] WORKER CRASH n={task[0]} β={task[1]} "
+                  f"seed={task[2]}: exitcode={code} after {elapsed:.0f}s "
+                  f"(logged, skipped)", file=sys.stderr)
         if killed:
             print(f"NTRU wall-cap: {len(killed)} seed(s) killed over "
                   f"{campaign.seed_wall_s}s -> results/wall_cap_events.jsonl",
                   file=sys.stderr)
+        if crashed:
+            print(f"NTRU: {len(crashed)} worker(s) crashed without reporting "
+                  f"-> results/wall_cap_events.jsonl", file=sys.stderr)
     else:
         print(f"NTRU: {total} tasks across {nproc} workers ...")
         with mp.Pool(nproc) as pool:

@@ -33,6 +33,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _pidlock import acquire_pidlock, release_pidlock  # noqa: E402
 from log import get_logger  # noqa: E402
 
 log = get_logger("forever_runner")
@@ -101,32 +102,18 @@ def _install_signal_handlers() -> None:
 
 # --------------------------------------------------------------------------- lock
 def acquire_lock() -> bool:
-    LOCK.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        fd = os.open(str(LOCK), os.O_CREAT | os.O_EXCL | os.O_WRONLY)  # atomic
-    except FileExistsError:
-        try:
-            old = int(LOCK.read_text().strip())
-            os.kill(old, 0)
-            argv = Path(f"/proc/{old}/cmdline").read_bytes().decode("replace").split("\0")
-            if any(os.path.basename(a) == "forever_runner.py" for a in argv):
-                log.info("another forever_runner holds the lock -- exiting", cat="runner")
-                return False
-        except (ValueError, ProcessLookupError, FileNotFoundError, OSError):
-            pass
-        log.info("stale/foreign lock -- reclaiming", cat="runner")
-        fd = os.open(str(LOCK), os.O_CREAT | os.O_TRUNC | os.O_WRONLY)
-    os.write(fd, str(os.getpid()).encode())
-    os.close(fd)
-    return True
+    """Single-instance lock via _pidlock (atomic create + anchored holder match).
+
+    Ultrareview PR #3 (2026-08-21): the previous in-file version matched ANY argv
+    basename == forever_runner.py, so a recycled pid running `tail -f
+    scripts/forever_runner.py` blocked the restart; main() returned 0 and
+    Restart=on-failure then left the never-idle floor silently dead."""
+    return acquire_pidlock(LOCK, "forever_runner.py",
+                           lambda m: log.info(m, cat="runner"))
 
 
 def release_lock() -> None:
-    try:
-        if LOCK.exists() and int(LOCK.read_text().strip()) == os.getpid():
-            LOCK.unlink()
-    except (ValueError, FileNotFoundError):
-        pass
+    release_pidlock(LOCK)
 
 
 # ---------------------------------------------------------------------- worklist
@@ -260,7 +247,7 @@ def main(argv=None) -> int:
         os.environ["PIPELINE_LOG_TAG"] = "dryrun"   # central log, marked synthetic
 
     if not args.dry_run and not acquire_lock():
-        return 0
+        return 3                                 # non-zero: Restart=on-failure retries, status shows it
     if not args.dry_run:
         _install_signal_handlers()               # release lock + kill child on stop (INC-54)
     consec_fail = 0
