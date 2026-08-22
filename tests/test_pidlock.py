@@ -31,7 +31,10 @@ def test_fresh_lock_acquired_and_holds_own_pid(tmp_path):
 
 def test_release_only_when_owner(tmp_path):
     lock = tmp_path / "x.lock"
-    lock.write_text("1")
+    # NOT a literal "1": under `docker run ... python3 -m pytest` (how CI
+    # invokes this) pytest IS pid 1, so "1" would be our own pid and the
+    # release would legitimately fire. getpid()+1 can never equal getpid().
+    lock.write_text(str(os.getpid() + 1))
     _pidlock.release_pidlock(lock)
     assert lock.exists()                                # not ours -> untouched
     lock.write_text(str(os.getpid()))
