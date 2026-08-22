@@ -21,8 +21,8 @@ from __future__ import annotations
 
 import errno
 import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 _MAX_ATTEMPTS = 5
 
