@@ -819,3 +819,25 @@ store_per_tour = false
 # is yours, not the agent's. β60 is separately blocked on the g6k gauss_sieve
 # assertion and must not be relaunched until that is triaged.
 seed_wall_s = 14400
+
+[campaigns.ntru_g6k_backfill]
+description = "steamdeck forever-runner idle-filler — g6k β40 twins of the ntru_b2 frontier cells (cross-engine corpus)"
+# 2026-08-23: never-idle floor for the steamdeck node's forever-runner. Same
+# frontier (n,q) pairs as the workstation's fplll ntru_b2 filler, but through
+# the g6k backend into the ntru_g6k tree — builds the cross-engine β40 corpus
+# (Rowell RHF-equal claim; corpus-discordance analysis) out of idle time.
+# CELL OWNERSHIP: the steamdeck node OWNS these ntru_g6k β40 cells (and the
+# q4591 β50 wall cells); the workstation must not generate seeds there, or
+# node-pull will meet two different seeds with one filename. Runs inside
+# sdbkz-g6k:dim384 (n=179 is dim 358). No metric_float_type: mpfr is
+# fplll-only and run_campaign validation rejects mpfr+g6k.
+generator = "ntru"
+backend = "g6k"
+seed_tag = "ntru_g6k"
+q = 3167
+precision = 500
+beta_grid = [40]
+n_grid = [167, 173, 179]
+tours_by_beta = { "40" = 50 }
+num_seeds = 200
+store_per_tour = false

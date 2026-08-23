@@ -1,0 +1,32 @@
+# Steamdeck node worklist — forever-runner profile (rootless podman, 6 physical
+# Zen 4 cores; unit: ~/.config/systemd/user/forever-runner.service on the node,
+# repo copy config/forever-runner-steamdeck.service).
+#
+# HOW TO INJECT WORK (owner): edit this file on the workstation, then
+#     make node-push-worklist
+# The runner re-reads this file at every loop iteration — no restart needed.
+# Completed lines are tracked in results/logs/forever_worklist.done ON THE NODE;
+# this file is never mutated by the runner. Editing a completed line's text
+# makes it a NEW line (whitespace-normalized signature).
+#
+# LINE FORMAT (same as config/forever_worklist.txt):
+#     <campaign> [--flags...] [@budget_h=H]
+#   - ALWAYS pass --workers 6 or less (run_campaign defaults to 22; the node
+#     has 6 cores; g6k sieve stays threads=1, parallelism is across seeds).
+#   - Long seeds: pass --seed-timeout-s per line (INC-56 per-seed SIGKILL cap)
+#     AND @budget_h=H for the whole line; without @budget_h the runner's
+#     24 h backstop kills the line (DEFAULT_MAX_WALL_H, INC-54).
+#
+# CELL OWNERSHIP (collision rule): this node writes ONLY the ntru_g6k tree.
+# Deck-owned cells: the q4591 β50 wall cells (n=179, n=181) and the g6k β40
+# backfill twins 167:3167 / 173:4073 / 179:4591. The workstation must not
+# generate seeds in those cells — node-pull (rsync --ignore-existing) would
+# meet two different seeds claiming one filename and silently keep only the
+# workstation's. Seeds flow back via `make node-pull` only.
+#
+# Idle-filler floor (runs whenever this list is drained): ntru_g6k_backfill
+# β40, least-sampled-first over the three cells above, ceiling ratchet — the
+# node never idles and never exhausts.
+#
+# ---- REAL SCIENCE (drains top-to-bottom before any filler) -------------------
+ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 10 --workers 6 --seed-timeout-s 86400 @budget_h=48

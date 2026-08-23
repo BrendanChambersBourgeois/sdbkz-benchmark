@@ -172,3 +172,30 @@ def test_lock_blocks_on_live_runner_and_main_exits_nonzero(tmp_path, monkeypatch
     assert rc != 0                                    # on-failure restart, visible status
     assert spawned == []                              # refused before any work
     assert lock.read_text() == str(os.getpid())       # holder's lock untouched
+
+
+def test_node_profile_flags_override_globals(tmp_path, monkeypatch):
+    # Register originals with monkeypatch so main()'s global writes are undone.
+    for name in ("WORKLIST", "FILLER_CAMPAIGN", "FILLER_CELLS",
+                 "FILLER_WORKERS", "FILLER_TREE", "REPO"):
+        monkeypatch.setattr(fr, name, getattr(fr, name))
+    monkeypatch.setattr(fr, "REPO", tmp_path)
+    (tmp_path / "wl.txt").write_text("")
+    rc = fr.main(["--dry-run", "--max-iters", "1", "--worklist", "wl.txt",
+                  "--filler-campaign", "ntru_g6k_backfill",
+                  "--filler-cells", "167:3167,173:4073",
+                  "--filler-workers", "6", "--filler-tree", "ntru_g6k"])
+    assert rc == 0
+    assert fr.WORKLIST == tmp_path / "wl.txt"             # relative -> repo-rooted
+    assert fr.FILLER_CAMPAIGN == "ntru_g6k_backfill"
+    assert fr.FILLER_CELLS == [(167, 3167), (173, 4073)]
+    assert fr.FILLER_WORKERS == 6
+    assert fr.FILLER_TREE == "ntru_g6k"
+
+
+def test_filler_cells_bad_format_is_argparse_error(tmp_path, monkeypatch):
+    import pytest
+    for name in ("WORKLIST", "FILLER_CELLS", "REPO"):
+        monkeypatch.setattr(fr, name, getattr(fr, name))
+    with pytest.raises(SystemExit):
+        fr.main(["--dry-run", "--max-iters", "1", "--filler-cells", "167x3167"])

@@ -61,6 +61,7 @@ FILLER_WORKERS = 10
 # it only runs when the worklist (real science) is empty.
 FILLER_CELLS = [(167, 3167), (173, 4073), (179, 4591)]
 FILLER_CEILING_START = 60
+FILLER_TREE = "ntru_b2"      # seed tree the filler writes = seed_tag of FILLER_CAMPAIGN
 
 
 # --------------------------------------------------- child process + signal safety
@@ -212,7 +213,7 @@ def run_worklist_line(line: str, dry: bool) -> int:
 
 
 def _cell_seed_count(n: int, q: int) -> int:
-    d = REPO / "results" / "seeds" / "ntru_b2" / f"q{q}" / "p500_mt50" / f"n{n}_beta40"
+    d = REPO / "results" / "seeds" / FILLER_TREE / f"q{q}" / "p500_mt50" / f"n{n}_beta40"
     return len(list(d.glob("seed*.json"))) if d.exists() else 0
 
 
@@ -237,12 +238,43 @@ def run_filler_unit(dry: bool) -> bool:
 
 # -------------------------------------------------------------------------- main
 def main(argv=None) -> int:
+    global WORKLIST, FILLER_CAMPAIGN, FILLER_CELLS, FILLER_WORKERS, FILLER_TREE
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--dry-run", action="store_true",
                     help="log decisions, spawn no campaigns; also caps the loop")
     ap.add_argument("--max-iters", type=int, default=0,
                     help="stop after N iterations (0 = forever; used by --dry-run/tests)")
+    # Node-profile overrides (2026-08-23, steamdeck node): one shared runner, the
+    # unit file picks the worklist and filler for its box. Defaults unchanged =
+    # the workstation profile.
+    ap.add_argument("--worklist", default=None, metavar="PATH",
+                    help="alternate worklist file, relative to the repo root "
+                         "(default config/forever_worklist.txt)")
+    ap.add_argument("--filler-campaign", default=None, metavar="NAME",
+                    help=f"idle-filler campaign (default {FILLER_CAMPAIGN})")
+    ap.add_argument("--filler-cells", default=None, metavar="N:Q[,N:Q...]",
+                    help="idle-filler frontier cells (default "
+                         + ",".join(f"{n}:{q}" for n, q in FILLER_CELLS) + ")")
+    ap.add_argument("--filler-workers", type=int, default=None,
+                    help=f"idle-filler --workers (default {FILLER_WORKERS})")
+    ap.add_argument("--filler-tree", default=None, metavar="TREE",
+                    help="seed tree the filler campaign writes (its seed_tag; "
+                         f"default {FILLER_TREE}) — where cell seeds are counted")
     args = ap.parse_args(argv)
+    if args.worklist:
+        WORKLIST = Path(args.worklist) if os.path.isabs(args.worklist) else REPO / args.worklist
+    if args.filler_campaign:
+        FILLER_CAMPAIGN = args.filler_campaign
+    if args.filler_workers:
+        FILLER_WORKERS = args.filler_workers
+    if args.filler_tree:
+        FILLER_TREE = args.filler_tree
+    if args.filler_cells:
+        try:
+            FILLER_CELLS = [(int(n), int(q)) for n, q in
+                            (c.split(":") for c in args.filler_cells.split(","))]
+        except ValueError:
+            ap.error(f"--filler-cells must be N:Q[,N:Q...], got {args.filler_cells!r}")
     if args.dry_run:
         os.environ["PIPELINE_LOG_TAG"] = "dryrun"   # central log, marked synthetic
 
@@ -253,7 +285,9 @@ def main(argv=None) -> int:
     consec_fail = 0
     it = 0
     try:
-        log.info("==== forever_runner up ====", cat="runner")
+        log.info(f"==== forever_runner up ==== worklist={WORKLIST.name} "
+                 f"filler={FILLER_CAMPAIGN} tree={FILLER_TREE} "
+                 f"workers={FILLER_WORKERS} cells={FILLER_CELLS}", cat="runner")
         while True:
             it += 1
             if args.max_iters and it > args.max_iters:
