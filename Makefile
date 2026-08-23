@@ -6,7 +6,7 @@
 #
 # Invoke `make help` for the menu.
 
-.PHONY: help reproduce verify bug-hunt manifest manifest-patched lint-manifest xarch-compare figs figs-paper2 paper clean
+.PHONY: help reproduce verify bug-hunt manifest manifest-patched lint-manifest xarch-compare figs figs-paper2 paper clean node-status node-pull
 
 help:  ## Show this menu
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -20,6 +20,12 @@ verify:  ## Run all CI gates locally (lint_logging, ruff, pytest, verify.sh, lin
 	python3 -m pytest tests/ -v
 	NUM_SEEDS=1 bash scripts/verify.sh
 	python3 scripts/lint_seed_manifest.py
+
+node-status:  ## Live state + recent history from the remote compute node
+	python3 scripts/node_sync.py status
+
+node-pull:  ## Pull new node seeds (never overwrites) + merge its pipeline log
+	python3 scripts/node_sync.py pull
 
 bug-hunt:  ## Static tag-driven bug hunt over scripts/ + analysis/ + tests/
 	ctags -R --languages=python --python-kinds=-iv -f .tags \
