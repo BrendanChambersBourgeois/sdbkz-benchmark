@@ -64,28 +64,27 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 
 def _merge_log(node_lines: list[str], canonical: Path, node_name: str) -> tuple[int, int]:
-    """Append only records this node has not already contributed."""
+    """Append only records this node has not already contributed.
+
+    Keyed by the EXACT line content against the whole canonical log. The
+    pre-2026-08-23 version keyed on node_status/node_sync timestamps only, so
+    the node's runner and campaign records (same bind-mounted pipeline.jsonl)
+    were re-appended on every pull. Content-keying is lossless: two genuinely
+    distinct records never share a full line, and a timestamp key would drop
+    distinct same-millisecond records from parallel workers.
+    """
     seen: set[str] = set()
     if canonical.exists():
         with canonical.open() as fh:
             for line in fh:
-                if '"node_sync"' not in line and '"node_status"' not in line:
-                    continue
-                try:
-                    rec = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-                if rec.get("ctx", {}).get("node") == node_name:
-                    seen.add(rec.get("ts", ""))
+                seen.add(line.rstrip("\n"))
 
     fresh = []
     for line in node_lines:
-        try:
-            rec = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if rec.get("ts") not in seen:
-            fresh.append(line.rstrip("\n"))
+        line = line.rstrip("\n")
+        if line and line not in seen:
+            fresh.append(line)
+            seen.add(line)
 
     if fresh:
         with canonical.open("a") as fh:
@@ -129,6 +128,27 @@ def cmd_pull(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_push_worklist(args: argparse.Namespace) -> int:
+    """Push the node's worklist file. The runner re-reads it every loop
+    iteration and never mutates it, so a push mid-run cannot race a rewrite."""
+    src = REPO / "config" / "forever_worklist_steamdeck.txt"
+    if not src.exists():
+        print(f"missing {src}", file=sys.stderr)
+        return 2
+    rsh = " ".join(_ssh_base(args.control_path))
+    rs = ["rsync", "-ai", "-e", rsh, str(src),
+          f"{args.node}:~/{args.remote_dir}/config/"]
+    out = subprocess.run(rs, capture_output=True, text=True, timeout=120)
+    if out.returncode != 0:
+        print(out.stderr.strip(), file=sys.stderr)
+        return 2
+    changed = bool(out.stdout.strip())
+    print(out.stdout.strip() if changed else "worklist unchanged on node")
+    PIPELINE.info("worklist pushed", cat="node_sync", node=args.node,
+                  changed=changed)
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -140,8 +160,8 @@ def main() -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     st = sub.add_parser("status", help="live sample + recent history")
-    st.add_argument("--unit", default="ntru-wall-b50-n179.service")
-    st.add_argument("--container", default="ntru-wall-b50")
+    st.add_argument("--unit", default="forever-runner.service")
+    st.add_argument("--container", default="forever-runner")
     st.add_argument("--cell", default="q4591/p500_mt50/n179_beta50")
     st.add_argument("--expect-seeds", type=int, default=10)
     st.add_argument("--history", type=int, default=8)
@@ -150,6 +170,10 @@ def main() -> int:
     pl = sub.add_parser("pull", help="copy new seeds + merge node log")
     pl.add_argument("--dry-run", action="store_true")
     pl.set_defaults(func=cmd_pull)
+
+    pw = sub.add_parser("push-worklist",
+                        help="push config/forever_worklist_steamdeck.txt to the node")
+    pw.set_defaults(func=cmd_push_worklist)
 
     args = ap.parse_args()
     return args.func(args)

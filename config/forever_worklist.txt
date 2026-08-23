@@ -23,7 +23,13 @@
 #    n=179 beta40 near-miss (ratio 57 @ 2.909x)?
 #
 #    STATUS 2026-08-23: RUNNING OFF-BOX. Not on this runner and must not be added
-#    to it. The steamdeck node (deck@192.168.1.229, rootless podman, 6 physical
+#    to it. EVENING UPDATE: the steamdeck node now runs its own forever-runner
+#    (config/forever-runner-steamdeck.service, worklist
+#    config/forever_worklist_steamdeck.txt) gated to start when the wall unit
+#    exits. n=181 beta50 (the wall campaign's other n_grid point) is queued
+#    THERE, and the node owns the ntru_g6k beta40 backfill cells 167:3167 /
+#    173:4073 / 179:4591 as its idle floor -- never add those cells, or n=181
+#    beta50, to THIS worklist. The steamdeck node (deck@192.168.1.229, rootless podman, 6 physical
 #    Zen 4 cores) is running seeds 5-10 -- the six that remained of num_seeds=10 --
 #    as lingering user unit ntru-wall-b50-n179.service, launched 10:18 AEST with
 #    `--beta 50 --workers 6 --seed-timeout-s 86400`. Adding a line here would

@@ -1,0 +1,44 @@
+# Steamdeck node forever-runner — install as ~/.config/systemd/user/forever-runner.service
+# (systemctl --user daemon-reload && systemctl --user enable --now forever-runner).
+# Linger is set on the node, so it survives logout and starts at boot.
+#
+# Runs the SHARED scripts/forever_runner.py inside the g6k container (the node
+# has no native toolchain); the repo bind-mount means worklist edits pushed via
+# `make node-push-worklist` and done-log/lock state all live on the host at
+# ~/lattice. Stop path: ExecStop `podman stop` SIGTERMs the container's PID 1
+# (forever_runner), whose handler kills the in-flight campaign group and
+# releases the lock (INC-54); NEVER wrap podman in `timeout` (INC-56: it
+# signals the CLI, the container lives on).
+[Unit]
+Description=Forever runner (steamdeck node) — worklist + g6k β40 idle-filler in podman
+After=default.target
+# [Unit]-section directives (systemd silently drops them in [Service]).
+# Break a persistent CRASH loop; a clean exit is NOT restarted (Restart= below).
+StartLimitIntervalSec=1800
+StartLimitBurst=5
+
+[Service]
+Type=simple
+# Gate: never start while the one-shot wall-test container still runs — the
+# runner would oversubscribe the 6 cores under it. Self-arms: the unit sits in
+# activating(start-pre) until ntru-wall-b50 exits, then starts unattended.
+# TimeoutStartSec=infinity because this wait is unbounded by design.
+ExecStartPre=/bin/sh -c 'while /usr/bin/podman container exists ntru-wall-b50; do sleep 60; done'
+TimeoutStartSec=infinity
+ExecStart=/usr/bin/podman run --rm --replace --name forever-runner \
+    -v %h/lattice:/experiment -w /experiment sdbkz-g6k:dim384 \
+    python3 scripts/forever_runner.py \
+        --worklist config/forever_worklist_steamdeck.txt \
+        --filler-campaign ntru_g6k_backfill \
+        --filler-tree ntru_g6k \
+        --filler-cells 167:3167,173:4073,179:4591 \
+        --filler-workers 6
+ExecStop=/usr/bin/podman stop --ignore -t 30 forever-runner
+# on-failure, NOT always: the loop is designed to NEVER exit on empty (filler
+# floor), so any exit is a bug/stop worth leaving stopped-and-visible; a clean
+# exit-0 = an intended stop (stop-loud). The pidlock makes double-launch a no-op.
+Restart=on-failure
+RestartSec=60
+
+[Install]
+WantedBy=default.target
