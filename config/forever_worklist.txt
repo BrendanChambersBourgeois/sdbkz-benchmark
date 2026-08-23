@@ -20,7 +20,26 @@
 # ---- REAL SCIENCE (drains top-to-bottom before any filler) --------------------
 #
 # #1 the bumped-beta wall test (B2 science review): can a stronger blocksize CRACK the
-#    n=179 beta40 near-miss (ratio 57 @ 2.909x)? DISABLED 2026-08-12 (INC-54): the beta50
+#    n=179 beta40 near-miss (ratio 57 @ 2.909x)?
+#
+#    STATUS 2026-08-23: RUNNING OFF-BOX. Not on this runner and must not be added
+#    to it. The steamdeck node (deck@192.168.1.229, rootless podman, 6 physical
+#    Zen 4 cores) is running seeds 5-10 -- the six that remained of num_seeds=10 --
+#    as lingering user unit ntru-wall-b50-n179.service, launched 10:18 AEST with
+#    `--beta 50 --workers 6 --seed-timeout-s 86400`. Adding a line here would
+#    duplicate that work against the same cell.
+#
+#    The 2026-08-12 g6k re-route (below) was only half the blocker. The other half:
+#    seed_wall_s = 14400 in config/sweep.toml is 0.30x a healthy seed (MEASURED
+#    13.13-13.46 h from seeds 1-4) and SIGKILLed seeds 5-20 on 2026-08-20 -- see
+#    results/wall_cap_events.jsonl. The owner authorised 86400 for the off-box run,
+#    passed on the CLI so seed_wall_s stays at its reserved value here. beta=60 is
+#    still blocked on the g6k gauss_sieve assertion and was excluded by pinning
+#    --beta 50; beta_grid in sweep.toml still lists it, so any relaunch WITHOUT
+#    that pin will hit the assertion.
+#
+#    Original 2026-08-12 diagnosis, kept as the record:
+#    DISABLED 2026-08-12 (INC-54): the beta50
 #    probe HOT-WEDGED for ~25h inside ONE fplll enumeration call (voluntary_ctxt_switches=1,
 #    zero heartbeats, 1 core pinned) and never returned. Root cause = fplll enum ceiling
 #    ~dim 300 (memory: n157_fplll_ceiling); n=179 is dim 358, far past it. beta40 works there
@@ -87,6 +106,11 @@ ntru_n157_qsweep --q 3499 --workers 20
 ntru_onset_boundary --n 163 --q 4211 --workers 20
 ntru_onset_boundary --n 163 --q 4357 --workers 20
 ntru_onset_boundary --n 163 --q 4507 --workers 20
+#    DESKTOP STARVATION (2026-08-22, HOTO 1.8): 20 fplll workers at nice 0 starved
+#    gnome-shell/gnome-terminal (load 21.5, RCU stalls). Fix is PRIORITY, not width:
+#    systemd drop-in ~/.config/systemd/user/forever-runner.service.d/nice.conf sets
+#    Nice=19, which campaign children inherit. Workers deliberately stay at 20 -- a
+#    cut to 16 breaks the 1-wave design (16+4 => ~9h -> ~17h/cell) for no added safety.
 ntru_onset_boundary --n 163 --q 4657 --workers 20
 ntru_onset_boundary --n 163 --q 4813 --workers 20
 #
