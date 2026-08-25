@@ -78,6 +78,10 @@ NON_MANIFEST_SEED_TREES = frozenset({
     # forever-runner idle-filler tree — extra statistical power written to a
     # separate tree so it never re-opens a published cell's N (B2 review).
     "ntru_b2",
+    # Diagnostic per-tour re-run of an ntru_b2 cell (store_per_tour=true).
+    # Its own tree for the same reason, and its seeds carry the extra
+    # per-tour arrays, so they are not canonical-manifest members.
+    "ntru_b2_probe",
 })
 
 # Filenames we explicitly do not flag (informational only, known
