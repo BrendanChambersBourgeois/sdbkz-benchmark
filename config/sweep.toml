@@ -780,21 +780,10 @@ num_seeds = 200
 store_per_tour = false
 metric_float_type = "mpfr"
 
-# -- dLN discontinuity probe ------------------------------------------------
-# Diagnostic re-run of ntru_b2 seeds that show the mid-trajectory dLN jump
-# (smooth descent, then a one-tour step to ~301 and a flat plateau at
-# 313-315). Established about those seeds: no defensive clamp fired, the
-# gs_lognorms carry no -345 sentinel, extract_dsd_onset._is_dsd returns
-# False, and secret_recovered_* is False. The jumped leg's Rankin profile is
-# sign-inverted (mean -77, range -293..+9) against the Li-Nguyen reference
-# (mean +237), which is arithmetically why dLN lands near 314 -- but the
-# mechanism that inverts it is not identified.
-#
-# store_per_tour = true records the per-tour Rankin, GS log-norms and RHF, so
-# the profile immediately before and after the step is on disk. Seeds are
-# deterministic (FPLLL.set_random_seed), so this reproduces the exact seed.
-# Own seed_tag, so no ntru_b2 seed is re-opened or overwritten. Not a
-# canonical-manifest tree (scripts/lint_seed_manifest.NON_MANIFEST_SEED_TREES).
+# Per-tour re-run of ntru_b2 seeds showing the mid-trajectory dLN jump, to
+# capture the profile either side of the step. Separate tree so no ntru_b2
+# seed is re-opened. Findings + open mechanism:
+# Research/postmortems/dln_discontinuity_2026-08-25_investigation.md
 [campaigns.ntru_b2_probe]
 inherits = "ntru_b2_backfill"
 description = "per-tour capture of the ntru_b2 dLN discontinuity"
