@@ -27,6 +27,10 @@ _KNOWN_CAMPAIGNS = frozenset({
     # review's core integrity fix); excluded from the canonical fplll manifest
     # below, like ntru_patched/ntru_g6k.
     "ntru_b2",
+    # Diagnostic re-run of an ntru_b2 cell with store_per_tour=true, so the
+    # per-tour GS profile at the dLN discontinuity is recorded. Same layout,
+    # separate root so an ntru_b2 seed is never re-opened or overwritten.
+    "ntru_b2_probe",
 })
 
 
@@ -144,13 +148,15 @@ def seed_dir_for(
         leaf_dir = os.path.join(
             NEW_LAYOUT_ROOT, "estimator_probe", f"q{q}", f"p{p}_mt{mt}", n_beta
         )
-    elif campaign == "ntru_b2":
+    elif campaign in ("ntru_b2", "ntru_b2_probe"):
         # forever-runner idle-filler: same layout as ntru, separate root so the
         # extra-power seeds never touch or re-open a published cell's N.
+        # ntru_b2_probe shares the layout under its own root for the same
+        # reason, one level further out.
         p = int(_require(precision, "precision", campaign))
         mt = int(_require(max_tours, "max_tours", campaign))
         leaf_dir = os.path.join(
-            NEW_LAYOUT_ROOT, "ntru_b2", f"q{q}", f"p{p}_mt{mt}", n_beta
+            NEW_LAYOUT_ROOT, campaign, f"q{q}", f"p{p}_mt{mt}", n_beta
         )
     else:
         raise AssertionError("unreachable")  # pragma: no cover
