@@ -25,7 +25,16 @@ Type=simple
 # TimeoutStartSec=infinity because this wait is unbounded by design.
 ExecStartPre=/bin/sh -c 'while /usr/bin/podman container exists ntru-wall-b50; do sleep 60; done'
 TimeoutStartSec=infinity
+# --userns=keep-id is REQUIRED, not tuning. Without it rootless podman maps the
+# image's uid 1000 (runner) to a subuid, so the deck-owned bind-mount is
+# other-only (r-x) inside and every write under /experiment fails. That is how
+# this unit died on 2026-08-24: the shared pidlock (089010fd) put the lock at
+# results/logs/forever_runner.lock, the mkdir of results/logs raised
+# PermissionError: [Errno 13], and Restart=on-failure burned StartLimitBurst in
+# 221ms. keep-id maps container uid 1000 to host uid 1000 (deck), which owns the
+# tree. Seed writes need it too -- the lock only happened to fail first.
 ExecStart=/usr/bin/podman run --rm --replace --name forever-runner \
+    --userns=keep-id \
     -v %h/lattice:/experiment -w /experiment sdbkz-g6k:dim384 \
     python3 scripts/forever_runner.py \
         --worklist config/forever_worklist_steamdeck.txt \
