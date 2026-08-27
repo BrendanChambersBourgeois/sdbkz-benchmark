@@ -27,7 +27,7 @@ Post-v2.0.0 work on `main` (unreleased, no tag cut yet):
 | target | scope |
 |--------|-------|
 | paper 2 (NTRU + cross-engine) | `paper2/` in-progress technical report: NTRU dense-sublattice-discovery (DSD) onset and a cross-engine (fplll enumeration vs G6K sieving) study. G6K wired as a second reduction engine behind a determinism-gated seam (own manifest `results/g6k_seed_manifest.json`, `lint_g6k_manifest.py`). §7 four-discrepancy reconciliation closed; core-hours corrected to recorded-time ground truth. Remaining: three §-text edits (RHF wording / bootstrap CI / R²≈0.95) + AWS §8 rerun on the corrected Kahan patch. |
-| NTRU frontier campaigns | never-idle `forever_runner` filling the NTRU overstretched grid; DSD-onset boundary traced past n=167 (n=173 soft-wall). Estimator-sized sweeps; g6k needed for n≥157 (fplll enum ceiling ~dim 300). |
+| NTRU frontier campaigns | never-idle `forever_runner` filling the NTRU overstretched grid. **n=167 is a soft wall** — SD DSD-rate wanders 20–45% out to 4.97× q_fat and never crosses 50%. **n=173 is a confirmed dim-driven wall** — the matched-ratio extension (5 cells, q 5407/5843/6287/6733/7177 = 3.73–4.95× q_fat, completed 2026-08-18) held SD flat at 0–10% across 167's hot band with no 50% crossing to the 5× q_fat cap. BKZ-onset pinned at n=157 (BKZ q=2740 = 2.40× q_fat, SD q=2354 = 2.07×, lag 1.16×, 2026-08-20); the n=163 BKZ-onset extension completed 2026-08-23 (readout owed). Estimator-sized sweeps; g6k needed for n≥157 (fplll enum ceiling ~dim 300). β=50 at n=179 has produced **no crack-rate signal** — 4 completed seeds, every later seed wall-cap-killed by a cap 0.30× a healthy seed. |
 
 ## Planned next
 
