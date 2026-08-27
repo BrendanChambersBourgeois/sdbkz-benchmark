@@ -42,6 +42,7 @@ Versions follow loose SemVer. Bump on:
 - **Per-seed central logging**: both runners emit seed done/failed events to `logs/pipeline.jsonl`; seed JSONs untouched (byte-identity preserved).
 
 ### Changed
+- **`results/wall_cap_events.jsonl` is now gitignored and mirrored instead of committed**, matching the `results/clamp_events.jsonl` precedent. It is the INC-56 wall-cap side log — one record per seed killed at the `--seed-timeout-s` cap — and it appends without bound across wall tests, so keeping it in git history would churn the repo on every campaign run. Preserved on disk and copied to `Research/data/analysis/` by a paired `cp` line in `ops/sync_research.sh`; that script lives outside this repository, so the pairing is an edit plus a commit rather than a single commit.
 - **Renamed the `paper/` directory to `paper1/`** for symmetry with `paper2/` (the NTRU cross-engine technical report). Updated the build target, figure-parity gate (`sync_paper_figures.py`, the CI step), `.dockerignore`/`.gitattributes`, the top-level-dir allowlist, and the current-facing docs (README, SECURITY, CONTRIBUTING). Historical CHANGELOG/audit/disclosure entries keep their original `paper/` paths as point-in-time records.
 - **Folded 3 duplicate engine loops onto a shared `_bkz_core.dln_trajectory`** (`run_3x_extended`, `run_convergence_test`, `overnight_experiments`) — removes the run_single-divergence hazard (ADR-001 class); per-seed JSON byte-identical.
 - CI `g6k-verify` flipped to a hard byte-identity gate (reference captured).
