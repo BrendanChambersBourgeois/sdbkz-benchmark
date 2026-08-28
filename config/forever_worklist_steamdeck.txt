@@ -30,3 +30,31 @@
 #
 # ---- REAL SCIENCE (drains top-to-bottom before any filler) -------------------
 ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 10 --workers 6 --seed-timeout-s 86400 @budget_h=48
+# ---- 2026-08-28 additions: β=60 bootstrap, then the deck-owned q4591 top-ups --
+#
+# β=60 IS UNMEASURED EVERYWHERE. estimate_sweep_time.py has no per-tour cost rows
+# at β=60 and refuses to predict: "Run a single seed at the target configuration
+# to bootstrap." So this is a 2-seed BOOTSTRAP, not a campaign. Do not queue a
+# full β=60 block until its real per-seed cost is read off these two. β=50 costs
+# 15.1 h/seed at dim 362; β=60 could be several times that, and guessing is
+# exactly the error that put the n=181 estimate 5× low.
+# Cap 172800 s = 48 h/seed: generous enough not to kill a healthy β=60 seed,
+# finite enough that a wedge cannot eat the week.
+ntru_wall_beta_bump --n 181 --q 4591 --beta 60 --seeds 2 --workers 6 --seed-timeout-s 172800 @budget_h=48
+
+# n=179 β=50 top-up to 20. Currently 4 seeds (1/4 SD-crack, 2026-08-19); seeds
+# 5-20 were all wall-cap killed at 14400 s = 0.30× a healthy seed, so that cell
+# carries NO rate. This is the replication the 2026-08-20 entry asked for, and it
+# is the cell that decides whether the SD advantage is real or whether n=181's
+# 2/9-vs-2/9 parity is the true picture. Existing seeds resume-skip.
+ntru_wall_beta_bump --n 179 --q 4591 --beta 50 --seeds 20 --workers 6 --seed-timeout-s 86400 @budget_h=48
+
+# n=181 β=50 top-up to 20. Currently 9 (4/9). seed0002 is absent and is NOT in
+# wall_cap_events.jsonl, so it was not cap-killed — this re-runs it and doubles
+# the sample on the cell the whole finding rests on.
+ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 20 --workers 6 --seed-timeout-s 86400 @budget_h=40
+
+# PROVISIONAL — only meaningful once the bootstrap above has reported a cost.
+# If β=60 turns out to cost more than ~40 h/seed, delete this line rather than
+# let it run: at 6 workers it would spend most of a week on one cell.
+ntru_wall_beta_bump --n 179 --q 4591 --beta 60 --seeds 10 --workers 6 --seed-timeout-s 172800 @budget_h=96
