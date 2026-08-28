@@ -63,6 +63,11 @@ FILLER_CELLS = [(167, 3167), (173, 4073), (179, 4591)]
 FILLER_CEILING_START = 60
 FILLER_TREE = "ntru_b2"      # seed tree the filler writes = seed_tag of FILLER_CAMPAIGN
 
+# A worklist line that returns rc=0 faster than this is suspicious: a full-cell
+# re-dispatch (all skips) and a silent no-op look identical from the outside
+# (INC-60: 12 lines x ~66 s archived a 7.2-day ladder). Warn, never stop.
+FAST_DONE_WARN_S = 300
+
 
 # --------------------------------------------------- child process + signal safety
 _CURRENT_CHILD: subprocess.Popen[bytes] | None = None   # the in-flight campaign, for kill-on-signal
@@ -207,8 +212,16 @@ def run_worklist_line(line: str, dry: bool) -> int:
     campaign, flags = rest[0], rest[1:]
     args = ["--campaign", campaign, *flags]
     log.info(f"START worklist line: {line}", cat="runner")
+    t0 = time.monotonic()
     rc = _run_campaign(args, budget_h, dry)
+    elapsed = time.monotonic() - t0
     log.info(f"DONE worklist line rc={rc}: {campaign}", cat="runner")
+    if not dry and rc == 0 and elapsed < FAST_DONE_WARN_S:
+        log.warning(
+            f"FAST-DONE: line finished rc=0 in {elapsed:.0f}s "
+            f"(< {FAST_DONE_WARN_S}s) -- a full-cell re-dispatch and a "
+            f"silent no-op look identical; verify it did real work (INC-60)",
+            cat="runner", event="fast_done", elapsed_s=round(elapsed, 1))
     return rc
 
 
@@ -230,7 +243,7 @@ def run_filler_unit(dry: bool) -> bool:
     if fewest >= ceiling:
         ceiling += FILLER_STEP                    # ratchet: never permanently exhausted
     target = min(fewest + FILLER_STEP, ceiling)
-    log.info(f"filler: ntru_b2 n={n} q={q} seeds {fewest}->{target}", cat="runner", event="filler")
+    log.info(f"filler: {FILLER_TREE} n={n} q={q} seeds {fewest}->{target}", cat="runner", event="filler")
     rc = _run_campaign(["--campaign", FILLER_CAMPAIGN, "--n", str(n), "--q", str(q),
                         "--seeds", str(target), "--workers", str(FILLER_WORKERS)], None, dry)
     return rc == 0

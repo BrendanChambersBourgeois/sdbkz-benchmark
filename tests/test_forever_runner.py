@@ -199,3 +199,49 @@ def test_filler_cells_bad_format_is_argparse_error(tmp_path, monkeypatch):
         monkeypatch.setattr(fr, name, getattr(fr, name))
     with pytest.raises(SystemExit):
         fr.main(["--dry-run", "--max-iters", "1", "--filler-cells", "167x3167"])
+
+
+class _LogRec:
+    def __init__(self):
+        self.infos, self.warnings, self.errors = [], [], []
+    def info(self, msg, **kw):
+        self.infos.append((msg, kw))
+    def warning(self, msg, **kw):
+        self.warnings.append((msg, kw))
+    def error(self, msg, **kw):
+        self.errors.append((msg, kw))
+
+
+def test_fast_done_rc0_warns(tmp_path, monkeypatch):
+    """INC-60 lesson 3: a 'science' line finishing implausibly fast with rc=0
+    must leave a loud trace (warn only -- all-skip re-dispatch is legitimate)."""
+    _wire(tmp_path, monkeypatch)
+    rec = _LogRec()
+    monkeypatch.setattr(fr, "log", rec)
+    monkeypatch.setattr(fr, "_run_campaign", lambda *a, **k: 0)
+    assert fr.run_worklist_line("camp --n 1", dry=False) == 0
+    assert any(kw.get("event") == "fast_done" for _, kw in rec.warnings)
+
+
+def test_fast_done_not_warned_when_dry_or_failed(tmp_path, monkeypatch):
+    _wire(tmp_path, monkeypatch)
+    rec = _LogRec()
+    monkeypatch.setattr(fr, "log", rec)
+    monkeypatch.setattr(fr, "_run_campaign", lambda *a, **k: 0)
+    fr.run_worklist_line("camp --n 1", dry=True)          # dry: no warn
+    monkeypatch.setattr(fr, "_run_campaign", lambda *a, **k: 1)
+    fr.run_worklist_line("camp --n 1", dry=False)         # rc!=0: no warn
+    assert not rec.warnings
+
+
+def test_filler_log_names_actual_tree(tmp_path, monkeypatch):
+    """Deck runs --filler-tree ntru_g6k but the old message hardcoded ntru_b2."""
+    _wire(tmp_path, monkeypatch)
+    rec = _LogRec()
+    monkeypatch.setattr(fr, "log", rec)
+    monkeypatch.setattr(fr, "FILLER_TREE", "ntru_g6k")
+    monkeypatch.setattr(fr, "FILLER_CELLS", [(167, 3167)])
+    monkeypatch.setattr(fr, "_run_campaign", lambda *a, **k: 0)
+    assert fr.run_filler_unit(dry=True)
+    filler = [m for m, kw in rec.infos if kw.get("event") == "filler"]
+    assert filler and filler[0].startswith("filler: ntru_g6k ")

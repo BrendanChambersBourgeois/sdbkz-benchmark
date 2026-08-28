@@ -27,7 +27,7 @@ def _task(seed):
 
 def _fake_worker_factory(behaviour):
     """behaviour: seed -> 'ok' | 'segv' | 'exit1' | 'hang'."""
-    def _worker(task):
+    def _worker(task, leg_notify=None):
         n, beta, seed = task[0], task[1], task[2]
         b = behaviour(seed)
         if b == "ok":
@@ -92,7 +92,7 @@ def test_wall_cap_kill_still_separate_from_crash(events, monkeypatch):
     monkeypatch.setattr(rc, "_ntru_seed_worker",
                         _fake_worker_factory(lambda s: "hang" if s == 0 else "ok"))
     monkeypatch.setattr(rc, "_log_wall_cap_kill",
-                        lambda task, el, cap: rc._append_seed_event(
+                        lambda task, el, cap, **kw: rc._append_seed_event(
                             {"event": "wall_cap_kill", "seed": task[2]}))
     tasks = [_task(s) for s in range(2)]
     results, killed, crashed = rc._run_tasks_capped(tasks, nproc=2, seed_timeout_s=1)
@@ -101,3 +101,36 @@ def test_wall_cap_kill_still_separate_from_crash(events, monkeypatch):
     assert crashed == []                                   # a cap kill is NOT a crash
     assert [e["event"] for e in _read_events(events)] == ["wall_cap_kill"]
     assert len(results) + len(killed) + len(crashed) == len(tasks)
+
+
+def test_wall_cap_event_has_variant_and_ts(events, monkeypatch):
+    """INC-58 note closed: kill records must carry the in-flight leg + ts."""
+    def _worker(task, leg_notify=None):
+        if leg_notify:
+            leg_notify("bkz")
+            leg_notify("sdbkz")
+        time.sleep(60)
+    monkeypatch.setattr(rc, "_ntru_seed_worker", _worker)
+    results, killed, crashed = rc._run_tasks_capped(
+        [_task(1)], nproc=1, seed_timeout_s=1)
+    assert len(killed) == 1 and not results and not crashed
+    kills = [e for e in _read_events(events) if e["event"] == "wall_cap_kill"]
+    assert len(kills) == 1
+    assert kills[0]["variant"] == "sdbkz"     # latest breadcrumb wins
+    assert "ts" in kills[0]
+
+
+def test_crash_event_has_variant_and_ts(events, monkeypatch):
+    def _worker(task, leg_notify=None):
+        if leg_notify:
+            leg_notify("bkz")
+        time.sleep(0.5)   # let the mp.Queue feeder thread flush the breadcrumb
+        os._exit(1)                            # hard exit, nothing enqueued
+    monkeypatch.setattr(rc, "_ntru_seed_worker", _worker)
+    results, killed, crashed = rc._run_tasks_capped(
+        [_task(1)], nproc=1, seed_timeout_s=30)
+    assert len(crashed) == 1 and not results and not killed
+    crashes = [e for e in _read_events(events) if e["event"] == "worker_crash"]
+    assert len(crashes) == 1
+    assert crashes[0]["variant"] == "bkz"
+    assert "ts" in crashes[0]

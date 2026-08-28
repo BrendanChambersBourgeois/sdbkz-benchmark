@@ -40,27 +40,62 @@ def _ssh_base(ctrl: str) -> list[str]:
             "-o", "ControlPersist=60m"]
 
 
+def _classify_no_report(rc: int | None, stderr: str) -> str:
+    """INC-58 follow-up: "cannot authenticate" and "host is down" were reported
+    identically (`reachable=False`), so a healthy node with no ControlMaster
+    socket looked dead. Classify from the local ssh failure instead. The remote
+    command's own stderr is discarded remotely (2>/dev/null), so what reaches
+    us here is ssh's."""
+    s = (stderr or "").lower()
+    if rc is None:
+        return "ssh timed out -- host down or network partition"
+    for t in ("permission denied", "host key verification",
+              "user presence", "agent refused operation",
+              "too many authentication failures"):
+        if t in s:
+            return ("AUTH-BLOCKED -- node likely healthy; open the "
+                    "ControlMaster socket first (YubiKey touch, INC-58)")
+    for t in ("connection timed out", "no route to host",
+              "connection refused", "could not resolve",
+              "network is unreachable"):
+        if t in s:
+            return "host down / unreachable"
+    return f"unknown (ssh rc={rc}, stderr={(stderr or '').strip()[:120]!r})"
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     ssh = _ssh_base(args.control_path) + [args.node]
-    live = subprocess.run(
-        ssh + [f"cd ~/{args.remote_dir} && python3 scripts/node_status.py "
-               f"--unit {args.unit} --container {args.container} "
-               f"--seed-dir ~/{args.remote_dir}/results/seeds/{args.tree}/{args.cell} "
-               f"--expect-seeds {args.expect_seeds} --disk-path ~ 2>/dev/null"],
-        capture_output=True, text=True, timeout=120)
-    print(live.stdout.strip() or "(node did not report — unreachable or unit gone)")
-
-    hist = subprocess.run(
-        ssh + [f"jq -c 'select(.cat==\"node_status\") | "
-               f"[.ts, .ctx.unit_active, .ctx.container_cpu_pct, .ctx.seeds_present]' "
-               f"~/{args.remote_dir}/logs/pipeline.jsonl 2>/dev/null | tail -{args.history}"],
-        capture_output=True, text=True, timeout=120)
-    if hist.stdout.strip():
-        print(f"\nlast {args.history} samples (ts, unit, cpu%, seeds):")
-        print(hist.stdout.rstrip())
+    try:
+        live = subprocess.run(
+            ssh + [f"cd ~/{args.remote_dir} && python3 scripts/node_status.py "
+                   f"--unit {args.unit} --container {args.container} "
+                   f"--seed-dir ~/{args.remote_dir}/results/seeds/{args.tree}/{args.cell} "
+                   f"--expect-seeds {args.expect_seeds} --disk-path ~ 2>/dev/null"],
+            capture_output=True, text=True, timeout=120)
+    except subprocess.TimeoutExpired:
+        live = None
+    up = bool(live and live.stdout.strip())
+    reason = None
+    if up:
+        print(live.stdout.strip())
+        try:
+            hist = subprocess.run(
+                ssh + [f"jq -c 'select(.cat==\"node_status\") | "
+                       f"[.ts, .ctx.unit_active, .ctx.container_cpu_pct, .ctx.seeds_present]' "
+                       f"~/{args.remote_dir}/logs/pipeline.jsonl 2>/dev/null | tail -{args.history}"],
+                capture_output=True, text=True, timeout=120)
+            if hist.stdout.strip():
+                print(f"\nlast {args.history} samples (ts, unit, cpu%, seeds):")
+                print(hist.stdout.rstrip())
+        except subprocess.TimeoutExpired:
+            print("(history read timed out)", file=sys.stderr)
+    else:
+        reason = _classify_no_report(live.returncode if live else None,
+                                     live.stderr if live else "")
+        print(f"(node did not report — {reason})")
     PIPELINE.info("node status read", cat="node_sync", node=args.node,
-                  reachable=bool(live.stdout.strip()))
-    return 0 if live.stdout.strip() else 1
+                  reachable=up, reason=reason)
+    return 0 if up else 1
 
 
 def _merge_log(node_lines: list[str], canonical: Path, node_name: str) -> tuple[int, int]:
