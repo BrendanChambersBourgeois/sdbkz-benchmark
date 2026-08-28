@@ -340,7 +340,7 @@ def _quarantine_corrupt(path: str) -> str:
     return bad
 
 
-def _ntru_seed_worker(task: tuple) -> tuple:
+def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
     """Pool worker: build + structurally verify + BKZ one NTRU (n, β, seed),
     then write its per-seed JSON. Returns (n, β, seed, advantage|None,
     status). Module-level so it pickles for multiprocessing; each process
@@ -359,6 +359,19 @@ def _ntru_seed_worker(task: tuple) -> tuple:
 
     (n, beta, seed, q, precision, max_tours, generator, seed_tag,
      backend, metric_float_type) = task
+    # Track which reduction leg is in flight so a failure / wall-cap kill /
+    # crash can be attributed (INC-58 note: variant was inference before).
+    # `leg_notify` additionally forwards transitions to the capped scheduler.
+    current_leg = [None]
+
+    def _leg_cb(variant: str) -> None:
+        current_leg[0] = variant
+        if leg_notify is not None:
+            try:
+                leg_notify(variant)
+            except Exception:
+                pass
+
     out = seed_path_for(seed_tag, n=n, beta=beta, seed=seed, q=q,
                         precision=precision, max_tours=max_tours)
     if os.path.exists(out):
@@ -404,6 +417,7 @@ def _ntru_seed_worker(task: tuple) -> tuple:
             L=L, n=n, active_block_start=m_start, active_block_end=m_end,
             beta=beta, seed=seed, q=q, precision=precision,
             max_tours=max_tours, log_clamp_fn=_ntru_log_clamp,
+            leg_cb=_leg_cb,
             backend=backend, secret_f=f, secret_g=g,
             metric_float_type=metric_float_type,
         )
@@ -433,6 +447,7 @@ def _ntru_seed_worker(task: tuple) -> tuple:
         PIPELINE.error(
             "seed failed", cat="seed", n=n, beta=beta, seed=seed, q=q,
             precision=precision, backend=backend, seed_tag=seed_tag,
+            variant=current_leg[0],
             error=f"{type(e).__name__}: {e}",
         )
         return (n, beta, seed, None, f"error: {type(e).__name__}: {e}")
@@ -448,7 +463,10 @@ _WALL_CAP_LOG_FILE = os.path.join(REPO_ROOT, "results", "wall_cap_events.jsonl")
 
 def _append_seed_event(rec: dict) -> None:
     """Append one event record to results/wall_cap_events.jsonl (never a seed JSON)."""
+    import datetime
     import json
+    rec.setdefault("ts",
+                   datetime.datetime.now(datetime.UTC).isoformat())
     try:
         os.makedirs(os.path.dirname(_WALL_CAP_LOG_FILE), exist_ok=True)
         with open(_WALL_CAP_LOG_FILE, "a") as fh:
@@ -464,13 +482,16 @@ def _task_fields(task: tuple) -> dict:
             "precision": precision, "seed_tag": seed_tag}
 
 
-def _log_wall_cap_kill(task: tuple, elapsed_s: float, cap_s: int) -> None:
+def _log_wall_cap_kill(task: tuple, elapsed_s: float, cap_s: int,
+                       variant: str | None = None) -> None:
     """Append one wall-cap kill event (never mutates a seed JSON)."""
     _append_seed_event({"event": "wall_cap_kill", **_task_fields(task),
+                        "variant": variant,
                         "elapsed_s": round(elapsed_s, 1), "cap_s": cap_s})
 
 
-def _log_worker_crash(task: tuple, elapsed_s: float, exitcode: int) -> None:
+def _log_worker_crash(task: tuple, elapsed_s: float, exitcode: int,
+                      variant: str | None = None) -> None:
     """Append one worker-crash event: the seed subprocess died WITHOUT reporting
     (SIGSEGV/SIGABRT in fplll, MPFR or the g6k siever, or an external SIGKILL such
     as the OOM killer) -- ultrareview PR #3 (2026-08-21). Negative exitcode =
@@ -483,6 +504,7 @@ def _log_worker_crash(task: tuple, elapsed_s: float, exitcode: int) -> None:
         except ValueError:
             sig = f"signal {-exitcode}"
     _append_seed_event({"event": "worker_crash", **_task_fields(task),
+                        "variant": variant,
                         "elapsed_s": round(elapsed_s, 1), "exitcode": exitcode,
                         "signal": sig})
 
@@ -496,10 +518,12 @@ def _seed_worker_to_queue(task: tuple, out_q: Any) -> None:
     pool. A last-resort except guarantees the parent never blocks waiting on a
     result that a crashing worker failed to enqueue.
     """
+    n, beta, seed = task[0], task[1], task[2]
     try:
-        out_q.put(_ntru_seed_worker(task))
+        out_q.put(_ntru_seed_worker(
+            task,
+            leg_notify=lambda v: out_q.put(("leg", n, beta, seed, v))))
     except BaseException as e:  # noqa: BLE001 -- must always report SOMETHING
-        n, beta, seed = task[0], task[1], task[2]
         out_q.put((n, beta, seed, None, f"error: {type(e).__name__}: {e}"))
 
 
@@ -533,15 +557,20 @@ def _run_tasks_capped(
     running: dict = {}
     results: list = []
     killed: list = []
+    last_leg: dict = {}                  # (n,β,seed) -> latest leg breadcrumb
     exited_nonzero: dict = {}            # (n,β,seed) -> (task, elapsed, exitcode)
     POLL_S = 2.0
 
     def _drain() -> None:
         while True:
             try:
-                results.append(out_q.get_nowait())
+                item = out_q.get_nowait()
             except _queue.Empty:
                 return
+            if item and item[0] == "leg":    # breadcrumb, not a result
+                last_leg[(item[1], item[2], item[3])] = item[4]
+            else:
+                results.append(item)
 
     def _launch() -> None:
         while pending and len(running) < nproc:
@@ -571,11 +600,13 @@ def _run_tasks_capped(
                     p.join()
                 del running[p]
                 killed.append((task, elapsed))
-                _log_wall_cap_kill(task, elapsed, seed_timeout_s)
+                leg = last_leg.get(tuple(task[:3]))
+                _log_wall_cap_kill(task, elapsed, seed_timeout_s, variant=leg)
                 PIPELINE.error(
                     "seed wall-cap kill", cat="seed",
                     n=task[0], beta=task[1], seed=task[2], q=task[3],
-                    seed_tag=task[7], elapsed_s=round(elapsed, 1),
+                    seed_tag=task[7], variant=leg,
+                    elapsed_s=round(elapsed, 1),
                     cap_s=seed_timeout_s,
                 )
         _launch()
@@ -588,11 +619,13 @@ def _run_tasks_capped(
         if key in delivered:
             continue
         crashed.append((task, elapsed, code))
-        _log_worker_crash(task, elapsed, code)
+        leg = last_leg.get(key)
+        _log_worker_crash(task, elapsed, code, variant=leg)
         PIPELINE.error(
             "seed worker crashed without reporting", cat="seed",
             n=task[0], beta=task[1], seed=task[2], q=task[3],
-            seed_tag=task[7], elapsed_s=round(elapsed, 1), exitcode=code,
+            seed_tag=task[7], variant=leg,
+            elapsed_s=round(elapsed, 1), exitcode=code,
         )
     if len(results) + len(killed) + len(crashed) != len(tasks):
         PIPELINE.error(

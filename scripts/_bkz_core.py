@@ -194,6 +194,7 @@ def run_single(
     precision: int,
     max_tours: int,
     log_clamp_fn: Optional[Callable[[str, int, float], None]],
+    leg_cb: Optional[Callable[[str], None]] = None,
     warn_on_clamp: bool = False,
     store_per_tour: bool = False,
     floor_mode: str = "safe",
@@ -268,6 +269,15 @@ def run_single(
     result["initial_gs_lognorms"] = [float(x) for x in init["gs_lognorms"]]
 
     for variant in ("bkz", "sdbkz"):
+        # Side-channel only (INC-58 note: wall-cap / crash / seed-failed
+        # records carried no variant, so leg attribution was inference).
+        # Reports which leg is starting; must never affect the science path,
+        # so a broken callback is swallowed.
+        if leg_cb is not None:
+            try:
+                leg_cb(variant)
+            except Exception:
+                pass
         # The reduction engine is selected by `backend`; it takes its own
         # private copy of the LLL-reduced B_init (the driver reuses B_init
         # across both variants). LLL is deterministic, so this copy is

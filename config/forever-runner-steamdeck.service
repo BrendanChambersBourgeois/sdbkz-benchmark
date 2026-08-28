@@ -13,9 +13,12 @@
 Description=Forever runner (steamdeck node) — worklist + g6k β40 idle-filler in podman
 After=default.target
 # [Unit]-section directives (systemd silently drops them in [Service]).
-# Break a persistent CRASH loop; a clean exit is NOT restarted (Restart= below).
-StartLimitIntervalSec=1800
-StartLimitBurst=5
+# INC-58 follow-up (2026-08-28): a deterministic fast failure (the 221 ms
+# bind-mount PermissionError) exhausted the old StartLimitBurst=5 budget in
+# seconds and left the unwatched node down 36 h. Never give up instead: no
+# start-rate limit; RestartSec=300 below bounds a crash loop to one attempt
+# per 5 minutes. A clean exit is still NOT restarted (Restart=on-failure).
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
@@ -41,7 +44,7 @@ ExecStop=/usr/bin/podman stop --ignore -t 30 forever-runner
 # floor), so any exit is a bug/stop worth leaving stopped-and-visible; a clean
 # exit-0 = an intended stop (stop-loud). The pidlock makes double-launch a no-op.
 Restart=on-failure
-RestartSec=60
+RestartSec=300
 
 [Install]
 WantedBy=default.target
