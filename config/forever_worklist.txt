@@ -146,3 +146,42 @@ ntru_onset_boundary --n 163 --q 4813 --workers 20
 # ---- EXAMPLES you can uncomment / add (frontier q-cells, onset-knee topups) ----
 # ntru_onset_boundary --n 173 --q 5501 --workers 20      # push 173 past its wall stop
 # ntru_onset_boundary --n 191 --q 4513 --workers 20      # extend ladder to a new prime
+
+# ==== 2026-08-28: matched β=50 ladder against the β=40 baselines ==============
+#
+# WHY. On 2026-08-28 the deck returned n=181 β=50 q=4591 (2.830× q_fat) at 4/9
+# integer-exact recoveries, against a β=40 null of 0/120 at the same dimension
+# spanning 1.90–3.62× q_fat (paper_findings.md:4625). That is one point. These
+# cells turn it into an onset curve, and every q below is a q where the SAME
+# dimension at β=40 is already on disk with a known outcome — so each line is a
+# PAIRED β-contrast at identical (n, q), not a cross-q comparison.
+#   n=181 β=40 baselines: q3083/3407/3733/4871/5381/5869 all 0/20.
+#   n=179 β=40 baselines: q3163/3637/4111/5077 — the FROZEN-vs-collapse ladder.
+# q=2593 (1.598×) and q=6491 (4.001×) have no β=40 twin; they widen the bracket.
+#
+# COST, measured not guessed. β=50 at dim ~362 costs 15.1 h/seed (n=181, 9 seeds)
+# and 13.2 h/seed (n=179, 4 seeds), from the completed seeds' bkz_time+sdbkz_time.
+# estimate_sweep_time.py self-anchors 10 seeds on 6 workers at 30.2 h. With
+# --workers 20 and --seeds 20 every seed runs concurrently, so cell wall ≈ one
+# seed. 8 × 15.1 h + 4 × 13.2 h = 173.6 h ≈ 7.2 days.
+#
+# --seed-timeout-s 86400 is deliberate: measured worst case is 15.23 h = 54828 s,
+# so 24 h caps a genuinely stuck seed without killing a healthy one. Do NOT drop
+# to the sweep.toml default of 14400 — that is 0.30× a healthy seed and kills
+# every one by construction (INC-56, and see the wall_cap_events note above).
+#
+# Ordered to find the onset first: bracket down from the known 2.830× success,
+# confirm above it, then widen, then the n=179 ladder.
+# NOT deck-owned — the deck owns q4591 β50/β60 at n=179 and n=181 only.
+ntru_wall_beta_bump --n 181 --q 3733 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 181 --q 4871 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 181 --q 3407 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 181 --q 3083 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 181 --q 5381 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 181 --q 5869 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 181 --q 2593 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 181 --q 6491 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 179 --q 4111 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 179 --q 3637 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 179 --q 3163 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 179 --q 5077 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
