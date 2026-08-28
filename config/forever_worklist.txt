@@ -173,6 +173,17 @@ ntru_onset_boundary --n 163 --q 4813 --workers 20
 # Ordered to find the onset first: bracket down from the known 2.830× success,
 # confirm above it, then widen, then the n=179 ladder.
 # NOT deck-owned — the deck owns q4591 β50/β60 at n=179 and n=181 only.
+#
+# STATUS 2026-08-28: first arming of these 12 lines was a silent no-op. The
+# runner dispatched them host-side, where the g6k module does not exist; all
+# 240 seeds died in seconds with "ModuleNotFoundError: No module named 'g6k'",
+# run_campaign returned rc=0 ("0 seeds written / 20 tasks"), and every line was
+# archived as done in ~12 minutes (13:46-13:53 AEST). Zero compute was burned
+# and no data was touched. Fixed same day: run_campaign now re-execs g6k
+# campaigns inside sdbkz-g6k:dim384 (docker, --user, nice -n 19) and returns
+# rc=1 when every attempted seed fails; the 12 done-log entries were removed to
+# re-arm. See scripts/run_campaign.py (_g6k_container_argv) and
+# tests/test_run_campaign_g6k_wrap.py.
 ntru_wall_beta_bump --n 181 --q 3733 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
 ntru_wall_beta_bump --n 181 --q 4871 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
 ntru_wall_beta_bump --n 181 --q 3407 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
