@@ -78,6 +78,55 @@ from log import get_logger, get_run_id, new_run_id  # noqa: E402
 
 PIPELINE = get_logger("run_campaign")
 
+# --- g6k backend containment -------------------------------------------------
+# The g6k module only exists inside the sieving image; the host toolchain is
+# fplll-only (memory: g6k_vm_image_gap). 2026-08-28: all 12 queued beta=50
+# worklist lines no-opped host-side in ~66 s each, every seed failing with
+# "ModuleNotFoundError: No module named 'g6k'", and rc=0 archived them as done.
+# Fix: when a g6k campaign is dispatched where the module is missing, re-exec
+# this exact invocation inside G6K_IMAGE instead of failing seed by seed.
+G6K_IMAGE = "sdbkz-g6k:dim384"   # MAX_SIEVING_DIM=384 >= dim 362 wall cells
+_IN_CONTAINER_ENV = "SDBKZ_IN_CONTAINER"
+
+
+def _g6k_available() -> bool:
+    import importlib.util
+    return importlib.util.find_spec("g6k") is not None
+
+
+def _g6k_container_argv(argv: list) -> list:
+    """docker argv re-running `python3 scripts/run_campaign.py <argv>` inside
+    G6K_IMAGE. --user keeps bind-mount seed writes owned by the invoking user
+    (rootful docker would write root-owned files); nice -n 19 preserves the
+    desktop-starvation fix (the forever-runner Nice=19 drop-in does not reach
+    processes containerd spawns); --init reaps the per-seed subprocesses;
+    docker's default --sig-proxy forwards the forever_runner group SIGTERM to
+    the campaign, so the stop path still works (SIGKILL of the attached CLI
+    does NOT stop the container -- the runner's TERM-then-KILL grace window in
+    _kill_child_group is what makes the graceful path the normal one)."""
+    return [
+        "docker", "run", "--rm", "--init",
+        "--name", f"runcamp-g6k-{os.getpid()}",
+        "--user", f"{os.getuid()}:{os.getgid()}",
+        "-e", "HOME=/tmp",
+        "-e", f"{_IN_CONTAINER_ENV}=1",
+        "-v", f"{REPO_ROOT}:/experiment", "-w", "/experiment",
+        G6K_IMAGE,
+        "nice", "-n", "19", "python3", "scripts/run_campaign.py", *argv,
+    ]
+
+
+def _ntru_full_failure(total: int, skipped: int, written: int) -> bool:
+    """True when every seed this run actually ATTEMPTED failed (errored,
+    wall-cap-killed, or crashed). rc must be nonzero then, so forever_runner
+    records the line in forever_worklist.failed and its consecutive-failure
+    stop-loud counter advances -- 2026-08-28 a 100%-failure run returned rc=0
+    and 12 worklist lines were archived as silently done. All-skip
+    (attempted == 0) stays success: that is the filler's steady state, and a
+    fully-populated cell re-dispatched is a no-op by design. Partial failure
+    also stays success -- the wave semantics let surviving seeds count."""
+    return (total - skipped) > 0 and written == 0
+
 
 def _select_runner(campaign_name: str) -> str:
     """Resolve a campaign name to the runner role that executes it.
@@ -637,7 +686,7 @@ def _dispatch_ntru(
 
     nproc = max(1, min(workers, (os.cpu_count() or 2), len(tasks)))
     total = len(tasks)
-    done = written = 0
+    done = written = skipped = errored = 0
     advs: dict[int, list] = {}
 
     if campaign.seed_wall_s:
@@ -656,8 +705,10 @@ def _dispatch_ntru(
                 print(f"  [{done}/{total}] n={n:3d} β={beta} seed={seed}: "
                       f"advantage={adv:+.6f}")
             elif status == "skip":
+                skipped += 1
                 print(f"  [{done}/{total}] n={n:3d} β={beta} seed={seed}: skip")
             else:
+                errored += 1
                 print(f"  [{done}/{total}] ERROR n={n} seed={seed}: {status}",
                       file=sys.stderr)
         for task, elapsed in killed:
@@ -689,18 +740,33 @@ def _dispatch_ntru(
                     print(f"  [{done}/{total}] n={n:3d} β={beta} seed={seed}: "
                           f"advantage={adv:+.6f}")
                 elif status == "skip":
+                    skipped += 1
                     print(f"  [{done}/{total}] n={n:3d} β={beta} seed={seed}: skip")
                 else:
+                    errored += 1
                     print(f"  [{done}/{total}] ERROR n={n} seed={seed}: {status}",
                           file=sys.stderr)
     for n in sorted(advs):
         a = advs[n]
         print(f"  n={n}: mean advantage={sum(a) / len(a):+.4f} "
               f"(min {min(a):+.4f}, max {max(a):+.4f}, {len(a)} new)")
+    n_killed = len(killed) if campaign.seed_wall_s else 0
+    n_crashed = len(crashed) if campaign.seed_wall_s else 0
+    if _ntru_full_failure(total, skipped, written):
+        PIPELINE.error("ntru run failed", cat="sweep",
+                       campaign=campaign.name, q=q,
+                       n_grid=list(campaign.n_grid), seeds=campaign.num_seeds,
+                       tasks=total, skipped=skipped, errors=errored,
+                       wall_cap_killed=n_killed, crashed=n_crashed)
+        print(f"NTRU run FAILED: 0 of {total - skipped} attempted seeds "
+              f"written ({errored} errored, {n_killed} wall-cap-killed, "
+              f"{n_crashed} crashed, {skipped} pre-existing skips).",
+              file=sys.stderr)
+        return 1
     PIPELINE.info("ntru run ok", cat="sweep",
                   campaign=campaign.name, q=q,
                   n_grid=list(campaign.n_grid), seeds=campaign.num_seeds,
-                  tasks=total, written=written)
+                  tasks=total, written=written, skipped=skipped, errors=errored)
     print(f"NTRU run OK: {written} seeds written / {total} tasks.")
     return 0
 
@@ -743,6 +809,21 @@ def main() -> int:
     except ConfigError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 2
+
+    if campaign.backend == "g6k" and not _g6k_available():
+        if os.environ.get(_IN_CONTAINER_ENV):
+            print(f"ERROR: inside {G6K_IMAGE} but the g6k module is still "
+                  f"missing -- broken image; not re-execing", file=sys.stderr)
+            return 2
+        import shutil
+        if shutil.which("docker") is None:
+            print(f"ERROR: campaign {args.campaign!r} needs the g6k module "
+                  f"or docker (for {G6K_IMAGE}); neither found", file=sys.stderr)
+            return 2
+        cmd = _g6k_container_argv(sys.argv[1:])
+        PIPELINE.info("g6k container re-exec", cat="sweep",
+                      campaign=args.campaign, image=G6K_IMAGE)
+        os.execvp(cmd[0], cmd)   # replaces this process; rc = container rc
 
     # CLI overrides (q / precision) for exploratory sweeps. The seed-path
     # tree keys on q + precision, so overridden runs land in their own dirs.
