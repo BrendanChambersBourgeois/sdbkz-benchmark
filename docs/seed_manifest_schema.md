@@ -80,7 +80,7 @@ The mapping from pre-v1.3 directory to v1.3 campaign:
 
 \* The cloud-sourced q=3329 seeds (10 AWS-Batch seeds at n=100 β=30 documented in paper §8.2) migrate from `main` to `q3329` per the "campaign = intent" principle. The `build_seed_manifest.py` walker handles this reassignment based on `q` field content, not source directory.
 
-The `ntru` campaign has no pre-v1.3 directory — it is a **post-v1.3 native campaign** (the paper-2 NTRU dense-sublattice-discovery sweep, `forever_runner.py` + `run_campaign.py`) written directly into `results/seeds/ntru/` with no legacy migration. It is now the largest campaign in the manifest (6,740 seeds). Its bases are Ducas–van Woerden NTRU circulants of lattice dimension `2n`; `q` sweeps the overstretched range (~100 distinct moduli, 97–5869).
+The `ntru` campaign has no pre-v1.3 directory — it is a **post-v1.3 native campaign** (the paper-2 NTRU dense-sublattice-discovery sweep, `forever_runner.py` + `run_campaign.py`) written directly into `results/seeds/ntru/` with no legacy migration. It is now the largest campaign in the manifest (8,728 seeds as of 2026-08-30). Its bases are Ducas–van Woerden NTRU circulants of lattice dimension `2n`; `q` sweeps the overstretched range (184 distinct moduli, 97–7177).
 
 ## New path layout (v1.3)
 
