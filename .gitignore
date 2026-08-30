@@ -84,3 +84,4 @@ results/logs/
 results/logs/forever_worklist.done
 results/logs/forever_worklist.failed
 results/logs/forever_runner.lock
+/paper.pdf
