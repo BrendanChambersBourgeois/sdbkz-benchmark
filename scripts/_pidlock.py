@@ -14,12 +14,21 @@ One helper, both properties:
     so a concurrent reader never observes an empty/partial lock file;
   * a holder is live only if its pid is alive AND /proc/<pid>/cmdline is a python
     interpreter running `script_basename`; anything else (dead pid, recycled pid,
-    unparseable file) is reclaimed by unlink + retry of the atomic create, so two
-    simultaneous reclaimers resolve to exactly one holder.
+    unparseable file) is reclaimed by unlink + retry of the atomic create;
+  * reclaim (re-check liveness + unlink) runs under an exclusive flock on a
+    `<lock>.guard` sidecar, so two simultaneous reclaimers resolve to exactly
+    one holder -- without the guard, a reclaimer that had already passed the
+    liveness check could unlink the fresh lock a faster reclaimer just created
+    and yield two "holders" (caught by test_race_stale_lock_exactly_one_reclaimer,
+    CI 2026-08-30). Creators never take the guard: create is atomic and only
+    succeeds while the lock path is absent, so the file re-checked under the
+    guard is the file unlinked. The sidecar is never deleted (deleting it would
+    reintroduce the race); the flock dies with the process, so it cannot go stale.
 """
 from __future__ import annotations
 
 import errno
+import fcntl
 import os
 from collections.abc import Callable
 from pathlib import Path
@@ -92,10 +101,21 @@ def acquire_pidlock(lock: Path, script_basename: str,
             log(f"another {script_basename} holds the lock -- exiting")
             return False
         log("stale/foreign lock -- reclaiming")
+        gfd = os.open(f"{lock}.guard", os.O_CREAT | os.O_RDWR, 0o644)
         try:
-            lock.unlink()
-        except FileNotFoundError:
-            pass                             # a concurrent reclaimer got there first
+            fcntl.flock(gfd, fcntl.LOCK_EX)  # serialize reclaimers
+            # Re-check under the guard, and only unlink a lock file that still
+            # EXISTS and is stale. An absent path means another reclaimer beat
+            # us to the cleanup -- and a fresh winner may create at any moment,
+            # so a blind unlink here would remove that live lock (second half
+            # of the 2-winner race; see the trace in the 2026-08-30 incident).
+            if lock.exists() and not _holder_is_live(lock, script_basename):
+                try:
+                    lock.unlink()
+                except FileNotFoundError:
+                    pass                     # a concurrent reclaimer got there first
+        finally:
+            os.close(gfd)                    # releases the flock
     log(f"could not acquire lock after {_MAX_ATTEMPTS} attempts -- exiting")
     return False
 
