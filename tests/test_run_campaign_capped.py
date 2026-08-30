@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
 
 import run_campaign as rc  # noqa: E402
 
+
 # task tuple shape consumed by the scheduler: (n, beta, seed, q, precision,
 # max_tours, generator, seed_tag, ...)
 def _task(seed):
