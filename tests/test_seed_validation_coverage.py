@@ -32,9 +32,19 @@ SEEDS_ROOT = os.path.join(REPO, "results", "seeds")
 # `test_deferred_allowlist_is_honest`; dropping a family from disk-coverage
 # without either validating or deferring it is caught by
 # `test_no_unguarded_seed_family`.
-DEFERRED_FAMILIES: dict[str, str] = {}
-# EMPTY — INC-45 fully remediated (2026-06-14). The allowlist has shrunk to
-# empty as required: every results/seeds/* family is now CI-validated.
+DEFERRED_FAMILIES: dict[str, str] = {
+    "ntru_flatter": (
+        "flatter-preprocessing A/B probe (2026-08-13): paired baseline/"
+        "flatter cells whose layout carries an extra baseline|flatter level "
+        "that the v1.3 path parser does not know, and whose preprocessing "
+        "driver is not yet committed. Deferred until the driver lands "
+        "(CHANGELOG Unreleased); the tree is likewise excluded from the "
+        "canonical manifest (lint_seed_manifest.NON_MANIFEST_SEED_TREES)."
+    ),
+}
+# INC-45 was fully remediated 2026-06-14 (allowlist empty); ntru_flatter is
+# the single re-addition (2026-08-30) and carries its exit condition above.
+# Every other results/seeds/* family is CI-validated.
 #   - ntru_g6k removed Phase 3 (validates 1784/1784 clean).
 #   - ntru + ntru_patched removed Phase 4b: volume-drift classified (verdict
 #     numerical/Kahan-family for the 0.1-10 band, structural crack for >10),
