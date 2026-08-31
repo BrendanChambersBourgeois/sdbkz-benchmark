@@ -45,3 +45,51 @@ Rebuild fpylll against the patched fplll afterwards.
 This is a **new instance** of an already-open failure family in fpylll/fplll (related: fpylll #272). It was filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) (2026-05-08) and closed unmerged by the maintainer (2026-05-17); the corrected patch is now kept **local to this repo** — applied out-of-tree against a stock fplll checkout, not resubmitted or reopened. Maintained on the local fork branch `fix/gso-kahan-cancellation` as two commits (code fix, then the test), clang-format 18 clean. If you ship the patch in a downstream distribution, cite the paper.
 
 All `q=97` results in the paper are unaffected and do not require this patch. Only `q=3329` (and presumably other cryptographic moduli at `n≥100`) trigger the cancellation.
+
+## `g6k_gauss_nonimproving_tolerant.patch`
+
+Tolerant handling of non-improving in-database reductions in G6K's `kernel/sieving.cpp`
+`gauss_sieve` (INC-63, 2026-08-31). Applies to g6k commit `c71e084`.
+
+**Symptom:** every NTRU β=60 seed at n∈{179,181} (9/9 attempts, both compute nodes) and 2 of
+~1300 β=50 seeds abort 65–109 minutes in with `RuntimeError: Aborted` (cysignals-translated
+SIGABRT). journald shows the cause:
+
+```
+python3: sieving.cpp:118: void Siever::gauss_sieve(std::size_t): Assertion `cv2_vec_len > fast_cdb[j].len' failed.
+```
+
+**Root cause:** `gauss_no_upd_reduce_in_db` accepts a reduction when the PREDICTED new length
+beats `REDUCE_LEN_MARGIN` (1.01), but then stores the exactly RECOMPUTED length
+(`recompute_data_for_entry`), which can round to ≥ the pre-reduction length. The bgj1 and bdgl
+sieves re-validate after recompute (`REDUCE_LEN_MARGIN_HALF` check in `bgj1_replace_in_db` /
+bdgl equivalent) and reject; the gauss path instead asserts the improvement it never re-checked.
+The assert is compiled in because the source build does not define NDEBUG. Small sieve contexts
+(35 at β=50, 44 at β=60, both below `gauss_crossover=50`) route every pump sieve call through
+`gauss_sieve`, so the exposure is largest exactly at bumped-β NTRU wall cells.
+
+**Fix:** capture the pre-reduction length on the candidate branch, and replace the assert with
+the NDEBUG-equivalent tolerant swap plus a counter and a rate-limited stderr report (first 5
+events, then every 4096th) including both lengths and their finiteness — never a silent
+substitution. No algorithmic change on any run that previously completed: a seed that took the
+failing branch aborted, so completed seeds never exercised it and reference SHAs are expected to
+carry over (verify_g6k.sh decides).
+
+### Applying
+
+```
+git clone https://github.com/fplll/g6k.git
+cd g6k
+git checkout c71e084
+git apply /path/to/sdbkz-benchmark/patches/g6k_gauss_nonimproving_tolerant.patch
+autoreconf -i && ./configure --disable-native --with-max-sieving-dim=384
+pip install --no-build-isolation .
+```
+
+Wired into `Dockerfile.g6k` (COPY + `git apply` before `autoreconf`).
+
+### Status
+
+Local to this repo, out-of-tree against a stock g6k checkout; not filed upstream. Root-cause
+verdict (recompute-roundoff vs non-finite lengths) confirmed by the INC-63 diagnostic image
+(`GAUSS_ASSERT_DUMP` build) before this patch ships into any measured run.
