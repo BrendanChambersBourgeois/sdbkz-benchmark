@@ -60,8 +60,12 @@ python3: sieving.cpp:118: void Siever::gauss_sieve(std::size_t): Assertion `cv2_
 ```
 
 **Root cause:** `gauss_no_upd_reduce_in_db` accepts a reduction when the PREDICTED new length
-beats `REDUCE_LEN_MARGIN` (1.01), but then stores the exactly RECOMPUTED length
-(`recompute_data_for_entry`), which can round to ≥ the pre-reduction length. The bgj1 and bdgl
+(cached float32 lengths + a float32 inner product of cached `yr` coordinates) beats
+`REDUCE_LEN_MARGIN` (1.01), but then stores the exactly RECOMPUTED length
+(`recompute_data_for_entry`), which can be arbitrarily larger — the INC-63 diagnostic build
+measured `old_len=183593.9 → new_len=13861248` (75.5×, both finite) at sieve context 49 on the
+crashing seed. This is float32 prediction breakdown at large-norm NTRU cells, not marginal
+rounding. The bgj1 and bdgl
 sieves re-validate after recompute (`REDUCE_LEN_MARGIN_HALF` check in `bgj1_replace_in_db` /
 bdgl equivalent) and reject; the gauss path instead asserts the improvement it never re-checked.
 The assert is compiled in because the source build does not define NDEBUG. Small sieve contexts
@@ -91,5 +95,6 @@ Wired into `Dockerfile.g6k` (COPY + `git apply` before `autoreconf`).
 ### Status
 
 Local to this repo, out-of-tree against a stock g6k checkout; not filed upstream. Root-cause
-verdict (recompute-roundoff vs non-finite lengths) confirmed by the INC-63 diagnostic image
-(`GAUSS_ASSERT_DUMP` build) before this patch ships into any measured run.
+verdict confirmed by the INC-63 diagnostic image (`GAUSS_ASSERT_DUMP` build): both lengths
+finite, recomputed 75.5× the pre-reduction length — prediction breakdown, not NaN poisoning.
+Determinism SHA gate (`verify_g6k.sh`) passes bit-exact on the patched image.

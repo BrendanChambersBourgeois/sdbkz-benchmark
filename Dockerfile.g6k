@@ -126,9 +126,10 @@ RUN git clone https://github.com/fplll/fpylll.git /tmp/fpylll \
 # whether the reference SHAs carry over).
 # INC-63 (2026-08-31): kernel/sieving.cpp gauss_sieve asserted strict length
 # improvement after an in-db reduction, but gauss_no_upd_reduce_in_db validates
-# only the PREDICTED length and stores the exactly RECOMPUTED one, which can
-# round to >= the pre-reduction length; every beta=60 NTRU seed (and 2 of ~1300
-# beta=50 seeds) died on that assert. The patch replaces the assert with the
+# only the PREDICTED length (cached float32 lens + float32 yr inner product)
+# and stores the exactly RECOMPUTED one, which the INC-63 diagnostic measured
+# at 75.5x the pre-reduction length (both finite) on the crashing seed; every
+# beta=60 NTRU seed (and 2 of ~1300 beta=50 seeds) died on that assert. The patch replaces the assert with the
 # NDEBUG-equivalent tolerant swap plus a counter + rate-limited stderr report
 # (bgj1/bdgl already re-validate after recompute; gauss is the outlier).
 # Byte-identity: any completed seed never took the failing branch (it would
