@@ -1,0 +1,53 @@
+--- a/kernel/sieving.cpp
++++ b/kernel/sieving.cpp
+@@ -19,6 +19,8 @@
+ 
+ 
+ #include "siever.h"
++#include <cstdio>
++#include <cmath>
+ #include "iostream"
+ #include "fstream"
+ #include <numeric>
+@@ -96,14 +98,12 @@
+ start_over:
+             for (size_t j = 0; j < p_index; ++j) // WHY IS IT p_index NOT queue_begin???
+             {
+-#ifndef NDEBUG
+-                LFT cv2_vec_len = fast_cdb[j].len;
+-#endif
+                 if( UNLIKELY(is_reducible_maybe<XPC_THRESHOLD>(cv,&(fast_cdb[j].c.front()) )))
+                 {
+                     #if COLLECT_STATISTICS_XORPOPCNT_PASS || COLLECT_STATISTICS_FULLSCPRODS
+                     ++local_stat_successful_xorpopcnt_reds; // adds to successful xorpopcnt and also to scalar product computations
+                     #endif
++                    LFT const pre_reduction_len = fast_cdb[j].len; // INC-63: for post-reduction validation
+                     short const which_one = gauss_no_upd_reduce_in_db(pce1, &fast_cdb[j]); // takes values {0,1,2}
+                     if(which_one != 0) //actual reduction
+                     {
+@@ -115,7 +115,24 @@
+                         }
+                         else if(queue_begin) // some other point 'above' p was reduced, move it to the 'Queue'-part of the list
+                         {
+-                            assert(cv2_vec_len > fast_cdb[j].len );
++                            // INC-63 (2026-08-31): gauss_no_upd_reduce_in_db validates the PREDICTED
++                            // new length against REDUCE_LEN_MARGIN, but stores the exactly
++                            // RECOMPUTED length, which can round to >= the pre-reduction length.
++                            // bgj1_replace_in_db / bdgl re-validate after recompute; the gauss path
++                            // asserted instead. Tolerate the non-improving swap (identical to an
++                            // NDEBUG build) but count and report it -- never fail silently.
++                            if (UNLIKELY(!(pre_reduction_len > fast_cdb[j].len)))
++                            {
++                                static std::atomic<unsigned long> g_nonimproving_reds{0};
++                                unsigned long const c = ++g_nonimproving_reds;
++                                if (c <= 5UL || (c & 0xFFFUL) == 0UL)
++                                    std::fprintf(stderr,
++                                        "g6k gauss_sieve: non-improving in-db reduction #%lu "
++                                        "(pre=%.9g post=%.9g finite=%d/%d n=%u)\n",
++                                        c, (double)pre_reduction_len, (double)fast_cdb[j].len,
++                                        (int)std::isfinite((double)pre_reduction_len),
++                                        (int)std::isfinite((double)fast_cdb[j].len), (unsigned)n);
++                            }
+                             using std::swap;
+                             swap(fast_cdb[j],fast_cdb[queue_begin-1]); // Aren't we missing a comparison (p, fast_cdb[queue_begin-1])?
+                             queue_begin--;

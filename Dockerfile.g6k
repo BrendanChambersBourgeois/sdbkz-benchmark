@@ -124,11 +124,24 @@ RUN git clone https://github.com/fplll/fpylll.git /tmp/fpylll \
 # (larger fixed-size vector arrays; byte-identity vs the 128-build must
 # be re-gated — verify_g6k.sh against the captured reference decides
 # whether the reference SHAs carry over).
+# INC-63 (2026-08-31): kernel/sieving.cpp gauss_sieve asserted strict length
+# improvement after an in-db reduction, but gauss_no_upd_reduce_in_db validates
+# only the PREDICTED length and stores the exactly RECOMPUTED one, which can
+# round to >= the pre-reduction length; every beta=60 NTRU seed (and 2 of ~1300
+# beta=50 seeds) died on that assert. The patch replaces the assert with the
+# NDEBUG-equivalent tolerant swap plus a counter + rate-limited stderr report
+# (bgj1/bdgl already re-validate after recompute; gauss is the outlier).
+# Byte-identity: any completed seed never took the failing branch (it would
+# have aborted), so reference SHAs are expected to carry over — but the
+# binary changes, so verify_g6k.sh against the captured reference is the
+# gate that decides, per the warning above.
 ARG G6K_COMMIT=c71e084
 ARG G6K_MAX_SIEVING_DIM=128
+COPY patches/g6k_gauss_nonimproving_tolerant.patch /tmp/g6k_gauss_nonimproving_tolerant.patch
 RUN git clone https://github.com/fplll/g6k.git /tmp/g6k \
     && cd /tmp/g6k \
     && git checkout ${G6K_COMMIT} \
+    && git apply --verbose /tmp/g6k_gauss_nonimproving_tolerant.patch \
     && autoreconf -i \
     && ./configure --disable-native --with-max-sieving-dim=${G6K_MAX_SIEVING_DIM} \
     && pip install --no-cache-dir --no-build-isolation . \
