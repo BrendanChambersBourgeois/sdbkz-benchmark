@@ -94,9 +94,9 @@ def _g6k_available() -> bool:
     return importlib.util.find_spec("g6k") is not None
 
 
-def _g6k_container_argv(argv: list) -> list:
+def _g6k_container_argv(argv: list, image: str = None) -> list:
     """docker argv re-running `python3 scripts/run_campaign.py <argv>` inside
-    G6K_IMAGE. --user keeps bind-mount seed writes owned by the invoking user
+    `image` (default G6K_IMAGE). --user keeps bind-mount seed writes owned by the invoking user
     (rootful docker would write root-owned files); nice -n 19 preserves the
     desktop-starvation fix (the forever-runner Nice=19 drop-in does not reach
     processes containerd spawns); --init reaps the per-seed subprocesses;
@@ -111,7 +111,7 @@ def _g6k_container_argv(argv: list) -> list:
         "-e", "HOME=/tmp",
         "-e", f"{_IN_CONTAINER_ENV}=1",
         "-v", f"{REPO_ROOT}:/experiment", "-w", "/experiment",
-        G6K_IMAGE,
+        image or G6K_IMAGE,
         "nice", "-n", "19", "python3", "scripts/run_campaign.py", *argv,
     ]
 
@@ -831,6 +831,11 @@ def main() -> int:
                          "SIGKILL + skip + log any seed exceeding it (INC-56). "
                          "Overrides the campaign's seed_wall_s; omit = campaign "
                          "default / off.")
+    ap.add_argument("--image", default=None,
+                    help="override the g6k container image for the re-exec "
+                         "(default G6K_IMAGE; e.g. sdbkz-g6k:dim384-inc63 for "
+                         "INC-63 reruns). No effect when g6k is importable "
+                         "in-process.")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the resolved dispatch invocation; do not run")
     args = ap.parse_args()
@@ -853,9 +858,9 @@ def main() -> int:
             print(f"ERROR: campaign {args.campaign!r} needs the g6k module "
                   f"or docker (for {G6K_IMAGE}); neither found", file=sys.stderr)
             return 2
-        cmd = _g6k_container_argv(sys.argv[1:])
+        cmd = _g6k_container_argv(sys.argv[1:], image=args.image)
         PIPELINE.info("g6k container re-exec", cat="sweep",
-                      campaign=args.campaign, image=G6K_IMAGE)
+                      campaign=args.campaign, image=args.image or G6K_IMAGE)
         os.execvp(cmd[0], cmd)   # replaces this process; rc = container rc
 
     # CLI overrides (q / precision) for exploratory sweeps. The seed-path
