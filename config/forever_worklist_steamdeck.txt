@@ -46,6 +46,9 @@ ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 10 --workers 6 --seed-tim
 # commented for consistency so a done-log reset cannot resurrect it before the fix.
 # ntru_wall_beta_bump --n 181 --q 4591 --beta 60 --seeds 2 --workers 6 --seed-timeout-s 172800 @budget_h=48
 
+# STATUS 2026-09-02: this line is DONE on the deck — 20/20 seeds pulled by
+# 2026-09-01 (union 14/20 integer-exact: SD 11, BKZ 6, three both-leg). The note
+# below is the pre-run record.
 # n=179 β=50 top-up to 20. Currently 4 seeds (1/4 SD-crack, 2026-08-19); seeds
 # 5-20 were all wall-cap killed at 14400 s = 0.30× a healthy seed, so that cell
 # carries NO rate. This is the replication the 2026-08-20 entry asked for, and it
@@ -53,6 +56,10 @@ ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 10 --workers 6 --seed-tim
 # 2/9-vs-2/9 parity is the true picture. Existing seeds resume-skip.
 ntru_wall_beta_bump --n 179 --q 4591 --beta 50 --seeds 20 --workers 6 --seed-timeout-s 86400 @budget_h=48
 
+# STATUS 2026-09-02: 15/20 pulled (seeds 11-16 arrived 2026-09-01; union 7/15:
+# SD 5, BKZ 3). Seeds 17-20 presumed in flight on the deck, unverified since that
+# pull. seed0002 stays absent (INC-63 abort) and is rerun on the workstation's
+# dim384-inc63 line, not here. The note below is the pre-run record.
 # n=181 β=50 top-up to 20. Currently 9 (4/9). seed0002 is absent and is NOT in
 # wall_cap_events.jsonl, so it was not cap-killed — this re-runs it and doubles
 # the sample on the cell the whole finding rests on.
