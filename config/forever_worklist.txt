@@ -196,3 +196,19 @@ ntru_wall_beta_bump --n 179 --q 4111 --beta 50 --seeds 20 --workers 20 --seed-ti
 ntru_wall_beta_bump --n 179 --q 3637 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
 ntru_wall_beta_bump --n 179 --q 3163 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
 ntru_wall_beta_bump --n 179 --q 5077 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+
+# INC-63 rerun block (2026-09-01, incidents.md addendum 4): the six tasks the
+# sieving.cpp:118 gauss_sieve assert killed on the unpatched image, pinned to
+# the tolerant image via --image (run_campaign.py re-exec override). Existing
+# seed JSONs resume-skip, so each line runs ONLY its missing seeds:
+#   q=5869 --seeds 17 -> seeds 2, 7, 16, 17 (4 tasks)
+#   q=5381 --seeds 18 -> seed 18            (1 task)
+#   q=4591 --seeds 2  -> seed 2             (1 task; deck is extending this
+#     cell to 20 on the unpatched image — do NOT raise --seeds here, the
+#     deck's seeds arrive via node-pull)
+# @budget_h=30 clears the 86400 s per-seed cap (the 24 h default backstop
+# would race it). If the beta=60 validation seed ends with a BAD profile,
+# delete these three lines instead of running them (incidents.md addendum 4).
+ntru_wall_beta_bump --n 181 --q 5869 --beta 50 --seeds 17 --workers 4 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=30
+ntru_wall_beta_bump --n 181 --q 5381 --beta 50 --seeds 18 --workers 1 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=30
+ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 2 --workers 1 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=30
