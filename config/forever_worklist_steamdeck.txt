@@ -40,7 +40,11 @@ ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 10 --workers 6 --seed-tim
 # exactly the error that put the n=181 estimate 5× low.
 # Cap 172800 s = 48 h/seed: generous enough not to kill a healthy β=60 seed,
 # finite enough that a wedge cannot eat the week.
-ntru_wall_beta_bump --n 181 --q 4591 --beta 60 --seeds 2 --workers 6 --seed-timeout-s 172800 @budget_h=48
+# HELD 2026-09-01: same INC-63 hold as the n=179 line below — β=60 aborts the g6k
+# gauss_sieve assert (sieving.cpp:118) on the current image. This bootstrap already
+# ran on the deck 2026-08-28 (rc=1, both seeds aborted, done-log blocks a rerun);
+# commented for consistency so a done-log reset cannot resurrect it before the fix.
+# ntru_wall_beta_bump --n 181 --q 4591 --beta 60 --seeds 2 --workers 6 --seed-timeout-s 172800 @budget_h=48
 
 # n=179 β=50 top-up to 20. Currently 4 seeds (1/4 SD-crack, 2026-08-19); seeds
 # 5-20 were all wall-cap killed at 14400 s = 0.30× a healthy seed, so that cell
