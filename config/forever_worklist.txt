@@ -26,8 +26,9 @@
 #    The deck completed n=179 beta=50 q=4591 (2.909x) to 20/20 under the 86400 s cap
 #    (seeds pulled 2026-08-30 and 2026-09-01): union 14/20 integer-exact, SD-BKZ 11/20,
 #    BKZ 6/20, three both-leg. The "no crack-rate signal" paragraph below describes
-#    only the cap-killed 2026-08-20 attempt. n=181 beta=50 q=4591 (2.830x) stands at
-#    15/20 (union 7: SD 5, BKZ 3) with the deck still extending it to 20. The 12-line
+#    only the cap-killed 2026-08-20 attempt. n=181 beta=50 q=4591 (2.830x) is 19/20 as
+#    of the 2026-09-02 08:50 pull (union 10: SD 7, BKZ 4; seed 2 aborted on both
+#    attempts, INC-63, rerun queued at the tail). The 12-line
 #    beta=50 ladder at the foot of this file is the follow-on; readouts in
 #    paper_findings.md (entries dated 2026-08-28, 2026-08-30, 2026-09-02).
 #
@@ -198,7 +199,8 @@ ntru_onset_boundary --n 163 --q 4813 --workers 20
 # the tail); the four n=179 lines still queued. On-disk readout, integer-exact,
 # union (SD / BKZ):
 #   n=181 q2593 0/20, q3083 0/20, q3407 0/20, q3733 1/20 (1/0), q4871 12/20 (8/5),
-#   q5381 8/19 (6/3), q5869 6/16 (6/1); deck-owned q4591 7/15 (5/3) so far.
+#   q5381 8/19 (6/3), q5869 6/16 (6/1); deck-owned q4591 10/19 (7/4), deck line done
+#   2026-09-02 00:20 AEST, pulled 08:50.
 #   Missing seeds are INC-63 aborts, not cap kills. paper_findings.md 2026-09-02
 #   entry carries the floor-class breakdown (q^2 floor vs sub-q^2 non-secret vs exact).
 ntru_wall_beta_bump --n 181 --q 3733 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
