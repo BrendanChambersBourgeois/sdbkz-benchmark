@@ -32466,6 +32466,84 @@
    "sha256": "9e0af5bf960e9604b0611a430b506d71c2af5528b962eeae58eb50157907aead"
   },
   {
+   "path": "results/seeds/ntru_g6k/q4073/p500_mt50/n173_beta40/seed0011.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4073,
+   "n": 173,
+   "beta": 40,
+   "seed": 11,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "313f1b6e1da097b06e8870d46aecb51ff257498026b574e7c39f03e86af96eb9"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4073/p500_mt50/n173_beta40/seed0012.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4073,
+   "n": 173,
+   "beta": 40,
+   "seed": 12,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "cac07e59486db2ad7b511ac918bbd03681f59df810aae83dbf429d7d7c88c722"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4073/p500_mt50/n173_beta40/seed0013.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4073,
+   "n": 173,
+   "beta": 40,
+   "seed": 13,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "2071a666f20a2f27e56ff9660215cf912ded0c5a7a4ca212e8760ebe1c5e86f9"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4073/p500_mt50/n173_beta40/seed0014.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4073,
+   "n": 173,
+   "beta": 40,
+   "seed": 14,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "decb8858a136430fb2cf1f8e2c07bcc856567f86d3022eaea50f1a12758099fe"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4073/p500_mt50/n173_beta40/seed0015.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4073,
+   "n": 173,
+   "beta": 40,
+   "seed": 15,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "a0f3bfb4fb16c8f95dd3c1ce5b3d51ce3682a22ad64ae0c912d999739d33086b"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4073/p500_mt50/n173_beta40/seed0016.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4073,
+   "n": 173,
+   "beta": 40,
+   "seed": 16,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "044ed37cdbf647eec087568c5c97004b57724eed8d006429de7da54e30c510c9"
+  },
+  {
    "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n179_beta40/seed0001.json",
    "campaign": "ntru_g6k",
    "engine": "g6k",
@@ -33049,6 +33127,58 @@
    "max_tours": 50,
    "threads": 1,
    "sha256": "fa2eb9513a4f7a445374734a7313d947baaa7205e09e7a8bff1cfd3b3b184b83"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n181_beta50/seed0017.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4591,
+   "n": 181,
+   "beta": 50,
+   "seed": 17,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "c433b567171173499b8ae0f65bbc372854c8e9740fdcf9358d5d935c84741364"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n181_beta50/seed0018.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4591,
+   "n": 181,
+   "beta": 50,
+   "seed": 18,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "795b50e68fec406dbee31a7e4b52ee796f566973c4c9720b6c99c32d9774fdf1"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n181_beta50/seed0019.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4591,
+   "n": 181,
+   "beta": 50,
+   "seed": 19,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "ee08fc13982503c1fadf75f24a5fc0ffb8f17bfab3856445810ceffbcb35d1be"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n181_beta50/seed0020.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4591,
+   "n": 181,
+   "beta": 50,
+   "seed": 20,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "ab8f7072a0909e766e7ea802a71d37f8f37707afc925960be245bca46c0e799e"
   },
   {
    "path": "results/seeds/ntru_g6k/q4871/p500_mt50/n181_beta50/seed0001.json",
@@ -33766,5 +33896,5 @@
    "sha256": "df0e6c7b6d6f65c971a178e0d346af6a7415113e1af52534116b0d9156cf31b6"
   }
  ],
- "seeds_generated_utc": "2026-09-01T22:44:03Z"
+ "seeds_generated_utc": "2026-09-01T22:51:43Z"
 }
