@@ -26,14 +26,14 @@ Post-v2.0.0 work on `main` (unreleased, no tag cut yet):
 
 | target | scope |
 |--------|-------|
-| paper 2 (NTRU + cross-engine) | `paper2/` in-progress technical report: NTRU dense-sublattice-discovery (DSD) onset and a cross-engine (fplll enumeration vs G6K sieving) study. G6K wired as a second reduction engine behind a determinism-gated seam (own manifest `results/g6k_seed_manifest.json`, `lint_g6k_manifest.py`). §7 four-discrepancy reconciliation closed; core-hours corrected to recorded-time ground truth. Remaining: three §-text edits (RHF wording / bootstrap CI / R²≈0.95) + AWS §8 rerun on the corrected Kahan patch. |
+| paper 2 (NTRU + cross-engine) | `paper2/` in-progress technical report: NTRU dense-sublattice-discovery (DSD) onset and a cross-engine (fplll enumeration vs G6K sieving) study. G6K wired as a second reduction engine behind a determinism-gated seam (own manifest `results/g6k_seed_manifest.json`, `lint_g6k_manifest.py`). §7 four-discrepancy reconciliation closed; core-hours corrected to recorded-time ground truth. Remaining: three §-text edits (RHF wording / bootstrap CI / R²≈0.95). The AWS §8 rerun on the corrected Kahan patch is DROPPED (owner decision 2026-09-02: no further AWS spend); the §8 mechanism claim keeps its flipped-patch caveat. |
 | NTRU frontier campaigns | never-idle `forever_runner` filling the NTRU overstretched grid. **n=167 is a soft wall** — SD DSD-rate wanders 20–45% out to 4.97× q_fat and never crosses 50%. **n=173 is a confirmed dim-driven wall** — the matched-ratio extension (5 cells, q 5407/5843/6287/6733/7177 = 3.73–4.95× q_fat, completed 2026-08-18) held SD flat at 0–10% across 167's hot band with no 50% crossing to the 5× q_fat cap. BKZ-onset pinned at n=157 (BKZ q=2740 = 2.40× q_fat, SD q=2354 = 2.07×, lag 1.16×, 2026-08-20); the n=163 BKZ-onset extension completed 2026-08-23 (readout owed). Estimator-sized sweeps; g6k needed for n≥157 (fplll enum ceiling ~dim 300). β=50 now has a rate curve at the top of the corpus: n=179 q=4591 completed 10/10 under the 86,400 s cap — SD 5/10, BKZ 3/10; n=181 recovers 1/20 at q=3733 (2.30× q_fat, SD-only — exactly where β=40 was 0/20), 4/9 at q=4591 (2.83×; `paper_findings.md:4625`), and 12/20 at q=4871 (3.00×; BKZ 5, SD 8), against a β=40 null of 0/120 spanning 1.90–3.62× q_fat. The n≥173 wall is blocksize-conditional, not dimensional; the β=50 ladder is still running (n=181 q=3407 in flight). |
 
 ## Planned next
 
 | target   | scope                                                                  |
 |----------|------------------------------------------------------------------------|
-| paper 2 tag | Cut a release once §-text edits + the AWS §8 rerun land and paper2 is submission-ready. |
+| paper 2 tag | Cut a release once the §-text edits land and paper2 is submission-ready. The AWS §8 rerun is dropped (owner decision 2026-09-02, no further AWS spend). |
 | g6k n≥157 | Extend the cross-engine study past the fplll enum ceiling once g6k determinism at dim ≥ 314 is characterised. |
 
 ## External waits
