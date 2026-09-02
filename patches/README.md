@@ -46,6 +46,10 @@ This is a **new instance** of an already-open failure family in fpylll/fplll (re
 
 All `q=97` results in the paper are unaffected and do not require this patch. Only `q=3329` (and presumably other cryptographic moduli at `n≥100`) trigger the cancellation.
 
+## `fplll_gso_reorder_control.patch`
+
+**Control, not a fix.** The Kahan patch's loop restructuring and scratch members in `update_gso_row` with the compensation term held at zero: `y = ftmp2 + 0`, `t = ftmp1 − y`, `ftmp1 = t`, no residual carried. Numerically the naive subtraction with the same temporaries and operation count. Built into `sdbkz-fplll-patched:reorder-control` via `Dockerfile.fplll_patched --build-arg GSO_PATCH=patches/fplll_gso_reorder_control.patch` for the §8 local rerun (`[campaigns.q3329_control]`, 2026-09-02): a degeneracy-rate change between this build and the Kahan build (`sdbkz-fplll-patched:kahan-v3`) isolates the compensation term; a change between this build and stock fplll 5.5.0 isolates the rebuild / reordering. Needed because the 2026-04-10 "38% → 0%" measurement was taken with the flipped (inert) compensation (see the disclosure timeline, 2026-08-13 and 2026-09-02 rows). Applies to fplll 5.5.0 exactly where the Kahan patch does; never ship it.
+
 ## `g6k_gauss_nonimproving_tolerant.patch`
 
 Tolerant handling of non-improving in-database reductions in G6K's `kernel/sieving.cpp`

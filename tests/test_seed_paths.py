@@ -210,3 +210,16 @@ def test_fat_suffix_composes_with_cloud():
         "main", n=50, beta=20, seed=1, cloud=True, is_fat=True,
     )
     assert p.endswith("seed0001_cloud_fat.json")
+
+
+def test_q3329_rerun_arms_share_the_q3329_layout_under_own_roots():
+    # §8 local rerun (2026-09-02): rebuilt-fplll engines must never land in
+    # the SHA-locked canonical q3329/ tree.
+    for tag in ("q3329_kahan", "q3329_control"):
+        assert sp.seed_dir_for(tag, 100, 30, precision=1000, max_tours=70) == \
+            os.path.join("results", "seeds", tag, "p1000_mt70", "n100_beta30")
+        path = sp.seed_path_for(tag, 100, 30, 7, q=3329, precision=1000,
+                                max_tours=70)
+        assert path.endswith(os.path.join(tag, "p1000_mt70", "n100_beta30",
+                                          "seed0007.json"))
+        assert "/q3329/" not in path.replace(os.sep, "/")

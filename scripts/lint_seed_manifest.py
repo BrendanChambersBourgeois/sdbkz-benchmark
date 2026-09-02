@@ -75,6 +75,12 @@ NON_MANIFEST_SEED_TREES = frozenset({
     # Patched-fplll (Kahan) validation campaign — its own tree by
     # design, never overwrites or joins the canonical seeds.
     "ntru_patched",
+    # §8 local rerun arms (2026-09-02): the q=3329 headline cell on the
+    # sign-corrected Kahan build and on the reorder-only control build. Own
+    # trees, own engine binaries, never the canonical q3329/ hashes; manifest
+    # wiring with per-engine labels is owed when the seeds land.
+    "q3329_kahan",
+    "q3329_control",
     # forever-runner idle-filler tree — extra statistical power written to a
     # separate tree so it never re-opens a published cell's N (B2 review).
     "ntru_b2",

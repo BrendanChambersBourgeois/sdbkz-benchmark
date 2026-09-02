@@ -22,6 +22,11 @@ _KNOWN_CAMPAIGNS = frozenset({
     "main", "q3329", "cliff500", "fplll_sensitivity",
     "tours3x", "convergence", "ntru", "ntru_patched", "ntru_g6k",
     "ntru_xarch", "estimator_probe",
+    # §8 local rerun of the q=3329 headline cell on rebuilt fplll engines
+    # (2026-09-02): the sign-corrected Kahan build and the reorder-only
+    # control build. Same layout as q3329, separate roots, so neither engine
+    # can ever write into the SHA-locked canonical q3329/ tree.
+    "q3329_kahan", "q3329_control",
     # forever-runner idle-filler tree (never-idle seed-topup). SEPARATE by
     # design so the filler can NEVER touch/re-open a published cell (the B2
     # review's core integrity fix); excluded from the canonical fplll manifest
@@ -85,6 +90,14 @@ def seed_dir_for(
         mt = int(_require(max_tours, "max_tours", campaign))
         leaf_dir = os.path.join(
             NEW_LAYOUT_ROOT, "q3329", f"p{p}_mt{mt}", n_beta
+        )
+    elif campaign in ("q3329_kahan", "q3329_control"):
+        # q3329 layout under its own root: the §8 rerun arms on the rebuilt
+        # fplll engines (see _KNOWN_CAMPAIGNS). Never the canonical q3329/ tree.
+        p = int(_require(precision, "precision", campaign))
+        mt = int(_require(max_tours, "max_tours", campaign))
+        leaf_dir = os.path.join(
+            NEW_LAYOUT_ROOT, campaign, f"p{p}_mt{mt}", n_beta
         )
     elif campaign == "cliff500":
         leaf_dir = os.path.join(NEW_LAYOUT_ROOT, "cliff500", "q97", n_beta)
