@@ -128,6 +128,7 @@ The patch ships split in two: [`patches/fplll_gso_kahan.patch`](../../patches/fp
 | 2026-05-17 | PR `fplll/fplll#550` **closed unmerged** by the maintainer ("likely AI generated"). Finding did not land upstream. |
 | 2026-08-13 | Review of the shipped patch found the Kahan compensation sign was flipped (inert); corrected (`c = (t − ftmp1) + y`), moved scratch to member vars, hardened the regression test, and **split** the deliverable into a code-only patch + a separate tests patch (local fork commits `21445c51` code, `c0b00f88` tests; 16/16 `make check`). Owner decision: keep the corrected patch **local-only** — not resubmitted or reopened upstream. |
 | 2026-08-13 | CVE status resolved **N/A** — numerical-correctness finding, not an exploitable vulnerability; no upstream engagement pending. |
+| 2026-09-02 | Owner decision: the planned AWS Batch rerun of the 100-seed §8 benchmark on the corrected (sign-fixed) patch will **not** be run — no further AWS spend. The 2026-04-10 55-seed "38% → 0%" figure stands as measured with the inert (flipped-sign) compensation, so that change cannot be attributed to the compensation term; the §8 mechanism wording carries this caveat unless a local rerun replaces it. |
 
 Timeline entries are appended, never revised in place. Revision means a new row with `(revised YYYY-MM-DD: …)` annotation.
 

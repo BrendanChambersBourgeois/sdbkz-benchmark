@@ -35,7 +35,7 @@ distance to the Li–Nguyen fixed-point Rankin profile, d(LN)
 [@EPRINT:LiNgu20], as the primary observable. It ships two reduction engines
 behind a common seam — fplll's exact enumeration oracle [@fplll; @fpylll] and
 the G6K sieve kernel [@EC:ADHKPS19] — together with campaign runners, a
-SHA-256-verified seed manifest covering 13,549 fplll and 2,604 G6K runs, an
+SHA-256-verified seed manifest covering 13,549 fplll and 2,617 G6K runs, an
 analysis package that regenerates every figure and table of the accompanying
 technical report [@zenodo], and a CI pipeline that rebuilds the container and
 re-derives a reference seed byte-for-byte on every commit.
