@@ -1,5 +1,11 @@
 # Steamdeck node forever-runner — install as ~/.config/systemd/user/forever-runner.service
 # (systemctl --user daemon-reload && systemctl --user enable --now forever-runner).
+# 2026-09-02: image switched sdbkz-g6k:dim384 -> sdbkz-g6k:dim384-inc63 (INC-63
+# tolerant g6k gauss_sieve patch, validated on the beta=60 seed; shipped to the deck
+# via podman load, incidents.md INC-63 addendum 8). Completed-seed output is
+# byte-identical across the two images; only a seed that would have aborted takes
+# the tolerant path, and the container log's counter records it. Cutover was a
+# one-shot deck-side watcher that restarted the unit at the filler cell boundary.
 # Linger is set on the node, so it survives logout and starts at boot.
 #
 # Runs the SHARED scripts/forever_runner.py inside the g6k container (the node
@@ -32,7 +38,7 @@ TimeoutStartSec=infinity
 # bind-mount at all (uid 1000 maps to a subuid, not to deck). INC-58.
 ExecStart=/usr/bin/podman run --rm --replace --name forever-runner \
     --userns=keep-id \
-    -v %h/lattice:/experiment -w /experiment sdbkz-g6k:dim384 \
+    -v %h/lattice:/experiment -w /experiment sdbkz-g6k:dim384-inc63 \
     python3 scripts/forever_runner.py \
         --worklist config/forever_worklist_steamdeck.txt \
         --filler-campaign ntru_g6k_backfill \
