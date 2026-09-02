@@ -295,11 +295,11 @@ fig_dimension_scaling(groups, output_dir="./figures")
 ## Experiment scripts
 
 Canonical entry point (v2.0.0 consolidation):
-- **`scripts/run_campaign.py`** — Single-entry dispatcher driven by `config/sweep.toml`. Routes by campaign name to the right underlying runner (q3329_verify for main/cliff500/q3329, run_convergence for convergence_*, run_3x_extended for tours3x, Docker-image instructions for fplll_sensitivity). Usage: `python3 scripts/run_campaign.py --campaign <name> [--n N] [--beta B] [--start S] [--end E] [--seeds N] [--workers W] [--dry-run]`. Replaces six per-cell launcher scripts (`run_cliff_500bit.py`, `run_n100_beta40.py`, `run_q3329_n90.py`, `run_q3329_n100_local.py`, `run_overnight_q3329_intermediate_1000bit.py`, and the dispatch surface of `run_fplll54_sensitivity.py`) deleted at v2.0.0 consolidation.
+- **`scripts/run_campaign.py`** — Single-entry dispatcher driven by `config/sweep.toml`. Routes by campaign name to the right underlying runner (q3329_verify for main/cliff500/q3329/q3329_*, run_convergence for convergence_*, run_3x_extended for tours3x, Docker-image instructions for fplll_sensitivity). Usage: `python3 scripts/run_campaign.py --campaign <name> [--n N] [--beta B] [--start S] [--end E] [--seeds N] [--workers W] [--dry-run]`. Replaces six per-cell launcher scripts (`run_cliff_500bit.py`, `run_n100_beta40.py`, `run_q3329_n90.py`, `run_q3329_n100_local.py`, `run_overnight_q3329_intermediate_1000bit.py`, and the dispatch surface of `run_fplll54_sensitivity.py`) deleted at v2.0.0 consolidation.
 
 Workhorses (called by the dispatcher; also usable standalone):
 - **`scripts/sweep_parallel.py`** — Local VM q=97 sweep workhorse (multiprocessing pool). Walks the canonical `results/seeds/main/q97/` tree.
-- **`scripts/q3329_verify.py`** — q-aware sweep workhorse (handles main, cliff500, q3329 via `--q` / `--precision` overrides). Writes to the campaign tree via `_seed_paths.seed_path_for`.
+- **`scripts/q3329_verify.py`** — q-aware sweep workhorse (handles main, cliff500, q3329 via `--q` / `--precision` overrides). Writes to the campaign tree via `_seed_paths.seed_path_for`; `--seed-tag` selects a registered output tree (the §8 rerun arms), `--workers` a fork pool (default 1, in-process).
 - **`scripts/sweep_cloud.py`** — Cloud sweep runner (S3-backed, Docker). Includes in-process watchdog. Cloud decommissioned 2026-04-10; preserved for reproducibility of the cloud-half of the paper sweep.
 - **`scripts/run_sweep_fill.py`** — Argparse fill runner for partial cells (`--n --beta --start --end`).
 - **`scripts/run_3x_extended.py`** — 3× tour capability test (GROUPS list overridable).

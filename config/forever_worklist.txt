@@ -248,3 +248,28 @@ ntru_wall_beta_bump --n 181 --q 5869 --beta 50 --seeds 17 --workers 4 --seed-tim
 ntru_wall_beta_bump --n 181 --q 5381 --beta 50 --seeds 18 --workers 1 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=30
 ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 2 --workers 1 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=30
 ntru_wall_beta_bump --n 181 --q 6491 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=30
+
+# ---- §8 LOCAL RERUN (owner decision 2026-09-02: AWS dropped, zero cost here) --
+# The q=3329 headline cell (n=100 β=30 p1000 mt70, seeds 1..100, LWE-Kannan)
+# rerun INSIDE rebuilt-fplll images so the only difference vs the engine that
+# produced the canonical 38/100 degenerate seeds is the GSO patch:
+#   kahan-v3        = patches/fplll_gso_kahan.patch, sign-corrected 2026-08-13
+#   reorder-control = patches/fplll_gso_reorder_control.patch: same loop shape,
+#                     compensation held at zero (isolates the compensation term;
+#                     the 2026-04-10 "38% -> 0%" ran the FLIPPED, inert term)
+# Design + readout: config/sweep.toml [campaigns.q3329_kahan] / [q3329_control],
+# patches/README.md. Seeds land in results/seeds/q3329_kahan/ and
+# results/seeds/q3329_control/ (own trees, never the SHA-locked q3329/ tree;
+# lint-excluded until per-engine manifest wiring lands with the data).
+# Cost: the 2026-04-10 55-seed patched sweep took 3.9 h on 22 workers at 40
+# tours (~1.5 h/seed) -> ~2.7 h/seed at 70 tours, 5 waves of 20 = ~14 h/arm;
+# @budget_h=40 leaves headroom (this runner has no per-seed cap: a wedge spends
+# the budget, resume-skip re-arms cleanly). Both images built 2026-09-02
+# (fplll make check 15/15 each, patches applied cleanly); both lines dry-ran
+# through the container re-exec (rc=0, argv resolved with --seed-tag and
+# --workers 20); kahan vs control agree to 1e-7 on a benign n=40 scratch cell.
+# Placed after the g6k science so the β=50 ladder and the INC-63 block finish
+# first. Readout at landing: results/clamp_events.jsonl (raw get_r < 0, ctx
+# carries the seed) + the -345 sentinel in the stored profiles, vs 38/100.
+q3329_kahan --seeds 100 --workers 20 --image sdbkz-fplll-patched:kahan-v3 @budget_h=40
+q3329_control --seeds 100 --workers 20 --image sdbkz-fplll-patched:reorder-control @budget_h=40
