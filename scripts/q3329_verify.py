@@ -71,6 +71,17 @@ def parse_args():
     # so e.g. the estimator_probe can request mt=500.
     parser.add_argument("--max-tours", type=int, default=None,
                         help="override tours (default: TOURS_BY_BETA[beta])")
+    # Output tree override (default "q3329", the canonical tree). The §8
+    # rerun arms (run_campaign q3329_kahan / q3329_control) pass their own
+    # seed_tag so a rebuilt engine can never write into the SHA-locked
+    # canonical seeds. Must be a _seed_paths known tree.
+    parser.add_argument("--seed-tag", type=str, default="q3329",
+                        help="output tree under results/seeds/ (default: q3329)")
+    # Worker pool width. 1 = the historical in-process seed loop; >1 forks a
+    # pool (per-seed numerical output identical either way; only the wall-time
+    # fields differ).
+    parser.add_argument("--workers", type=int, default=1,
+                        help="parallel seed workers (default: 1, in-process)")
     return parser.parse_args()
 
 _args = parse_args()
@@ -86,6 +97,8 @@ TOURS_BY_BETA = {20: 50, 30: 70, 40: 100}
 MAX_TOURS = _args.max_tours if _args.max_tours else TOURS_BY_BETA.get(BETA, 70)
 PRECISION = _args.precision if _args.precision else 500
 SEEDS = list(range(1, _args.seeds + 1))
+TAG = _args.seed_tag
+WORKERS = max(1, int(_args.workers))
 
 # BASE is the repo root. Two dirname() calls because this script lives
 # at scripts/q3329_verify.py — the first goes to scripts/, the second
@@ -95,14 +108,14 @@ BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # OUTPUT_DIR kept for legacy callers reading q3329 summary JSONs; the
 # per-seed JSONs now land under the seed_path_for() tree.
 OUTPUT_DIR = seed_dir_for(
-    "q3329", n=N, beta=BETA,
+    TAG, n=N, beta=BETA,
     precision=PRECISION, max_tours=MAX_TOURS, base=BASE,
 )
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 # Summary lands under the canonical campaign tree (post-v2.0.0 the
 # legacy results/q3329/ dir does not exist; this script's own
 # campaign root is the correct write target).
-SUMMARY_DIR = os.path.join(BASE, "results", "seeds", "q3329", "summary")
+SUMMARY_DIR = os.path.join(BASE, "results", "seeds", TAG, "summary")
 os.makedirs(SUMMARY_DIR, exist_ok=True)
 CLAMP_LOG_FILE = os.path.join(BASE, "results", "clamp_events.jsonl")
 
@@ -149,6 +162,16 @@ def run_single(n, beta, seed, store_per_tour=False):
     )
 
 
+def _pool_seed(seed):
+    """Fork-pool worker: (seed, result, None) or (seed, None, error text).
+    The exception is reported, never allowed to take the pool down."""
+    try:
+        return seed, run_single(N, BETA, seed), None
+    except Exception as e:  # noqa: BLE001
+        import traceback
+        return seed, None, f"{e!r}\n{traceback.format_exc()[-1500:]}"
+
+
 # -- Main ---------------------------------------------------------------------
 
 def main():
@@ -168,10 +191,11 @@ def main():
 
     advantages = []
     completed = 0
+    todo = []          # (seed, outpath) not yet on disk, in seed order
 
     for seed in SEEDS:
         outpath = seed_path_for(
-            "q3329", n=N, beta=BETA, seed=seed,
+            TAG, n=N, beta=BETA, seed=seed,
             q=Q, precision=PRECISION, max_tours=MAX_TOURS, base=BASE,
         )
 
@@ -182,26 +206,53 @@ def main():
             advantages.append(d["advantage"])
             completed += 1
             continue
+        todo.append((seed, outpath))
 
-        try:
-            print(f"Seed {seed}: running...", end=" ", flush=True)
-            result = run_single(N, BETA, seed)
+    def _record(seed, outpath, result, prefix=""):
+        nonlocal completed
+        with open(outpath, "w") as f:
+            json.dump(result, f, indent=2)
+        adv = result["advantage"]
+        advantages.append(adv)
+        completed += 1
+        winner = "SDBKZ" if adv > 0 else "BKZ"
+        print(f"{prefix}adv={adv:.4f} ({winner})  "
+              f"BKZ={result['bkz_time']:.0f}s  SDBKZ={result['sdbkz_time']:.0f}s  "
+              f"[{completed}/{len(SEEDS)}]", flush=True)
+        PIPELINE.info("seed done", cat="seed", n=N, beta=BETA, seed=seed, q=Q,
+                      precision=PRECISION, seed_tag=TAG, advantage=adv)
 
-            with open(outpath, "w") as f:
-                json.dump(result, f, indent=2)
+    def _failed(seed, err, prefix=""):
+        print(f"{prefix}FAILED: {err}", flush=True)
+        PIPELINE.error("seed failed", cat="seed", n=N, beta=BETA, seed=seed, q=Q,
+                       precision=PRECISION, seed_tag=TAG, error=str(err)[:300])
 
-            adv = result["advantage"]
-            advantages.append(adv)
-            completed += 1
-            winner = "SDBKZ" if adv > 0 else "BKZ"
-            print(f"adv={adv:.4f} ({winner})  "
-                  f"BKZ={result['bkz_time']:.0f}s  SDBKZ={result['sdbkz_time']:.0f}s  "
-                  f"[{completed}/{len(SEEDS)}]")
-
-        except Exception as e:
-            print(f"FAILED: {e}")
-            import traceback
-            traceback.print_exc()
+    if WORKERS <= 1:
+        # Historical in-process loop (the canonical q3329 / main path).
+        for seed, outpath in todo:
+            try:
+                print(f"Seed {seed}: running...", end=" ", flush=True)
+                _record(seed, outpath, run_single(N, BETA, seed))
+            except Exception as e:
+                _failed(seed, e)
+                import traceback
+                traceback.print_exc()
+    elif todo:
+        # Fork pool: each worker computes one seed with its own fpylll state
+        # (precision is set inside _bkz_core.run_single); the parent writes
+        # the JSON, so per-seed numerical output matches the loop above (only
+        # the wall-time fields differ; verified 2026-09-02 on a scratch cell).
+        # imap keeps seed order, so `advantages` is ordered as before.
+        import multiprocessing as mp
+        paths = dict(todo)
+        print(f"Running {len(todo)} seed(s) across {WORKERS} workers ...",
+              flush=True)
+        with mp.get_context("fork").Pool(min(WORKERS, len(todo))) as pool:
+            for seed, result, err in pool.imap(_pool_seed, [s for s, _ in todo]):
+                if err is None:
+                    _record(seed, paths[seed], result, prefix=f"Seed {seed}: ")
+                else:
+                    _failed(seed, err, prefix=f"Seed {seed}: ")
 
     # Summary
     if advantages:

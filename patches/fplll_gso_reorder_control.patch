@@ -1,0 +1,49 @@
+Subject: [CONTROL] gso: reorder-only twin of the Kahan patch (no compensation)
+
+Control build for the sdbkz-benchmark §8 rerun. Applies the Kahan patch's
+loop restructuring and scratch members to update_gso_row but holds the
+compensation term at zero, so the arithmetic is the naive subtraction with
+the same temporaries and the same operation count. A change in the q=3329
+degeneracy rate between this build and the Kahan build isolates the
+compensation term; a change between this build and stock fplll isolates the
+rebuild / reordering. Never a fix — do not ship.
+---
+ fplll/gso_interface.cpp | 9 ++++++++-
+ fplll/gso_interface.h   | 3 +++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/fplll/gso_interface.cpp b/fplll/gso_interface.cpp
+--- a/fplll/gso_interface.cpp
++++ b/fplll/gso_interface.cpp
+@@ -144,10 +144,17 @@ template <class ZT, class FT> bool MatGSOInterface<ZT, FT>::update_gso_row(int i
+   {
+     get_gram(ftmp1, i, j);
+     FPLLL_DEBUG_CHECK(j == i || gso_valid_cols[j] >= j);
++    // CONTROL BUILD (sdbkz-benchmark): the Kahan patch's loop shape and
++    // scratch members with the compensation term held at zero. Numerically
++    // this is the naive subtraction; it exists only to separate the effect
++    // of the compensation from the effect of rebuilding / reordering.
++    kahan_c = 0.0;
+     for (int k = 0; k < j; k++)
+     {
+       ftmp2.mul(mu(j, k), r(i, k));
+-      ftmp1.sub(ftmp1, ftmp2);
++      kahan_y.add(ftmp2, kahan_c);
++      kahan_t.sub(ftmp1, kahan_y);
++      ftmp1 = kahan_t;
+     }
+     r(i, j) = ftmp1;
+     if (i > j)
+diff --git a/fplll/gso_interface.h b/fplll/gso_interface.h
+--- a/fplll/gso_interface.h
++++ b/fplll/gso_interface.h
+@@ -609,6 +609,9 @@ protected:
+ 
+   /* Used by update_gso_row (+ update_gso), get_max_mu_exp and row_addmul_we. */
+   FT ftmp1, ftmp2;
++  /* Scratch for update_gso_row's restructured subtraction (control build:
++     same members as the Kahan patch, compensation held at zero). */
++  FT kahan_c, kahan_y, kahan_t;
+   /* Used by row_add, row_sub, row_addmul_si_2exp, row_addmul_2exp and
+      indirectly by row_addmul. */
+   ZT ztmp1;

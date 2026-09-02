@@ -61,6 +61,45 @@ tours_by_beta = { "30" = 70 }
 num_seeds = 100
 store_per_tour = true
 
+# -- §8 LOCAL rerun of the q=3329 headline cell (2026-09-02) ----------------
+# Owner decision 2026-09-02: the AWS rerun is dropped for good; this is the
+# zero-cost workstation replacement. Same cell as the canonical 100-seed set
+# (n=100, β=30, q=3329, 1000-bit MPFR, mt70, LWE-Kannan), same seeds 1..100,
+# run INSIDE a source-built fplll 5.5.0 + fpylll 0.6.4 image so the only
+# difference vs the contaminating engine is the GSO patch. Two arms, two
+# images (Dockerfile.fplll_patched --build-arg GSO_PATCH=...):
+#   q3329_kahan   — patches/fplll_gso_kahan.patch (sign-corrected 2026-08-13),
+#                   image sdbkz-fplll-patched:kahan-v3
+#   q3329_control — patches/fplll_gso_reorder_control.patch: the same loop
+#                   restructuring with the compensation held at zero, image
+#                   sdbkz-fplll-patched:reorder-control. A rate change between
+#                   the two arms isolates the compensation term; the 2026-04-10
+#                   "38% -> 0%" was measured with the FLIPPED (inert) term.
+# Each arm writes to its own seed_tag tree (never the SHA-locked q3329/ tree),
+# is excluded from the fplll manifest (lint NON_MANIFEST_SEED_TREES), and gets
+# manifest wiring with a per-engine label when the seeds land. Readout:
+# results/clamp_events.jsonl (raw get_r < 0, ctx carries the seed) and the
+# -345 sentinel in the stored profiles, against 38/100 canonical.
+# Queued in config/forever_worklist.txt with --image (run_campaign re-execs
+# inside the image for ANY campaign given --image) and --workers 20.
+[campaigns.q3329_kahan]
+description = "§8 local rerun: q=3329 n=100 β=30 p1000 on the sign-corrected Kahan fplll (sdbkz-fplll-patched:kahan-v3)"
+inherits = "q3329"
+seed_tag = "q3329_kahan"
+n_grid = [100]
+beta_grid = [30]
+num_seeds = 100
+store_per_tour = true
+
+[campaigns.q3329_control]
+description = "§8 local rerun control: same cell on the reorder-only, no-compensation fplll build (sdbkz-fplll-patched:reorder-control)"
+inherits = "q3329"
+seed_tag = "q3329_control"
+n_grid = [100]
+beta_grid = [30]
+num_seeds = 100
+store_per_tour = true
+
 # -- β=40 cliff precision robustness ---------------------------------------
 # 20-seed re-run at n=130, β=40 at 500-bit MPFR (double the main-sweep
 # 250-bit) to confirm the cliff is structural rather than a precision

@@ -55,11 +55,19 @@ RUN printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20240614
 # 15/15 fplll regression tests (patches/README.md). A failing test fails the
 # build. Produces libfplll.so.9 in /usr/local/lib.
 ARG FPLLL_TAG=5.5.0
-COPY patches/fplll_gso_kahan.patch /tmp/fplll_gso_kahan.patch
+# Which GSO patch to build in. Default = the sign-corrected Kahan patch
+# (2026-08-13). The §8 local rerun's control arm passes
+#   --build-arg GSO_PATCH=patches/fplll_gso_reorder_control.patch
+# (same loop restructuring, compensation held at zero) so the two images
+# differ ONLY in the compensation term. Tag the images by patch, e.g.
+# sdbkz-fplll-patched:kahan-v3 and sdbkz-fplll-patched:reorder-control;
+# the pre-2026-08-13 :val2 image carries the FLIPPED (inert) compensation.
+ARG GSO_PATCH=patches/fplll_gso_kahan.patch
+COPY ${GSO_PATCH} /tmp/fplll_gso.patch
 RUN git clone https://github.com/fplll/fplll.git /tmp/fplll \
     && cd /tmp/fplll \
     && git checkout ${FPLLL_TAG} \
-    && git apply --verbose /tmp/fplll_gso_kahan.patch \
+    && git apply --verbose /tmp/fplll_gso.patch \
     && ./autogen.sh \
     && ./configure --prefix=/usr/local --disable-static \
     && make -j${BUILD_JOBS:-$(nproc)} \

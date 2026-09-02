@@ -94,9 +94,12 @@ def _g6k_available() -> bool:
     return importlib.util.find_spec("g6k") is not None
 
 
-def _g6k_container_argv(argv: list, image: str = None) -> list:
+def _g6k_container_argv(argv: list, image: str = None,
+                        name_prefix: str = "runcamp-g6k") -> list:
     """docker argv re-running `python3 scripts/run_campaign.py <argv>` inside
-    `image` (default G6K_IMAGE). --user keeps bind-mount seed writes owned by the invoking user
+    `image` (default G6K_IMAGE); `name_prefix` names the container (the
+    --image re-exec of a non-g6k campaign uses "runcamp-fplll"). --user keeps
+    bind-mount seed writes owned by the invoking user
     (rootful docker would write root-owned files); nice -n 19 preserves the
     desktop-starvation fix (the forever-runner Nice=19 drop-in does not reach
     processes containerd spawns); --init reaps the per-seed subprocesses;
@@ -106,7 +109,7 @@ def _g6k_container_argv(argv: list, image: str = None) -> list:
     _kill_child_group is what makes the graceful path the normal one)."""
     return [
         "docker", "run", "--rm", "--init",
-        "--name", f"runcamp-g6k-{os.getpid()}",
+        "--name", f"{name_prefix}-{os.getpid()}",
         "--user", f"{os.getuid()}:{os.getgid()}",
         "-e", "HOME=/tmp",
         "-e", f"{_IN_CONTAINER_ENV}=1",
@@ -148,6 +151,12 @@ def _select_runner(campaign_name: str) -> str:
         return "q3329_verify"
     if campaign_name == "q3329":
         return "q3329_verify"
+    # §8 local rerun arms (q3329_kahan / q3329_control, 2026-09-02): the same
+    # q3329_verify runner, routed to their own seed_tag trees; run inside the
+    # rebuilt-fplll images via --image. A future q3329_* variant needs only a
+    # TOML block with a registered seed_tag.
+    if campaign_name.startswith("q3329_"):
+        return "q3329_verify"
     if campaign_name.startswith("convergence_"):
         return "convergence"
     if campaign_name == "tours3x":
@@ -186,8 +195,12 @@ def _dispatch_q3329_verify(
     `q3329_verify` is the canonical generic runner — it accepts every
     (q, precision, max_tours, num_seeds) tuple via argparse and writes
     per-seed JSONs through `_seed_paths.seed_path_for` against the
-    `q3329` campaign tree. For q=97 main + cliff500 campaigns we pass
-    the q=97 override; for q=3329 we pass the campaign's q.
+    `q3329` campaign tree, or against `campaign.seed_tag` when the campaign
+    sets one (the §8 rerun arms). For q=97 main + cliff500 campaigns we pass
+    the q=97 override; for q=3329 we pass the campaign's q. `--workers`
+    is forwarded: 1 keeps the historical in-process seed loop, >1 runs
+    seeds across a fork pool (per-seed numerical output identical either
+    way; only the wall-time fields differ).
 
     Effective seed range follows --start/--end if supplied; otherwise
     the runner generates seeds 1..N. q3329_verify only accepts a seeds
@@ -209,7 +222,10 @@ def _dispatch_q3329_verify(
         "--precision", str(campaign.precision),
         "--generator", campaign.generator,
         "--max-tours", str(tours),
+        "--workers", str(workers),
     ]
+    if campaign.seed_tag:
+        argv.extend(["--seed-tag", campaign.seed_tag])
     if campaign.q != 3329:
         # q3329_verify defaults to Q=3329; pass --q to override for
         # main + cliff500 campaigns.
@@ -832,10 +848,12 @@ def main() -> int:
                          "Overrides the campaign's seed_wall_s; omit = campaign "
                          "default / off.")
     ap.add_argument("--image", default=None,
-                    help="override the g6k container image for the re-exec "
-                         "(default G6K_IMAGE; e.g. sdbkz-g6k:dim384-inc63 for "
-                         "INC-63 reruns). No effect when g6k is importable "
-                         "in-process.")
+                    help="container image for the re-exec. g6k campaigns: "
+                         "overrides the default g6k image (e.g. "
+                         "sdbkz-g6k:dim384-inc63 for INC-63 reruns; no effect "
+                         "when g6k is importable in-process). Any other "
+                         "campaign: forces the whole run inside that image "
+                         "(the §8 rerun arms on the rebuilt-fplll images).")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the resolved dispatch invocation; do not run")
     args = ap.parse_args()
@@ -847,6 +865,22 @@ def main() -> int:
     except ConfigError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 2
+
+    if (args.image and campaign.backend != "g6k"
+            and not os.environ.get(_IN_CONTAINER_ENV)):
+        # Explicit --image on a non-g6k campaign: run the whole campaign inside
+        # that image (the §8 rerun arms on the rebuilt-fplll images). Same
+        # wrapper as the g6k path; the recursion guard stops a second hop.
+        import shutil
+        if shutil.which("docker") is None:
+            print(f"ERROR: --image {args.image} given but docker not found",
+                  file=sys.stderr)
+            return 2
+        cmd = _g6k_container_argv(sys.argv[1:], image=args.image,
+                                  name_prefix="runcamp-fplll")
+        PIPELINE.info("container re-exec", cat="sweep",
+                      campaign=args.campaign, image=args.image)
+        os.execvp(cmd[0], cmd)   # replaces this process; rc = container rc
 
     if campaign.backend == "g6k" and not _g6k_available():
         if os.environ.get(_IN_CONTAINER_ENV):
