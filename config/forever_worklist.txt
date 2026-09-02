@@ -212,6 +212,13 @@ ntru_onset_boundary --n 163 --q 4813 --workers 20
 #   Missing seeds are INC-63 aborts, not cap kills. paper_findings.md 2026-09-02
 #   entries carry the floor-class breakdown (q^2 floor vs sub-q^2 non-secret vs exact);
 #   at q6491 all 17 non-exact legs sit in the sub-q^2 band (10,239-17,141), none at q^2.
+# STATUS 2026-09-03 09:10 (supersedes the 18:40 note above): 10 of 12 lines done.
+# n=179 q4111 landed 03:20 AEST on the UNPATCHED image: 20/20 written, 0 INC-63
+# aborts, 13/20 (12/4), longest seed 14.4 h. n=179 q3637 started 03:21 AEST on
+# dim384-inc63 (in flight; do not edit that line); estimate_sweep_time.py
+# self-anchored 14.3 h -> ~17:40 AEST. Then q3163, q5077, the n=181 inc63 rerun
+# block (skip-existing: 1+1+4+8 = 14 tasks), q3329_kahan, q3329_control.
+# Deck: inc63 cutover fired 03:49:58 AEST; ntru_g6k_vecprobe running since 03:50:58.
 ntru_wall_beta_bump --n 181 --q 3733 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
 ntru_wall_beta_bump --n 181 --q 4871 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
 ntru_wall_beta_bump --n 181 --q 3407 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
