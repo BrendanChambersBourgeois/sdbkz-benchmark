@@ -32544,6 +32544,58 @@
    "sha256": "044ed37cdbf647eec087568c5c97004b57724eed8d006429de7da54e30c510c9"
   },
   {
+   "path": "results/seeds/ntru_g6k/q4073/p500_mt50/n173_beta40/seed0017.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4073,
+   "n": 173,
+   "beta": 40,
+   "seed": 17,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "ab87a7852bc19bea97fcd4b0b8808c3af67f40c6e9ad900303110a3a27e243b8"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4073/p500_mt50/n173_beta40/seed0018.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4073,
+   "n": 173,
+   "beta": 40,
+   "seed": 18,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "d0dfc981e3d283bdfd07e3af670dc031fdb8368fcc3ade053689823630ff84b6"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4073/p500_mt50/n173_beta40/seed0019.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4073,
+   "n": 173,
+   "beta": 40,
+   "seed": 19,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "63f43045cdf54593a0e53b45bfa4cf32e0ca6cd2aa92bff9e784d3294401e7ab"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4073/p500_mt50/n173_beta40/seed0020.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4073,
+   "n": 173,
+   "beta": 40,
+   "seed": 20,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "f292830048af856b93e7523fec9e9e29f44765d997921db901779f788c96ab9d"
+  },
+  {
    "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n179_beta40/seed0001.json",
    "campaign": "ntru_g6k",
    "engine": "g6k",
@@ -34065,5 +34117,5 @@
    "sha256": "6bc120eb96e21601b0b61e05c0422d226a31f84cf79ce6680542d7cf8db90a4d"
   }
  ],
- "seeds_generated_utc": "2026-09-02T08:27:45Z"
+ "seeds_generated_utc": "2026-09-02T08:57:21Z"
 }
