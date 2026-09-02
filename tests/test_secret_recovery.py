@@ -95,3 +95,19 @@ def test_run_single_additive_only():
         if k in ("timestamp", "bkz_time", "sdbkz_time"):
             continue
         assert r_plain[k] == r_sec[k], f"field {k} changed"
+
+
+def test_shortest_rows_are_exact_and_ascending():
+    # Opt-in short-vector storage (2026-09-02 g6k probe): the helper returns
+    # the three shortest rows as [norm2, coords], ascending, exact integers;
+    # existing result keys are untouched.
+    f, g = [1, -1], [0, 1]
+    rows = [[100, 0, 0, 0], [0, 1, 1, -1], [2, 2, 0, 0], [0, 0, 3, 0], [5, 0, 0, 0]]
+    B = _matrix(rows)
+    rec = _secret_recovery(B, f, g, n=2)
+    assert rec["min_norm2"] == 3
+    assert rec["shortest_rows"] == [[3, [0, 1, 1, -1]], [8, [2, 2, 0, 0]],
+                                    [9, [0, 0, 3, 0]]]
+    assert rec["shortest_rows"][0][0] == rec["min_norm2"]
+    assert set(rec) == {"secret_norm2", "min_norm2", "recovered",
+                        "exact_match", "shortest_rows"}

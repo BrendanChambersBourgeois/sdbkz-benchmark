@@ -374,7 +374,7 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
     from generators import build_ntru, get_metric_span
 
     (n, beta, seed, q, precision, max_tours, generator, seed_tag,
-     backend, metric_float_type) = task
+     backend, metric_float_type, store_short_vectors) = task
     # Track which reduction leg is in flight so a failure / wall-cap kill /
     # crash can be attributed (INC-58 note: variant was inference before).
     # `leg_notify` additionally forwards transitions to the capped scheduler.
@@ -436,6 +436,7 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
             leg_cb=_leg_cb,
             backend=backend, secret_f=f, secret_g=g,
             metric_float_type=metric_float_type,
+            store_short_vectors=store_short_vectors,
         )
         os.makedirs(os.path.dirname(out), exist_ok=True)
         # Write atomically (tmp + rename) so a crash mid-write never leaves a
@@ -718,7 +719,8 @@ def _dispatch_ntru(
     tasks = [
         (n, beta, seed, q, campaign.precision,
          campaign.tours_by_beta[beta], campaign.generator, seed_tag,
-         campaign.backend, campaign.metric_float_type)
+         campaign.backend, campaign.metric_float_type,
+         campaign.store_short_vectors)
         for n in campaign.n_grid
         for beta in campaign.beta_grid
         for seed in range(1, campaign.num_seeds + 1)
