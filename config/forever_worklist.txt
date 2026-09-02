@@ -194,15 +194,24 @@ ntru_onset_boundary --n 163 --q 4813 --workers 20
 # rc=1 when every attempted seed fails; the 12 done-log entries were removed to
 # re-arm. See scripts/run_campaign.py (_g6k_container_argv) and
 # tests/test_run_campaign_g6k_wrap.py.
-# STATUS 2026-09-02: 8 of 12 lines done (results/logs/forever_worklist.done); q6491 in
-# flight on the UNPATCHED image with 8/20 seeds already lost to INC-63 (rerun line at
-# the tail); the four n=179 lines still queued. On-disk readout, integer-exact,
-# union (SD / BKZ):
+# STATUS 2026-09-02 18:40 (supersedes the morning note): 9 of 12 lines done
+# (results/logs/forever_worklist.done); q6491 landed 12:57 AEST on the UNPATCHED image,
+# 12/20 written, 8 INC-63 aborts (seeds 1, 7, 11, 14, 16, 17, 20 bkz-side; seed 2
+# sdbkz-side), 11.7 h/seed (bkz 4.1 h + sdbkz 7.6 h). n=179 q4111 started 12:58 AEST
+# on dim384 (in flight; do not edit that line). The three n=179 lines after it carry
+# --image sdbkz-g6k:dim384-inc63 as of this edit: the beta=60 validation seed finished
+# clean on that image (38.5 h, rc=0, both legs integer-exact, 5 tolerant swaps, 0
+# asserts; incidents.md INC-63 addendum 7), which was the owner's 2026-09-01 trigger
+# for moving the worklist to the patched image. Completed-seed output is byte-identical
+# across the two images (verify_g6k.sh bit-exact on dim384-inc63; only a seed that would
+# have aborted takes the tolerant path), so the ladder stays comparable. On-disk readout,
+# integer-exact, union (SD / BKZ):
 #   n=181 q2593 0/20, q3083 0/20, q3407 0/20, q3733 1/20 (1/0), q4871 12/20 (8/5),
-#   q5381 8/19 (6/3), q5869 6/16 (6/1); deck-owned q4591 10/19 (7/4), deck line done
-#   2026-09-02 00:20 AEST, pulled 08:50.
+#   q5381 8/19 (6/3), q5869 6/16 (6/1), q6491 7/12 (7/0); deck-owned q4591 10/19 (7/4),
+#   deck line done 2026-09-02 00:20 AEST, pulled 08:50.
 #   Missing seeds are INC-63 aborts, not cap kills. paper_findings.md 2026-09-02
-#   entry carries the floor-class breakdown (q^2 floor vs sub-q^2 non-secret vs exact).
+#   entries carry the floor-class breakdown (q^2 floor vs sub-q^2 non-secret vs exact);
+#   at q6491 all 17 non-exact legs sit in the sub-q^2 band (10,239-17,141), none at q^2.
 ntru_wall_beta_bump --n 181 --q 3733 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
 ntru_wall_beta_bump --n 181 --q 4871 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
 ntru_wall_beta_bump --n 181 --q 3407 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
@@ -212,9 +221,9 @@ ntru_wall_beta_bump --n 181 --q 5869 --beta 50 --seeds 20 --workers 20 --seed-ti
 ntru_wall_beta_bump --n 181 --q 2593 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
 ntru_wall_beta_bump --n 181 --q 6491 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
 ntru_wall_beta_bump --n 179 --q 4111 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
-ntru_wall_beta_bump --n 179 --q 3637 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
-ntru_wall_beta_bump --n 179 --q 3163 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
-ntru_wall_beta_bump --n 179 --q 5077 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400
+ntru_wall_beta_bump --n 179 --q 3637 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63
+ntru_wall_beta_bump --n 179 --q 3163 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63
+ntru_wall_beta_bump --n 179 --q 5077 --beta 50 --seeds 20 --workers 20 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63
 
 # INC-63 rerun block (2026-09-01, incidents.md addendum 4; q=6491 line added
 # 2026-09-02): the tasks the sieving.cpp:118 gauss_sieve assert killed on the
@@ -226,16 +235,15 @@ ntru_wall_beta_bump --n 179 --q 5077 --beta 50 --seeds 20 --workers 20 --seed-ti
 #   q=4591 --seeds 2  -> seed 2             (1 task; deck is extending this
 #     cell to 20 on the unpatched image — do NOT raise --seeds here, the
 #     deck's seeds arrive via node-pull)
-#   q=6491 --seeds 20 -> seeds 1, 2, 7, 11, 14, 16, 17, 20 (8 tasks as of
-#     2026-09-02 08:30 AEST: 7 bkz-side, 1 sdbkz-side). That cell was still in
-#     flight on the UNPATCHED image when this line was queued (started 01:13
-#     AEST, lands ~16:30 AEST), so the missing set can only grow before this
-#     line is reached. --seeds 20 --workers 20 reruns whatever is missing at
-#     that point in ONE wave, inside the same @budget_h=30; idle workers cost
-#     nothing. Abort incidence by cell is now 0/0/1/1/4/8 over q3083..q6491.
+#   q=6491 --seeds 20 -> seeds 1, 2, 7, 11, 14, 16, 17, 20 (8 tasks, FINAL: the
+#     cell landed 12:57 AEST 2026-09-02 with exactly those 8 missing, 7 bkz-side,
+#     1 sdbkz-side, no late aborts). --seeds 20 --workers 20 reruns the 8 in ONE
+#     wave inside @budget_h=30; idle workers cost nothing. Abort incidence by
+#     cell is final at 0/0/1/1/4/8 over q3083..q6491; this block is 14 tasks.
 # @budget_h=30 clears the 86400 s per-seed cap (the 24 h default backstop
-# would race it). If the beta=60 validation seed ends with a BAD profile,
-# delete these four lines instead of running them (incidents.md addendum 4).
+# would race it). The beta=60 validation seed ended CLEAN (2026-09-02 14:32 AEST:
+# rc=0, 38.5 h, both legs integer-exact, 5 tolerant swaps, 0 asserts; incidents.md
+# addendum 7), so these four lines stand.
 ntru_wall_beta_bump --n 181 --q 5869 --beta 50 --seeds 17 --workers 4 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=30
 ntru_wall_beta_bump --n 181 --q 5381 --beta 50 --seeds 18 --workers 1 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=30
 ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 2 --workers 1 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=30
