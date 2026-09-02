@@ -223,3 +223,13 @@ def test_q3329_rerun_arms_share_the_q3329_layout_under_own_roots():
         assert path.endswith(os.path.join(tag, "p1000_mt70", "n100_beta30",
                                           "seed0007.json"))
         assert "/q3329/" not in path.replace(os.sep, "/")
+
+
+def test_g6k_vecprobe_tree_is_its_own_root():
+    # 2026-09-02 short-vector probe: ntru layout under its own root, never
+    # inside ntru_g6k/ (the G6K manifest walk must not see it).
+    d = sp.seed_dir_for("ntru_g6k_vecprobe", 179, 50, q=4591, precision=500,
+                        max_tours=50)
+    assert d == os.path.join("results", "seeds", "ntru_g6k_vecprobe", "q4591",
+                             "p500_mt50", "n179_beta50")
+    assert "/ntru_g6k/" not in d.replace(os.sep, "/")

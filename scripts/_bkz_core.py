@@ -150,6 +150,10 @@ def _secret_recovery(
                     in the overstretched regime the only vectors that short ARE
                     the secret rotations) -- layout-independent primary signal
       exact_match   some row equals +/- a cyclic rotation of s (strict bonus)
+      shortest_rows the three shortest reduced-basis rows as [norm2, coords]
+                    (ascending; exact integers) -- consumed only by callers
+                    that opt in via store_short_vectors, so the per-seed JSON
+                    of every existing campaign is unchanged
     """
     f = [int(x) for x in secret_f]
     g = [int(x) for x in secret_g]
@@ -166,6 +170,7 @@ def _secret_recovery(
 
     min_norm2: Optional[int] = None
     exact_match = False
+    shortest: list[tuple[int, int, tuple[int, ...]]] = []   # (norm2, row_idx, row)
     for i in range(B.nrows):
         row = tuple(int(B[i, j]) for j in range(B.ncols))
         nrm2 = sum(x * x for x in row)
@@ -173,12 +178,16 @@ def _secret_recovery(
             min_norm2 = nrm2
         if row in rots:
             exact_match = True
+        shortest.append((nrm2, i, row))
+        shortest.sort()
+        del shortest[3:]
 
     return {
         "secret_norm2": secret_norm2,
         "min_norm2": min_norm2,
         "recovered": min_norm2 is not None and min_norm2 <= secret_norm2,
         "exact_match": exact_match,
+        "shortest_rows": [[nrm2, list(row)] for nrm2, _, row in shortest],
     }
 
 
@@ -203,6 +212,7 @@ def run_single(
     secret_f: Any = None,
     secret_g: Any = None,
     metric_float_type: str = "double",
+    store_short_vectors: bool = False,
 ) -> dict[str, Any]:
     """Run BKZ and SD-BKZ on a single (n, beta, seed) lattice.
 
@@ -364,6 +374,13 @@ def run_single(
             result[f"min_actual_norm2_{variant}"] = rec["min_norm2"]
             result[f"secret_recovered_{variant}"] = rec["recovered"]
             result[f"secret_exact_match_{variant}"] = rec["exact_match"]
+            if store_short_vectors:
+                # Opt-in (campaign store_short_vectors = true): the three
+                # shortest exact integer rows, so a sub-q^2 non-secret leg
+                # can be tested offline for dense-sublattice membership
+                # (is the row an integer combination of the secret's
+                # rotations?). Never emitted otherwise -- schema unchanged.
+                result[f"short_vectors_{variant}"] = rec["shortest_rows"]
 
         result[f"{variant}_dln_per_tour"] = dln_per_tour
         result[f"{variant}_final_dln"] = dln_per_tour[-1]

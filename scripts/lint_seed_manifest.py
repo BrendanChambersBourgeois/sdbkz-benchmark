@@ -88,6 +88,9 @@ NON_MANIFEST_SEED_TREES = frozenset({
     # Its own tree for the same reason, and its seeds carry the extra
     # per-tour arrays, so they are not canonical-manifest members.
     "ntru_b2_probe",
+    # g6k short-vector probe (2026-09-02, store_short_vectors=true reruns of
+    # band-bearing ntru_g6k seeds): own tree, extra keys, no manifest.
+    "ntru_g6k_vecprobe",
     # flatter-preprocessing A/B probe (2026-08-13): paired baseline/flatter
     # cells at n=130/140/150 (+ a partial n=157 cell) testing flatter as a
     # pre-reduction step before the standard BKZ/SD-BKZ run. The flatter

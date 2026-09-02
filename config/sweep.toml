@@ -831,6 +831,32 @@ q = 4591
 n_grid = [179]
 store_per_tour = true
 
+# -- g6k short-vector probe (2026-09-02) -------------------------------------
+# Owner question: the sub-q^2 non-secret legs of the beta=50 ladder (norm^2
+# 10-20k, q-independent, 40-90x above the secret) -- dense sublattice found
+# but not the secret key (DSD without SKR)? The seed JSONs hold only
+# min_actual_norm2, not the vector, so the reading cannot be tested on stored
+# data. This reruns seeds 1..8 of the cheapest band-bearing cell (n=179 q=4591
+# beta=50: seeds 1, 2, 4, 7 have BOTH legs in the band, 3, 5, 6 one leg, 8 both
+# legs exact = positive control) with store_short_vectors = true, which adds
+# short_vectors_{bkz,sdbkz} (three shortest exact integer rows) to the JSON.
+# Threads=1 determinism makes the rerun reproduce the original reduction.
+# Offline test at landing: v = (v_g, v_f) is in the dense sublattice iff it is
+# an integer combination of the n cyclic rotations of the regenerated secret
+# (g, f) -- solve the 2n x n system, round, verify exactly. Own tree
+# results/seeds/ntru_g6k_vecprobe/ (lint-excluded, no manifest); never merge
+# into ntru_g6k/. Runs on the deck (unpatched image is fine: that cell had 0
+# INC-63 aborts), 6 workers, ~13.4 h/seed -> 2 waves ~27 h.
+[campaigns.ntru_g6k_vecprobe]
+inherits = "ntru_wall_beta_bump"
+description = "g6k short-vector probe: band-bearing n=179 q=4591 beta=50 seeds rerun with the three shortest rows stored"
+seed_tag = "ntru_g6k_vecprobe"
+q = 4591
+n_grid = [179]
+beta_grid = [50]
+num_seeds = 8
+store_short_vectors = true
+
 [campaigns.ntru_wall_beta_bump]
 description = "NTRU n>=179 bumped-beta wall test (budget-artifact vs fundamental; beta 50/60 at the beta=40 near-miss cell)"
 # 2026-08-19: re-routed to the g6k backend (INC-54: fplll enum wedges past dim

@@ -48,6 +48,7 @@ CAMPAIGN_FIELDS: frozenset[str] = frozenset({
     "tours_by_beta",
     "num_seeds",
     "store_per_tour",
+    "store_short_vectors",
     "generator",
     "seed_tag",
     "backend",
@@ -107,6 +108,10 @@ class Campaign:
     # clamps gs_lognorms to the -345 sentinel (deep audit 2026-07-04 finding
     # 1). fplll-only: a g6k campaign must leave this at "double".
     metric_float_type: str = "double"
+    # Opt-in: store the three shortest exact integer rows per reduction leg
+    # (NTRU runner only; _bkz_core.run_single store_short_vectors). Off for
+    # every historical campaign so their per-seed JSON schema is unchanged.
+    store_short_vectors: bool = False
     # Per-seed wall-clock cap in SECONDS (None = off, the historical
     # unbounded path). When set, the NTRU runner runs each seed in its own
     # subprocess and SIGKILLs any seed exceeding this many seconds, logging
@@ -311,6 +316,7 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
         backend=backend,
         metric_float_type=metric_float_type,
         seed_wall_s=seed_wall_s,
+        store_short_vectors=bool(merged.get("store_short_vectors", False)),
     )
 
 

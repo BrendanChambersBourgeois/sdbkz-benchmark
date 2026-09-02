@@ -27,6 +27,10 @@ _KNOWN_CAMPAIGNS = frozenset({
     # control build. Same layout as q3329, separate roots, so neither engine
     # can ever write into the SHA-locked canonical q3329/ tree.
     "q3329_kahan", "q3329_control",
+    # g6k short-vector probe (2026-09-02): reruns of band-bearing ntru_g6k
+    # seeds with store_short_vectors = true, in its own tree so no ntru_g6k
+    # seed is re-opened and the G6K manifest walk never sees it.
+    "ntru_g6k_vecprobe",
     # forever-runner idle-filler tree (never-idle seed-topup). SEPARATE by
     # design so the filler can NEVER touch/re-open a published cell (the B2
     # review's core integrity fix); excluded from the canonical fplll manifest
@@ -161,7 +165,7 @@ def seed_dir_for(
         leaf_dir = os.path.join(
             NEW_LAYOUT_ROOT, "estimator_probe", f"q{q}", f"p{p}_mt{mt}", n_beta
         )
-    elif campaign in ("ntru_b2", "ntru_b2_probe"):
+    elif campaign in ("ntru_b2", "ntru_b2_probe", "ntru_g6k_vecprobe"):
         # forever-runner idle-filler: same layout as ntru, separate root so the
         # extra-power seeds never touch or re-open a published cell's N.
         # ntru_b2_probe shares the layout under its own root for the same
