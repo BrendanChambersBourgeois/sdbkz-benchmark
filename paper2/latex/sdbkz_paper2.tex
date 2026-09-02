@@ -502,8 +502,11 @@ the sub-fatigue tail is reduced.
 On NTRU at $q=97$, $\beta=40$, the companion paper's thesis reproduces on the
 sieve: at $n=101/113$ the stored Hermite-factor values of the G6K BKZ and
 SD-BKZ bases are bit-identical seed-for-seed, and on fplll the BKZ-vs-SD-BKZ
-Hermite factors hold to $\le2\times10^{-6}$ across $20$ seeds at each of
-$n=67/101/113$ (at $n=67$ to $<2\times10^{-15}$), while
+Hermite factors agree to a median $|\Delta\mathrm{RHF}|$ of
+${\sim}1$--$2\times10^{-6}$ across $20$ seeds at each of $n=101/113$, with
+outlier seeds up to ${\approx}1.8\times10^{-5}$ (agreement at the $10^{-6}$
+level, five orders below $\mathrm{RHF}\approx1$), and at $n=67$ to
+$<2\times10^{-15}$, while
 $d(\mathrm{LN})$ differs. The effect is regime-dependent: at $n=89$---the
 cell containing the short-vector events---the values diverge broadly on every
 seed, fired or not. (Those short-vector firings are a looser screen than DSD
@@ -560,8 +563,12 @@ neither SD-BKZ nor BKZ fires DSD on \emph{either} engine, and the onset is
 pinned by the dense window at 100 seeds per cell---fplll SD $193.7$ / BKZ
 $193.8$, G6K SD $193.1$ / BKZ $194.0$. The fplll gap is $+0.16$ modulus units
 (bootstrap 95\% CI $[-0.04, +0.46]$, spans zero) and the G6K gap is
-$+0.82$ modulus units ($[+0.28, +2.19]$, well below the $q$-grid
-resolution but a slight SD$<$BKZ tendency on the sieve): no DSD-onset
+$+0.82$ modulus units ($[+0.27, +3.17]$, deterministic bootstrap with
+$B=10^{4}$ per-cell resamples, seed $20260710$; the point estimate is below
+the $q$-grid resolution and the long right tail is a near-crossing effect---the
+G6K SD onset sits ${\approx}0.14$ above the $q=193$ cell, whose rate $0.49$ is
+one seed short of the crossing---leaving a slight SD$<$BKZ tendency on the
+sieve): no DSD-onset
 gap above grid resolution on either oracle
 (Table~\ref{tab:g6konset}). The DSD rate rises smoothly through the window
 ($37\%$ at $q=191$ to $85\%$ at $q=199$, $100\%$ at $q=211$, near-identical
@@ -600,8 +607,8 @@ over the $q$-sweep: in the pre-onset band ($q\in[127,157]$) self-dual reduction
 pulls mass head-down and pushes it tail-up, concentrated in the last few GS
 vectors, and is flat in the onset regime ($q\ge181$). This is largely a
 corollary of the flatter SD profile under determinant conservation---a fit to
-pure slope-flattening explains ${\approx}96\%$ of the per-position signal
-($R^2=0.957$)---so we read it as a \emph{visualisation} of the
+pure slope-flattening explains ${\approx}95\%$ of the per-position signal
+($R^2\approx0.95$)---so we read it as a \emph{visualisation} of the
 cross-engine-agreeing slope flattening rather than an independent mechanism.
 The pattern holds on both the fplll enumeration and the G6K sieve (the sieve
 slightly larger in magnitude), placing the agreement at the level of the
@@ -617,8 +624,8 @@ enumeration (left) and G6K sieve (right) engines. Self-dual reduction
 redistributes mass head-down/tail-up in the pre-onset band ($q\in[127,157]$),
 peaking in the last few GS vectors, and is flat at $q\ge181$; both engines
 agree. (The step at GS position $i=n$ is the $q$-vector-head / reduced-tail
-boundary, not an artifact.) The redistribution is ${\approx}96\%$ predicted by slope flattening
-alone ($R^2=0.957$), so it visualises the flattening rather than a distinct
+boundary, not an artifact.) The redistribution is ${\approx}95\%$ predicted by slope flattening
+alone ($R^2\approx0.95$), so it visualises the flattening rather than a distinct
 mechanism.\label{fig:perpos}}
 \end{figure}
 
