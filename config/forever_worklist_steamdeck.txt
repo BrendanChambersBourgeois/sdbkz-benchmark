@@ -51,6 +51,12 @@ ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 10 --workers 6 --seed-tim
 # rule below by 1.5 h. Seed 2 is unrun. Stays HELD until the inc63 image ships to
 # the deck (podman load); the workstation seed 1 JSON is not on the deck, so
 # un-holding --seeds 2 here would rerun seed 1 (38.5 h) before seed 2.
+# IMAGE SHIPPED 2026-09-02 20:30 AEST: sdbkz-g6k:dim384-inc63 loaded on the deck
+# (podman), unit ExecStart repointed (config/forever-runner-steamdeck.service),
+# one-shot watcher inc63-cutover.service restarts the runner once the current
+# beta=40 filler cell has 20/20 seeds on disk (~05:30 AEST 2026-09-03). After that
+# every line here runs on the tolerant image. Un-holding any beta=60 line is the
+# owner's call (INC-63 addendum 8): the science line below is the one to weigh.
 # ntru_wall_beta_bump --n 181 --q 4591 --beta 60 --seeds 2 --workers 6 --seed-timeout-s 172800 @budget_h=48
 
 # STATUS 2026-09-02: this line is DONE on the deck — 20/20 seeds pulled by
@@ -92,5 +98,9 @@ ntru_g6k_vecprobe --n 179 --q 4591 --beta 50 --seeds 8 --workers 6 --seed-timeou
 # little cheaper (beta=50: 13.2 vs 15.1 h/seed). 10 seeds at 6 workers = two
 # waves ~77 h, inside @budget_h=96. Still HELD: the deck image is dim384
 # (unpatched) and beta=60 asserts deterministically on it.
+# 2026-09-02 20:30: the image is now shipped and the cutover is armed (see the
+# bootstrap note above) -- the only remaining hold reason is the owner's go.
+# Cost for this line on inc63: 10 seeds x ~35-38 h at 6 workers = two waves,
+# ~75 h, inside @budget_h=96. It would run after the vecprobe line above.
 # HELD 2026-08-31: beta=60 crashes the g6k gauss_sieve assert (sieving.cpp:118) on the current image — 9/9 aborts, 0 seeds ever written. Do not re-enable until the kernel fix ships (see session notes / incident pending).
 # ntru_wall_beta_bump --n 179 --q 4591 --beta 60 --seeds 10 --workers 6 --seed-timeout-s 172800 @budget_h=96
