@@ -44,6 +44,13 @@ ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 10 --workers 6 --seed-tim
 # gauss_sieve assert (sieving.cpp:118) on the current image. This bootstrap already
 # ran on the deck 2026-08-28 (rc=1, both seeds aborted, done-log blocks a rerun);
 # commented for consistency so a done-log reset cannot resurrect it before the fix.
+# MEASURED 2026-09-02: seed 1 of this bootstrap ran on the WORKSTATION on
+# sdbkz-g6k:dim384-inc63 (container runcamp-g6k-inc63-validate): 38.5 h/seed
+# (bkz 13.6 h + sdbkz 24.9 h, 50 tours each), rc=0, both legs integer-exact,
+# 5 tolerant swaps, 0 asserts (incidents.md INC-63 addendum 7). Under the 40 h/seed
+# rule below by 1.5 h. Seed 2 is unrun. Stays HELD until the inc63 image ships to
+# the deck (podman load); the workstation seed 1 JSON is not on the deck, so
+# un-holding --seeds 2 here would rerun seed 1 (38.5 h) before seed 2.
 # ntru_wall_beta_bump --n 181 --q 4591 --beta 60 --seeds 2 --workers 6 --seed-timeout-s 172800 @budget_h=48
 
 # STATUS 2026-09-02: this line is DONE on the deck — 20/20 seeds pulled by
@@ -69,5 +76,10 @@ ntru_wall_beta_bump --n 181 --q 4591 --beta 50 --seeds 20 --workers 6 --seed-tim
 # PROVISIONAL — only meaningful once the bootstrap above has reported a cost.
 # If β=60 turns out to cost more than ~40 h/seed, delete this line rather than
 # let it run: at 6 workers it would spend most of a week on one cell.
+# COST READ 2026-09-02: 38.5 h/seed at n=181 (one seed, patched image), so the
+# >40 h delete rule does NOT fire and this line survives; n=179 should run a
+# little cheaper (beta=50: 13.2 vs 15.1 h/seed). 10 seeds at 6 workers = two
+# waves ~77 h, inside @budget_h=96. Still HELD: the deck image is dim384
+# (unpatched) and beta=60 asserts deterministically on it.
 # HELD 2026-08-31: beta=60 crashes the g6k gauss_sieve assert (sieving.cpp:118) on the current image — 9/9 aborts, 0 seeds ever written. Do not re-enable until the kernel fix ships (see session notes / incident pending).
 # ntru_wall_beta_bump --n 179 --q 4591 --beta 60 --seeds 10 --workers 6 --seed-timeout-s 172800 @budget_h=96
