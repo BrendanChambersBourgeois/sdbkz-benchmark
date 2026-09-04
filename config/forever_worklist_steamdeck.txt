@@ -106,3 +106,4 @@ ntru_g6k_vecprobe --n 179 --q 4591 --beta 50 --seeds 8 --workers 6 --seed-timeou
 # ~75 h, inside @budget_h=96. It would run after the vecprobe line above.
 # HELD 2026-08-31: beta=60 crashes the g6k gauss_sieve assert (sieving.cpp:118) on the current image — 9/9 aborts, 0 seeds ever written. Do not re-enable until the kernel fix ships (see session notes / incident pending).
 # ntru_wall_beta_bump --n 179 --q 4591 --beta 60 --seeds 10 --workers 6 --seed-timeout-s 172800 @budget_h=96
+ntru_g6k_vecprobe --n 179 --q 3163 --beta 50 --seeds 8 --workers 6 --seed-timeout-s 86400 @budget_h=40
