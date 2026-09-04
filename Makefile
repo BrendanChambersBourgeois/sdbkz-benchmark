@@ -6,7 +6,7 @@
 #
 # Invoke `make help` for the menu.
 
-.PHONY: help reproduce verify bug-hunt manifest manifest-patched lint-manifest xarch-compare figs figs-paper2 paper clean node-status node-pull node-push-worklist
+.PHONY: help reproduce verify bug-hunt manifest manifest-patched lint-manifest xarch-compare vecprobe-membership figs figs-paper2 paper clean node-status node-pull node-push-worklist
 
 help:  ## Show this menu
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -43,6 +43,9 @@ manifest-patched:  ## Rebuild results/patched_seed_manifest.json (Kahan engine, 
 
 xarch-compare:  ## Cross-arch verdict: science-field compare ntru_xarch vs canonical ntru
 	python3 scripts/compare_seed_trees.py
+
+vecprobe-membership:  ## Rotation-span membership of stored short vectors (ntru_g6k_vecprobe tree)
+	python3 scripts/vecprobe_membership.py
 
 lint-manifest:  ## Fast orphan/ghost lint over seed_manifest.json
 	python3 scripts/lint_seed_manifest.py
