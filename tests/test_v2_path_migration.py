@@ -127,22 +127,33 @@ def test_seed_path_for_matches_expected(campaign, n, beta, seed, kwargs, expecte
 # ---------------------------------------------------------------------------
 # Module-level constants — q3329_verify SUMMARY_DIR must stay under the
 # canonical campaign tree post-v2.0.0 (the legacy results/q3329/ root is
-# deleted). The constant runs at import + does mkdir, so we can't import
-# it under pytest without consuming sys.argv; a static-scan match on the
-# literal is the cheapest gate against regressions.
+# deleted). Since c778c88a the tree is keyed by TAG (--seed-tag), so the
+# q3329_kahan / q3329_control arms write under their own roots; the
+# default must remain "q3329". The constant runs at import + does mkdir,
+# so we can't import it under pytest without consuming sys.argv; a
+# static-scan match on the literals is the cheapest gate against
+# regressions.
 # ---------------------------------------------------------------------------
 
 def test_q3329_verify_summary_dir_under_canonical_tree():
     src = (REPO_ROOT / "scripts" / "q3329_verify.py").read_text()
     pattern = re.compile(
         r'SUMMARY_DIR\s*=\s*os\.path\.join\(\s*BASE\s*,\s*'
-        r'"results"\s*,\s*"seeds"\s*,\s*"q3329"\s*,\s*"summary"\s*\)'
+        r'"results"\s*,\s*"seeds"\s*,\s*TAG\s*,\s*"summary"\s*\)'
     )
     assert pattern.search(src), (
         "q3329_verify.SUMMARY_DIR must point at "
-        "results/seeds/q3329/summary/ (the v1.3 canonical tree). "
-        "The legacy results/q3329/ root was deleted at v2.0.0; "
-        "any other target will crash at first summary write."
+        "results/seeds/<TAG>/summary/ (the v1.3 canonical tree keyed by "
+        "--seed-tag). The legacy results/q3329/ root was deleted at "
+        "v2.0.0; any other target will crash at first summary write."
+    )
+    default = re.compile(
+        r'add_argument\(\s*"--seed-tag"[^)]*?default\s*=\s*"q3329"',
+        re.DOTALL,
+    )
+    assert default.search(src), (
+        "q3329_verify --seed-tag default must stay \"q3329\" so the "
+        "canonical run still lands under results/seeds/q3329/."
     )
 
 
