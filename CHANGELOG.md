@@ -55,6 +55,7 @@ Versions follow loose SemVer. Bump on:
 - Paper-2 accuracy pass (§2.3, §6, §7, bibliography).
 
 ### Fixed
+- CI path-migration test tracks `q3329_verify.py` `--seed-tag` summary tree.
 - `_pidlock` reclaim race.
 - g6k campaigns no longer silently no-op where the g6k module is missing.
 - Failure records carry the leg (`variant`) and `ts`.
