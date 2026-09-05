@@ -854,6 +854,10 @@ seed_tag = "ntru_g6k_vecprobe"
 q = 4591
 n_grid = [179]
 beta_grid = [50]
+# 2026-09-05: beta=40 control cell (same n, q as the beta=50 probe) needs its own
+# tour count because `inherits` replaces this map wholesale; 50 tours matches the
+# canonical ntru_g6k p500_mt50 beta=40 cells so the probe reruns those seeds byte-alike.
+tours_by_beta = { "40" = 50, "50" = 50, "60" = 50 }
 num_seeds = 8
 store_short_vectors = true
 

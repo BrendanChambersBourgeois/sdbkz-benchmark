@@ -6,7 +6,7 @@
 #
 # Invoke `make help` for the menu.
 
-.PHONY: help reproduce verify bug-hunt manifest manifest-patched lint-manifest xarch-compare vecprobe-membership figs figs-paper2 paper clean node-status node-pull node-push-worklist
+.PHONY: help reproduce verify bug-hunt manifest manifest-patched lint-manifest xarch-compare vecprobe-membership figs figs-paper2 paper clean node-status node-pull node-push-worklist node-push-config
 
 help:  ## Show this menu
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -29,6 +29,9 @@ node-pull:  ## Pull new node seeds (never overwrites) + merge its pipeline log
 
 node-push-worklist:  ## Push the steamdeck worklist file (runner re-reads it each loop)
 	python3 scripts/node_sync.py push-worklist
+
+node-push-config:  ## Push config/sweep.toml to the steamdeck (live for the next worklist line)
+	python3 scripts/node_sync.py push-config
 
 bug-hunt:  ## Static tag-driven bug hunt over scripts/ + analysis/ + tests/
 	ctags -R --languages=python --python-kinds=-iv -f .tags \
