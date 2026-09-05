@@ -206,11 +206,14 @@ jobs:
             results/seeds/main/ results/seeds/q3329/ \
             results/seeds/cliff500/ results/seeds/convergence/ \
             results/seeds/fplll_sensitivity/ \
-            results/seeds/ntru_g6k/ \
+            results/seeds/ntru_g6k/ results/seeds/ntru_g6k_vecprobe/ \
             results/seeds/ntru/ results/seeds/ntru_patched/ \
             results/seeds/ntru_b2/ results/seeds/ntru_b2_probe/
           # ntru_g6k wired in per INC-45 Phase 3: validates 1784/1784 clean
           # (sieve path — no fplll squared-form GSO cancellation).
+          # ntru_g6k_vecprobe wired in 2026-09-05: g6k probe tree (store_short_vectors,
+          # same per-seed schema plus short_vectors_* rows; non-manifest, like
+          # ntru_b2_probe). Validates 8/8 with the known INC-45 residual incidents.
           # ntru_b2 + ntru_b2_probe wired in 2026-08-30: same fplll path and
           # per-seed schema as ntru (b2 = never-idle filler tree, b2_probe =
           # per-tour diagnostic re-run; both deliberately non-manifest, see
