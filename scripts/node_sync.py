@@ -163,10 +163,10 @@ def cmd_pull(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_push_worklist(args: argparse.Namespace) -> int:
-    """Push the node's worklist file. The runner re-reads it every loop
-    iteration and never mutates it, so a push mid-run cannot race a rewrite."""
-    src = REPO / "config" / "forever_worklist_steamdeck.txt"
+def _push_config_file(args: argparse.Namespace, name: str, what: str) -> int:
+    """rsync one file from the repo's config/ to the node's config/ (the runner
+    bind-mounts the tree, so a pushed file is live on its next read)."""
+    src = REPO / "config" / name
     if not src.exists():
         print(f"missing {src}", file=sys.stderr)
         return 2
@@ -178,10 +178,23 @@ def cmd_push_worklist(args: argparse.Namespace) -> int:
         print(out.stderr.strip(), file=sys.stderr)
         return 2
     changed = bool(out.stdout.strip())
-    print(out.stdout.strip() if changed else "worklist unchanged on node")
-    PIPELINE.info("worklist pushed", cat="node_sync", node=args.node,
+    print(out.stdout.strip() if changed else f"{what} unchanged on node")
+    PIPELINE.info(f"{what} pushed", cat="node_sync", node=args.node, file=name,
                   changed=changed)
     return 0
+
+
+def cmd_push_worklist(args: argparse.Namespace) -> int:
+    """Push the node's worklist file. The runner re-reads it every loop
+    iteration and never mutates it, so a push mid-run cannot race a rewrite."""
+    return _push_config_file(args, "forever_worklist_steamdeck.txt", "worklist")
+
+
+def cmd_push_config(args: argparse.Namespace) -> int:
+    """Push config/sweep.toml. run_campaign.py re-parses it per worklist line, so
+    a campaign edit (new tours_by_beta entry, new block) is live for the next
+    line without touching the running one or the image."""
+    return _push_config_file(args, "sweep.toml", "sweep config")
 
 
 def main() -> int:
@@ -209,6 +222,9 @@ def main() -> int:
     pw = sub.add_parser("push-worklist",
                         help="push config/forever_worklist_steamdeck.txt to the node")
     pw.set_defaults(func=cmd_push_worklist)
+
+    pc = sub.add_parser("push-config", help="push config/sweep.toml to the node")
+    pc.set_defaults(func=cmd_push_config)
 
     args = ap.parse_args()
     return args.func(args)
