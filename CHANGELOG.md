@@ -30,9 +30,12 @@ Versions follow loose SemVer. Bump on:
 
 ### Added
 - `store_short_vectors` campaign flag and `[campaigns.ntru_g6k_vecprobe]`.
+- `scripts/vecprobe_membership.py` (`make vecprobe-membership`): exact rotation-span membership of stored short vectors; output `results/analysis/vecprobe_membership.json`.
+- `results/seeds/ntru_g6k_vecprobe/` probe tree (8 seeds, not in the manifest).
+- `node_sync.py push-config` / `make node-push-config`: push `config/sweep.toml` to the compute node.
 - `[campaigns.q3329_kahan]` / `[campaigns.q3329_control]` local §8 rerun arms; `run_campaign.py --image` applies to any campaign; `q3329_verify.py --seed-tag` / `--workers`.
 - JOSS draft: `paper.md`, `paper.bib`, `CODE_OF_CONDUCT.md`.
-- +2,498 seeds (`ntru`, `ntru_b2`, `ntru_b2_probe`, `ntru_g6k`); fplll manifest 13,549, G6K manifest 2,651.
+- +2,498 seeds (`ntru`, `ntru_b2`, `ntru_b2_probe`, `ntru_g6k`); fplll manifest 13,549, G6K manifest 2,735.
 - `results/seeds/ntru_flatter/` exploratory A/B tree (124 seeds, not in the manifest).
 - `[campaigns.ntru_b2_probe]` (3 seeds; `store_per_tour` is a no-op on this path).
 - g6k as a second reduction engine (`scripts/_engine_backends.py`, `run_single(backend=...)`); g6k self-dual BKZ variant.
