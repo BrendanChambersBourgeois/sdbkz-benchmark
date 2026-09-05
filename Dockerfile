@@ -46,6 +46,8 @@ RUN pip install --no-cache-dir \
         cysignals==1.12.6 \
         numpy==2.4.4 \
         scipy==1.17.1 \
+        sympy==1.14.0 \
+        mpmath==1.3.0 \
         matplotlib==3.10.8 \
         pillow==12.2.0 \
         fonttools==4.62.1 \
