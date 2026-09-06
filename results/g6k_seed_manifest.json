@@ -33896,6 +33896,84 @@
    "sha256": "7c86c092852e8c3bcdd242b389bab67d4892e1e43bb0ecbe094897aaafba7a82"
   },
   {
+   "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n179_beta40/seed0021.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4591,
+   "n": 179,
+   "beta": 40,
+   "seed": 21,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "8c71ff4da8460aedfcf7eeec3d0a547b13fdc18a1c58fcdab23f5c931310c018"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n179_beta40/seed0022.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4591,
+   "n": 179,
+   "beta": 40,
+   "seed": 22,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "0390d188aebfc1815d3c72152e5fc0eaac1c004974133a6efe43fd1d218c5bc3"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n179_beta40/seed0023.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4591,
+   "n": 179,
+   "beta": 40,
+   "seed": 23,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "049e52f69afe8062a08568aa8c0158e3124f3ef06a089e6341e7018b3a98184e"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n179_beta40/seed0024.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4591,
+   "n": 179,
+   "beta": 40,
+   "seed": 24,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "acf2eb024e058a4b3f3c0f25dfc4e86efc259bc8ca9a6fc932bede0e847d58a5"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n179_beta40/seed0025.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4591,
+   "n": 179,
+   "beta": 40,
+   "seed": 25,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "02ff47666b1842ded3ebdd0e7946eefd5e9742ef972043bd24235508a406321a"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n179_beta40/seed0026.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4591,
+   "n": 179,
+   "beta": 40,
+   "seed": 26,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "4b2aabd95f8f034399e6a0b37ccbb487beed4ba738a93589be3a37be849b45d3"
+  },
+  {
    "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n179_beta50/seed0001.json",
    "campaign": "ntru_g6k",
    "engine": "g6k",
@@ -34167,6 +34245,19 @@
    "max_tours": 50,
    "threads": 1,
    "sha256": "e6a54942968deeae936468dafb785ab63d685f591e465e67e1cb277279929523"
+  },
+  {
+   "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n181_beta50/seed0002.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 4591,
+   "n": 181,
+   "beta": 50,
+   "seed": 2,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "5881edff8abff8e9686fae5233464a65e0e2e0afc53a943fd304b74c540ecec1"
   },
   {
    "path": "results/seeds/ntru_g6k/q4591/p500_mt50/n181_beta50/seed0003.json",
@@ -35157,6 +35248,19 @@
    "sha256": "1ac8abe0ab659bbe111391ea8ee2af21696b70c165501dffafacecf2392b0f22"
   },
   {
+   "path": "results/seeds/ntru_g6k/q5381/p500_mt50/n181_beta50/seed0018.json",
+   "campaign": "ntru_g6k",
+   "engine": "g6k",
+   "q": 5381,
+   "n": 181,
+   "beta": 50,
+   "seed": 18,
+   "precision": 500,
+   "max_tours": 50,
+   "threads": 1,
+   "sha256": "55cf465b5ccba7afd3ad709b19bb7e7a848858e99ca4138b9521bd184a8c4daa"
+  },
+  {
    "path": "results/seeds/ntru_g6k/q5381/p500_mt50/n181_beta50/seed0019.json",
    "campaign": "ntru_g6k",
    "engine": "g6k",
@@ -35599,5 +35703,5 @@
    "sha256": "6bc120eb96e21601b0b61e05c0422d226a31f84cf79ce6680542d7cf8db90a4d"
   }
  ],
- "seeds_generated_utc": "2026-09-04T23:40:52Z"
+ "seeds_generated_utc": "2026-09-06T00:27:51Z"
 }
