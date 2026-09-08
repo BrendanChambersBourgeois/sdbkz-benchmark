@@ -280,3 +280,11 @@ ntru_wall_beta_bump --n 181 --q 6491 --beta 50 --seeds 20 --workers 20 --seed-ti
 # carries the seed) + the -345 sentinel in the stored profiles, vs 38/100.
 q3329_kahan --seeds 100 --workers 20 --image sdbkz-fplll-patched:kahan-v3 @budget_h=40
 q3329_control --seeds 100 --workers 20 --image sdbkz-fplll-patched:reorder-control @budget_h=40
+
+# 2026-09-08: post-drain block (4 workers only — q3329 arms + backfill hold 20 cores until ~09-13).
+# beta=60 extend the 1-seed bootstrap (measured 38.5 h/seed sequential legs); beta=60 at the
+# below-beta50-onset q tests whether onset moves with blocksize; n=185 at fixed q=4591 tests
+# whether beta=50 keeps recovering past n=181 (blocksize-conditional wall claim).
+ntru_wall_beta_bump --n 181 --q 4591 --beta 60 --seeds 5 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
+ntru_wall_beta_bump --n 181 --q 3163 --beta 60 --seeds 4 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
+ntru_wall_beta_bump --n 185 --q 4591 --beta 50 --seeds 8 --workers 4 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=60

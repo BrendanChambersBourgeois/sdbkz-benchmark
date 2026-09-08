@@ -108,3 +108,10 @@ ntru_g6k_vecprobe --n 179 --q 4591 --beta 50 --seeds 8 --workers 6 --seed-timeou
 # ntru_wall_beta_bump --n 179 --q 4591 --beta 60 --seeds 10 --workers 6 --seed-timeout-s 172800 @budget_h=96
 ntru_g6k_vecprobe --n 179 --q 3163 --beta 50 --seeds 8 --workers 6 --seed-timeout-s 86400 @budget_h=40
 ntru_g6k_vecprobe --n 179 --q 4591 --beta 40 --seeds 8 --workers 6 --seed-timeout-s 86400 @budget_h=40
+
+# 2026-09-08: vecprobe follow-ups. q=3637 sits at the beta=50 onset edge (rows leaving the q
+# floor without exact recovery?); q=4591 beta=50 and beta=40 cells extended 8 -> 16 seeds
+# (membership readout was preliminary at 8). Resume-skip runs only the new seeds.
+ntru_g6k_vecprobe --n 179 --q 3637 --beta 50 --seeds 8 --workers 6 --seed-timeout-s 86400 @budget_h=40
+ntru_g6k_vecprobe --n 179 --q 4591 --beta 50 --seeds 16 --workers 6 --seed-timeout-s 86400 @budget_h=40
+ntru_g6k_vecprobe --n 179 --q 4591 --beta 40 --seeds 16 --workers 6 --seed-timeout-s 86400 @budget_h=40
