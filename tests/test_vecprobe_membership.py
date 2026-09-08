@@ -107,6 +107,7 @@ def test_analyze_seed_end_to_end(tmp_path):
         "seeds": 1, "seeds_secret_mismatch": 0, "vectors": 3, "secret_rotations": 1,
         "non_exact_vectors": 2, "non_exact_in_zspan": 1, "non_exact_in_qspan_only": 0,
         "non_exact_outside_qspan": 1, "non_exact_undetermined": 0,
+        "non_exact_q_vector": 1, "non_exact_outside_qspan_nonq": 0,
     }
     v = j["seeds"][0]["vectors"]
     assert [x["rank"] for x in v] == [0, 1, 2] and all(x["leg"] == "sdbkz" for x in v)
