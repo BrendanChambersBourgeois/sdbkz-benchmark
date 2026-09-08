@@ -2909,6 +2909,8 @@
     "non_exact_in_qspan_only": 10,
     "non_exact_in_zspan": 55,
     "non_exact_outside_qspan": 72,
+    "non_exact_outside_qspan_nonq": 0,
+    "non_exact_q_vector": 72,
     "non_exact_undetermined": 0,
     "non_exact_vectors": 137,
     "secret_rotations": 7,

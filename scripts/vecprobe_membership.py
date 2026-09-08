@@ -317,6 +317,11 @@ def analyze_seed(path: str) -> dict[str, Any] | None:
 def _summarise(seeds: list[dict[str, Any]]) -> dict[str, Any]:
     vecs = [v for s in seeds for v in s.get("vectors", [])]
     non_exact = [v for v in vecs if not v["is_secret_rotation"]]
+    # A stored row with norm2 == q^2 is an untouched q-vector of the Kannan
+    # basis (the cell never reduced below the q floor); it is outside the
+    # rotation span trivially and must not be read as a genuine outlier.
+    q_vector = [v for s in seeds for v in s.get("vectors", [])
+                if not v["is_secret_rotation"] and v["norm2"] == s["q"] ** 2]
     return {
         "seeds": len(seeds),
         "seeds_secret_mismatch": sum(1 for s in seeds if s.get("secret_mismatch")),
@@ -327,8 +332,19 @@ def _summarise(seeds: list[dict[str, Any]]) -> dict[str, Any]:
         "non_exact_in_qspan_only": sum(1 for v in non_exact
                                        if v["in_qspan"] and v["in_zspan"] is not True),
         "non_exact_outside_qspan": sum(1 for v in non_exact if not v["in_qspan"]),
+        "non_exact_q_vector": len(q_vector),
+        "non_exact_outside_qspan_nonq": sum(1 for v in non_exact
+                                            if not v["in_qspan"]
+                                            and v["norm2"] != _seed_q(seeds, v) ** 2),
         "non_exact_undetermined": sum(1 for v in non_exact if v["in_zspan"] is None),
     }
+
+
+def _seed_q(seeds: list[dict[str, Any]], vec: dict[str, Any]) -> int:
+    for s in seeds:
+        if any(v is vec for v in s.get("vectors", [])):
+            return int(s["q"])
+    raise KeyError("vector not attached to any seed record")
 
 
 def _print_table(seeds: list[dict[str, Any]]) -> None:
