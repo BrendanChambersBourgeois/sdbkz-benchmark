@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Build results/patched_seed_manifest.json — the SHA set for the Kahan-patched
-fplll engine (results/seeds/ntru_patched/).
+"""Build results/patched_seed_manifest.json — the SHA set for the patched
+fplll engines (results/seeds/ntru_patched/, q3329_kahan/, q3329_control/).
 
 The patched seeds are produced by the Kahan-compensated GSO build
 (Dockerfile.fplll_patched, paper Appendix A): their squared-form arithmetic
@@ -11,8 +11,12 @@ by NO manifest (INC-49); this closes the gap with the same SHA-256 + verify-gate
 discipline as build_g6k_manifest.
 
 Behaviour mirrors build_g6k_manifest:
-  - Walks results/seeds/ntru_patched/ for seed*.json, parses the v1.3 path,
+  - Walks each tree in PATCHED_TREES for seed*.json, parses the v1.3 path,
     computes SHA-256; verify-gated (status=="completed" + finite advantage).
+    Entries carry campaign (= tree dir) and the engine build that produced
+    them: ntru_patched = Kahan v1 (n=127 validation), q3329_kahan = kahan-v3
+    rerun at n=100 beta=30, q3329_control = reorder-only control build
+    (same loop reorder, no Kahan compensation).
   - Creates the manifest scaffold on first run; preserves top-level blocks on
     re-run, rebuilding only seeds[].
   - Deterministic timestamp (SOURCE_DATE_EPOCH or epoch 0) so re-runs are
@@ -42,11 +46,19 @@ from log import get_logger  # noqa: E402
 PIPELINE = get_logger("build_patched_manifest")
 
 DEFAULT_MANIFEST = os.path.join("results", "patched_seed_manifest.json")
-PATCHED_TREE = os.path.join("results", "seeds", "ntru_patched")
+# tree dir under results/seeds -> engine build tag carried per entry
+PATCHED_TREES: dict[str, str] = {
+    "ntru_patched": "fplll-kahan",
+    "q3329_kahan": "fplll-kahan-v3",
+    "q3329_control": "fplll-reorder-control",
+}
 _UTC_FMT = "%Y-%m-%dT%H:%M:%SZ"
 
+# v1.3 layout: <tree>/q<q>/p<prec>_mt<mt>/n<n>_beta<beta>/seed<seed>.json.
+# The q3329 arm trees omit the q level (q is fixed by the campaign); q is
+# then read from the seed document.
 _PATH_RE = re.compile(
-    r"q(?P<q>\d+)/p(?P<prec>\d+)_mt(?P<mt>\d+)/"
+    r"(?:q(?P<q>\d+)/)?p(?P<prec>\d+)_mt(?P<mt>\d+)/"
     r"n(?P<n>\d+)_beta(?P<beta>\d+)/seed(?P<seed>\d+)\.json$"
 )
 
@@ -76,12 +88,17 @@ def _sha256(path: str, chunk: int = 1 << 16) -> str:
 
 
 def collect(repo_root: str) -> tuple[list[dict], list[tuple[str, str]]]:
-    """Walk the patched tree -> (entries, rejects). Verify-gated."""
+    """Walk the patched trees -> (entries, rejects). Verify-gated."""
     entries: list[dict] = []
     rejects: list[tuple[str, str]] = []
-    pattern = os.path.join(repo_root, PATCHED_TREE, "q*", "p*_mt*",
-                           "n*_beta*", "seed*.json")
-    for path in sorted(glob.glob(pattern)):
+    paths: list[tuple[str, str, str]] = []
+    for tree, engine in PATCHED_TREES.items():
+        base = os.path.join(repo_root, "results", "seeds", tree)
+        pattern = os.path.join(base, "q*", "p*_mt*", "n*_beta*", "seed*.json")
+        found = glob.glob(pattern) or glob.glob(
+            os.path.join(base, "p*_mt*", "n*_beta*", "seed*.json"))
+        paths += [(p, tree, engine) for p in sorted(found)]
+    for path, tree, engine in paths:
         rel = os.path.relpath(path, repo_root).replace(os.sep, "/")
         m = _PATH_RE.search(rel)
         if m is None:
@@ -100,11 +117,15 @@ def collect(repo_root: str) -> tuple[list[dict], list[tuple[str, str]]]:
         if not isinstance(adv, (int, float)) or not math.isfinite(adv):
             rejects.append((rel, f"non-finite advantage: {adv!r}"))
             continue
+        q = int(m.group("q")) if m.group("q") else doc.get("q")
+        if not isinstance(q, int):
+            rejects.append((rel, f"no q in path or document: {q!r}"))
+            continue
         entries.append({
             "path": rel,
-            "campaign": "ntru_patched",
-            "engine": "fplll-kahan",
-            "q": int(m.group("q")),
+            "campaign": tree,
+            "engine": engine,
+            "q": q,
             "n": int(m.group("n")),
             "beta": int(m.group("beta")),
             "seed": int(m.group("seed")),
@@ -112,7 +133,8 @@ def collect(repo_root: str) -> tuple[list[dict], list[tuple[str, str]]]:
             "max_tours": int(m.group("mt")),
             "sha256": _sha256(path),
         })
-    entries.sort(key=lambda e: (e["q"], e["n"], e["beta"], e["seed"]))
+    entries.sort(key=lambda e: (e["campaign"], e["q"], e["n"], e["beta"],
+                                e["seed"]))
     return entries, rejects
 
 
