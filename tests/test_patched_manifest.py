@@ -15,7 +15,8 @@ import os
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIFEST = os.path.join(REPO_ROOT, "results", "patched_seed_manifest.json")
-TREE = os.path.join(REPO_ROOT, "results", "seeds", "ntru_patched")
+TREES = [os.path.join(REPO_ROOT, "results", "seeds", d)
+         for d in ("ntru_patched", "q3329_kahan", "q3329_control")]
 
 
 def _sha256(path):
@@ -32,8 +33,10 @@ def _manifest():
 
 
 def _disk_seeds():
-    return sorted(glob.glob(os.path.join(TREE, "q*", "p*_mt*",
-                                         "n*_beta*", "seed*.json")))
+    # v1.3 layout with an optional q level (the q3329 arm trees omit it)
+    return sorted(p for tree in TREES for pat in ("q*/p*_mt*", "p*_mt*")
+                  for p in glob.glob(os.path.join(tree, pat, "n*_beta*",
+                                                  "seed*.json")))
 
 
 def test_every_patched_seed_on_disk_is_in_manifest_with_matching_sha():
