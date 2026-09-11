@@ -208,7 +208,8 @@ jobs:
             results/seeds/fplll_sensitivity/ \
             results/seeds/ntru_g6k/ results/seeds/ntru_g6k_vecprobe/ \
             results/seeds/ntru/ results/seeds/ntru_patched/ \
-            results/seeds/ntru_b2/ results/seeds/ntru_b2_probe/
+            results/seeds/ntru_b2/ results/seeds/ntru_b2_probe/ \
+            results/seeds/q3329_kahan/ results/seeds/q3329_control/
           # ntru_g6k wired in per INC-45 Phase 3: validates 1784/1784 clean
           # (sieve path — no fplll squared-form GSO cancellation).
           # ntru_g6k_vecprobe wired in 2026-09-05: g6k probe tree (store_short_vectors,
