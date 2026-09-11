@@ -288,3 +288,16 @@ q3329_control --seeds 100 --workers 20 --image sdbkz-fplll-patched:reorder-contr
 ntru_wall_beta_bump --n 181 --q 4591 --beta 60 --seeds 5 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
 ntru_wall_beta_bump --n 181 --q 3163 --beta 60 --seeds 4 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
 ntru_wall_beta_bump --n 185 --q 4591 --beta 50 --seeds 8 --workers 4 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=60
+
+# 2026-09-11: post-drain block 2 (arms + backfill finished 09-09; cores free, 20 workers OK).
+# Readout of block 1: beta=60 at n=181 recovers 9/9 both legs at q=4591 (2.83x) AND at
+# q=3163 (1.95x, below the beta=50 onset), sequential legs 23-38 h/seed; n=185 beta=50
+# q=4591 (2.68x) is 1/8 (SD only, 0 BKZ). Cheap line first, then the two beta=60 probes.
+# (a) n=185 beta=50 at 3.79x: does beta=50 recover at n=185 once q is high enough
+#     (the n=181 plateau sat at 2.10-2.30x)? ~7 h wall at 8 workers.
+# (b) n=185 beta=60 at 2.68x: the blocksize-conditional-wall test one dim past 181;
+#     estimator 32.7 h/seed is a LOWER BOUND (nearest same-beta anchor n=181), bootstrap size only.
+# (c) n=181 beta=60 at 1.36x: does the beta=60 onset sit below 1.95x as well?
+ntru_wall_beta_bump --n 185 --q 6491 --beta 50 --seeds 8 --workers 8 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=30
+ntru_wall_beta_bump --n 185 --q 4591 --beta 60 --seeds 4 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=60
+ntru_wall_beta_bump --n 181 --q 2203 --beta 60 --seeds 4 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
