@@ -35,8 +35,9 @@ Versions follow loose SemVer. Bump on:
 - `node_sync.py push-config` / `make node-push-config`: push `config/sweep.toml` to the compute node.
 - `[campaigns.q3329_kahan]` / `[campaigns.q3329_control]` local §8 rerun arms; `run_campaign.py --image` applies to any campaign; `q3329_verify.py --seed-tag` / `--workers`.
 - JOSS draft: `paper.md`, `paper.bib`, `CODE_OF_CONDUCT.md`.
-- +2,538 seeds (`ntru`, `ntru_b2`, `ntru_b2_probe`, `ntru_g6k`); fplll manifest 13,549, G6K manifest 2,775.
-- `results/seeds/q3329_kahan/` + `results/seeds/q3329_control/` §8 rerun arm seeds (65 + 40, not yet in the manifest).
+- +2,538 seeds (`ntru`, `ntru_b2`, `ntru_b2_probe`, `ntru_g6k`); fplll manifest 13,549.
+- `results/seeds/q3329_kahan/` + `results/seeds/q3329_control/` §8 rerun arm seeds (100 + 100); patched manifest 212.
+- +16 `ntru_g6k` seeds (n=181 β=60, n=185 β=50); G6K manifest 2,791.
 - `results/seeds/ntru_flatter/` exploratory A/B tree (124 seeds, not in the manifest).
 - `[campaigns.ntru_b2_probe]` (3 seeds; `store_per_tour` is a no-op on this path).
 - g6k as a second reduction engine (`scripts/_engine_backends.py`, `run_single(backend=...)`); g6k self-dual BKZ variant.
@@ -50,6 +51,7 @@ Versions follow loose SemVer. Bump on:
 - Steam Machine second compute node (`steamdeck`): `make node-push-worklist` / `node-status` / `node-pull`; `[campaigns.ntru_g6k_backfill]`.
 
 ### Changed
+- `build_patched_manifest.py` walks the `q3329_kahan` / `q3329_control` trees; entries carry `campaign` and `engine`.
 - `forever_runner` warns on fast rc=0 lines; `node_sync` status gives a reason; steamdeck unit restart budget.
 - `results/wall_cap_events.jsonl` gitignored and mirrored.
 - `paper/` renamed to `paper1/`.
