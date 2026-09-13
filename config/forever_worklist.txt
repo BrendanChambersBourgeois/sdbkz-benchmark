@@ -301,3 +301,11 @@ ntru_wall_beta_bump --n 185 --q 4591 --beta 50 --seeds 8 --workers 4 --seed-time
 ntru_wall_beta_bump --n 185 --q 6491 --beta 50 --seeds 8 --workers 8 --seed-timeout-s 86400 --image sdbkz-g6k:dim384-inc63 @budget_h=30
 ntru_wall_beta_bump --n 185 --q 4591 --beta 60 --seeds 4 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=60
 ntru_wall_beta_bump --n 181 --q 2203 --beta 60 --seeds 4 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
+# 2026-09-13 block 3 (owner: seed-5 rerun + n=185 beta=60 ladder).
+# (a) n=185 beta=50 q=6491 seed 5: BKZ leg wall-cap killed at 86401 s on 09-12; rerun the
+#     same line at 172800 s -- resume-skip leaves the 7 finished seeds byte-identical, only seed 5 runs.
+# (b) n=185 beta=60 at 3.79x (q=6491) and 1.85x (q=3163): two-rung ladder around the 09-11 q=4591 line;
+#     estimator 32.7 h/seed is a LOWER BOUND (only same-beta anchor n=181), 4 seeds/4 workers.
+ntru_wall_beta_bump --n 185 --q 6491 --beta 50 --seeds 8 --workers 1 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=48
+ntru_wall_beta_bump --n 185 --q 6491 --beta 60 --seeds 4 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=60
+ntru_wall_beta_bump --n 185 --q 3163 --beta 60 --seeds 4 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=60
