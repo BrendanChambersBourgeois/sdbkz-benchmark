@@ -37,7 +37,7 @@ Versions follow loose SemVer. Bump on:
 - JOSS draft: `paper.md`, `paper.bib`, `CODE_OF_CONDUCT.md`.
 - +2,538 seeds (`ntru`, `ntru_b2`, `ntru_b2_probe`, `ntru_g6k`); fplll manifest 13,549.
 - `results/seeds/q3329_kahan/` + `results/seeds/q3329_control/` §8 rerun arm seeds (100 + 100); patched manifest 212.
-- +32 `ntru_g6k` seeds (n=181 β=60, n=185 β=50, node filler); G6K manifest 2,807.
+- +55 `ntru_g6k` seeds (n=181 β=60, n=183/185 β=50, node filler); G6K manifest 2,830.
 - `results/seeds/ntru_flatter/` exploratory A/B tree (124 seeds, not in the manifest).
 - `[campaigns.ntru_b2_probe]` (3 seeds; `store_per_tour` is a no-op on this path).
 - g6k as a second reduction engine (`scripts/_engine_backends.py`, `run_single(backend=...)`); g6k self-dual BKZ variant.
