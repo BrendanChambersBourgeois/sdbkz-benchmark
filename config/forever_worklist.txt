@@ -309,3 +309,9 @@ ntru_wall_beta_bump --n 181 --q 2203 --beta 60 --seeds 4 --workers 4 --seed-time
 ntru_wall_beta_bump --n 185 --q 6491 --beta 50 --seeds 8 --workers 1 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=48
 ntru_wall_beta_bump --n 185 --q 6491 --beta 60 --seeds 4 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=60
 ntru_wall_beta_bump --n 185 --q 3163 --beta 60 --seeds 4 --workers 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=60
+# 2026-09-14 requeue after host reboot at 20:30. Line 303 (n=181 beta=60 q=2203) was killed 42 min in
+# (rc=143, nothing written) and line 309 (n=185 beta=50 q=6491 seed-5 rerun) failed in 0 s while docker
+# was stopping; the runner marks rc!=0 lines done, so both are restated with the same args in a different
+# order to get a fresh signature. Semantics identical to the original lines.
+ntru_wall_beta_bump --n 181 --q 2203 --beta 60 --workers 4 --seeds 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
+ntru_wall_beta_bump --n 185 --q 6491 --beta 50 --workers 1 --seeds 8 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=48
