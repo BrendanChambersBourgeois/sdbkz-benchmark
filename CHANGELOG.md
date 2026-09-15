@@ -60,6 +60,7 @@ Versions follow loose SemVer. Bump on:
 - CI `g6k-verify` is a hard byte-identity gate.
 - DSD criterion finalised as the n-dependent two-part test; paper-2 Table 2 regenerated.
 - Paper-2 accuracy pass (§2.3, §6, §7, bibliography).
+- Paper 2 cites Wang (ePrint 2024/713) for the dynamical-systems analysis of pnj-BKZ.
 
 ### Fixed
 - CI path-migration test tracks `q3329_verify.py` `--seed-tag` summary tree.

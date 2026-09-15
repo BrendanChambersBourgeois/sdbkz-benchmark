@@ -185,7 +185,11 @@ it as a primal pump-and-jump pass followed by a dual pass run under G6K's
 \texttt{dual\_mode} (operations on the dual basis, bounds reflected about
 $\mathrm{full\_n}/2$). The two oracles differ fundamentally---deterministic
 enumeration versus randomised sieving---which is what makes a phenomenon that
-survives both engines credible. Sieving carries a fixed setup cost that makes
+survives both engines credible. The pump-and-jump tour has itself been analysed
+in the dynamical-systems style by Wang~\cite{Wang2024}, who derives tour-count
+and Hermite-factor upper bounds for \texttt{pnj-BKZ}$(\beta,J)$ in place of a
+simulator; we use the algorithm as an oracle and make no claim about its
+convergence rate. Sieving carries a fixed setup cost that makes
 small $\beta$ uninformative, so all cross-engine experiments use $\beta=40$,
 the smallest block size at which the sieve does non-trivial work; this is also
 the regime in which related $q$-ary forgery attacks operate~\cite{DEP2023}.
