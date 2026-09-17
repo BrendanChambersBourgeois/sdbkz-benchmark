@@ -25,6 +25,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _seed_io import quarantine_corrupt, resume_skip_valid  # noqa: E402
 from _seed_paths import seed_path_for  # noqa: E402
 from log import get_logger, new_run_id  # noqa: E402
 from run_campaign import _ntru_seed_worker  # noqa: E402
@@ -40,7 +41,11 @@ def build_tasks(cells, beta, mt, generator, seed_tag, backend):
             out = seed_path_for(seed_tag, n=n, beta=beta, seed=seed, q=q,
                                 precision=prec, max_tours=mt)
             if os.path.exists(out):
-                continue
+                if resume_skip_valid(out):
+                    continue
+                # Truncated seed: preserve the bytes aside and requeue, rather
+                # than skipping the cell forever on mere existence.
+                quarantine_corrupt(out)
             tasks.append((n, beta, seed, q, prec, mt, generator, seed_tag,
                           backend))
     # longest-first: precision, then n, then q (slow seeds start early so none

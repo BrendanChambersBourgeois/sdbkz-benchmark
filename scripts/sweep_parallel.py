@@ -34,6 +34,7 @@ from _math_core import (
     log_clamp,
     metrics_from_gso,
 )
+from _seed_io import quarantine_corrupt, resume_skip_valid, write_seed_atomic
 from _seed_paths import seed_path_for
 from _signal_utils import managed_pool
 from generators import build_lwe_kannan, kannan_m
@@ -132,9 +133,18 @@ def scan_completed() -> set[tuple[int, int, int]]:
             beta = int(parent.split("_")[1][4:])
             seed_digits = leaf.replace(".json", "").replace("_cloud", "")
             seed = int(seed_digits[4:])  # drop "seed" prefix
-            done.add((n, beta, seed))
         except (IndexError, ValueError):
             continue
+        # Existence is not proof of completion: a seed truncated by a power
+        # cut or an OOM kill exists, is unparseable, and under an
+        # existence-only skip wedges its cell forever. Quarantine it (bytes
+        # preserved, never deleted) and leave the triple pending so it reruns.
+        if not resume_skip_valid(fp):
+            bad = quarantine_corrupt(fp)
+            PIPELINE.warning("corrupt seed quarantined", cat="sweep",
+                             n=n, beta=beta, seed=seed, path=fp, moved_to=bad)
+            continue
+        done.add((n, beta, seed))
     return done
 
 
@@ -188,8 +198,7 @@ def migrate_old_results() -> int:
                 "bkz_time": row["bkz_time"],
                 "sdbkz_time": row["sdbkz_time"],
             }
-            with open(out, "w") as f:
-                json.dump(migrated_row, f, indent=2)
+            write_seed_atomic(out, migrated_row)
             migrated += 1
 
     print(f"Migrated {migrated} results from {len(old_files)} old files.")
@@ -253,9 +262,7 @@ def worker(
 
     try:
         result = run_single(n, beta, seed, store_per_tour=STORE_PER_TOUR)
-        os.makedirs(os.path.dirname(out), exist_ok=True)
-        with open(out, "w") as f:
-            json.dump(result, f, indent=2)
+        write_seed_atomic(out, result)
         return (key, "completed", out)
 
     except _Timeout:

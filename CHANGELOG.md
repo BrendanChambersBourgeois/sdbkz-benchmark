@@ -29,6 +29,7 @@ Versions follow loose SemVer. Bump on:
 ## Unreleased
 
 ### Added
+- `scripts/_seed_io.py`: shared atomic seed write, resume validation and corrupt quarantine, now used by all four runners.
 - `store_short_vectors` campaign flag and `[campaigns.ntru_g6k_vecprobe]`.
 - `scripts/vecprobe_membership.py` (`make vecprobe-membership`): exact rotation-span membership of stored short vectors; output `results/analysis/vecprobe_membership.json`.
 - `results/seeds/ntru_g6k_vecprobe/` probe tree (48 seeds, not in the manifest); summary reports `non_exact_q_vector` and `non_exact_outside_qspan_nonq` so untouched q-vectors are not read as outliers.
@@ -51,6 +52,7 @@ Versions follow loose SemVer. Bump on:
 - Steam Machine second compute node (`steamdeck`): `make node-push-worklist` / `node-status` / `node-pull`; `[campaigns.ntru_g6k_backfill]`.
 
 ### Changed
+- `sweep_parallel.py`, `run_packed.py` and `run_3x_extended.py` validate an existing seed before resume-skipping it and quarantine a corrupt one instead of skipping the cell forever; seed writes are atomic. Seed bytes are unchanged.
 - `build_patched_manifest.py` walks the `q3329_kahan` / `q3329_control` trees; entries carry `campaign` and `engine`.
 - CI strict `validate_seeds` list covers `q3329_kahan` / `q3329_control`; README G6K count follows the manifest.
 - `forever_runner` warns on fast rc=0 lines; `node_sync` status gives a reason; steamdeck unit restart budget.
