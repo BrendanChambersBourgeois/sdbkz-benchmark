@@ -74,6 +74,9 @@ sys.path.insert(0, SCRIPT_DIR)
 sys.path.insert(0, REPO_ROOT)
 
 from _config import Campaign, ConfigError, load_campaign  # noqa: E402
+from _seed_io import quarantine_corrupt as _quarantine_corrupt  # noqa: E402
+from _seed_io import resume_skip_valid as _resume_skip_valid  # noqa: E402
+from _seed_io import write_seed_atomic  # noqa: E402
 from log import get_logger, get_run_id, new_run_id  # noqa: E402
 
 PIPELINE = get_logger("run_campaign")
@@ -332,30 +335,6 @@ def _ntru_log_clamp(ctx: str, position: int, raw_value: float) -> None:
               script_name="run_campaign", log_path=_CLAMP_LOG_FILE)
 
 
-def _resume_skip_valid(path: str) -> bool:
-    """True if an existing seed JSON parses (safe to resume-skip)."""
-    import json
-    try:
-        with open(path) as fh:
-            json.load(fh)
-        return True
-    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
-        return False
-
-
-def _quarantine_corrupt(path: str) -> str:
-    """Move a corrupt seed JSON aside (suffix .corrupt, numbered if needed) so
-    the seed regenerates. The bytes are preserved, never deleted; the suffix
-    keeps it out of every *.json glob (verdicts, manifest, extract)."""
-    bad = path + ".corrupt"
-    i = 1
-    while os.path.exists(bad):
-        i += 1
-        bad = f"{path}.corrupt{i}"
-    os.replace(path, bad)
-    return bad
-
-
 def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
     """Pool worker: build + structurally verify + BKZ one NTRU (n, β, seed),
     then write its per-seed JSON. Returns (n, β, seed, advantage|None,
@@ -438,20 +417,7 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
             metric_float_type=metric_float_type,
             store_short_vectors=store_short_vectors,
         )
-        os.makedirs(os.path.dirname(out), exist_ok=True)
-        # Write atomically (tmp + rename) so a crash mid-write never leaves a
-        # half-written seed JSON that breaks the resumable skip / SHA gate.
-        tmp = out + ".tmp"
-        with open(tmp, "w") as fh:
-            json.dump(r, fh, indent=2)
-            # fsync before the atomic rename so an unattended host crash
-            # (e.g. thermal) cannot leave a renamed-but-unflushed (zeroed)
-            # seed JSON. os.replace alone is atomic vs SIGKILL, but the tmp
-            # file's CONTENTS need durability before the rename for power-loss
-            # / hard-crash safety (INC-45 Phase 4b, overnight-run exposure).
-            fh.flush()
-            os.fsync(fh.fileno())
-        os.replace(tmp, out)
+        write_seed_atomic(out, r)
         # Centralised per-seed completion event (side-log only; never touches
         # the seed JSON, so SHA byte-identity is unaffected). Workers inherit
         # the parent's run_id, so these correlate with the pool's run.

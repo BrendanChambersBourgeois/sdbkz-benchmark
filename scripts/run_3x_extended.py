@@ -24,6 +24,7 @@ from fpylll import FPLLL, LLL, IntegerMatrix
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _bkz_core import dln_trajectory
 from _math_core import ln_fixed_point, log_clamp
+from _seed_io import quarantine_corrupt, resume_skip_valid, write_seed_atomic
 from _seed_paths import seed_dir_for, seed_path_for
 from generators import build_lwe_kannan, kannan_m
 from log import get_logger
@@ -151,6 +152,11 @@ def main():
                 "tours3x", n=n, beta=beta, seed=seed, base=REPO_ROOT,
             )
             if os.path.exists(outpath):
+                # A truncated seed used to raise JSONDecodeError here and kill
+                # the whole run on every restart. Quarantine and requeue.
+                if not resume_skip_valid(outpath):
+                    quarantine_corrupt(outpath)
+                    continue
                 with open(outpath) as f:
                     completed[seed] = json.load(f)
 
@@ -173,8 +179,7 @@ def main():
                     outpath = seed_path_for(
                 "tours3x", n=n, beta=beta, seed=seed, base=REPO_ROOT,
             )
-                    with open(outpath, "w") as f:
-                        json.dump(result, f, indent=2)
+                    write_seed_atomic(outpath, result)
                     all_results.append(result)
                     done_count += 1
 
