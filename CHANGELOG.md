@@ -29,6 +29,7 @@ Versions follow loose SemVer. Bump on:
 ## Unreleased
 
 ### Added
+- `scripts/decide.py`: local multi-choice page for the calls the owner has to make; store outside the repo under `DECIDE_HOME`.
 - `scripts/_seed_io.py`: shared atomic seed write, resume validation and corrupt quarantine, now used by all four runners.
 - `store_short_vectors` campaign flag and `[campaigns.ntru_g6k_vecprobe]`.
 - `scripts/vecprobe_membership.py` (`make vecprobe-membership`): exact rotation-span membership of stored short vectors; output `results/analysis/vecprobe_membership.json`.

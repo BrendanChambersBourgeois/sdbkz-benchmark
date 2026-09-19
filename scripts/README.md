@@ -47,6 +47,23 @@ and the figure-parity sync.
 `lint_logging.py` (central-logging coverage), `check_new_top_level_dirs.py` (INC-39 guard),
 `install_git_hooks.sh`.
 
+## Decisions
+
+`decide.py` asks the calls that are the owner's — a ruling the work is blocked on, or a thing
+only he can do — once, on a local page served on 127.0.0.1, and records the answer. Anything a
+session can settle from the evidence on disk it settles itself (`resolve`), it does not ask.
+
+    python3 scripts/decide.py add --topic worklist --q "..." --ctx "..." \
+        --opt "..." --opt "..." --investigated "..." --tried "..." --why-you "..."
+    python3 scripts/decide.py ask          # build, serve, open the browser, commit on Finish
+    python3 scripts/decide.py ls | ledger  # what is open | what was ruled
+
+The store is **outside the repo** — `DECIDE_HOME`, default `/mnt/hgfs/Research/decide/`
+(`open.json`, append-only `ledger.jsonl`, rendered `DECISIONS.md`, built page under `out/`).
+Rulings are narrative, and the public surface stays minimal. Ported 2026-09-19 from the HESTA
+vault's copy at `~/Desktop/obsidian/scripts/decide/`; the two stores are wholly independent and
+question ids are unique only within a store, so cite one as `topic Qnn`.
+
 ## `archive/`
 
 Retired one-shot verifiers kept for provenance (e.g. `test_math_core_parity.py`,
