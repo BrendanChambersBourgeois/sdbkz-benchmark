@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """decide: the questions only the owner can answer, asked once, on a local page.
 
-Ported from ~/Desktop/obsidian/scripts/decide/decide.py (2026-09-19). That
-copy is the HESTA vault's and stays the HESTA vault's: it renders its view
-into the vault and stamps the day note. This one is the benchmark's, renders
-beside its own ledger, and has no vault. The two share no state.
+Ported 2026-09-19 from ~/Desktop/obsidian/scripts/decide/decide.py, forked at
+sha256 4b31ee33 (its obsidian commit b549d68), template.html at sha256
+0ea3233d. That copy is the HESTA vault's and stays the HESTA vault's: it
+renders its view into the vault and stamps the day note. This one is the
+benchmark's, renders beside its own ledger, and has no vault. The two share no
+state, and must not be pointed at each other's store: the vault copy's commit
+overwrites HESTA/_Decisions.md from whatever ledger DECIDE_HOME names.
+
+Carry a fix from upstream by diffing against that fork point, not by
+re-copying — everything below the imports has been reworked.
 
 Two kinds of question belong here and nothing else: a *ruling* (a call the
 work is blocked on) and a *todo* (a thing only he can do and the work is
