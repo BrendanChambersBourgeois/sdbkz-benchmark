@@ -55,9 +55,9 @@ import http.server
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
-import signal
 import threading
 import time
 
@@ -621,7 +621,11 @@ def cmd_ask(args):
     t.start()
     with open(PIDFILE, "w") as f:
         f.write(str(os.getpid()))
-    print(f"{n} question(s) at {url}  (Finish on the page commits; Ctrl-C keeps autosaved answers as pending)")
+    # flush: stdout block-buffers when it is not a TTY, and this is meant to be
+    # run in the background, where the URL is the whole point of the line. Without
+    # it the address sits in the buffer until the server exits.
+    print(f"{n} question(s) at {url}  (Finish on the page commits; Ctrl-C keeps autosaved answers as pending)",
+          flush=True)
     if not args.no_open:
         try:
             subprocess.Popen(["xdg-open", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
