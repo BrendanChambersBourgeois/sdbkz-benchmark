@@ -315,3 +315,11 @@ ntru_wall_beta_bump --n 185 --q 3163 --beta 60 --seeds 4 --workers 4 --seed-time
 # order to get a fresh signature. Semantics identical to the original lines.
 ntru_wall_beta_bump --n 181 --q 2203 --beta 60 --workers 4 --seeds 4 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
 ntru_wall_beta_bump --n 185 --q 6491 --beta 50 --workers 1 --seeds 8 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=48
+# 2026-09-23 BSides window queue, A then B then C, lowest hang risk first.
+# A: n=181 beta=60 at 1.66x q_fat, splits the (1.36x, 1.95x] onset bracket; 0 hangs in 13 n=181 beta=60 seeds.
+# B: n=179 beta=40 mt=200 g6k wall control (campaign ntru_wall_deep_g6k), is the top beta=40 wall a tour budget?
+# C: n=185 beta=60 at 2.28x q_fat (Q01 ladder, mid-bracket); hang-prone (6/12 at n=185 beta=60), so last.
+# q6491 not requeued (hung 4/4). --seed-timeout-s overrides the inherited 14400 s seed_wall_s.
+ntru_wall_beta_bump --n 181 --q 2693 --beta 60 --workers 20 --seeds 20 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
+ntru_wall_deep_g6k --n 179 --q 4591 --beta 40 --workers 20 --seeds 20 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
+ntru_wall_beta_bump --n 185 --q 3907 --beta 60 --workers 20 --seeds 20 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50

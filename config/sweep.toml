@@ -901,6 +901,23 @@ store_per_tour = false
 # assertion and must not be relaunched until that is triaged.
 seed_wall_s = 14400
 
+# -- NTRU n=179 beta=40 deep-tours WALL CONTROL on g6k (mt=200) ---------------
+# The n=167 fplll mt=580 control turned the mt=50 "wall" at 2.30x q_fat into a
+# 7/8 crack (paper_findings 2026-09-13): the frontier beta=40 walls are
+# tour-budget statements. This asks the same at the top of the beta=40 frontier,
+# on the g6k engine (fplll is past its GSO ceiling at dim 358): n=179 q=4591,
+# the beta=40 mt=50 near-miss cell, at 4x the tour budget. Path p500_mt200 ->
+# no collision with the deck-owned mt=50 cells. Measured mt=50 cost here is
+# 6.7-8.0 h/seed (80 seeds), so ~27-32 h/seed at mt=200. Owner Q02 2026-09-23.
+[campaigns.ntru_wall_deep_g6k]
+inherits = "ntru_wall_beta_bump"
+description = "NTRU n=179 beta=40 deep-tours wall control on g6k (mt=200 at the q=4591 near-miss cell)"
+q = 4591
+n_grid = [179]
+beta_grid = [40]
+tours_by_beta = { "40" = 200 }
+num_seeds = 20
+
 [campaigns.ntru_g6k_backfill]
 description = "steamdeck forever-runner idle-filler — g6k β40 twins of the ntru_b2 frontier cells (cross-engine corpus)"
 # 2026-08-23: never-idle floor for the steamdeck node's forever-runner. Same
