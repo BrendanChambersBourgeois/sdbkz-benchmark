@@ -230,6 +230,17 @@ def _cell_seed_count(n: int, q: int) -> int:
     return len(list(d.glob("seed*.json"))) if d.exists() else 0
 
 
+def filler_target(fewest: int, most: int) -> int:
+    """Seed target for the least-sampled cell: level it up to the fullest cell
+    (never below FILLER_CEILING_START), then ratchet one step past it. Always
+    > fewest, so a filler step is never a no-op re-dispatch of a full cell (the
+    old `most // START` ceiling stalled at (80,80,80): target 80 forever)."""
+    ceiling = max(FILLER_CEILING_START, most)
+    if fewest >= ceiling:
+        ceiling = fewest + FILLER_STEP            # ratchet: never permanently exhausted
+    return min(fewest + FILLER_STEP, ceiling)
+
+
 def run_filler_unit(dry: bool) -> bool:
     """Add one step of idle-filler seeds to the least-sampled ntru_b2 frontier cell.
     Returns True if it did (or would) work, False if every cell is at the ceiling
@@ -239,10 +250,7 @@ def run_filler_unit(dry: bool) -> bool:
     counts.sort()
     fewest, n, q = counts[0]
     most = counts[-1][0]
-    ceiling = FILLER_CEILING_START + FILLER_STEP * (most // FILLER_CEILING_START)
-    if fewest >= ceiling:
-        ceiling += FILLER_STEP                    # ratchet: never permanently exhausted
-    target = min(fewest + FILLER_STEP, ceiling)
+    target = filler_target(fewest, most)
     log.info(f"filler: {FILLER_TREE} n={n} q={q} seeds {fewest}->{target}", cat="runner", event="filler")
     rc = _run_campaign(["--campaign", FILLER_CAMPAIGN, "--n", str(n), "--q", str(q),
                         "--seeds", str(target), "--workers", str(FILLER_WORKERS)], None, dry)

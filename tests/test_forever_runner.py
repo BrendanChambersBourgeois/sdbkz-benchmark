@@ -245,3 +245,16 @@ def test_filler_log_names_actual_tree(tmp_path, monkeypatch):
     assert fr.run_filler_unit(dry=True)
     filler = [m for m, kw in rec.infos if kw.get("event") == "filler"]
     assert filler and filler[0].startswith("filler: ntru_g6k ")
+
+
+def test_filler_target_always_advances_past_full_cells():
+    # (80,80,80) stalled at target 80 under the old `most // START` ceiling:
+    # every filler pass re-dispatched full cells and wrote nothing.
+    assert fr.filler_target(80, 80) == 90
+    assert fr.filler_target(119, 119) == 129
+    assert fr.filler_target(0, 0) == 10                   # floor fills from START
+    assert fr.filler_target(55, 60) == 60                 # levels up to START
+    assert fr.filler_target(70, 80) == 80                 # levels up to the fullest cell
+    for fewest in range(0, 300, 7):
+        for most in range(fewest, fewest + 40, 3):
+            assert fr.filler_target(fewest, most) > fewest
