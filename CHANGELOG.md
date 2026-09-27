@@ -29,6 +29,8 @@ Versions follow loose SemVer. Bump on:
 ## Unreleased
 
 ### Added
+- `make image-*` targets and `docs/images.md` (image tag to build recipe); `Dockerfile.g6k` `APPLY_INC63` build arg.
+- `config/forever-runner.service.d/`: reference copies of the runner drop-ins.
 - `[campaigns.ntru_wall_deep_g6k]`: n=179 β=40 deep-tours wall control on g6k.
 - `scripts/_seed_io.py`: shared atomic seed write, resume validation and corrupt quarantine, now used by all four runners.
 - `store_short_vectors` campaign flag and `[campaigns.ntru_g6k_vecprobe]`.
@@ -55,6 +57,13 @@ Versions follow loose SemVer. Bump on:
 - Steam Machine second compute node (`steamdeck`): `make node-push-worklist` / `node-status` / `node-pull`; `[campaigns.ntru_g6k_backfill]`.
 
 ### Changed
+- Kahan §8 wording in README, `paper.md`, patches and disclosure docs updated to the paired 100-seed rerun.
+- `paper.md` reproducibility and count wording aligned with CI and the manifests.
+- Paper 2 draft: corrections appendix for Paper 1, DSD-flag range of validity, crossover and phase-map figures fixed.
+- CI workflows: read-only token permissions, pinned lint and coverage tools.
+- `boto3` moved to the `[cloud]` extra.
+- `scripts/_runner_core.py` moved to `scripts/archive/` (no callers).
+- `node_sync.py` validates merged log lines and locks down the ssh control directory.
 - `sweep_parallel.py`, `run_packed.py` and `run_3x_extended.py` validate an existing seed before resume-skipping it and quarantine a corrupt one instead of skipping the cell forever; seed writes are atomic. Seed bytes are unchanged.
 - `build_patched_manifest.py` walks the `q3329_kahan` / `q3329_control` trees; entries carry `campaign` and `engine`.
 - CI strict `validate_seeds` list covers `q3329_kahan` / `q3329_control`; README G6K count follows the manifest.

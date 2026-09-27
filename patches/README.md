@@ -16,7 +16,7 @@ is computed as a naive in-place subtract loop with no compensation, reorthogonal
 
 **Fix:** replace the naive loop with a Kahan-compensated subtraction that maintains a running residual and folds the low-order bits lost on each step back into the accumulator. Code only — no test files, so the patch touches just `fplll/gso_interface.cpp` and `fplll/gso_interface.h`.
 
-**Measured effect:** degeneracy rate drops from 38.0% (38/100 unpatched) to 0% (0/55 patched) at the same parameters. Passes all 15 fplll regression tests (`make check`) unchanged.
+**Measured effect:** paired on seeds 1–100 at the same parameters, 14/100 bases degenerate with this patch against 46/100 for the reorder-only control build below (McNemar χ² = 22.3). The patch lowers the rate; a geometric floor remains. An earlier "0/55 patched" figure (quoted in paper 1 §8) was measured with a sign-flipped, inert build and is superseded. Passes all 15 fplll regression tests (`make check`) unchanged.
 
 ## `fplll_gso_kahan_tests.patch`
 

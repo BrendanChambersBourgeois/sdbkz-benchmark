@@ -175,6 +175,6 @@ Purpose: permanent record for paper-era SHA-256 receipts (`hash_verification.txt
 
 ## Not in scope here
 
-- **Paper §3.7 cross-environment verification bytes.** See [`hash_verification.txt`](../hash_verification.txt) for the bit-identical SHA-256 table across Intel 13900K + AWS Batch + AMD 9950X3D.
+- **Paper §3.7 cross-environment verification bytes.** See [`hash_verification.txt`](../hash_verification.txt) for the per-seed SHA-256 table (100 seeds, deterministic fields) matching across a local VM and AWS Batch; AMD 9950X3D and a fresh VM were spot-checked.
 - **Fat seed schema.** `*_fat.json` entries carry per-tour Rankin profile + Gram–Schmidt log-norms + RHF for both BKZ and SD-BKZ. See any `results/seeds/q3329/.../seed*_fat.json` for the layout.
-- **Clamp event side-log.** `results/clamp_events.jsonl` is a separate append-only log, not indexed by the manifest. See [`pipeline_log_queries.md`](pipeline_log_queries.md) for query recipes.
+- **Clamp event side-log.** `results/clamp_events.jsonl` is a separate append-only log, not indexed by the manifest and not tracked in git (kept locally; available on request). See [`pipeline_log_queries.md`](pipeline_log_queries.md) for query recipes.

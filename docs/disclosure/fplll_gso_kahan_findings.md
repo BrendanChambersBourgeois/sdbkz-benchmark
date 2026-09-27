@@ -1,6 +1,6 @@
 # fplll Gram–Schmidt cancellation — numerical findings + mitigation
 
-**Status**: numerical-correctness finding at cryptographic moduli. Kahan-compensated patch ships split: [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch) (code only) + [`patches/fplll_gso_kahan_tests.patch`](../../patches/fplll_gso_kahan_tests.patch) (separate regression-test diff). Filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08; closed unmerged 2026-05-17 ("likely AI generated"). Per the 2026-08-13 owner decision the corrected patch is kept **local-only** — not resubmitted or reopened. It ships in-repo and paper §8 stands on its own evidence (cross-vendor reproduction, 0/55 regression). See the timeline section below.
+**Status**: numerical-correctness finding at cryptographic moduli. Kahan-compensated patch ships split: [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch) (code only) + [`patches/fplll_gso_kahan_tests.patch`](../../patches/fplll_gso_kahan_tests.patch) (separate regression-test diff). Filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) on 2026-05-08; closed unmerged 2026-05-17 ("likely AI generated"). Per the 2026-08-13 owner decision the corrected patch is kept **local-only** — not resubmitted or reopened. It ships in-repo. The patch lowers but does not remove the degeneracy (14/100 patched vs 46/100 for a reorder-only control build, paired on the same 100 seeds; 2026-09-11 row). See the timeline section below.
 
 **Paper reference**: §8 of [`paper1/latex/sdbkz_paper_latex.pdf`](../../paper1/latex/sdbkz_paper_latex.pdf) (LaTeX source: [`paper1/latex/sdbkz_paper_latex.tex`](../../paper1/latex/sdbkz_paper_latex.tex)).
 
@@ -106,11 +106,11 @@ r(i, j) = ftmp1;
 
 The patch ships split in two: [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch) — code only, touching `fplll/gso_interface.cpp` and `fplll/gso_interface.h` (corrected Kahan sign + member scratch) — and [`patches/fplll_gso_kahan_tests.patch`](../../patches/fplll_gso_kahan_tests.patch), a separate diff adding `tests/test_gso_kahan.cpp` + `tests/Makefile.am` wiring. Apply code first, tests after.
 
-**Measured effect**: degeneracy rate drops from **38.0% (38/100 unpatched)** to **0% (0/55 patched)** at identical parameters (n=100, β=30, q=3329, 1000-bit MPFR). Code-only leaves all 15 fplll regression tests (`make check`) passing; the tests patch adds `test_gso_kahan` for 16/16. Applies cleanly to fplll HEAD commit `1987472` (2025-10-15) and to fplll 5.5.0 (vendored inside fpylll 0.6.4).
+**Measured effect**: at n=100, β=30, q=3329, 1000-bit MPFR, paired on seeds 1–100, **14/100** bases degenerate with the corrected patch against **46/100** for a reorder-only control build (`patches/fplll_gso_reorder_control.patch`); McNemar χ² = 22.3 on the 7 vs 39 discordant pairs. The compensation, not the loop reorder, removes the difference. The residual 14/100 is a geometric floor the compensation cannot rescue, and raw negative `get_r` returns are still logged under the patch. The earlier "38% → 0/55" figure was measured with a sign-flipped, inert build (2026-08-13 row) and is superseded; paper 1 §8 quotes it and is not revised. Code-only leaves all 15 fplll regression tests (`make check`) passing; the tests patch adds `test_gso_kahan` for 16/16. Applies cleanly to fplll HEAD commit `1987472` (2025-10-15) and to fplll 5.5.0 (vendored inside fpylll 0.6.4).
 
 **Cost**: ~3× the inner-loop FP op count in the affected hot spot. Negligible at the outer-loop level since `update_gso_row` is amortised over a full tour. No change to the algorithm or public API.
 
-**Precision**: no loss on `q = 97`. Bit-identical output verified across 55 patched vs 55 unpatched seeds at q=97 baseline parameters.
+**Precision**: no loss on `q = 97`. Bit-identical output was verified across 55 patched vs 55 unpatched seeds at q=97 baseline parameters; that check used the 2026-04 sign-flipped build and has not been repeated with the corrected patch.
 
 ---
 
@@ -129,6 +129,7 @@ The patch ships split in two: [`patches/fplll_gso_kahan.patch`](../../patches/fp
 | 2026-08-13 | Review of the shipped patch found the Kahan compensation sign was flipped (inert); corrected (`c = (t − ftmp1) + y`), moved scratch to member vars, hardened the regression test, and **split** the deliverable into a code-only patch + a separate tests patch (local fork commits `21445c51` code, `c0b00f88` tests; 16/16 `make check`). Owner decision: keep the corrected patch **local-only** — not resubmitted or reopened upstream. |
 | 2026-08-13 | CVE status resolved **N/A** — numerical-correctness finding, not an exploitable vulnerability; no upstream engagement pending. |
 | 2026-09-02 | Owner decision: the planned AWS Batch rerun of the 100-seed §8 benchmark on the corrected (sign-fixed) patch will **not** be run — no further AWS spend. The 2026-04-10 55-seed "38% → 0%" figure stands as measured with the inert (flipped-sign) compensation, so that change cannot be attributed to the compensation term; the §8 mechanism wording carries this caveat unless a local rerun replaces it. |
+| 2026-09-11 | Local rerun closed at 100 seeds per arm (n=100, β=30, q=3329, 1000-bit MPFR, same host, seeds 1–100): corrected patch (`sdbkz-fplll-patched:kahan-v3`) 14/100 degenerate vs reorder-only control (`sdbkz-fplll-patched:reorder-control`) 46/100; McNemar χ² = 22.3. The patch lowers the rate; a geometric floor remains. Supersedes the 2026-04-10 "38% → 0%" figure. Seeds: `results/seeds/q3329_kahan/`, `results/seeds/q3329_control/` (`results/patched_seed_manifest.json`). |
 
 Timeline entries are appended, never revised in place. Revision means a new row with `(revised YYYY-MM-DD: …)` annotation.
 
@@ -143,14 +144,14 @@ Timeline entries are appended, never revised in place. Revision means a new row 
 
 ## Evidence inventory
 
-All artefacts are on-repo (no external hosting):
+All artefacts are on-repo (no external hosting), except the clamp side-log noted below:
 
 - [`paper1/latex/sdbkz_paper_latex.pdf`](../../paper1/latex/sdbkz_paper_latex.pdf) — §8 (pages 18–20): full characterization with 100-seed dataset, Wilson CI, BKZ-vs-SD-BKZ symmetry check, cross-machine rate comparison.
 - [`patches/fplll_gso_kahan.patch`](../../patches/fplll_gso_kahan.patch) — code-only Kahan-compensation replacement (`gso_interface.cpp`/`.h`).
 - [`patches/fplll_gso_kahan_tests.patch`](../../patches/fplll_gso_kahan_tests.patch) — separate regression-test diff (`tests/test_gso_kahan.cpp` + `Makefile.am`), `make check` 16/16.
 - [`patches/README.md`](../../patches/README.md) — apply instructions (code then tests), verification notes, scope statement.
 - [`results/seeds/q3329/p1000_mt70/n100_beta30/`](../../results/seeds/q3329/p1000_mt70/n100_beta30/) — 100 lean seed JSONs + 45 fat companions (per-tour trajectories, Gram–Schmidt log-norms, RHF). SHA-256-indexed in `results/seed_manifest.json`.
-- [`results/clamp_events.jsonl`](../../results/clamp_events.jsonl) — append-only log of every defensive clamp fire during the q=3329 campaign. Raw pre-clamp `get_r()` values preserved.
+- `results/clamp_events.jsonl` — append-only log of every defensive clamp fire during the q=3329 campaign, raw pre-clamp `get_r()` values preserved. Kept locally, not tracked in git; available on request.
 - [`hash_verification.txt`](../../hash_verification.txt) — cross-environment SHA-256 reconciliation.
 
 ---

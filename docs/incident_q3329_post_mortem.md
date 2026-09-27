@@ -78,6 +78,8 @@ Kahan-compensated subtraction. 30 lines, single hunk. Replaces the naive subtrac
 
 Paper §8 was rewritten: the finding is not "SD-BKZ is unstable at cryptographic moduli", it's "fplll's squared-form GSO recurrence produces bad output at cryptographic moduli, and here is a patch that fixes it." The paper claims 38.0% → 0% on 55-seed verification and cites `patches/fplll_gso_kahan.patch`.
 
+**Later correction (2026-09-11).** The 55-seed rerun above used a build whose compensation sign was flipped, so the compensation term was inert. A paired rerun with the corrected patch gives 14/100 degenerate bases against 46/100 for a reorder-only control build on the same seeds (McNemar χ² = 22.3): the patch lowers the rate but does not fix it, and a geometric floor remains. Paper 1 §8 is not revised; see the timeline in [`docs/disclosure/fplll_gso_kahan_findings.md`](disclosure/fplll_gso_kahan_findings.md).
+
 The upstream issue was drafted (maintained internally pre-filing) but filing was gated on ePrint publication to keep the fix visible upstream before the paper references it. Filing runbook exists internally; the GitHub issue URL will be appended to this doc's Timeline row on filing day.
 
 ---
