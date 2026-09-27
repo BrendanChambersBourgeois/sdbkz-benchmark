@@ -68,6 +68,16 @@ formula under-predicts the circulant crack at finite n.
 
 ## 5. §8 Kahan-patch validation #2 — n=127 contamination fixed (new modulus)
 *(2026-06-04; `Dockerfile.fplll_patched`, `results/seeds/ntru_patched/`)*
+
+> **CORRECTED 2026-09-27.** This run (like paper 1's 0/55) used the patch whose
+> compensation sign was inverted (inert; see
+> `docs/disclosure/fplll_gso_kahan_findings.md`, 2026-08-13 row), so the
+> recoveries below are NOT a validation of Kahan compensation. The evidence for
+> the fix is the paired q=3329 rerun on the corrected build: stored floor 14/100
+> (kahan-v3) vs 46/100 (reorder-only control), McNemar χ²=22.3; a geometric
+> floor remains (paper_findings 2026-09-11). Paper 2 Appendix B carries the
+> caveat; Appendix A lists all paper-1 corrections. The paragraph below is kept
+> as the original record.
 fplll's §8 catastrophic-cancellation fix (Kahan GSO), first proven on q=3329
 LWE (degeneracy 38%→0%), re-proven on NTRU q∈{971,1087,1201}: the 5
 contaminated n=127 runs (4 BKZ + 1 SD-BKZ, q971 s4 → −0.113) recover b1
@@ -116,8 +126,9 @@ validated on 2 modulus families; `make check` 15/15.
   ~196–211 onset band in the §5 null.
 - n=89 β=40 densify to N=100 across all q + n=101 β=40 onset bracket
   (48h chain, running).
-- n=127 crack is off-grid (uncracked to q≈1811); patched rerun is validation,
-  not re-inclusion in the trend.
+- n=127 crack is off-grid (uncracked to q≈1811); patched rerun (inverted-sign
+  build, see §5 correction) is a numerical case study, not a validation and not
+  re-inclusion in the trend. n=127 is also dropped from the phase-map figure.
 - Cite: Ducas-Espitau-Postlethwaite (β=40 + Z-shape geometry),
   Recursive-reduction (Rankin / rHF-blind framing), Rowell ch3, Deng-Jia 2023
   (sieving SD-BKZ precedent — speed vs detail framing).

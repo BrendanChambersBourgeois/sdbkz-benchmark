@@ -3,8 +3,17 @@
 One picture of the whole explored parameter plane: at each measured (n, q) cell
 (β=20, fplll), the colour is the SD-BKZ DSD rate (two-part reference-free
 criterion). The DvW21 fatigue curve q_fat(n) is overlaid; SD-BKZ cracking
-switches on above it and the onset modulus climbs with n. A rate figure (not the
-signed d(LN)), using the same criterion as the onset table, so it cannot disagree.
+switches on near it (slightly below at n=79-89, increasingly above from n=101;
+SD onset / q_fat = 1.05, 0.83, 0.86, 1.13, 1.45 at n=67..113) and the onset
+modulus climbs with n. A rate figure (not the signed d(LN)), using the same
+criterion as the onset table, so it cannot disagree.
+
+n=127 is deliberately NOT plotted, matching its exclusion from the onset trend
+(paper 2 Section "Fatigue"): none of its 152 seeds carries the integer-exact
+`secret_recovered_*` verdict, so every cell is scored by the `_is_dsd`
+fallback, 16 seeds carry the -345 GSO clamp sentinel, and the n=127 crack is
+off-grid -- the cells above q_fat would be painted as false 0.00 rates
+(paper_findings 2026-09-18, figure-layer audit item 3).
 
 Grid is irregular -- some n carry a full q-ladder, others a single q=97
 dimension-sweep point -- so it is drawn as a coloured scatter, not a raster; the
@@ -24,7 +33,8 @@ from extract_dsd_onset import _cell_rate, _q_grid  # noqa: E402
 
 BETA = 20
 TREE = "ntru"
-NS = [59, 61, 67, 71, 73, 79, 83, 89, 101, 113, 127]
+# n=127 excluded on purpose -- see module docstring.
+NS = [59, 61, 67, 71, 73, 79, 83, 89, 101, 113]
 
 
 def _q_fat(n):
@@ -62,7 +72,7 @@ def fig_ntru_phase_map(output_dir=".", fname="phase_map.png"):
     ax.set_xlabel("NTRU parameter $n$")
     ax.set_ylabel("modulus $q$ (log scale)")
     ax.set_title(r"NTRU SD-BKZ DSD-rate phase map ($\beta=20$, fplll): cracking "
-                 r"switches on above $q_\mathrm{fat}$, onset climbs with $n$")
+                 r"switches on near $q_\mathrm{fat}$, onset climbs with $n$")
     ax.legend(loc="lower right", framealpha=0.9, fontsize=9)
     ax.grid(alpha=0.15, which="both", zorder=0)
 

@@ -1,15 +1,17 @@
 """Paper 2, synthesis figure: NTRU fatigue phase diagram (n, q).
 
 One-picture summary. The DvW21 fatigue curve q_fat(n) = 0.004 * n^2.484 marks
-the lower edge of the overstretched regime (shaded). Over it sit the measured
+the lower edge of the overstretched regime (shaded). The measured
 reference-free DSD-onset curves for SD-BKZ and BKZ (beta=20, two-part
-criterion, Table tab:dsdgap); the band between them is the SD-before-BKZ gap,
-growing from ~0 at n=67 to 28% at n=113.
+criterion, Table tab:dsdgap) cross it; the band between them is the
+SD-before-BKZ gap, growing from ~0 at n=67 to 28% at n=113.
 
-HONESTY: the measured 50%-DSD-rate onset is a stricter threshold than the
-DvW21 asymptotic fatigue fit, so the onset curves sit progressively ABOVE
-q_fat as n grows (near it at n=67, well above at n=113). They are plotted
-where the data puts them, not forced onto q_fat; the caption says so. Onset
+HONESTY: the onsets do not sit uniformly above q_fat. SD onset / q_fat is
+1.05, 0.83, 0.86, 1.13, 1.45 at n=67, 79, 89, 101, 113 (BKZ 1.06, 0.83, 1.02,
+1.34, 1.85): below the curve at n=79-89, increasingly above it from n=101.
+Non-monotone, so no "progressively above" reading. They are plotted where the
+data puts them, not forced onto q_fat; the caption says so (adjudication
+2026-09-18 idx 21). Onset
 constants mirror ntru_dsd_onset_trend (seed-backed). No RNG.
 """
 import os

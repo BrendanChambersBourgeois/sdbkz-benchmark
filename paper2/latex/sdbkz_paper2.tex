@@ -109,8 +109,11 @@ Our contributions are primarily empirical and infrastructural:
         manufacturing an apparent cross-engine onset gap that the proper
         two-part criterion eliminates (Section~\ref{sec:xengine}); we flag it
         because it cost us a headline claim.
-  \item An independent re-validation of an fplll GSO catastrophic-cancellation
-        fix on a new (NTRU) modulus family (Appendix~\ref{sec:kahan}).
+  \item A re-examination of the companion paper's fplll GSO
+        catastrophic-cancellation fix on a new (NTRU) modulus family
+        (Appendix~\ref{sec:kahan}), and a record of the companion paper's
+        claims that later data showed to be wrong
+        (Appendix~\ref{sec:p1corr}).
 \end{itemize}
 
 This is a \emph{technical report / data paper}: the emphasis is on the
@@ -229,6 +232,19 @@ per-seed DSD rate crosses $50\%$, linearly interpolated between adjacent
 $q$-grid cells (\texttt{extract\_dsd\_onset.py}); the SD-vs-BKZ onset
 \emph{gap} is the object of Sections~\ref{sec:fatigue} and~\ref{sec:xengine}.
 
+\emph{Range of validity.} The two-part flag is validated for the cells this
+report uses ($n\le113$), where it reproduces the onset table exactly. It does
+not transfer to larger overstretched NTRU: over every $\beta=40$ cell at
+$n\in[157,181]$ ($3{,}376$ reduction legs) the count half passes on every leg,
+so the verdict reduces to the $b_1>1.5$ floor, which only $23$ legs clear
+($20$ at $n=157$, $3$ at $n=167$, none at $n=163$ or $n\ge173$); scored against
+integer-exact secret recovery the flag is precise ($23/23$) but detects only
+$23$ of $581$ recoveries ($3.96\%$). From $n=157$ up a negative flag therefore
+means only that the $b_1$ floor was not
+cleared, not that no dense-sublattice discovery occurred; results there must be
+scored by exact secret recovery, and dense-sublattice discovery without
+secret-key recovery is a distinct outcome the flag cannot separate.
+
 \section{Experimental Setup}
 \label{sec:setup}
 
@@ -291,10 +307,10 @@ and sweep a matched $q$-grid on \emph{both} engines---the G6K campaign
 (\texttt{ntru\_g6k\_qsweep}) and the fplll campaign
 (\texttt{ntru\_xeng\_qsweep}) write to leaves that share the same
 $(q,\text{precision},\text{tours},n,\beta)$ key, so a comparator reads the two
-engines cell-for-cell. The Kahan re-validation (Appendix~\ref{sec:kahan}) runs
+engines cell-for-cell. The patched-fplll $n=127$ runs (Appendix~\ref{sec:kahan}) use
 $n=127$ at $q\in\{971,1087,1201\}$ through a separate patched-fplll campaign
 whose seeds land in their own tree, never overwriting the canonical seeds.
-Table~\ref{tab:coverage} summarises the full grid: 8{,}144 matched BKZ / SD-BKZ
+Table~\ref{tab:coverage} summarises the full grid: 8{,}704 matched BKZ / SD-BKZ
 reductions across $n\in[59,127]$, two block sizes, and 81 moduli, on both the
 enumeration and sieve oracles.
 
@@ -303,7 +319,7 @@ enumeration and sieve oracles.
 matched BKZ / SD-BKZ reduction, on two oracles: fplll enumeration and G6K sieve.
 Default 50 tours, fpylll precision 250 bits (high-$q$ cells at $n\ge89$ use 500--1000
 bits). Totals: 8{,}704 seed pairs over 147 $(n,\beta,q)$ cells, $q\in[97,1811]$,
-$\approx$6{,}430 core-hours. The $n=127$ row also carries 12 Kahan-patched validation
+$\approx$6{,}430 core-hours. The $n=127$ row also carries 12 patched-fplll
 seeds (Appendix~\ref{sec:kahan}).}
 \label{tab:coverage}
 \centering
@@ -372,8 +388,10 @@ to the companion paper.
 \centering
 \includegraphics[width=\linewidth]{figs/dimension_onset}
 \caption{NTRU SD-BKZ dimension-onset ($q=97$, $\beta=20$, 50 tours, 20 seeds
-per $n$, $n=71$ at $40$, $\pm1\sigma$ band; in the two-mode onset zone $n=71$--$73$ the band is
-a spread indicator only, not a distributional summary). The signed advantage
+per $n$, $n=71$ at $40$; in the two-mode onset zone $n=71$--$73$ the per-seed
+advantages are plotted individually and coloured by sign, since the split is
+two-outcome rather than Gaussian; spread per regime is in
+Table~\ref{tab:dimonset}). The signed advantage
 is reference-robust at the spike (Section~\ref{sec:bg-obs}); shown here for
 the dimension transition. Recomputed from the per-seed \texttt{advantage}
 field.\label{fig:dimonset}}
@@ -416,9 +434,11 @@ The extraction evaluates the short-count threshold per $n$
 (Section~\ref{sec:bg-obs}); freezing it at its $n=89$ value $2.888$ across
 the grid shifts only the near-zero-gap rows ($n=67$: $166.6/167.5$; $n=79$:
 $181.7/182.5$; $n=113$ BKZ $925.0$, gap $27\%$) and leaves the gap trend
-unchanged---the trend is threshold-robust. $n=127$ is excluded
-(fplll GSO catastrophic cancellation~\cite[\S8]{Paper1}, re-validated
-in Appendix~\ref{sec:kahan}, plus an off-grid crack). The widening, against
+unchanged---the trend is threshold-robust. $n=127$ is excluded from the
+trend and from every onset figure: none of its $152$ seeds carries the
+integer-exact recovery verdict, so each would be scored by the two-part flag
+alone; $16$ carry the fplll GSO cancellation floor~\cite[\S8]{Paper1}
+(Appendix~\ref{sec:kahan}); and the $n=127$ crack is off-grid. The widening, against
 the fatigue curve, is shown in the phase diagram of Figure~\ref{fig:phase}.
 
 \begin{figure}[tbp]
@@ -426,12 +446,14 @@ the fatigue curve, is shown in the phase diagram of Figure~\ref{fig:phase}.
 \includegraphics[width=\linewidth]{figs/fatigue_phase}
 \caption{NTRU fatigue phase diagram ($\beta=20$). The DvW21 fatigue curve
 $q_\mathrm{fat}(n)=0.004\,n^{2.484}$ (an empirical fit) bounds the overstretched
-regime (shaded); within it, the measured reference-free DSD-onset curves
-(two-part criterion, Table~\ref{tab:dsdgap}) show SD-BKZ entering
-dense-sublattice discovery at lower $q$ than BKZ, the gap (band) growing
-${\approx}0\%\to28\%$ with $n$. The measured $50\%$-rate onset is a stricter
-threshold than the asymptotic fatigue fit, so the onset curves sit above
-$q_\mathrm{fat}$ at high $n$.\label{fig:phase}}
+regime (shaded). The measured reference-free DSD-onset curves (two-part
+criterion, Table~\ref{tab:dsdgap}) show SD-BKZ entering dense-sublattice
+discovery at lower $q$ than BKZ, the gap (band) growing ${\approx}0\%\to28\%$
+with $n$. The onsets cross the fatigue curve rather than lying within the
+shaded regime: SD onset$/q_\mathrm{fat}=1.05,0.83,0.86,1.13,1.45$ at
+$n=67,79,89,101,113$, i.e.\ below $q_\mathrm{fat}$ at $n=79$--$89$ and
+increasingly above it from $n=101$, where the $50\%$-rate onset is a stricter
+threshold than the asymptotic fit.\label{fig:phase}}
 \end{figure}
 
 The DSD-rate curves from which these $50\%$ onsets are read are shown in
@@ -454,11 +476,17 @@ criterion as the onset table, so the two cannot disagree.\label{fig:sigmoids}}
 \label{sec:dynamics}
 Beyond \emph{whether} SD-BKZ reaches dense-sublattice discovery first, the
 per-tour trajectories show \emph{how fast}. Tracking the mean $d(\mathrm{LN})$
-each tour at a fixed overstretched modulus, SD-BKZ reaches the converged
+each tour at a fixed overstretched modulus, SD-BKZ reaches the final
 $d(\mathrm{LN})$ that BKZ attains only at the end of its run roughly midway
-through its own run---at tour $9$ of $18$ ($n=89$), $22$ of $42$ ($n=101$), and
-$25$ of $44$ ($n=113$)---and then continues past it (Figure~\ref{fig:crossover});
-the tours-to-match grows with $n$. This is a timing observable measured against
+through its own run. Per seed, the first tour at which SD-BKZ drops below that
+seed's BKZ final value has median $19$ (interquartile range $16$--$22$) at
+$n=89$, $27$ ($26$--$28$) at $n=101$ and $26$ ($25$--$27$) at $n=113$, of a
+$50$-tour cap; $98$, $100$ and $99$ of $100$ seeds cross at all
+(Figure~\ref{fig:crossover}). At $n=101$ and $n=113$ the mean SD-BKZ curve
+then continues well below BKZ's final value; at $n=89$, where most BKZ runs
+stop early on stagnation, the two mean curves end close together, SD-BKZ
+marginally above. The tours-to-match
+does not grow monotonically with $n$. This is a timing observable measured against
 BKZ's own converged value; the signed end-of-run separation is the
 reference-sensitive advantage and is not reported as a result
 (Section~\ref{sec:bg-obs}).
@@ -468,24 +496,29 @@ reference-sensitive advantage and is not reported as a result
 \includegraphics[width=\linewidth]{figs/crossover_dynamics}
 \caption{NTRU convergence dynamics ($\beta=20$, fplll, $N=100$ per cell): mean
 per-tour $d(\mathrm{LN})$ for BKZ and SD-BKZ at a representative overstretched
-$q$ per $n$. SD-BKZ reaches BKZ's converged value (dashed) partway through its
-run (marked) and then surpasses it; the crossover tour grows with $n$. The
+$q$ per $n$; each seed is carried forward at its own final value after its run
+stops, so the curves end at the per-seed final means. Dashed: BKZ final value
+(mean over seeds). Marked: median per-seed crossover tour, shaded
+interquartile range, and the number of seeds that cross (the rest are
+censored). The median crossover tour is $19$, $27$, $26$---not monotone in $n$. The
 absolute $d(\mathrm{LN})$ heights are reference-dependent; the reported result is
 the crossover \emph{tour} (timing against BKZ's own converged value), not the
 curve heights or their end-of-run gap.\label{fig:crossover}}
 \end{figure}
 
 Figure~\ref{fig:phasemap} summarises the whole explored $(n,q)$ plane: the
-SD-BKZ DSD rate against the fatigue curve. Cracking switches on above
-$q_\mathrm{fat}$ and the onset modulus climbs with $n$.
+SD-BKZ DSD rate against the fatigue curve. Cracking switches on near
+$q_\mathrm{fat}$---slightly below it at $n=79$--$89$, increasingly above it from
+$n=101$---and the onset modulus climbs with $n$.
 
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=\linewidth]{figs/phase_map}
 \caption{SD-BKZ DSD-rate phase map over the $(n,q)$ plane ($\beta=20$, fplll):
 colour is the SD-BKZ DSD rate (two-part criterion) at each measured cell, with
-$q_\mathrm{fat}(n)$ overlaid. Cracking switches on above the fatigue curve and
-the onset modulus climbs with $n$. The grid is irregular---a full $q$-ladder at
+$q_\mathrm{fat}(n)$ overlaid. Cracking switches on near the fatigue curve
+(below it at $n=79$--$89$, above it from $n=101$) and the onset modulus climbs
+with $n$; $n=127$ is not drawn (Section~\ref{sec:fatigue}). The grid is irregular---a full $q$-ladder at
 some $n$, a single $q=97$ point at others---so it is drawn as a scatter; the gaps
 are coverage, not interpolation.\label{fig:phasemap}}
 \end{figure}
@@ -769,7 +802,7 @@ reduction can satisfy without the structure being present. And $n=127$ is
 excluded from the onset trend
 (Section~\ref{sec:fatigue}): the fplll GSO cancellation
 ~\cite[\S8]{Paper1} contaminated those cells, and the circulant crack
-there is off-grid---it is a validation target
+there is off-grid---it is a numerical case study
 (Appendix~\ref{sec:kahan}), not a trend point.
 
 \section{Reproducibility}
@@ -812,28 +845,95 @@ released so the measurements can be reproduced and extended.
 
 \appendix
 
-\section{Re-Validating the fplll GSO Fix on a New Modulus Family}
+\section{Corrections to the Companion Paper}
+\label{sec:p1corr}
+
+The companion paper~\cite{Paper1} is archived as published and is not revised.
+Later data and a figure-code audit showed the following statements in it to be
+wrong; the corrected values below supersede them. Each was recomputed from the
+committed per-seed data.
+
+\paragraph{The fplll GSO fix (\S8 of~\cite{Paper1}).} The companion paper
+reports that a Kahan-compensated patch reduces the $q=3329$ degeneracy rate
+from $38/100$ to $0/55$ and concludes that the instability is ``caused
+entirely'' by accumulated rounding error. Both parts are withdrawn. The $0/55$
+run used a build in which the sign of the compensation term was inverted, which
+makes the compensation inert, so that result says nothing about compensation.
+The two counts were also scored differently: $38$ counts seeds whose
+\emph{final} stored profile carries the $-345$ floor, while $0/55$ counted any
+tour; under the any-tour criterion nearly every unpatched seed ($100$ of $101$)
+shows an excursion. A paired rerun on the corrected build (seeds $1$--$100$,
+$n=100$, $\beta=30$, $q=3329$, 1000-bit precision, $70$ tours, same host) gives
+a stored floor on $14/100$ seeds with Kahan compensation against $46/100$ with
+the same loop reordering but compensation held at zero (discordant pairs $7$
+vs $39$, McNemar $\chi^2=22.3$, $p\approx2\times10^{-6}$). Numerical error is
+therefore the dominant cause, but a geometric floor remains: $14\%$ of seeds
+still floor under compensation, raw negative $r_{ii}$ returns still occur, and
+single-tour collapse jumps above $100$ nats occur on $99$--$100$ of $100$ seeds
+in every arm. The median advantage is ${\approx}+0.57$ nats in every arm (Kahan
+$+0.573$, control $+0.570$, original data $+0.595$; Kahan $+0.575$ with its
+floor seeds removed), so the science number of \S8 does not depend on the
+build.
+
+\paragraph{The $\beta=40$ peak dimension.} The companion paper states that the
+$\beta=40$ advantage peaks at $n=110$ ($1.16$ nats, ``confirmed at 122 seeds'').
+At $122$ seeds per cell the $n=100$ mean is $+1.16864$ and the $n=110$ mean is
+$+1.16313$; the bootstrap $95\%$ interval of their difference is
+$[-0.032,+0.043]$, with $P(n=100\text{ higher})=0.62$. The peak lies in
+$n\in[100,110]$ at ${\approx}1.16$ nats but its dimension is not resolvable at
+this sample size. The nats value stands; the location does not.
+
+\paragraph{Loss margin when BKZ wins.} The statement that the mean loss margin
+is below $0.04$ nats in every group where BKZ wins any seed is false as a
+universal: of the $17$ groups with at least one BKZ win, $11$ exceed $0.04$
+nats, reaching $1.452$ nats at $n=140$, $\beta=40$ (where BKZ wins every seed).
+The sentence holds only in the coin-flip regime, not after the reversal.
+
+\paragraph{Compute premise of the capability test.} The capability argument
+states that BKZ at $3\times$ tours received $14\%$ more compute than SD-BKZ.
+That figure was extrapolated from the main-sweep runtime table. Measured on the
+$400$ capability-test seeds themselves, BKZ at $210$ tours received $8.4\%$
+more wall-clock than SD-BKZ at $70$ tours ($6.5\%$ at $n=50$). The conclusion
+(0/400 gaps closed) is unaffected and holds on a smaller compute handicap.
+
+\paragraph{Figure captions.} The absolute-$d(\mathrm{LN})$ figure caption quotes
+the $\beta=40$ inversion at $n=150$ as SD-BKZ ${\sim}8.4$ vs BKZ ${\sim}6.8$;
+those are the $n=140$ values ($8.33$ vs $6.88$). At $n=150$ the means are
+SD-BKZ $12.36$ vs BKZ $11.07$; the direction of the inversion is unchanged.
+The $q=3329$ degeneracy figure of \S8 is captioned as $100$ seeds, but its
+plotting code loads $101$: the independent seed-101 probe is pooled into the
+block it was meant to validate. The counts in the caption ($62$ clean, $38$
+degenerate) describe seeds $1$--$100$.
+
+\section{The fplll GSO Fix on the $n=127$ NTRU Cells}
 \label{sec:kahan}
 
 The companion paper documents a catastrophic-cancellation bug in fplll's
 squared-form GSO update at cryptographic moduli, and a Kahan-compensated fix.
-We re-validate that fix on a new (NTRU) modulus family: on $q\in\{971,1087,1201\}$
-at $n=127$, the five contaminated runs (four BKZ, one SD-BKZ) recover from
+We reran the contaminated $n=127$ NTRU cells ($q\in\{971,1087,1201\}$) on a
+patched fplll: the five contaminated runs (four BKZ, one SD-BKZ) recover from
 the precision-floor clamp ($b_1 = -345.388$) to $-0.160$, $-0.123$, $-0.060$,
 $-0.070$, and $-0.113$---inside the never-contaminated control band ($-0.03$
 to $-0.43$), within which the patched control runs also remain---and the
-patched build passes all 15 fplll regression tests. The patch removes the
-\emph{catastrophic} cancellation specifically: 208 transient mid-trajectory
-clamps persist at this dimension and precision ($11$ shallower than
-$-0.1$; $157$ in $-0.1$ to $-3.5$; $40$ deeper, down to $-173$); raw values are
-side-logged while the clamped value enters the stored profile. Separately, five
-of the twenty-four patched runs end with $b_1$ at the $-345.388$ floor (one
-SD-BKZ, four BKZ): these are not residual contamination but genuine
-dense-sublattice cracks---the circulant off-grid at $n=127$, the same crack that
-excludes $n=127$ from the trend of Section~\ref{sec:fatigue}---whose collapsed
-profiles bottom out at the clamp floor. The fix is thus validated on two modulus
-families (the companion paper's $q=3329$ LWE, $38\%\!\to\!0\%$ degeneracy, and
-this NTRU set).
+patched build passes all 15 fplll regression tests. $208$ transient
+mid-trajectory clamps persist at this dimension and precision ($11$ shallower
+than $-0.1$; $157$ in $-0.1$ to $-3.5$; $40$ deeper, down to $-173$); raw
+values are side-logged while the clamped value enters the stored profile.
+Separately, five of the twenty-four patched runs end with $b_1$ at the
+$-345.388$ floor (one SD-BKZ, four BKZ): these are not residual contamination
+but genuine dense-sublattice cracks---the circulant off-grid at $n=127$, the
+same crack that excludes $n=127$ from the trend of
+Section~\ref{sec:fatigue}---whose collapsed profiles bottom out at the clamp
+floor.
+
+\emph{Caveat.} These runs used the same patch as the companion paper's
+$0/55$ result, whose compensation term had its sign inverted and was therefore
+inert (Appendix~\ref{sec:p1corr}). The recoveries are real outputs of that
+rebuilt fplll, but they cannot be attributed to Kahan compensation, and they
+are not a validation of the fix. The evidence for the fix is the paired
+$q=3329$ rerun on the corrected build (Appendix~\ref{sec:p1corr}): compensation
+cuts the stored floor from $46/100$ to $14/100$ and leaves a geometric floor.
+The $n=127$ cells have not been rerun on the corrected build.
 
 \bibliography{abbrev3,crypto,biblio}
 
