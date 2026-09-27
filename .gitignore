@@ -85,3 +85,16 @@ results/logs/forever_worklist.done
 results/logs/forever_worklist.failed
 results/logs/forever_runner.lock
 /paper.pdf
+
+# Secrets / credentials — never tracked (defence in depth; none exist in
+# history). Covers dotenv files, TLS/SSH keys, PKCS#12 bundles, netrc.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+id_ecdsa*
+.netrc

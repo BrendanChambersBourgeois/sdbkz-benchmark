@@ -350,8 +350,7 @@ def _coverage_records() -> list[dict]:
             "recomputed_value": total,
             "match": total == 8704,
             "status": "POINTER",
-            "note": "6320 + 2384 = 8704. NOTE tex line 293 prose still says stale 8,144 "
-                    "(pre-B-ingest = 8704-560); separate one-token tex bug, out of ledger scope.",
+            "note": "6320 + 2384 = 8704 (pre-B-ingest prose said 8,144 = 8704-560; fixed 2026-09-27).",
         },
         {
             "claim_id": "coverage_cells",

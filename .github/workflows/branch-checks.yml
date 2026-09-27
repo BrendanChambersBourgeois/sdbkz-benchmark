@@ -23,6 +23,10 @@ concurrency:
   group: branch-checks-${{ github.ref }}
   cancel-in-progress: true
 
+# Least-privilege GITHUB_TOKEN: checkout + host-side lint/tests only.
+permissions:
+  contents: read
+
 jobs:
   fast:
     runs-on: ubuntu-latest
@@ -32,7 +36,7 @@ jobs:
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
 
       - name: Install lightweight deps (no fpylll, no docker)
-        run: python3 -m pip install --upgrade ruff pytest numpy
+        run: python3 -m pip install ruff==0.15.11 pytest==9.0.3 numpy==2.4.4
 
       - name: Lint (ruff) — style + dead-import drift
         run: ruff check scripts/ analysis/ tests/

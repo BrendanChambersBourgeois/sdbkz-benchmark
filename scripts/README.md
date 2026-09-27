@@ -13,7 +13,7 @@ events to `logs/pipeline.jsonl` via `log.py::get_logger` (enforced by `lint_logg
 | `_engine_backends.py` | Reduction-engine seam: `make_backend` → `fplll` \| `g6k`, behind `run_single`'s `backend` kwarg (ADR-006). |
 | `generators/` | Lattice basis generators (`build_lwe_kannan`, `build_ntru` DvW circulants). |
 | `_config.py` | Campaign config loader over `config/sweep.toml`. |
-| `_runner_core.py`, `_seed_paths.py`, `_seed_hash.py`, `_signal_utils.py`, `log.py`, `seed_timing.py` | Runner plumbing: path emitter/parser, SHA-256, signal handling, logging, timing. |
+| `_seed_paths.py`, `_seed_hash.py`, `_signal_utils.py`, `log.py`, `seed_timing.py` | Runner plumbing: path emitter/parser, SHA-256, signal handling, logging, timing. |
 
 ## Running campaigns
 

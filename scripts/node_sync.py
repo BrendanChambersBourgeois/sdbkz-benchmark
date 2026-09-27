@@ -35,6 +35,39 @@ DEFAULT_CTRL = "/tmp/claude-1000/cm/%C"
 DEFAULT_TREE = "ntru_g6k"
 
 
+def _secure_ctrl_dir(ctrl: str) -> str | None:
+    """Make the ControlMaster socket directory private before ssh uses it.
+
+    A socket in a directory another user can write to can be swapped for one
+    that relays our authenticated session. Create the directory 0700; if it
+    exists and we own it, tighten any group/world bits to 0700; refuse a
+    symlink or a directory owned by someone else. Returns an error string, or
+    None when the directory is safe to use.
+    """
+    d = Path(ctrl).expanduser().parent
+    if str(d) in ("", "."):
+        return None
+    try:
+        d.mkdir(mode=0o700, parents=True, exist_ok=True)
+        st = d.lstat()
+    except OSError as e:
+        return f"control dir {d}: {e}"
+    if d.is_symlink() or not d.is_dir():
+        return f"control dir {d} is not a plain directory; refusing"
+    if st.st_uid != os.getuid():
+        return f"control dir {d} is owned by uid {st.st_uid}, not us; refusing"
+    if st.st_mode & 0o077:
+        old = st.st_mode & 0o777
+        try:
+            os.chmod(d, 0o700)
+        except OSError as e:
+            return f"control dir {d} is mode {old:o} and could not be tightened: {e}"
+        print(f"control dir {d}: tightened mode {old:o} -> 700", file=sys.stderr)
+        PIPELINE.warning("control dir tightened", cat="node_sync", path=str(d),
+                         old_mode=f"{old:o}")
+    return None
+
+
 def _ssh_base(ctrl: str) -> list[str]:
     return ["ssh", "-o", "ControlMaster=auto", "-o", f"ControlPath={ctrl}",
             "-o", "ControlPersist=60m"]
@@ -98,7 +131,8 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0 if up else 1
 
 
-def _merge_log(node_lines: list[str], canonical: Path, node_name: str) -> tuple[int, int]:
+def _merge_log(node_lines: list[str], canonical: Path,
+               node_name: str) -> tuple[int, int, int]:
     """Append only records this node has not already contributed.
 
     Keyed by the EXACT line content against the whole canonical log. The
@@ -107,6 +141,12 @@ def _merge_log(node_lines: list[str], canonical: Path, node_name: str) -> tuple[
     were re-appended on every pull. Content-keying is lossless: two genuinely
     distinct records never share a full line, and a timestamp key would drop
     distinct same-millisecond records from parallel workers.
+
+    Node lines are data from another machine: a line that is not a JSON object
+    (truncated write, shell noise, anything else) is skipped and counted, never
+    appended. Lines are appended verbatim -- no node stamp is added, because
+    rewriting them would defeat the content key above and re-append every
+    record already merged. Returns (appended, offered, invalid).
     """
     seen: set[str] = set()
     if canonical.exists():
@@ -115,16 +155,33 @@ def _merge_log(node_lines: list[str], canonical: Path, node_name: str) -> tuple[
                 seen.add(line.rstrip("\n"))
 
     fresh = []
+    invalid = 0
     for line in node_lines:
         line = line.rstrip("\n")
-        if line and line not in seen:
-            fresh.append(line)
-            seen.add(line)
+        if not line or line in seen:
+            continue
+        try:
+            ok = isinstance(json.loads(line), dict)
+        except ValueError:
+            ok = False
+        if not ok:
+            invalid += 1
+            continue
+        fresh.append(line)
+        seen.add(line)
 
     if fresh:
+        # Append-only. If the canonical file's last line lacks its newline,
+        # start on a fresh line rather than splicing onto it.
+        lead = ""
+        if canonical.exists() and canonical.stat().st_size:
+            with canonical.open("rb") as fh:
+                fh.seek(-1, os.SEEK_END)
+                if fh.read(1) != b"\n":
+                    lead = "\n"
         with canonical.open("a") as fh:
-            fh.write("\n".join(fresh) + "\n")
-    return len(fresh), len(node_lines)
+            fh.write(lead + "\n".join(fresh) + "\n")
+    return len(fresh), len(node_lines), invalid
 
 
 def cmd_pull(args: argparse.Namespace) -> int:
@@ -155,8 +212,13 @@ def cmd_pull(args: argparse.Namespace) -> int:
         print(f"log: {len(lines)} node record(s) available (dry-run, not merged)")
         added = 0
     else:
-        added, total = _merge_log(lines, canonical, args.node_name or "steamdeck")
+        added, total, invalid = _merge_log(lines, canonical, args.node_name or "steamdeck")
         print(f"log: appended {added} of {total} node record(s)")
+        if invalid:
+            print(f"log: skipped {invalid} node line(s) that are not JSON objects",
+                  file=sys.stderr)
+            PIPELINE.warning("node log lines skipped", cat="node_sync", node=args.node,
+                             invalid=invalid, offered=total)
 
     PIPELINE.info("node pull", cat="node_sync", node=args.node,
                   seeds_new=len(copied), log_appended=added, dry_run=args.dry_run)
@@ -227,6 +289,10 @@ def main() -> int:
     pc.set_defaults(func=cmd_push_config)
 
     args = ap.parse_args()
+    err = _secure_ctrl_dir(args.control_path)
+    if err:
+        print(err, file=sys.stderr)
+        return 2
     return args.func(args)
 
 

@@ -36,6 +36,8 @@ historical claim still holds.
   parity check across `ln_fixed_point` / `build_lwe_kannan`
   between `_math_core` and the (now-retired) per-script copies.
   Gated v1.2 Phases 1–3. See ADR-001.
+- **`_runner_core.py`** — Earlier shared runner core, superseded by
+  `_bkz_core.run_single`; zero callers when retired 2026-09-27.
 
 ## Why these are not under tests/
 

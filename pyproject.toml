@@ -10,13 +10,15 @@ dependencies = [
     "fpylll==0.6.4",
     "cysignals==1.12.6",
     "numpy==2.4.4",
-    "boto3",
     "matplotlib",
     "scipy",
     "sympy",
 ]
 
 [project.optional-dependencies]
+# boto3 is imported only by the AWS path (scripts/sweep_cloud.py, lazily
+# inside the S3 helpers, and scripts/submit_jobs.py); Dockerfile.cloud
+# installs it explicitly. Nothing on the local runner path needs it.
 cloud = ["boto3"]
 
 [tool.ruff]
@@ -74,13 +76,13 @@ skip_covered = false
 # Strict mypy is enforced only on the load-bearing numerical-core modules
 # that the paper's SHA-256 reproducibility chain pivots on. Wider
 # coverage is deferred to v2 (see `feedback_type_hints_opportunistic.md`
-# memory record + ROADMAP Phase 4). The four targets below are pinned in
-# `.github/workflows/build-and-verify.yml`; any expansion should land in
-# a follow-up commit so revert is single-step if a new gate misfires.
+# memory record + ROADMAP Phase 4). `python3 -m mypy` in
+# `.github/workflows/build-and-verify.yml` reads this list; any expansion
+# should land in a follow-up commit so revert is single-step if a new gate
+# misfires. `_runner_core.py` (zero callers) moved to scripts/archive/.
 files = [
     "scripts/_math_core.py",
     "scripts/_bkz_core.py",
-    "scripts/_runner_core.py",
     "scripts/_signal_utils.py",
 ]
 strict = true

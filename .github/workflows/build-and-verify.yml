@@ -33,6 +33,12 @@ concurrency:
   group: build-and-verify-${{ github.ref }}
   cancel-in-progress: true
 
+# Least-privilege GITHUB_TOKEN: jobs only check out, build locally
+# (load: true, no registry push) and use the GHA layer cache, which
+# authenticates with the runtime token, not GITHUB_TOKEN scopes.
+permissions:
+  contents: read
+
 jobs:
   build-and-verify:
     runs-on: ubuntu-latest
@@ -111,17 +117,17 @@ jobs:
           # (F-codes, W-codes, I001 disabled for now). Dev machines
           # without ruff can `pip install --user --break-system-packages
           # ruff` or run inside a venv; CI installs fresh each build.
-          python3 -m pip install --upgrade ruff
+          python3 -m pip install ruff==0.15.11
           ruff check scripts/ analysis/
 
       - name: Type check (mypy --strict) — numerical core modules
         run: |
-          # Strict mypy is gated only on the four numerical-core files
-          # the paper's SHA-256 reproducibility chain pivots on; see
+          # Strict mypy is gated only on the numerical-core files
+          # the paper's SHA-256 reproducibility chain pivots on, as listed in
           # pyproject.toml [tool.mypy]. Wider coverage is intentionally
           # deferred — `feedback_type_hints_opportunistic.md` documents
           # the on-touch policy for the rest of the tree.
-          python3 -m pip install --upgrade mypy
+          python3 -m pip install mypy==2.1.0
           python3 -m mypy
 
       - name: Coverage gate (pytest --cov) — 75% floor on numerical core
@@ -135,7 +141,7 @@ jobs:
             -v "${{ github.workspace }}:/repo" \
             -w /repo \
             sdbkz-benchmark:ci \
-            sh -c 'python3 -m pip install --quiet pytest-cov &&
+            sh -c 'python3 -m pip install --quiet pytest-cov==7.1.0 &&
                    python3 -m pytest tests/ --cov --cov-fail-under=75'
 
       - name: Unit tests (pytest) — fast edge-case coverage
