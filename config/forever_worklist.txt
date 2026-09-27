@@ -323,3 +323,4 @@ ntru_wall_beta_bump --n 185 --q 6491 --beta 50 --workers 1 --seeds 8 --seed-time
 ntru_wall_beta_bump --n 181 --q 2693 --beta 60 --workers 20 --seeds 20 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
 ntru_wall_deep_g6k --n 179 --q 4591 --beta 40 --workers 20 --seeds 20 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
 ntru_wall_beta_bump --n 185 --q 3907 --beta 60 --workers 20 --seeds 20 --seed-timeout-s 172800 --image sdbkz-g6k:dim384-inc63 @budget_h=50
+ntru_wall_deep580_g6k --n 179 --q 4591 --beta 40 --workers 20 --seeds 20 --seed-timeout-s 518400 --image sdbkz-g6k:dim384-inc63 @budget_h=150

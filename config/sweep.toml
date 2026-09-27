@@ -918,6 +918,11 @@ beta_grid = [40]
 tours_by_beta = { "40" = 200 }
 num_seeds = 20
 
+[campaigns.ntru_wall_deep580_g6k]
+inherits = "ntru_wall_deep_g6k"
+description = "NTRU n=179 beta=40 wall control at mt=580 on g6k (matches the n=167 mt580 control)"
+tours_by_beta = { "40" = 580 }
+
 [campaigns.ntru_g6k_backfill]
 description = "steamdeck forever-runner idle-filler — g6k β40 twins of the ntru_b2 frontier cells (cross-engine corpus)"
 # 2026-08-23: never-idle floor for the steamdeck node's forever-runner. Same
