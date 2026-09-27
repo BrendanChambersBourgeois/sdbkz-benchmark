@@ -136,13 +136,25 @@ RUN git clone https://github.com/fplll/fpylll.git /tmp/fpylll \
 # have aborted), so reference SHAs are expected to carry over — but the
 # binary changes, so verify_g6k.sh against the captured reference is the
 # gate that decides, per the warning above.
+#
+# APPLY_INC63 (1 = apply the patch, the default and the behaviour since
+# ff108a7c; 0 = build the unpatched pre-INC-63 kernel). It exists so every
+# image tag in use can be rebuilt from this one file (see docs/images.md):
+#   sdbkz-g6k:dim384        G6K_MAX_SIEVING_DIM=384 APPLY_INC63=0
+#   sdbkz-g6k:dim384-inc63  G6K_MAX_SIEVING_DIM=384 APPLY_INC63=1
+# Any other value fails the build rather than silently picking one.
 ARG G6K_COMMIT=c71e084
 ARG G6K_MAX_SIEVING_DIM=128
+ARG APPLY_INC63=1
 COPY patches/g6k_gauss_nonimproving_tolerant.patch /tmp/g6k_gauss_nonimproving_tolerant.patch
 RUN git clone https://github.com/fplll/g6k.git /tmp/g6k \
     && cd /tmp/g6k \
     && git checkout ${G6K_COMMIT} \
-    && git apply --verbose /tmp/g6k_gauss_nonimproving_tolerant.patch \
+    && case "${APPLY_INC63}" in \
+         1) git apply --verbose /tmp/g6k_gauss_nonimproving_tolerant.patch ;; \
+         0) echo "APPLY_INC63=0: INC-63 gauss_sieve patch NOT applied" ;; \
+         *) echo "APPLY_INC63 must be 0 or 1, got '${APPLY_INC63}'" >&2; exit 1 ;; \
+       esac \
     && autoreconf -i \
     && ./configure --disable-native --with-max-sieving-dim=${G6K_MAX_SIEVING_DIM} \
     && pip install --no-cache-dir --no-build-isolation . \

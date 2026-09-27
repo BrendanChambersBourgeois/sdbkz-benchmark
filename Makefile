@@ -9,7 +9,7 @@
 .PHONY: help reproduce verify bug-hunt manifest manifest-patched lint-manifest xarch-compare vecprobe-membership figs figs-paper2 paper clean node-status node-pull node-push-worklist node-push-config
 
 help:  ## Show this menu
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 reproduce:  ## Regenerate the 5 paper reference seeds + verify SHA-256 (fast: NUM_SEEDS=1)
 	bash scripts/verify.sh
@@ -67,6 +67,71 @@ paper2-claims:  ## Rebuild results/paper_claims/paper2_claims.json (claim proven
 
 paper:  ## Rebuild the LaTeX PDF in paper1/latex/
 	$(MAKE) -C paper1/latex
+
+# ---------------------------------------------------------------------------
+# Image rebuild targets. One target per image tag named in config/sweep.toml,
+# the worklists or the scripts; tag -> Dockerfile + build args is documented in
+# docs/images.md. These BUILD only (never `docker run`), and no other target
+# depends on them. Each rebuilds the recipe as committed at HEAD; docs/images.md
+# lists the commit each existing tag was built from where that differs.
+# BUILD_JOBS only caps make -j (it does not change the binary); 4 leaves cores
+# for a live sweep. Override: make image-g6k-ref BUILD_JOBS=
+DOCKER ?= docker
+BUILD_JOBS ?= 4
+HOST_UID ?= $(shell id -u)
+HOST_GID ?= $(shell id -g)
+IMG_COMMON = --build-arg HOST_UID=$(HOST_UID) --build-arg HOST_GID=$(HOST_GID)
+IMG_JOBS = --build-arg BUILD_JOBS=$(BUILD_JOBS)
+
+.PHONY: images image-digests image-benchmark-ci image-g6k-ref image-g6k-ci image-g6k-dim256 image-g6k-dim384 image-g6k-dim384-inc63 image-fplll-kahan-v3 image-fplll-reorder-control image-fplll54
+
+images:  ## List the image-* rebuild targets (builds nothing)
+	@grep -E '^image-[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
+
+image-digests:  ## Print image ID + RepoDigests for every tag in use (read-only)
+	@for t in sdbkz-benchmark:ci sdbkz-g6k:ref sdbkz-g6k:ci sdbkz-g6k:dim256 \
+	          sdbkz-g6k:dim384 sdbkz-g6k:dim384-inc63 \
+	          sdbkz-fplll-patched:kahan-v3 sdbkz-fplll-patched:reorder-control \
+	          sdbkz-fplll54; do \
+	    out=$$($(DOCKER) image inspect --format '{{.Id}} {{.RepoDigests}} {{.Created}}' "$$t" 2>&1) || out="ABSENT ($$(printf '%s' "$$out" | tr -s '\n' ' '))"; \
+	    printf '%s %s\n' "$$t" "$$out"; \
+	done
+
+image-benchmark-ci:  ## Build sdbkz-benchmark:ci (Dockerfile, fpylll 0.6.4 wheel)
+	$(DOCKER) build -f Dockerfile $(IMG_COMMON) -t sdbkz-benchmark:ci .
+
+image-g6k-ref:  ## Build sdbkz-g6k:ref (Dockerfile.g6k defaults: dim 128, INC-63 patch)
+	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) -t sdbkz-g6k:ref .
+
+image-g6k-ci:  ## Build sdbkz-g6k:ci locally (same recipe CI builds)
+	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) -t sdbkz-g6k:ci .
+
+image-g6k-dim256:  ## Build sdbkz-g6k:dim256 (G6K_MAX_SIEVING_DIM=256)
+	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) \
+	    --build-arg G6K_MAX_SIEVING_DIM=256 -t sdbkz-g6k:dim256 .
+
+image-g6k-dim384:  ## Build sdbkz-g6k:dim384 (dim 384, INC-63 patch NOT applied)
+	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) \
+	    --build-arg G6K_MAX_SIEVING_DIM=384 --build-arg APPLY_INC63=0 \
+	    -t sdbkz-g6k:dim384 .
+
+image-g6k-dim384-inc63:  ## Build sdbkz-g6k:dim384-inc63 (dim 384, INC-63 patch applied)
+	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) \
+	    --build-arg G6K_MAX_SIEVING_DIM=384 --build-arg APPLY_INC63=1 \
+	    -t sdbkz-g6k:dim384-inc63 .
+
+image-fplll-kahan-v3:  ## Build sdbkz-fplll-patched:kahan-v3 (sign-corrected Kahan GSO patch)
+	$(DOCKER) build -f Dockerfile.fplll_patched $(IMG_COMMON) $(IMG_JOBS) \
+	    --build-arg GSO_PATCH=patches/fplll_gso_kahan.patch \
+	    -t sdbkz-fplll-patched:kahan-v3 .
+
+image-fplll-reorder-control:  ## Build sdbkz-fplll-patched:reorder-control (loop reorder, no compensation)
+	$(DOCKER) build -f Dockerfile.fplll_patched $(IMG_COMMON) $(IMG_JOBS) \
+	    --build-arg GSO_PATCH=patches/fplll_gso_reorder_control.patch \
+	    -t sdbkz-fplll-patched:reorder-control .
+
+image-fplll54:  ## Build sdbkz-fplll54 (fplll 5.4.5 + fpylll 0.6.0 sensitivity image)
+	$(DOCKER) build -f Dockerfile.fplll54 $(IMG_COMMON) -t sdbkz-fplll54 .
 
 clean:  ## Remove build artifacts (preserves seed data and logs)
 	rm -f .tags
