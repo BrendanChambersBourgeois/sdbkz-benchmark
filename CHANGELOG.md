@@ -44,6 +44,7 @@ Versions follow loose SemVer. Bump on:
 - +55 `ntru_g6k` seeds (n=181 β=60, n=183/185 β=50, node filler); G6K manifest 2,830.
 - +126 `ntru_g6k` seeds (n=179/181/185 β=60, node filler); G6K manifest 2,956.
 - +40 `ntru_g6k` seeds (n=181 β=60, n=179 β=40 mt200 wall control); G6K manifest 2,996.
+- +18 `ntru_g6k` seeds (n=185 β=60 q3907); G6K manifest 3,014.
 - `results/seeds/ntru_flatter/` exploratory A/B tree (124 seeds, not in the manifest).
 - `[campaigns.ntru_b2_probe]` (3 seeds; `store_per_tour` is a no-op on this path).
 - g6k as a second reduction engine (`scripts/_engine_backends.py`, `run_single(backend=...)`); g6k self-dual BKZ variant.
