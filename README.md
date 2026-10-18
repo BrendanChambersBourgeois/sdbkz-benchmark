@@ -252,7 +252,7 @@ The `analysis/` directory is a Python package for generating figures, diagnostic
 
 ```
 analysis/
-  paper_figures.py          Entry point — CLI with argparse (77 lines)
+  paper_figures.py          Entry point — CLI with argparse (124 lines)
   _style.py                 Shared color palette + matplotlib rcParams
   _data.py                  Data loading, lattice math, decomposition helpers
   plots/                      Content-named modules — no numbers; paper

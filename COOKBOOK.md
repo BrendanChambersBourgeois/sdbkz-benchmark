@@ -76,8 +76,7 @@ scripts (`scripts/submit_jobs.py`, `scripts/sweep_cloud.py`,
 record of how those seeds were produced, not as live operational
 surface. Re-enabling would require fresh AWS plumbing and a re-pinned
 container image. The reference-run path on local hardware is
-`python3 scripts/sweep_parallel.py` (see "How do I reproduce the
-paper from scratch?" below).
+`python3 scripts/sweep_parallel.py`.
 
 ---
 

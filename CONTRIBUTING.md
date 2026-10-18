@@ -9,7 +9,7 @@ git clone https://github.com/BrendanChambersBourgeois/sdbkz-benchmark
 cd sdbkz-benchmark
 docker build -t sdbkz-benchmark:ci .                             # ~5 min
 docker run --rm sdbkz-benchmark:ci bash scripts/verify.sh        # ~3 min, 5 seeds
-# expect "VERIFICATION PASSED (5 passed, 0 failed)"
+# expect "Results: 5 passed, 0 failed out of 5", then "VERIFICATION PASSED"
 ```
 
 If verify.sh passes you have a numerically-correct build. If it fails, open an issue with the output — the reference values are hardcoded in `scripts/verify.sh` and any mismatch indicates a real divergence.
@@ -33,8 +33,8 @@ The execution path for a single seed:
 ```
 scripts/sweep_parallel.py::worker(n, beta, seed)
   └─ scripts/sweep_parallel.py::run_single(...)
+      └─ scripts/generators/lwe_kannan.py::build_lwe_kannan  # lattice generator
       └─ scripts/_bkz_core.py::run_single(...)       # canonical driver
-          └─ scripts/_math_core.py::build_lwe_kannan # lattice generator
           └─ scripts/_math_core.py::metrics_from_gso # post-tour metrics
           └─ scripts/_math_core.py::log_clamp        # defensive-clamp side-log
 ```

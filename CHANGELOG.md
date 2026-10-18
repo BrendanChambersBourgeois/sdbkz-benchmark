@@ -72,6 +72,7 @@ Versions follow loose SemVer. Bump on:
 - `results/wall_cap_events.jsonl` gitignored and mirrored.
 - `paper/` renamed to `paper1/`.
 - Shared `_bkz_core.dln_trajectory` replaces three duplicate engine loops.
+- CONTRIBUTING, COOKBOOK and README: verify output, call tree, a dead link and a line count corrected.
 - CI `g6k-verify` is a hard byte-identity gate.
 - DSD criterion finalised as the n-dependent two-part test; paper-2 Table 2 regenerated.
 - Paper-2 accuracy pass (§2.3, §6, §7, bibliography).
