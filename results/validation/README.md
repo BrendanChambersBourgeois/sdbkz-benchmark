@@ -27,4 +27,4 @@ SHA gates. They are auxiliary evidence, not benchmark data.
 ```
 
 Each file is one validation event. Append new ones; do not rewrite history.
-Synced offline via `Research/ops/sync_research.sh`.
+Synced offline by the author's backup script.

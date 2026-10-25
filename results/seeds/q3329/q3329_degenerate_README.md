@@ -1,5 +1,7 @@
 # q=3329 degenerate-basis seeds (early dataset)
 
+> **Withdrawn diagnosis (2026-10-13).** The fplll-cancellation reading below is wrong: the reduction is clean, and the −345 floors and d(LN) spikes come from our own double-precision measurement GSO (Paper 2, Appendix A). The seed files are unchanged; the text below predates that correction.
+
 These 42 result files exhibit the catastrophic-cancellation failure mode in fplll's squared-form GSO update that is characterised in detail in **paper §8** ("Numerical Instability in fplll's GSO Update at Cryptographic Moduli"). At q=3329, the Cholesky-style recurrence
 
 r(i,i) = ‖b_i‖² − Σ_{k<i} μ_{i,k}² · ‖b*_k‖²
@@ -26,14 +28,14 @@ Each file uses the standard per-seed schema (`bkz_dln_per_tour`, `sdbkz_dln_per_
 
 ## Precision is not the fix (confirmed)
 
-The files in this directory were originally labelled "corrupted 500-bit data". A re-run of the same seeds at 1000-bit MPFR produced bit-identical trajectories on the affected tours. Doubling the working precision does not close the gap because the root cause is arithmetic (uncompensated cancellation in the inner subtraction), not bit-width. The Kahan-compensated patch to `gso_interface.cpp:147–151` described in paper §8.3 reduces the hit rate from 38.0% (38/100 unpatched) to 0% (0/55 patched).
+The files in this directory were originally labelled "corrupted 500-bit data". A re-run of the same seeds at 1000-bit MPFR produced bit-identical trajectories on the affected tours. Doubling the working precision does not close the gap because the root cause is arithmetic (uncompensated cancellation in the inner subtraction), not bit-width.
 
 ## Why these seeds are kept
 
 1. **They document the failure mode before the root cause was known.** The dataset is useful as a "before" snapshot — every file demonstrates at least one tour where a GSO log-norm crosses the −100 boundary and the d(LN) trajectory spikes correspondingly.
 2. **They are reproducible at any precision.** The behaviour is deterministic given the seed; paper §8.2 confirms the hit probability is a function of the lattice structure, not random FP noise.
 3. **They are not used in any aggregate paper statistic.** Paper §8's 100-seed characterisation draws from the disjoint dataset described above.
-4. **Project policy:** experimental data is never deleted, only quarantined. These remain here for researchers reproducing the §8.3 Kahan patch or studying the pre-patch failure mode.
+4. **Project policy:** experimental data is never deleted, only quarantined. These remain here as a historical reference.
 
 ## How to use these files
 

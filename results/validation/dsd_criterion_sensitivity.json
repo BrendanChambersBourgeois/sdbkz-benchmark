@@ -59,6 +59,6 @@
       "2026-06-11: extractor switched to the n-dependent threshold (maintainer call). Canonical trend now 67:144.6/145.4 g1, 79:171.2/171.0 g0, 89:238.0/283.3 g19, 101:428.6/512.2 g20, 113:729.2/930.4 g28. Frozen-2.888 alternate: 166.6/167.5, 181.7/182.5, same 89/101, 113 BKZ 925.0 g27. Gap trend threshold-robust."
     ],
     "criteria_note": "the 'two_part_proper' 2.888 above is the n=89 instantiation of the n-dependent formula; canonical criterion uses log(sqrt(2n*2/3))+0.5 per n",
-    "record": "correction chain on Research drive paper_findings.md (2026-06-11 entries)"
+    "record": "correction chain recorded offline (2026-06-11)"
   }
 }

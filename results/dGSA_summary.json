@@ -1,11 +1,11 @@
 {
-  "generated": "2026-04-13T13:13:01.460603+00:00",
+  "generated": "2026-10-09T06:35:45.113261+00:00",
   "metric": "mean_absolute_distance",
   "note": "d(LN) = mean|profile - LN_fixed_point|, d(GSA) = mean|profile - GSA_fixed_point|. Advantage = d_BKZ - d_SDBKZ (positive = SD-BKZ closer to reference).",
-  "total_seeds": 3300,
+  "total_seeds": 3388,
   "total_groups": 33,
   "correlation_with_dLN": {
-    "pearson_r": 0.894797,
+    "pearson_r": 0.893011,
     "p_value": 0.0
   },
   "groups": {
@@ -220,12 +220,12 @@
     "n100_beta30": {
       "n": 100,
       "beta": 30,
-      "seeds": 100,
-      "dLN_mean_advantage": 1.3461,
-      "dLN_std": 0.217,
+      "seeds": 122,
+      "dLN_mean_advantage": 1.3487,
+      "dLN_std": 0.2162,
       "dLN_win_rate": 1.0,
-      "dGSA_mean_advantage": 1.4,
-      "dGSA_std": 0.2268,
+      "dGSA_mean_advantage": 1.4015,
+      "dGSA_std": 0.2247,
       "dGSA_win_rate": 1.0,
       "same_sign": true,
       "per_seed_sign_agreement": 1.0
@@ -233,12 +233,12 @@
     "n100_beta40": {
       "n": 100,
       "beta": 40,
-      "seeds": 100,
-      "dLN_mean_advantage": 1.1759,
-      "dLN_std": 0.1251,
+      "seeds": 122,
+      "dLN_mean_advantage": 1.1686,
+      "dLN_std": 0.1217,
       "dLN_win_rate": 1.0,
-      "dGSA_mean_advantage": 1.4353,
-      "dGSA_std": 0.1555,
+      "dGSA_mean_advantage": 1.43,
+      "dGSA_std": 0.1547,
       "dGSA_win_rate": 1.0,
       "same_sign": true,
       "per_seed_sign_agreement": 1.0
@@ -272,12 +272,12 @@
     "n110_beta40": {
       "n": 110,
       "beta": 40,
-      "seeds": 100,
-      "dLN_mean_advantage": 1.1575,
-      "dLN_std": 0.1681,
+      "seeds": 122,
+      "dLN_mean_advantage": 1.1631,
+      "dLN_std": 0.1706,
       "dLN_win_rate": 1.0,
-      "dGSA_mean_advantage": 1.7127,
-      "dGSA_std": 0.2141,
+      "dGSA_mean_advantage": 1.7251,
+      "dGSA_std": 0.2142,
       "dGSA_win_rate": 1.0,
       "same_sign": true,
       "per_seed_sign_agreement": 1.0
@@ -350,15 +350,15 @@
     "n130_beta40": {
       "n": 130,
       "beta": 40,
-      "seeds": 100,
-      "dLN_mean_advantage": -1.334,
-      "dLN_std": 0.1376,
+      "seeds": 122,
+      "dLN_mean_advantage": -1.3247,
+      "dLN_std": 0.1504,
       "dLN_win_rate": 0.0,
-      "dGSA_mean_advantage": -0.0707,
-      "dGSA_std": 0.0969,
-      "dGSA_win_rate": 0.22,
+      "dGSA_mean_advantage": -0.0697,
+      "dGSA_std": 0.1011,
+      "dGSA_win_rate": 0.2377,
       "same_sign": true,
-      "per_seed_sign_agreement": 0.78
+      "per_seed_sign_agreement": 0.7623
     },
     "n140_beta20": {
       "n": 140,
