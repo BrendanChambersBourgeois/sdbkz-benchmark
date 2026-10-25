@@ -5,7 +5,6 @@ paper1/** linguist-documentation
 # focused on the actual code (Python) instead of weighting it toward
 # Markdown that grew through v1.4.x reader-facing docs work.
 CHANGELOG.md         linguist-documentation
-ROADMAP.md           linguist-documentation
 CONTRIBUTING.md      linguist-documentation
 SECURITY.md          linguist-documentation
 COOKBOOK.md          linguist-documentation

@@ -87,7 +87,7 @@ def test_loop_never_raises_out(tmp_path, monkeypatch):
 
 
 def test_effective_timeout_default_and_override():
-    # INC-54: no @budget_h -> finite DEFAULT backstop (never unbounded); explicit wins up OR down.
+    # no @budget_h -> finite DEFAULT backstop (never unbounded); explicit wins up OR down.
     assert fr._effective_timeout_s(None) == fr.DEFAULT_MAX_WALL_H * 3600
     assert fr._effective_timeout_s(14) == 14 * 3600
     assert fr._effective_timeout_s(0.5) == 1800
@@ -140,7 +140,7 @@ def test_dry_run_spawns_no_subprocess(tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Ultrareview PR #3 (2026-08-21): lock = shared _pidlock; refusal is a FAILURE
+# lock = shared _pidlock; refusal is a FAILURE
 # exit so Restart=on-failure retries and `systemctl status` shows it, instead of
 # exit-0 reading as an intended stop (never-idle floor silently dead).
 # ---------------------------------------------------------------------------
@@ -213,7 +213,7 @@ class _LogRec:
 
 
 def test_fast_done_rc0_warns(tmp_path, monkeypatch):
-    """INC-60 lesson 3: a 'science' line finishing implausibly fast with rc=0
+    """a 'science' line finishing implausibly fast with rc=0
     must leave a loud trace (warn only -- all-skip re-dispatch is legitimate)."""
     _wire(tmp_path, monkeypatch)
     rec = _LogRec()

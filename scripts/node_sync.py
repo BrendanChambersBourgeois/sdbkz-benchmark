@@ -31,7 +31,7 @@ PIPELINE = get_logger("node_sync")
 
 REPO = Path(__file__).resolve().parent.parent
 DEFAULT_NODE = "deck"
-DEFAULT_CTRL = "/tmp/claude-1000/cm/%C"
+DEFAULT_CTRL = None  # None: the ControlPath from your ssh config
 DEFAULT_TREE = "ntru_g6k"
 
 
@@ -68,13 +68,29 @@ def _secure_ctrl_dir(ctrl: str) -> str | None:
     return None
 
 
-def _ssh_base(ctrl: str) -> list[str]:
-    return ["ssh", "-o", "ControlMaster=auto", "-o", f"ControlPath={ctrl}",
-            "-o", "ControlPersist=60m"]
+def _ssh_base(ctrl: str | None) -> list[str]:
+    # ControlMaster=no: ride an existing master socket, never open one. Opening a
+    # master can block on an authenticator (a hardware key waits for a touch).
+    base = ["ssh", "-o", "ControlMaster=no"]
+    return base + (["-o", f"ControlPath={ctrl}"] if ctrl else [])
+
+
+def _require_master(ctrl: str | None, node: str) -> str | None:
+    """Fail fast when no master socket is open for the node. Returns an error
+    string, or None when `ssh -O check` finds a live master."""
+    cmd = _ssh_base(ctrl) + ["-O", "check", node]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+    except subprocess.TimeoutExpired:
+        return f"no live ControlMaster socket for {node} (ssh -O check timed out)"
+    if r.returncode != 0:
+        return (f"no live ControlMaster socket for {node}: {r.stderr.strip()}; "
+                "open one first (node_sync never opens its own)")
+    return None
 
 
 def _classify_no_report(rc: int | None, stderr: str) -> str:
-    """INC-58 follow-up: "cannot authenticate" and "host is down" were reported
+    """Classify a no-report: "cannot authenticate" and "host is down" were reported
     identically (`reachable=False`), so a healthy node with no ControlMaster
     socket looked dead. Classify from the local ssh failure instead. The remote
     command's own stderr is discarded remotely (2>/dev/null), so what reaches
@@ -87,7 +103,7 @@ def _classify_no_report(rc: int | None, stderr: str) -> str:
               "too many authentication failures"):
         if t in s:
             return ("AUTH-BLOCKED -- node likely healthy; open the "
-                    "ControlMaster socket first (YubiKey touch, INC-58)")
+                    "ControlMaster socket first (YubiKey touch)")
     for t in ("connection timed out", "no route to host",
               "connection refused", "could not resolve",
               "network is unreachable"):
@@ -195,7 +211,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
     if args.dry_run:
         rs.insert(1, "--dry-run")
     out = subprocess.run(rs, capture_output=True, text=True, timeout=1800)
-    copied = [ln for ln in out.stdout.splitlines() if ln.strip()]
+    copied = [ln for ln in out.stdout.splitlines() if ln.startswith(">f")]  # files; dir lines are not seeds
     print(f"seeds: {len(copied)} new file(s){' (dry-run)' if args.dry_run else ''}")
     for ln in copied[:20]:
         print(f"  {ln}")
@@ -259,6 +275,33 @@ def cmd_push_config(args: argparse.Namespace) -> int:
     return _push_config_file(args, "sweep.toml", "sweep config")
 
 
+def cmd_push_seeds(args: argparse.Namespace) -> int:
+    """Copy finished seed cells from the canonical tree to the node (never
+    overwrites). A node runner's resume skips seeds already on disk, so cells
+    another host ran are not recomputed when the node's list reaches them."""
+    base = REPO / "results" / "seeds" / args.tree
+    for cell in args.cells:
+        if ".." in Path(cell).parts or not (base / cell).is_dir():
+            print(f"no cell {base / cell}", file=sys.stderr)
+            return 2
+    rs = ["rsync", "-aR", "--ignore-existing", "--itemize-changes",
+          "--include=*/", "--include=seed*.json", "--exclude=*",  # finished seeds only
+          "-e", " ".join(_ssh_base(args.control_path)),
+          *[f"{base}/./{cell}" for cell in args.cells],
+          f"{args.node}:~/{args.remote_dir}/results/seeds/{args.tree}/"]
+    if args.dry_run:
+        rs.insert(1, "--dry-run")
+    out = subprocess.run(rs, capture_output=True, text=True, timeout=1800)
+    sent = [ln for ln in out.stdout.splitlines() if ln.startswith("<f")]
+    print(f"seeds: {len(sent)} pushed{' (dry-run)' if args.dry_run else ''}")
+    if out.returncode != 0:
+        print(out.stderr.strip(), file=sys.stderr)
+        return 2
+    PIPELINE.info("node push seeds", cat="node_sync", node=args.node, tree=args.tree,
+                  cells=list(args.cells), seeds_pushed=len(sent), dry_run=args.dry_run)
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -288,8 +331,14 @@ def main() -> int:
     pc = sub.add_parser("push-config", help="push config/sweep.toml to the node")
     pc.set_defaults(func=cmd_push_config)
 
+    ps = sub.add_parser("push-seeds", help="copy finished seed cells to the node (never overwrites)")
+    ps.add_argument("cells", nargs="+", help="cell dirs under the tree, e.g. q701/p500_mt50/n113_beta40")
+    ps.add_argument("--dry-run", action="store_true")
+    ps.set_defaults(func=cmd_push_seeds)
+
     args = ap.parse_args()
-    err = _secure_ctrl_dir(args.control_path)
+    err = (_secure_ctrl_dir(args.control_path) if args.control_path else None) \
+        or _require_master(args.control_path, args.node)
     if err:
         print(err, file=sys.stderr)
         return 2

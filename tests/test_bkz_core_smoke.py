@@ -330,3 +330,23 @@ def test_make_backend_rejects_mpfr_metric_on_g6k():
     with pytest.raises(ValueError, match="fplll-only"):
         make_backend("g6k", B_init=B, beta=2, variant="bkz", seed=1,
                      precision=100, metric_float_type="mpfr")
+
+
+def test_basis_cb_sees_init_and_every_tour_without_changing_result(tiny_result):
+    # The side channel must not move a single result value.
+    seen = []
+    r = run_single(
+        L=_basis(20, 97, 1),
+        n=20, active_block_start=kannan_m(20), active_block_end=_lwe_end(20),
+        beta=10, seed=1, q=97, precision=100, max_tours=5,
+        log_clamp_fn=None,
+        basis_cb=lambda leg, t, B: seen.append((leg, t, B.nrows, B.ncols)),
+    )
+    vol = ("timestamp", "bkz_time", "sdbkz_time")
+    assert {k: v for k, v in r.items() if k not in vol} == \
+        {k: v for k, v in tiny_result.items() if k not in vol}
+    dim = _lwe_end(20)
+    assert seen[0] == ("init", 0, dim, dim)
+    for leg in ("bkz", "sdbkz"):
+        tours = [t for lg, t, _, _ in seen if lg == leg]
+        assert tours == list(range(1, r[f"{leg}_tours_run"] + 1))

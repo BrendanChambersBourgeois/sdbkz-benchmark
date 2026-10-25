@@ -26,7 +26,7 @@ The HTML-channel drift this guards against was caught at audit-followup
 with analysis/figures/ since commit a34122e (variance-fill SHA refresh).
 
 The LaTeX channel was added 2026-06-02: paper1/latex/figs/ was a frozen
-one-time manual export (2026-04-14) sitting OUTSIDE this gate, and it
+one-time manual export sitting OUTSIDE this gate, and it
 silently diverged through the variance-fill (the C1 contradiction —
 LaTeX text said 122 while its figures showed pre-fill data + "100 seeds").
 It is now byte-synced to analysis/figures/ and gated here so the blind

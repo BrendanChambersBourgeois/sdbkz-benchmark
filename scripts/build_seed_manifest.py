@@ -455,7 +455,7 @@ def _resolve_generated_utc(deterministic: bool) -> str:
     """Manifest timestamp. Deterministic mode freezes it -- from
     SOURCE_DATE_EPOCH if set, else epoch 0 -- so a rebuild with no
     seed-population change yields a byte-identical manifest and does not churn
-    git with wall-clock-only diffs (INC-48). Default: wall-clock now()."""
+    git with wall-clock-only diffs. Default: wall-clock now()."""
     if deterministic:
         epoch = int(os.environ.get("SOURCE_DATE_EPOCH", "0"))
         return dt.datetime.fromtimestamp(epoch, tz=dt.UTC).strftime(_UTC_FMT)
@@ -634,7 +634,7 @@ def main() -> int:
         "--deterministic",
         action="store_true",
         help="freeze generated_utc / verified_at_utc (SOURCE_DATE_EPOCH or "
-        "epoch 0) so a no-population-change rebuild is byte-identical (INC-48)",
+        "epoch 0) so a no-population-change rebuild is byte-identical",
     )
     args = ap.parse_args()
 

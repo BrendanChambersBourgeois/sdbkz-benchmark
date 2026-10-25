@@ -106,7 +106,7 @@ def fig_convergence_500_tours(output_dir="."):
         # The stats text box (BKZ Δ / SD-BKZ Δ / advantages at tour 70 and
         # 500) was removed 2026-04-09 — whichever corner it landed in, it
         # covered either the SD-BKZ improvement curve or the early-tour
-        # data. The numbers live in paper_findings.md and the stats tables.
+        # data. The numbers live in the stats tables.
 
     plot_row(axes[0], n90, ("a", "b"), "SD-BKZ keeps gaining")
     plot_row(axes[1], n140, ("c", "d"), "BKZ wins at convergence")

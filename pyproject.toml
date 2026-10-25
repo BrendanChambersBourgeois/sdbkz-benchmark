@@ -42,11 +42,6 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# Test + confirmation scripts build inline Python source strings; keep
-# lenient. Live under scripts/archive/ post-v2.0.0 consolidation.
-"scripts/archive/confirm_v1_2.py" = ["E501", "F841"]
-"scripts/archive/test_math_core_parity.py" = ["E402"]
-"scripts/archive/test_log_clamp_wrappers.py" = ["E402"]
 
 [tool.pytest.ini_options]
 # Pytest discovery + coverage defaults. The --cov gate in the CI
@@ -75,11 +70,11 @@ skip_covered = false
 [tool.mypy]
 # Strict mypy is enforced only on the load-bearing numerical-core modules
 # that the paper's SHA-256 reproducibility chain pivots on. Wider
-# coverage is deferred to v2 (see `feedback_type_hints_opportunistic.md`
-# memory record + ROADMAP Phase 4). `python3 -m mypy` in
+# coverage is deferred to v2 (type hints added when a file is next
+# touched). `python3 -m mypy` in
 # `.github/workflows/build-and-verify.yml` reads this list; any expansion
 # should land in a follow-up commit so revert is single-step if a new gate
-# misfires. `_runner_core.py` (zero callers) moved to scripts/archive/.
+# misfires.
 files = [
     "scripts/_math_core.py",
     "scripts/_bkz_core.py",

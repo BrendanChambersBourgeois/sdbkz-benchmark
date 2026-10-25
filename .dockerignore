@@ -42,7 +42,7 @@ CLAUDE.md
 .tags
 tags
 .ctags.d/
-compile_paper_findings.sh
+compile_*.sh
 
 # Example outputs (generated PNGs)
 examples/output/

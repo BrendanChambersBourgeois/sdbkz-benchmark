@@ -1,4 +1,4 @@
-"""INC-53 — tour-count check validates against the seed's OWN max_tours budget,
+"""tour-count check validates against the seed's OWN max_tours budget,
 not a hardcoded per-beta convention cap.
 
 The old check `max_tours = {20:50,30:70,40:100}.get(beta)` froze the onset

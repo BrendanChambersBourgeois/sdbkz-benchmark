@@ -234,6 +234,11 @@ class SeedValidator:
         # expensive long-tour runs.
         max_tours = d.get("max_tours", 100)
         threshold_s = max(200000, int(max_tours) * 1000)  # 1000 s/tour ceiling
+        # ntru_g6k_diag exists to finish a known-slow seed (n185 b60
+        # seed 16, 8.5x per-tour); its legs may run up to the campaign's
+        # 432000 s seed cap (config/sweep.toml [campaigns.ntru_q09_diag]).
+        if "ntru_g6k_diag" in filepath.replace(os.sep, "/").split("/"):
+            threshold_s = max(threshold_s, 432000)
         for t in ("bkz_time", "sdbkz_time"):
             if t in d:
                 v = d[t]
@@ -263,13 +268,13 @@ class SeedValidator:
                 self._err(f"{label}: dim={d['dim']} expected {expected_dim}",
                           cat="schema", file=fname)
 
-        # 5d-presence. Per-family array expectation (INC-45 Phase 3.5).
+        # 5d-presence. Per-family array expectation.
         # The corpus splits cleanly: GS-bearing families (sweep / q3329 /
         # NTRU) MUST carry the three GS profiles; trajectory families
         # (convergence, tours3x) record per-tour d(LN) arrays instead and
         # legitimately have no GS profiles. Without this, 5d/5e only fire
         # "if key in d", so a GS-bearing seed that lost its arrays to a bug
-        # would pass green — the INC-45 failure mode (pass via absence), one
+        # would pass green — the failure mode (pass via absence), one
         # layer down. Assert presence so the skip becomes a loud failure.
         is_trajectory = any(s in filepath for s in
                             ("/convergence/", "/tours3x/", "/3x_tour"))
@@ -321,8 +326,9 @@ class SeedValidator:
                               cat="integrity", file=fname, field=key)
 
         # 5e. Volume preservation (sum of GS log-norms should be constant)
-        #     q=3329 lattices have known catastrophic-cancellation instability
-        #     in fplll's squared-form GSO update (paper §8).
+        #     q=3329 seeds carry catastrophic cancellation in the double-precision
+        #     measurement GSO (fplll's squared-form update run in double), not in
+        #     the 1000-bit reduction.
         #
         #     VOLUME_DRIFT_THRESHOLD was 0.01 nats absolute. Raised to 0.1 on
         #     2026-04-13 after a full scan of 1,960 q=97 seeds
@@ -337,7 +343,7 @@ class SeedValidator:
         #       - ~100× below the smallest q=3329 catastrophic drift (~10 nats)
         #     so the q=3329 detection remains intact.
         VOLUME_DRIFT_THRESHOLD = 0.1
-        # NTRU two-axis volume handling (INC-45 Phase 4, verdict 2026-06-14):
+        # NTRU two-axis volume handling :
         #   The NTRU coefficient-embedding family carries two DISTINCT, both-
         #   documented volume-drift populations — NOT validator errors:
         #     - small drift (0.1 < |Δ| ≤ 10 nat): GSO-arithmetic / Kahan-family
@@ -351,10 +357,13 @@ class SeedValidator:
         #       log the raw value, don't suppress). CAVEAT: 4a tested the LOW end
         #       (~0.1-0.15); the 1-10 band rides the same verdict by continuity,
         #       and tagging (not threshold-raising) keeps every nonzero Δ visible.
-        #     - crack (|Δ| > 10 nat, ~345): genuine dense-sublattice collapse
-        #       (paper §7/§8, the n=127 off-grid cracks + one n=113 q=773). This
-        #       is structural — correctly UNTOUCHED by Kahan (ds≈345 persists
-        #       post-patch). Separate axis (INC-46), separate id.
+        #     - large drift (|Δ| > 10 nat): the -345.388 clamp sentinel
+        #       (0.5*ln(1e-300), a non-positive r_ii in the double measurement
+        #       GSO). Not a crack: sum(log||b*_i||) = log det L for every basis,
+        #       so no reduction outcome can move it. Over all 1,021 NTRU legs
+        #       above 10 nat, each changes its sentinel count by 1-4, and the
+        #       residual after removing them is <= 15.1 nat. A cracked seed is
+        #       judged by secret_exact_match_* / _is_dsd, not this check.
         NTRU_CRACK_THRESHOLD = 10.0
         if all(k in d for k in ("initial_gs_lognorms", "gs_lognorms_bkz", "gs_lognorms_sdbkz")):
             init_sum = sum(d["initial_gs_lognorms"])
@@ -372,14 +381,14 @@ class SeedValidator:
                     elif is_ntru:
                         if diff > NTRU_CRACK_THRESHOLD:
                             self._incident(
-                                msg + " (NTRU dense-sublattice collapse / crack"
-                                " — structural, Kahan-invariant, INC-46)",
+                                msg + " (NTRU clamp sentinel: r<=0 in the double"
+                                " measurement GSO)",
                                 id=46, file=fname, field=key,
                                 diff=round(diff, 4))
                         else:
                             self._incident(
                                 msg + " (NTRU GSO numerical residual,"
-                                " Kahan-family — INC-45 Phase 4)",
+                                " Kahan-family)",
                                 id=45, file=fname, field=key,
                                 diff=round(diff, 4))
                     else:
@@ -390,7 +399,7 @@ class SeedValidator:
         # max_tours, which is campaign-agnostic and admits deliberate deep-tour
         # campaigns (mt580 wall-control, mt1000 anchors). Fall back to the onset
         # convention cap only for legacy seeds that predate the max_tours field, so
-        # detection is preserved there (INC-53: the hardcoded {40:100} cap flagged
+        # detection is preserved there (the hardcoded {40:100} cap flagged
         # the legitimate 580-tour wall-control seeds as errors and failed the sync).
         if "bkz_tours_run" in d and "beta" in d:
             tours = d["bkz_tours_run"]
@@ -545,7 +554,9 @@ def main() -> None:
 
     for d in args.dirs:
         if not os.path.isdir(d):
-            print(f"  SKIP {d}: not a directory", file=sys.stderr)
+            # A listed tree that is missing is a warning, so --strict fails on it
+            # instead of passing a gate over a directory that was never read.
+            v._warn(f"listed path {d} is not a directory (not checked)", cat="validation")
             continue
         v.roots.append(os.path.abspath(d))
         v.check_tree(d)

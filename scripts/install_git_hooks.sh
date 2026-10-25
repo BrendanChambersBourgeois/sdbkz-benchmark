@@ -10,26 +10,47 @@
 #   bash scripts/install_git_hooks.sh
 #
 # Currently installs:
-#   - pre-commit: runs scripts/check_new_top_level_dirs.py
-#     (INC-39 guard — refuses commits that introduce un-allowlisted
+#   - pre-commit: optional local guard, then scripts/check_new_top_level_dirs.py
+#     (refuses commits that introduce un-allowlisted
 #     new top-level directories in the public repo).
+#   - commit-msg, pre-push: optional local guard only.
+#
+# Optional local guard: `git config --local hooks.localGuard /path/to/guard`
+# names an executable called as `guard <hook-name> [hook args]`. Once it is
+# set, every hook refuses to run without it (fail closed), so a reinstall
+# never drops it silently.
 
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-HOOK_DIR="$REPO_ROOT/.git/hooks"
+HOOK_DIR="$(git rev-parse --git-path hooks)"
 
 mkdir -p "$HOOK_DIR"
 
-cat > "$HOOK_DIR/pre-commit" <<'EOF'
-#!/usr/bin/env bash
-# Auto-installed pre-commit hook (regenerate via
-# `bash scripts/install_git_hooks.sh`). Local-only; not tracked in git.
-set -euo pipefail
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-exec python3 "$REPO_ROOT/scripts/check_new_top_level_dirs.py"
-EOF
+guard_prelude='G="$(git config --get hooks.localGuard || true)"
+if [ -n "$G" ]; then
+    [ -x "$G" ] || { echo "hooks.localGuard $G is set but not executable: refusing" >&2; exit 1; }
+fi'
 
-chmod +x "$HOOK_DIR/pre-commit"
-echo "installed: $HOOK_DIR/pre-commit"
-echo "  → runs scripts/check_new_top_level_dirs.py on every commit"
+write_hook() {  # name, body after the guard call
+  local name=$1 tail=$2
+  cat > "$HOOK_DIR/$name" <<EOF
+#!/usr/bin/env bash
+# Auto-installed $name hook (regenerate via
+# \`bash scripts/install_git_hooks.sh\`). Local-only; not tracked in git.
+set -euo pipefail
+$guard_prelude
+$tail
+EOF
+  chmod +x "$HOOK_DIR/$name"
+  echo "installed: $HOOK_DIR/$name"
+}
+
+write_hook pre-commit '[ -z "$G" ] || "$G" pre-commit
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+exec python3 "$REPO_ROOT/scripts/check_new_top_level_dirs.py"'
+write_hook commit-msg '[ -z "$G" ] || exec "$G" commit-msg "$1"'
+write_hook pre-push '[ -z "$G" ] || exec "$G" pre-push'
+
+guard="$(git config --get hooks.localGuard || true)"
+echo "  local guard: ${guard:-none (set hooks.localGuard to add one)}"

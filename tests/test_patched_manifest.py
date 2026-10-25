@@ -1,4 +1,4 @@
-"""INC-49 SHA gate: the Kahan-patched seeds are covered by a manifest.
+"""SHA gate: the Kahan-patched seeds are covered by a manifest.
 
 The 12 n=127 Kahan-patched validation seeds (paper Appendix A) were tracked by
 no manifest -- outside every SHA/orphan gate. results/patched_seed_manifest.json
@@ -16,7 +16,8 @@ import os
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIFEST = os.path.join(REPO_ROOT, "results", "patched_seed_manifest.json")
 TREES = [os.path.join(REPO_ROOT, "results", "seeds", d)
-         for d in ("ntru_patched", "q3329_kahan", "q3329_control")]
+         for d in ("ntru_patched", "ntru_patched_kahan_v3", "q3329_kahan",
+                   "q3329_control")]
 
 
 def _sha256(path):

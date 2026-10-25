@@ -213,7 +213,7 @@ def test_fat_suffix_composes_with_cloud():
 
 
 def test_q3329_rerun_arms_share_the_q3329_layout_under_own_roots():
-    # §8 local rerun (2026-09-02): rebuilt-fplll engines must never land in
+    # §8 local rerun: rebuilt-fplll engines must never land in
     # the SHA-locked canonical q3329/ tree.
     for tag in ("q3329_kahan", "q3329_control"):
         assert sp.seed_dir_for(tag, 100, 30, precision=1000, max_tours=70) == \
@@ -223,6 +223,16 @@ def test_q3329_rerun_arms_share_the_q3329_layout_under_own_roots():
         assert path.endswith(os.path.join(tag, "p1000_mt70", "n100_beta30",
                                           "seed0007.json"))
         assert "/q3329/" not in path.replace(os.sep, "/")
+
+
+def test_n127_kahan_v3_rerun_is_its_own_root():
+    # The tree name is the only engine provenance, so the
+    # corrected-build rerun must never land in ntru_patched/.
+    d = sp.seed_dir_for("ntru_patched_kahan_v3", 127, 20, q=971,
+                        precision=1000, max_tours=50)
+    assert d == os.path.join("results", "seeds", "ntru_patched_kahan_v3",
+                             "q971", "p1000_mt50", "n127_beta20")
+    assert "/ntru_patched/" not in d.replace(os.sep, "/")
 
 
 def test_g6k_vecprobe_tree_is_its_own_root():

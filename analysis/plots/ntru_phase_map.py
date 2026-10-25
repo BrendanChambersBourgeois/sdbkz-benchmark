@@ -10,10 +10,9 @@ criterion as the onset table, so it cannot disagree.
 
 n=127 is deliberately NOT plotted, matching its exclusion from the onset trend
 (paper 2 Section "Fatigue"): none of its 152 seeds carries the integer-exact
-`secret_recovered_*` verdict, so every cell is scored by the `_is_dsd`
+`secret_exact_match_*` verdict, so every cell is scored by the `_is_dsd`
 fallback, 16 seeds carry the -345 GSO clamp sentinel, and the n=127 crack is
-off-grid -- the cells above q_fat would be painted as false 0.00 rates
-(paper_findings 2026-09-18, figure-layer audit item 3).
+off-grid -- the cells above q_fat would be painted as false 0.00 rates.
 
 Grid is irregular -- some n carry a full q-ladder, others a single q=97
 dimension-sweep point -- so it is drawn as a coloured scatter, not a raster; the

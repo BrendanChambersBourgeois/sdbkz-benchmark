@@ -3,10 +3,13 @@
 
 Traces the q*(n) onset curve for a FIXED practical reduction (BKZ beta, max_tours,
 precision are the OBJECT of study, held constant) using the cancellation-free
-secret-recovery readout (``secret_recovered_*`` from exact integer basis norms;
-independent of the fpylll GSO -345 cancellation sentinel). For each n it hunts q
-upward from a low multiple of the fatigue line q_fat(n)=0.004*n^2.484 and does one
-of three things per cell verdict:
+secret-recovery readout (``secret_exact_match_*``: a reduced row equals +/- a
+rotation of the secret, via extract_dsd_onset._is_recovered, the per-seed verdict
+paper 2 scores; independent of the fpylll GSO -345 cancellation sentinel). The
+paper's estimand is not this readout but the per-variant 50%-rate crossing that
+extract_dsd_onset interpolates from it (see verdict() and _densify). For each n it
+hunts q upward from a low multiple of the fatigue line q_fat(n)=0.004*n^2.484 and
+does one of three things per cell verdict:
 
   * CRACK  -> bisect down to bracket the onset q*(n), then advance to the next n.
   * NULL, ratio still FALLING with q (cliff approaching) -> keep hunting up.
@@ -42,6 +45,7 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 from _config import ConfigError, load_campaign  # noqa: E402
 from _pidlock import acquire_pidlock, release_pidlock  # noqa: E402
+from extract_dsd_onset import _is_recovered  # noqa: E402
 from log import get_logger, new_run_id  # noqa: E402
 
 PIPELINE = get_logger("onset_driver")
@@ -63,13 +67,11 @@ CELL_ATTEMPTS = 2    # run a failing/stalled cell this many times total before
                      #   old raise-CellFailure-and-exit path, which let ONE
                      #   unwritable seed restart-loop the service into systemd's
                      #   StartLimitBurst and silently kill the month run
-                     #   (audit 2026-07-04 #3, major 1).
 
 # --- pool-stall watchdog ------------------------------------------------------
 # A native worker crash (segfault/abort in fplll/MPFR) kills the pool worker
 # without a Python exception; mp.Pool.imap_unordered then blocks forever and the
-# only escape used to be the full CELL_TIMEOUT_H burn (audit 2026-07-04 #3,
-# major 2). A live 20-worker cell accumulates ~1200 CPU-seconds per wall-minute;
+# only escape used to be the full CELL_TIMEOUT_H burn. A live 20-worker cell accumulates ~1200 CPU-seconds per wall-minute;
 # a hung pool accumulates ~0. Poll the child's process group and declare a stall
 # when the group gains < STALL_CPU_S CPU-seconds over STALL_WINDOW_S of wall.
 POLL_S = 60          # proc.poll()/CPU sample cadence
@@ -81,7 +83,7 @@ STALL_CPU_S = 60.0
 # the reportable onset (extract_dsd_onset per-variant 50%-rate crossing) sits
 # ABOVE first-crack (n=157: first-crack q2203 = SD 10%; SD 50% crossing ~q2354).
 # Without graded-rate cells above first-crack the crossing cannot be
-# interpolated (audit 2026-07-04 #3, major 5). After bracketing, keep stepping
+# interpolated. After bracketing, keep stepping
 # q upward in fine steps until both variants cross 50% or the cell budget runs
 # out (BKZ lags SD and may stay unbracketed -- logged, acceptable).
 DENSIFY_MAX = 3      # extra cells above the highest crack
@@ -89,8 +91,12 @@ DENSIFY_STEP = 0.10  # x q_fat -- finer than the hunt STEP_MULT
 DENSIFY_TARGET = 0.5
 
 # --- ratio-based wall detection ----------------------------------------------
-# ratio r(cell) = min_seed( min(min_actual_norm2_bkz, _sdbkz) / secret_norm2 ).
-# r <= 1.0  <=> a vector at least as short as the secret was found (a CRACK).
+# ratio r(cell) = min_seed( min(min_actual_norm2_bkz, _sdbkz) / secret_norm2 ),
+# over every leg. r <= 1.0 means some reduced row is at least as short as the
+# secret. That is NOT the verdict: verdict() scores an exact match (a row equal to
+# +/- a secret rotation). A CRACK cell always has r <= 1.0, but a NULL cell can
+# too, via a shorter non-secret row (e.g. n=173 q=4663 was NULL at
+# r=0.73 on 2026-10-09). The ratio steers only the wall test below and the log lines.
 # A real beta-wall sits in a LOW SATURATED BAND (n=173 ~40-52x, n=181 ~56-58x):
 # the basis stops shortening and parks tens-of-x above the secret. The PRE-cliff
 # region is different -- the ratio falls monotonically through the THOUSANDS
@@ -168,12 +174,13 @@ def verdict(n, q):
     The reportable onset is the per-variant 50%-rate crossing computed by
     scripts/extract_dsd_onset.py; first-crack sits systematically lower (~3.4%
     quantile at N=20) and is not variant-attributable. Never put this q on a
-    q*(n) trend axis (deep audit 2026-07-04, finding 4).
+    q*(n) trend axis.
 
     INCOMPLETE (None) means: fewer than SEEDS files, OR any seed is not
-    status=completed, OR any seed lacks BOTH recovery keys. Critically, an absent
-    recovery key is treated as INCOMPLETE (re-run), never silently as NULL -- that
-    was the bug in the throwaway tracer (missing key .get()->None->falsy->'NULL').
+    status=completed, OR any seed lacks BOTH secret_exact_match_* keys.
+    Critically, an absent key is treated as INCOMPLETE (re-run), never silently
+    as NULL -- that was the bug in the throwaway tracer (missing key
+    .get()->None->falsy->'NULL').
     """
     files = _cell_seeds(n, q)
     if len(files) < SEEDS:
@@ -186,11 +193,10 @@ def verdict(n, q):
             return None
         if j.get("status") != "completed":
             return None
-        has_bkz = "secret_recovered_bkz" in j
-        has_sd = "secret_recovered_sdbkz" in j
-        if not (has_bkz or has_sd):
+        rb, rs = _is_recovered(j, "bkz"), _is_recovered(j, "sdbkz")
+        if rb is None and rs is None:
             return None  # old-schema / missing readout -> re-run, do not call NULL
-        if j.get("secret_recovered_bkz") or j.get("secret_recovered_sdbkz"):
+        if rb or rs:
             cracked = True
     return "CRACK" if cracked else "NULL"
 
@@ -292,7 +298,7 @@ def _wait_with_watchdog(proc):
 
 def _legacy_cell(n, q):
     """True if the cell is fully populated with parseable, completed seeds that
-    ALL lack the recovery keys -- the pre-INC-51 schema (e.g. the published
+    ALL lack the recovery keys -- the pre-fix schema (e.g. the published
     n=113 beta40 q569-859 Fig6 cells). Such a cell can never verdict: the seeds
     parse, so run_campaign's resume-skip keeps them, and re-running regenerates
     nothing. Detect it up front instead of burning CELL_ATTEMPTS on it
@@ -307,7 +313,8 @@ def _legacy_cell(n, q):
             return False
         if j.get("status") != "completed":
             return False
-        if "secret_recovered_bkz" in j or "secret_recovered_sdbkz" in j:
+        if _is_recovered(j, "bkz") is not None or \
+                _is_recovered(j, "sdbkz") is not None:
             return False
     return True
 
@@ -397,8 +404,8 @@ def _variant_rates(n, q):
             j = json.load(open(f))
         except Exception:
             return None
-        cb += bool(j.get("secret_recovered_bkz"))
-        cs += bool(j.get("secret_recovered_sdbkz"))
+        cb += bool(_is_recovered(j, "bkz"))
+        cs += bool(_is_recovered(j, "sdbkz"))
     return cb / len(files), cs / len(files)
 
 
@@ -502,8 +509,8 @@ def _acquire_lock():
     Stale lock (pid dead) is reclaimed. A live pid whose /proc cmdline is NOT a
     python interpreter running onset_driver.py is a REUSED pid (SIGKILL left the
     lock; the pid was recycled) -- reclaimed too, else the month run silently
-    never restarts (audit 2026-07-04 #3 minor 6; anchored match audit #4).
-    Ultrareview PR #3 (2026-08-21): the exists()->write_text() pair was a TOCTOU
+    never restarts.
+    The exists()->write_text() pair was a TOCTOU
     (two racers both passed the check and both "held" the lock); now the shared
     _pidlock helper does an atomic create. Returns True on success.
     """

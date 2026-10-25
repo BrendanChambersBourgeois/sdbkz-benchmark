@@ -182,7 +182,7 @@ print(f'{name}|{started}|{n}|{beta}|{seed_start}|{seed_end}|{q}')
     # v2.0.0: prefix tracks the v1.3 campaign tree
     # (`results/seeds/<campaign>/...` — same layout as the on-disk
     # tree post-symlink-drop). Cloud campaign is decommissioned
-    # (2026-04-10); on any future restart the cloud-side writer
+    # On any future restart the cloud-side writer
     # (sweep_cloud.s3_key) lands seeds at the same prefix the watchdog
     # now scans. Filenames end with `_cloud.json` on the cloud side
     # (per `_seed_paths._leaf_name` cloud=True suffix).

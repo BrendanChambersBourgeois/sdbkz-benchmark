@@ -17,8 +17,9 @@ ed = importlib.import_module("extract_dsd_onset")
 
 def _seed(recovered=None, gs=None, variant="sdbkz"):
     j = {}
-    if recovered is not None:
+    if recovered is not None:   # real seeds carry both keys (_bkz_core writes the pair)
         j[f"secret_recovered_{variant}"] = recovered
+        j[f"secret_exact_match_{variant}"] = recovered
     if gs is not None:
         j[f"gs_lognorms_{variant}"] = gs
     return j
@@ -35,6 +36,14 @@ def test_recovered_true_fires_regardless_of_gs():
 def test_recovered_false_is_no_fire():
     s = _seed(recovered=False, gs=[2.0] * 50)   # gs would _is_dsd->True
     assert ed._seed_fires(s, "sdbkz", 157) is False
+
+
+def test_all_ones_leg_is_no_fire():
+    # g(1)=0 key: (0, 1) has norm2 n < secret -> recovered True, exact False.
+    # Exact match wins even though gs would _is_dsd->True.
+    s = {"secret_recovered_sdbkz": True, "secret_exact_match_sdbkz": False,
+         "gs_lognorms_sdbkz": [2.0] * 50}
+    assert ed._seed_fires(s, "sdbkz", 167) is False
 
 
 def test_prefix_seed_routes_through_is_dsd():
@@ -84,3 +93,28 @@ def test_cell_rate_prefix_cell_matches_is_dsd(base):
     fires, total = ed._cell_rate("ntru", 89, 20, 200, "sdbkz")
     expect = sum(ed._is_dsd(s, "sdbkz", 89) for s in seeds)
     assert (fires, total) == (expect, 5)
+
+
+def test_cell_rate_reads_one_tour_budget(base):
+    # mt580 control beside the mt50 ladder: default counts mt50 only.
+    _write(base, "ntru", 167, 40, 3061, [_seed(recovered=False)] * 20)
+    d = base / "results" / "seeds" / "ntru" / "q3061" / "p500_mt580" / "n167_beta40"
+    d.mkdir(parents=True)
+    for i in range(8):
+        (d / f"seed{i:04d}.json").write_text(json.dumps(_seed(recovered=True)))
+    assert ed._cell_rate("ntru", 167, 40, 3061, "sdbkz") == (0, 20)
+    assert ed._cell_rate("ntru", 167, 40, 3061, "sdbkz", max_tours=580) == (8, 8)
+    assert ed._q_grid("ntru", 167, 40, max_tours=200) == []
+
+
+def test_cell_rate_pools_precisions_at_one_budget(base):
+    # n=89 q=97 shape: p250_mt50 + p500_mt50 reruns with the same seed ids.
+    # Both precisions count (5 + 4 = 9 seeds); q appears once on the grid.
+    for prec, seeds in (("p250", [_seed(recovered=True)] * 3 + [_seed(recovered=False)] * 2),
+                        ("p500", [_seed(recovered=True)] * 2 + [_seed(recovered=False)] * 2)):
+        d = base / "results" / "seeds" / "ntru" / "q97" / f"{prec}_mt50" / "n089_beta20"
+        d.mkdir(parents=True)
+        for i, s in enumerate(seeds):
+            (d / f"seed{i + 1:04d}.json").write_text(json.dumps(s))
+    assert ed._cell_rate("ntru", 89, 20, 97, "sdbkz") == (5, 9)
+    assert ed._q_grid("ntru", 89, 20) == [97]

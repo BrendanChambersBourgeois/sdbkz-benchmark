@@ -46,13 +46,71 @@ RESOLVED (Phase 3 science):
 """
 from __future__ import annotations
 
+import time
 from typing import Any
 
 from fpylll import BKZ, FPLLL, GSO, IntegerMatrix
+from fpylll.tools.bkz_stats import Tracer
 
 FPLLL_BACKEND = "fplll"
 G6K_BACKEND = "g6k"
 BACKENDS = (FPLLL_BACKEND, G6K_BACKEND)
+
+
+class _SieveTimer(Tracer):
+    """Opt-in per-pass sieve accounting for the g6k backend.
+
+    Every context other than a pump is a sieve call, counted under its label
+    (gauss, hk3, bgj1, ... and anything a build adds). Reads only clocks,
+    ``g6k.n`` (sieve dimension) and ``len(g6k)`` (db size) when a context
+    exits. g6k's own SieveTreeTracer also calls
+    ``M.update_gso()`` on every exit, which this deliberately does not, so the
+    reduction is the dummy_tracer one (tests/test_sieve_trace_g6k.py).
+    """
+
+    def __init__(self, g6k: Any) -> None:
+        Tracer.__init__(self, g6k)
+        self._open: list[tuple[Any, float, float]] = []
+        self.reset()
+
+    def reset(self) -> None:
+        self.by_alg: dict[str, list] = {}  # alg -> [calls, cpu_s, wall_s]
+        self.by_dim: dict[int, list] = {}  # sieve dim -> [calls, cpu_s]
+        self.max_db = 0
+        self.pumps: list[tuple[int, float, float]] = []  # (index, cpu, wall)
+
+    def enter(self, label: Any, **kwds: Any) -> None:
+        self._open.append((label, time.process_time(), time.monotonic()))
+
+    def exit(self, **kwds: Any) -> None:
+        label, c0, w0 = self._open.pop()
+        cpu, wall = time.process_time() - c0, time.monotonic() - w0
+        kind = str(label[0] if isinstance(label, tuple) else label)
+        if kind == "pump":
+            self.pumps.append((len(self.pumps), cpu, wall))
+        else:
+            a = self.by_alg.setdefault(kind, [0, 0.0, 0.0])
+            a[0] += 1
+            a[1] += cpu
+            a[2] += wall
+            d = self.by_dim.setdefault(int(self.instance.n), [0, 0.0])
+            d[0] += 1
+            d[1] += cpu
+            self.max_db = max(self.max_db, len(self.instance))
+
+    def summary(self, top: int = 5) -> dict[str, Any]:
+        """One pass (pump-n-jump tour), compact enough for a jsonl record."""
+        slow = sorted(self.pumps, key=lambda p: p[1], reverse=True)[:top]
+        return {
+            "pumps": len(self.pumps),
+            "by_alg": {k: [c, round(cpu, 3), round(w, 3)]
+                       for k, (c, cpu, w) in sorted(self.by_alg.items())},
+            "by_dim": {str(k): [c, round(cpu, 3)]
+                       for k, (c, cpu) in sorted(self.by_dim.items())},
+            "max_db": self.max_db,
+            "slowest_pumps": [[i, round(c, 3), round(w, 3)]
+                              for i, c, w in slow],
+        }
 
 
 class _FplllBackend:
@@ -86,8 +144,7 @@ class _FplllBackend:
         # tour() is already mpfr). Default "double" keeps the historical call
         # byte-identical; "mpfr" (at the ambient FPLLL precision the driver
         # set) removes the catastrophic get_r cancellation at frontier dims
-        # (deep audit 2026-07-04 finding 1: dim 334 double GSO yields r<=0 ->
-        # the -345 clamp sentinel; mpfr yields 0 such positions).
+        # (dim 334 double GSO yields r<=0, the -345 clamp sentinel; mpfr none).
         if self.metric_float_type == "double":
             M = GSO.Mat(self.B)
         else:
@@ -105,7 +162,7 @@ class _G6kBackend:
     """
 
     def __init__(self, *, B_init: IntegerMatrix, beta: int, variant: str,
-                 seed: int) -> None:
+                 seed: int, sieve_trace: bool = False) -> None:
         if variant not in ("bkz", "sdbkz"):
             raise ValueError(f"unknown g6k variant {variant!r}")
         # Import lazily: the fplll path (and its container) has no g6k.
@@ -122,11 +179,21 @@ class _G6kBackend:
         # 'seed' key in this build (no-op) — do not add one.
         FPLLL.set_random_seed(seed)
         self.g6k = Siever(A, SieverParams(threads=1))
+        # sieve_trace: per-pass summaries of the last tour, read by the
+        # driver's tour_cb; None when tracing is off.
+        self._timer = _SieveTimer(self.g6k) if sieve_trace else None
+        self.tour_stats: dict[str, Any] | None = None
 
-    def _pnj(self) -> None:
-        from fpylll.tools.bkz_stats import dummy_tracer
-        self._tour_fn(self.g6k, dummy_tracer, self.beta,
+    def _pnj(self) -> dict[str, Any] | None:
+        if self._timer is None:
+            from fpylll.tools.bkz_stats import dummy_tracer
+            self._tour_fn(self.g6k, dummy_tracer, self.beta,
+                          pump_params={"down_sieve": True})
+            return None
+        self._timer.reset()
+        self._tour_fn(self.g6k, self._timer, self.beta,
                       pump_params={"down_sieve": True})
+        return self._timer.summary()
 
     def tour(self) -> None:
         """One tour. "bkz" = one primal pump-n-jump BKZ tour. "sdbkz" =
@@ -138,12 +205,14 @@ class _G6kBackend:
         validated end-to-end against it on matched lattices (ADR-008). Both
         sub-tours are threads=1, so the self-dual tour is deterministic
         (ADR-007)."""
-        self._pnj()  # primal
+        stats = {"primal": self._pnj()}
         if self.variant == "sdbkz":
             with self.g6k.temp_params(
                 dual_mode=not self.g6k.params.dual_mode
             ):
-                self._pnj()  # dual
+                stats["dual"] = self._pnj()
+        if self._timer is not None:
+            self.tour_stats = stats
 
     def reseed(self, seed: int) -> None:
         """Re-seed fplll's global RNG (the sieve sampler's source). Used to
@@ -158,7 +227,8 @@ class _G6kBackend:
 
 def make_backend(name: str, *, B_init: IntegerMatrix, beta: int,
                  variant: str, seed: int, precision: int,
-                 metric_float_type: str = "double") -> Any:
+                 metric_float_type: str = "double",
+                 sieve_trace: bool = False) -> Any:
     """Build the per-variant reducer for `name` ('fplll' | 'g6k').
 
     `variant` is "bkz" or "sdbkz"; `seed` and `precision` are taken by both
@@ -169,6 +239,8 @@ def make_backend(name: str, *, B_init: IntegerMatrix, beta: int,
     any non-default value. Raises ValueError on an unknown backend name.
     """
     if name == FPLLL_BACKEND:
+        if sieve_trace:
+            raise ValueError("sieve_trace is g6k-only")
         return _FplllBackend(B_init=B_init, beta=beta, variant=variant,
                              precision=precision,
                              metric_float_type=metric_float_type)
@@ -179,7 +251,7 @@ def make_backend(name: str, *, B_init: IntegerMatrix, beta: int,
                 f"through the Siever's GSO (got {metric_float_type!r})"
             )
         return _G6kBackend(B_init=B_init, beta=beta, variant=variant,
-                           seed=seed)
+                           seed=seed, sieve_trace=sieve_trace)
     raise ValueError(
         f"unknown backend {name!r}; expected one of {BACKENDS}"
     )

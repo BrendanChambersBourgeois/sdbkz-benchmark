@@ -1,6 +1,6 @@
-"""_run_tasks_capped — the INC-56 per-seed wall-cap scheduler.
+"""_run_tasks_capped — the per-seed wall-cap scheduler.
 
-Ultrareview PR #3 (2026-08-21): a worker that dies natively (SIGSEGV in fplll /
+A worker that dies natively (SIGSEGV in fplll /
 MPFR / the g6k siever, or an external SIGKILL) bypasses the BaseException guard
 in _seed_worker_to_queue, so nothing reaches the queue; previously it was
 `del running[p]` and gone -- neither results nor killed, no log line, the wave
@@ -105,7 +105,7 @@ def test_wall_cap_kill_still_separate_from_crash(events, monkeypatch):
 
 
 def test_wall_cap_event_has_variant_and_ts(events, monkeypatch):
-    """INC-58 note closed: kill records must carry the in-flight leg + ts."""
+    """kill records must carry the in-flight leg + ts."""
     def _worker(task, leg_notify=None):
         if leg_notify:
             leg_notify("bkz")

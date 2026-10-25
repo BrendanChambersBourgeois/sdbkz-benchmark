@@ -58,7 +58,7 @@ def _mings_records() -> list[dict]:
         src = cell[eng][var]["med_min_gs"]
         recs.append({
             "claim_id": cid,
-            "tex_lines": [589],
+            "tex_anchors": [r"& 0.255 & 0.104 & \textbf{1.844} & 0.140"],
             "verbatim": "median min_i log||b*_i||: 0.255 / 0.104 / 1.844 / 0.140",
             "paper_value": paper,
             "source": {"kind": "validation_json", "path": rel,
@@ -81,7 +81,7 @@ def _mings_records() -> list[dict]:
         src = cell[eng][var]["b1"]
         recs.append({
             "claim_id": cid,
-            "tex_lines": [585, 688],
+            "tex_anchors": [r"& 38/100 & 12/100 & 61/100 & 23/100"],
             "verbatim": "min-GS-clearing @ q=137: 38/100 12/100 61/100 23/100",
             "paper_value": paper,
             "source": {"kind": "validation_json", "path": rel,
@@ -99,8 +99,8 @@ def _mings_records() -> list[dict]:
     nats = sd_g6k - sd_fpl
     recs.append({
         "claim_id": "mings_nats",
-        "tex_lines": [688],
-        "verbatim": "median log-norm 1.844 (sieve) vs 0.255 (enum), +1.59 nats",
+        "tex_anchors": [r"is $1.59$ nats higher on the sieve"],
+        "verbatim": "median min-GS log-norm 1.59 nats higher on the sieve (1.844 vs 0.255)",
         "paper_value": 1.59,
         "source": {"kind": "validation_json", "path": rel,
                    "field": "g6k.SD.med_min_gs - fplll.SD.med_min_gs (q137_N100_tight)"},
@@ -115,7 +115,7 @@ def _mings_records() -> list[dict]:
     ratio = math.exp(nats)
     recs.append({
         "claim_id": "mings_ratio",
-        "tex_lines": [689],
+        "tex_anchors": [r"${\approx}4.9\times$ in norm"],
         "verbatim": "~4.9x in vector norm",
         "paper_value": 4.9,
         "source": {"kind": "validation_json", "path": rel,
@@ -146,7 +146,7 @@ def _xengine_records() -> list[dict]:
     g6_max = max(_max_abs(101, "g6k_rhf_diff"), _max_abs(113, "g6k_rhf_diff"))
     recs.append({
         "claim_id": "rhf_g6k_bit_identical_n101_113",
-        "tex_lines": [503, 504],
+        "tex_anchors": [r"bit-identical on G6K"],
         "verbatim": "at n=101/113 the stored Hermite-factor values of the G6K "
                     "BKZ and SD-BKZ bases are bit-identical seed-for-seed",
         "paper_value": 0.0,
@@ -160,36 +160,35 @@ def _xengine_records() -> list[dict]:
         "note": "g6k SD-BKZ vs BKZ RHF is bit-identical (0.0 exactly) on all 40 seeds.",
     })
 
-    # -- RHF: fplll RHF diff <= 2e-6 at n=101/113  (STRICT MAX FAILS) --------
+    # -- RHF: fplll |dHF| ~1e-6, outliers to 1.8e-5 at n=101/113 -------------
+    # claim_id keeps the old "le_2e-6" name for key stability (tex reworded the
+    # bound to "outliers to 1.8e-5").
     fp101 = _max_abs(101, "fplll_rhf_diff")
     fp113 = _max_abs(113, "fplll_rhf_diff")
     fp_max = max(fp101, fp113)
-    # medians for the honest interpretation note
+    # medians for the "~1e-6" typical size
     import statistics as st
     med101 = st.median([abs(r["fplll_rhf_diff"]) for r in xd[101]["data"]["per_seed"]
                         if r["fplll_rhf_diff"] is not None])
     med113 = st.median([abs(r["fplll_rhf_diff"]) for r in xd[113]["data"]["per_seed"]
                         if r["fplll_rhf_diff"] is not None])
+    rhf_ok = _approx(fp_max, 1.8e-5, 0.05e-5)   # half a printed unit
     recs.append({
         "claim_id": "rhf_fplll_le_2e-6_n101_113",
-        "tex_lines": [504, 505, 506],
-        "verbatim": "on fplll the BKZ-vs-SD-BKZ Hermite factors hold to "
-                    "<=2x10^-6 across 20 seeds at each of n=67/101/113",
-        "paper_value": 2e-6,
+        "tex_anchors": [r"($|\Delta\mathrm{HF}|\sim10^{-6}$, outliers to",
+                        r"$1.8\times10^{-5}$)"],
+        "verbatim": "on fplll |dHF| ~1e-6, outliers to 1.8e-5 (n=101/113, q=97)",
+        "paper_value": 1.8e-5,
         "source": {"kind": "validation_json",
                    "path": "results/validation/g6k_sd_xengine_n{101,113}_mt50.json",
                    "field": "max_seed |data.per_seed[*].fplll_rhf_diff|"},
         "method": "max abs fplll_rhf_diff over 20 seeds at n=101/113 (POINTER)",
         "recomputed_value": fp_max,
-        "match": fp_max <= 2e-6,
-        "status": "DERIVED-UNRESOLVED",
-        "note": (f"STRICT MAX VIOLATES the <=2e-6 bound: max|fplll_rhf_diff| = "
-                 f"{fp101:.2e} (n=101) / {fp113:.2e} (n=113). The MEDIAN does hold "
-                 f"(~{med101:.1e} n=101 / ~{med113:.1e} n=113); ~2-3 outlier seeds "
-                 f"per cell reach 1-1.8e-5. tex n=67 leg not checkable (no "
-                 f"g6k_sd_xengine_n67 file committed). Flag for human: either the "
-                 f"<=2e-6 is a median/typical bound (relax tex wording) or the "
-                 f"outlier seeds need explaining. Do NOT edit tex from the ledger."),
+        "match": rhf_ok,
+        "status": "POINTER" if rhf_ok else "DERIVED-UNRESOLVED",
+        "note": (f"max|fplll_rhf_diff| = {fp101:.2e} (n=101) / {fp113:.2e} (n=113), "
+                 f"median ~{med101:.1e} / ~{med113:.1e}: tex '~1e-6, outliers to "
+                 f"1.8e-5' (reworded from <=2e-6)."),
     })
 
     # -- gs0 2.332 for the jointly-fired n=89 seed (seed 19), bit-identical --
@@ -198,7 +197,7 @@ def _xengine_records() -> list[dict]:
     assert fs0 == gs0, f"n=89 seed19 gs0 not bit-identical: {fs0} vs {gs0}"
     recs.append({
         "claim_id": "gs0_n89_fired_seed19",
-        "tex_lines": [523, 531],
+        "tex_anchors": [r"matches exactly ($2.332$)"],
         "verbatim": "the jointly-fired n=89 seed matches exactly (2.332)",
         "paper_value": 2.332,
         "source": {"kind": "validation_json",
@@ -213,12 +212,14 @@ def _xengine_records() -> list[dict]:
     })
 
     # -- Jaccard agreement per n --------------------------------------------
+    xeng_row = {89: "89  & 2/20 & 1/20 & 0.50", 101: "101 & 0/20 & 0/20 & 1.00",
+                113: "113 & 0/20 & 0/20 & 1.00"}   # tab:xeng-sound rows (tex spacing)
     jac_spec = [(89, 0.50), (101, 1.00), (113, 1.00)]
     for n, paper in jac_spec:
         src = xd[n]["data"]["jaccard_agreement"]
         recs.append({
             "claim_id": f"jaccard_n{n}",
-            "tex_lines": [520, 521, 534],
+            "tex_anchors": [xeng_row[n]],
             "verbatim": f"Jaccard n={n} = {paper:.2f} "
                         f"({'0/0 vacuous' if paper == 1.00 else 'real'})",
             "paper_value": paper,
@@ -246,7 +247,7 @@ def _xengine_records() -> list[dict]:
         assert matched == 20, f"n={n} matched_seeds != 20"
         recs.append({
             "claim_id": cid,
-            "tex_lines": [534, 535, 536],
+            "tex_anchors": [xeng_row[n]],
             "verbatim": f"tab:xeng-sound n={n} {key.split('_')[0]} fired {paper}/20",
             "paper_value": paper,
             "source": {"kind": "validation_json", "path": xfiles[n],
@@ -269,7 +270,7 @@ def _xengine_records() -> list[dict]:
         src = slope[eng]
         recs.append({
             "claim_id": cid,
-            "tex_lines": [247, 248, 494, 495],
+            "tex_anchors": [r"(fplll $-0.00039$ vs G6K $-0.00040$)"],
             "verbatim": "per-tour GS-slope-flattening signature "
                         "(-0.00039 vs G6K -0.00040)",
             "paper_value": paper,
@@ -287,20 +288,27 @@ def _xengine_records() -> list[dict]:
 # --------------------------------------------------------------------------- #
 #  (3) coverage: 8704 seed pairs over 147 (n,beta,q) cells                     #
 # --------------------------------------------------------------------------- #
-# Paper-2 fplll dimensions (coverage table tab:coverage rows). The 'ntru'
-# campaign in seed_manifest.json also carries the n>=157 frontier onset runs
-# (157/167/173/181) which are NOT part of the paper-2 coverage table, so the
-# cell filter restricts to these dimensions.
+# tab:coverage scope (frozen Paper 2 data: fplll 6,320 + G6K
+# 2,384). The 'ntru' campaign and the g6k manifest also hold rows outside the
+# table: the n>=157 frontier ladders (both engines) and the native beta=40
+# ladders at n in {109,127,131,137,139,149,151}. The table's n=127 row is
+# beta=20 only, so (127, 40) is excluded by (n, beta).
 P2_FPLLL_N = {59, 61, 67, 71, 73, 79, 83, 89, 101, 113, 127}
+P2_EXCLUDE = {(127, 40)}
+
+
+def in_coverage(s: dict) -> bool:
+    """True iff manifest row s is counted in tab:coverage (either engine)."""
+    return s["n"] in P2_FPLLL_N and (s["n"], s["beta"]) not in P2_EXCLUDE
 
 
 def _coverage_records() -> list[dict]:
     man = _load("results/seed_manifest.json")
     g6man = _load("results/g6k_seed_manifest.json")
 
-    fp = [s for s in man["seeds"]
-          if s["campaign"] == "ntru" and s["n"] in P2_FPLLL_N]
-    g6 = g6man["seeds"]
+    ntru = [s for s in man["seeds"] if s["campaign"] == "ntru"]
+    fp = [s for s in ntru if in_coverage(s)]
+    g6 = [s for s in g6man["seeds"] if in_coverage(s)]
 
     n_fplll = len(fp)     # 6320  (== tab:coverage N_fplll total)
     n_g6k = len(g6)       # 2384  (== tab:coverage N_G6K total)
@@ -313,34 +321,35 @@ def _coverage_records() -> list[dict]:
     recs = [
         {
             "claim_id": "coverage_fplll_total",
-            "tex_lines": [331],
+            "tex_anchors": [r"\multicolumn{5}{r}{total} & 6320 & 2384"],
             "verbatim": "tab:coverage total N_fplll = 6320",
             "paper_value": 6320,
             "source": {"kind": "seed_manifest", "path": "results/seed_manifest.json",
-                       "field": "count(seeds where campaign=='ntru' and n in P2_FPLLL_N)"},
-            "method": "filter seed_manifest to paper-2 fplll dimensions and count (POINTER)",
+                       "field": "count(seeds where campaign=='ntru' and in_coverage)"},
+            "method": "filter seed_manifest to tab:coverage scope and count (POINTER)",
             "recomputed_value": n_fplll,
             "match": n_fplll == 6320,
             "status": "POINTER",
-            "note": "excludes n>=157 frontier onset runs (157/167/173/181, 420 seeds) "
-                    "that live in the same 'ntru' campaign but not the paper-2 grid.",
+            "note": f"excludes {len(ntru) - n_fplll} 'ntru' rows outside the table "
+                    "(n>=157 frontier ladders, native beta=40 ladders incl. n=127).",
         },
         {
             "claim_id": "coverage_g6k_total",
-            "tex_lines": [331],
+            "tex_anchors": [r"\multicolumn{5}{r}{total} & 6320 & 2384"],
             "verbatim": "tab:coverage total N_G6K = 2384",
             "paper_value": 2384,
             "source": {"kind": "seed_manifest", "path": "results/g6k_seed_manifest.json",
-                       "field": "len(seeds)"},
-            "method": "count entire committed g6k manifest (POINTER)",
+                       "field": "count(seeds where in_coverage)"},
+            "method": "count g6k manifest rows in tab:coverage scope (POINTER)",
             "recomputed_value": n_g6k,
             "match": n_g6k == 2384,
             "status": "POINTER",
-            "note": "whole g6k manifest is paper-2 (n in {67,79,89,101,113}).",
+            "note": f"excludes {len(g6man['seeds']) - n_g6k} g6k rows at n>=157 "
+                    "(frontier, outside the table).",
         },
         {
             "claim_id": "coverage_seed_pairs",
-            "tex_lines": [301],
+            "tex_anchors": [r"Totals: 8{,}704 seed pairs over 147 $(n,\beta,q)$ cells"],
             "verbatim": "8,704 seed pairs over 147 (n,beta,q) cells",
             "paper_value": 8704,
             "source": {"kind": "seed_manifest",
@@ -354,7 +363,7 @@ def _coverage_records() -> list[dict]:
         },
         {
             "claim_id": "coverage_cells",
-            "tex_lines": [301],
+            "tex_anchors": [r"Totals: 8{,}704 seed pairs over 147 $(n,\beta,q)$ cells"],
             "verbatim": "147 (n,beta,q) cells, q in [97,1811]",
             "paper_value": 147,
             "source": {"kind": "seed_manifest",

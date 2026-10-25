@@ -4,25 +4,21 @@ Library-only module — no main entry point. Imported by:
   - scripts/estimate_sweep_time.py  (CLI wrapper, ad-hoc planning)
   - scripts/run_convergence.py      (dispatcher, ETA at sweep launch)
 
-The estimator combines two methods, surfaces both, and recommends one:
+The estimator computes two methods and recommends naive:
 
   Naive method
-      Multiply median per-tour cost (from existing seed JSONs at the
-      target ``(n, β)``) by ``max_tours``. Overestimates long runs
-      because BKZ AUTO_ABORT and basis stabilisation cause per-tour
-      cost to drop in late tours — empirically observed at roughly
-      0.6× the naive prediction for ``mt1000`` runs.
+      Median seed wall at the target ``(n, β[, q])``, each leg projected
+      to ``max_tours`` (early-stopped legs keep their tours), keyed on
+      precision. Recommended.
 
   Anchored method
       Scale a *completed* long-run reference (``mt1000`` preferred,
       ``mt500`` fallback) by the ratio of per-tour costs at the target
-      ``(n, β)`` versus the anchor's ``(n, β)``. Substantially more
-      accurate when an anchor exists and the calling code's per-tour
-      cost regime hasn't drifted from the anchor's.
+      ``(n, β)`` versus the anchor's ``(n, β)``. Reference only: it lost
+      the backtest.
 
-The estimator never crashes on missing data or stale anchors; it
-falls back to naive with a note in ``SweepEstimate.notes`` and flips
-``method_recommended`` accordingly.
+The estimator never crashes on missing data or stale anchors; degraded
+estimates carry a note in ``SweepEstimate.notes``.
 
 Anchor staleness
 ----------------
@@ -30,7 +26,7 @@ Per-seed JSONs do not embed a git SHA (would break the paper-safety
 SHA-256 chain on re-runs). We use seed-file mtime as a proxy for
 "how recent was this anchor measured". If the youngest anchor seed is
 older than ``anchor_age_warn_days`` (default 7), the estimator logs
-a warning, flips ``method_recommended`` to ``"naive"``, and reports
+a warning, suppresses the anchored figures, and reports
 ``anchor_age_days`` so the caller can audit. The most recent commit
 to the load-bearing numerical files
 (``scripts/_bkz_core.py`` / ``scripts/_math_core.py``) is included in
@@ -43,7 +39,9 @@ an optional ``cache_path`` argument; when present and fresher than
 every seed file the cache covers, the JSON is read in O(ms). Cache
 freshness is mtime-based — never trust silently. The cache is written
 by ``scripts/build_seed_manifest.py`` after manifest rebuild (see
-:func:`per_tour_cost_table_to_dict` / :func:`per_tour_cost_table_from_dict`).
+:func:`per_tour_cost_table_to_dict` / :func:`per_tour_cost_table_from_dict`)
+and read by the Paper 2 core-hours claim; :func:`estimate_sweep_wall`
+does not use it.
 """
 from __future__ import annotations
 
@@ -55,7 +53,8 @@ import os
 import statistics
 import subprocess
 import time
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
+from operator import attrgetter
 from typing import Literal, Optional
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -188,6 +187,8 @@ def _lookup_cost(
     below = [(nk, row) for nk, row in same_beta if nk < n]
     above = [(nk, row) for nk, row in same_beta if nk > n]
 
+    negative: list[str] = []  # raw values of a blend clamped to 0, for the note
+
     def _blend(p1_n: int, p1: PerTourCost, p2_n: int, p2: PerTourCost) -> PerTourCost:
         # Linear blend; works for both interpolation (n between p1_n,p2_n)
         # and extrapolation (n outside the bracket).
@@ -195,8 +196,13 @@ def _lookup_cost(
             t = 0.0
         else:
             t = (n - p1_n) / (p2_n - p1_n)
-        bkz = max(0.0, p1.bkz_seconds_per_tour + t * (p2.bkz_seconds_per_tour - p1.bkz_seconds_per_tour))
-        sdb = max(0.0, p1.sdbkz_seconds_per_tour + t * (p2.sdbkz_seconds_per_tour - p1.sdbkz_seconds_per_tour))
+        raw_bkz = p1.bkz_seconds_per_tour + t * (p2.bkz_seconds_per_tour - p1.bkz_seconds_per_tour)
+        raw_sdb = p1.sdbkz_seconds_per_tour + t * (p2.sdbkz_seconds_per_tour - p1.sdbkz_seconds_per_tour)
+        if raw_bkz < 0 or raw_sdb < 0:
+            negative.append(f" Linear extrapolation went negative (bkz {raw_bkz:.3g}s, "
+                            f"sdbkz {raw_sdb:.3g}s per tour); clamped to 0.")
+        bkz = max(0.0, raw_bkz)
+        sdb = max(0.0, raw_sdb)
         return PerTourCost(
             n=n, beta=beta,
             bkz_seconds_per_tour=bkz,
@@ -249,7 +255,7 @@ def _lookup_cost(
                 f"max observed below-target anchor ({below_max_total:.1f}s); "
                 "clamped to that floor on monotone-cost grounds."
             )
-        return cost, note
+        return cost, note + "".join(negative)
 
     if len(above) >= 2:
         p1_n, p1 = above[0]
@@ -260,7 +266,7 @@ def _lookup_cost(
             f"Per-tour cost for (n={n}, β={beta}) linearly extrapolated "
             f"from anchors at n={p1_n} and n={p2_n} ({gap} dim below first "
             "above-target anchor; no observed n≤target at this β)."
-        )
+        ) + "".join(negative)
 
     nk, only_row = same_beta[0]
     nn = PerTourCost(
@@ -321,31 +327,11 @@ def _seed_tours_run(d: dict, key: str, array_key: str) -> int:
         return 0
 
 
-def _per_tour_from_seed(d: dict) -> Optional[tuple[float, float]]:
-    """Extract ``(bkz_per_tour, sdbkz_per_tour)`` seconds from one seed dict.
-
-    Returns None if any required field is missing or zero (avoids div-by-zero).
-    Tour-count resolution prefers the per-side ``tours_run`` field, then
-    the per-tour array length, then ``max_tours``; this matters for runs
-    that AUTO_ABORTed before their nominal max budget.
-    """
-    try:
-        bkz_t = float(d["bkz_time"])
-        sd_t = float(d["sdbkz_time"])
-    except (KeyError, ValueError, TypeError):
-        return None
-    bkz_tr = _seed_tours_run(d, "bkz_tours_run", "bkz_dln_per_tour")
-    sd_tr = _seed_tours_run(d, "sdbkz_tours_run", "sdbkz_dln_per_tour")
-    if bkz_tr <= 0 or sd_tr <= 0:
-        return None
-    return bkz_t / bkz_tr, sd_t / sd_tr
-
-
 def _expand_globs(patterns: Sequence[str]) -> list[str]:
     out: list[str] = []
     for pat in patterns:
         path = pat if os.path.isabs(pat) else os.path.join(REPO_ROOT, pat)
-        out.extend(glob.glob(path))
+        out.extend(glob.glob(path, recursive=True))
     return out
 
 
@@ -450,67 +436,169 @@ def per_tour_cost_table(
                     if table:
                         return table
 
-    table: dict[tuple[int, int], list[tuple[float, float]]] = {}
-    for path in seed_paths:
+    return _median_cost_table(_seed_rows(seed_paths), _BY_NB)
+
+
+@dataclasses.dataclass(frozen=True)
+class _SeedRow:
+    """Timing fields of one seed JSON."""
+    path: str
+    mtime: float
+    n: int
+    beta: int
+    q: Optional[int]
+    precision: Optional[int]
+    max_tours: Optional[int]
+    bkz_time: float
+    sdbkz_time: float
+    bkz_tours_run: int
+    sdbkz_tours_run: int
+    bkz_early: bool
+    sdbkz_early: bool
+
+
+def _seed_rows(paths: Iterable[str]) -> list[_SeedRow]:
+    """Read each seed JSON once; unreadable or malformed seeds dropped."""
+    rows: list[_SeedRow] = []
+    for path in paths:
         d = _read_seed_json(path)
         if d is None:
             continue
         try:
-            n = int(d["n"])
-            beta = int(d["beta"])
-        except (KeyError, ValueError, TypeError):
+            n = int(d["n"]); beta = int(d["beta"])
+            bkz_t = float(d["bkz_time"]); sd_t = float(d["sdbkz_time"])
+            q = _int_or_none(d.get("q", 97))
+            precision = _int_or_none(d.get("precision"))
+            mt = _int_or_none(d.get("max_tours"))
+            mtime = os.path.getmtime(path)
+        except (KeyError, ValueError, TypeError, OSError):
             continue
-        per = _per_tour_from_seed(d)
-        if per is None:
+        bkz_tr = _seed_tours_run(d, "bkz_tours_run", "bkz_dln_per_tour")
+        sd_tr = _seed_tours_run(d, "sdbkz_tours_run", "sdbkz_dln_per_tour")
+        if bkz_tr <= 0 or sd_tr <= 0:
             continue
-        table.setdefault((n, beta), []).append(per)
+        rows.append(_SeedRow(
+            path=path, mtime=mtime, n=n, beta=beta,
+            q=q, precision=precision, max_tours=mt,
+            bkz_time=bkz_t, sdbkz_time=sd_t,
+            bkz_tours_run=bkz_tr, sdbkz_tours_run=sd_tr,
+            bkz_early=_stopped_early(d.get("bkz_termination"), bkz_tr, mt),
+            sdbkz_early=_stopped_early(d.get("sdbkz_termination"), sd_tr, mt),
+        ))
+    return rows
 
-    out: dict[tuple[int, int], PerTourCost] = {}
-    for (n, b), rows in table.items():
-        bkz_med = statistics.median(r[0] for r in rows)
-        sd_med = statistics.median(r[1] for r in rows)
-        out[(n, b)] = PerTourCost(
-            n=n, beta=b,
-            bkz_seconds_per_tour=bkz_med,
-            sdbkz_seconds_per_tour=sd_med,
-            sample_seeds=len(rows),
+
+def _int_or_none(v) -> Optional[int]:
+    """None stays None; anything else must parse."""
+    return None if v is None else int(v)
+
+
+def _stopped_early(termination, tours_run: int, max_tours: Optional[int]) -> bool:
+    """Whether a leg stopped before its budget."""
+    if termination is not None:
+        return termination == "stagnated"
+    return max_tours is not None and tours_run < max_tours
+
+
+def _projected_tours(tours_run: int, early: bool, max_tours: int) -> int:
+    """Tours a leg would run under a ``max_tours`` budget."""
+    return min(tours_run, max_tours) if early else max_tours
+
+
+def _projected_walls(r: _SeedRow, max_tours: int) -> tuple[float, float]:
+    """(BKZ, SD-BKZ) leg walls of one seed projected to ``max_tours``."""
+    return (r.bkz_time / r.bkz_tours_run
+            * _projected_tours(r.bkz_tours_run, r.bkz_early, max_tours),
+            r.sdbkz_time / r.sdbkz_tours_run
+            * _projected_tours(r.sdbkz_tours_run, r.sdbkz_early, max_tours))
+
+
+def _drop_cloud_twins(rows: Sequence[_SeedRow]) -> list[_SeedRow]:
+    """Drop ``_cloud`` copies of seeds that also exist locally."""
+    paths = {r.path for r in rows}
+    return [r for r in rows
+            if not (r.path.endswith("_cloud.json")
+                    and r.path[:-len("_cloud.json")] + ".json" in paths)]
+
+
+def _median_cost_table(
+    rows: Iterable[_SeedRow],
+    key: Callable[[_SeedRow], tuple],
+    max_tours: Optional[int] = None,
+) -> dict[tuple, PerTourCost]:
+    """Median per-tour cost per cell, projected to ``max_tours`` when given."""
+    buckets: dict[tuple, list[tuple[float, float]]] = {}
+    for r in rows:
+        if max_tours is None:
+            leg = (r.bkz_time / r.bkz_tours_run, r.sdbkz_time / r.sdbkz_tours_run)
+        elif max_tours > 0:
+            bkz, sd = _projected_walls(r, max_tours)
+            leg = (bkz / max_tours, sd / max_tours)
+        else:
+            leg = (0.0, 0.0)  # zero budget: zero wall
+        buckets.setdefault(key(r), []).append(leg)
+    return {
+        k: PerTourCost(
+            n=k[0], beta=k[1],
+            bkz_seconds_per_tour=statistics.median(v[0] for v in vals),
+            sdbkz_seconds_per_tour=statistics.median(v[1] for v in vals),
+            sample_seeds=len(vals),
         )
-    return out
+        for k, vals in buckets.items()
+    }
 
 
-def _per_tour_cost_table_q(
-    seed_glob_patterns: Sequence[str],
-) -> dict[tuple[int, int, int], PerTourCost]:
-    """Per-(n, β, q) per-tour cost table (median per cell).
+_BY_NBQ = attrgetter("n", "beta", "q")
+_BY_NB = attrgetter("n", "beta")
 
-    Like :func:`per_tour_cost_table` but keyed by q as well — q is the
-    dominant cost axis for NTRU/overstretched sweeps (per-seed cost varies
-    2–5× across a q-grid at fixed n, β), which the (n, β)-only table blends
-    away. Private + opt-in (used by the q-aware estimate path); the public
-    (n, β) table is unchanged so existing callers/cache are unaffected.
+
+def _precision_pool(
+    rows: Sequence[_SeedRow], beta: int, precision: Optional[int],
+) -> tuple[list[_SeedRow], list[str]]:
+    """Seeds at ``precision`` when any exist at this β, else all, with a note."""
+    if precision is None:
+        return list(rows), []
+    same = [r for r in rows if r.precision == precision]
+    if any(r.beta == beta for r in same):
+        return same, []
+    return list(rows), [f"No seeds at precision={precision} for β={beta}; "
+                        "estimate uses other precisions."]
+
+
+def _naive_cost(
+    rows: Sequence[_SeedRow],
+    n: int,
+    beta: int,
+    max_tours: int,
+    q: Optional[int],
+    source: Optional[tuple[Sequence[_SeedRow], Sequence[_SeedRow]]] = None,
+) -> tuple[Optional[PerTourCost], list[str]]:
+    """Projected naive cost: (n, β, q) first, then exact q in ``source``, then (n, β).
+
+    ``source`` = (rows at the target precision, all rows) from same-engine trees,
+    used only when ``rows`` has no exact (n, β, q) cell.
     """
-    buckets: dict[tuple[int, int, int], list[tuple[float, float]]] = {}
-    for path in _expand_globs(tuple(seed_glob_patterns)):
-        d = _read_seed_json(path)
-        if d is None:
-            continue
-        try:
-            n = int(d["n"]); beta = int(d["beta"]); q = int(d.get("q", 97))
-        except (KeyError, ValueError, TypeError):
-            continue
-        per = _per_tour_from_seed(d)
-        if per is None:
-            continue
-        buckets.setdefault((n, beta, q), []).append(per)
-    out: dict[tuple[int, int, int], PerTourCost] = {}
-    for (n, b, q), rows in buckets.items():
-        out[(n, b, q)] = PerTourCost(
-            n=n, beta=b,
-            bkz_seconds_per_tour=statistics.median(r[0] for r in rows),
-            sdbkz_seconds_per_tour=statistics.median(r[1] for r in rows),
-            sample_seeds=len(rows),
-        )
-    return out
+    notes: list[str] = []
+    budgets = {r.max_tours for r in rows if r.beta == beta}
+    if budgets and max_tours not in budgets:
+        notes.append(f"No seeds at max_tours={max_tours} for β={beta}; projected from "
+                     f"max_tours={sorted(budgets, key=lambda b: b or 0)}, less accurate "
+                     "(see estimate_sweep_time --backtest, cross-budget).")
+    cost, note = None, None
+    if q is not None:
+        cost, note = _lookup_cost_q(_median_cost_table(rows, _BY_NBQ, max_tours), n, beta, q)
+        if (cost is None or note is not None) and source:
+            hit = _source_cost_q(rows, source, n, beta, q, max_tours)
+            if hit is not None:
+                cost, note = hit
+        if cost is None:
+            notes.append(f"No (n={n}, β={beta}) cell at any q; q={q} ignored, "
+                         "cost is q-blind.")
+    if cost is None:
+        cost, note = _lookup_cost(_median_cost_table(rows, _BY_NB, max_tours), n, beta)
+    if note is not None:
+        notes.append(note)
+    return cost, notes
 
 
 def _lookup_cost_q(
@@ -527,7 +615,8 @@ def _lookup_cost_q(
     if exact is not None:
         return exact, None
     same_nb = sorted(
-        ((qk, row) for (nk, b, qk), row in table_q.items() if nk == n and b == beta),
+        ((qk, row) for (nk, b, qk), row in table_q.items()
+         if nk == n and b == beta and qk is not None),
         key=lambda kv: kv[0],
     )
     if not same_nb:
@@ -539,6 +628,43 @@ def _lookup_cost_q(
     )
 
 
+_BY_NBQP = attrgetter("n", "beta", "q", "precision")
+
+
+def _per_tour(c: PerTourCost) -> float:
+    return c.bkz_seconds_per_tour + c.sdbkz_seconds_per_tour
+
+
+def _source_cost_q(
+    rows: Sequence[_SeedRow],
+    source: tuple[Sequence[_SeedRow], Sequence[_SeedRow]],
+    n: int, beta: int, q: int, max_tours: int,
+) -> Optional[tuple[PerTourCost, str]]:
+    """Exact (n, β, q) from same-engine source trees, scaled to this run.
+
+    Scale = median own/source per-tour cost over (n, β, q, precision) cells
+    both have at this β, same-n cells only when any exist (that is where a
+    host or build difference shows). None if the source lacks the cell too.
+    """
+    src_pool, src_all = source
+    src = _median_cost_table(src_pool, _BY_NBQ, max_tours).get((n, beta, q))
+    if src is None:
+        return None
+    own = _median_cost_table(rows, _BY_NBQP, max_tours)
+    ref = _median_cost_table(src_all, _BY_NBQP, max_tours)
+    shared = [k for k in own if k[1] == beta and k in ref and _per_tour(ref[k]) > 0]
+    keys = [k for k in shared if k[0] == n] or shared
+    head = (f"No (n={n}, β={beta}, q={q}) cell in this run; used that exact q from "
+            f"same-engine source trees")
+    if not keys:
+        return src, head + ", unscaled (no shared cell to calibrate)."
+    r = statistics.median(_per_tour(own[k]) / _per_tour(ref[k]) for k in keys)
+    same_n = "same-n " if keys[0][0] == n else ""
+    return (dataclasses.replace(src, bkz_seconds_per_tour=src.bkz_seconds_per_tour * r,
+                                sdbkz_seconds_per_tour=src.sdbkz_seconds_per_tour * r),
+            head + f" x {r:.3f} (own/source median over {len(keys)} shared {same_n}cells).")
+
+
 def per_tour_cost_table_to_dict(table: dict[tuple[int, int], PerTourCost]) -> dict:
     """Serialise a cost table to a JSON-safe dict (for cache write)."""
     return {
@@ -546,7 +672,7 @@ def per_tour_cost_table_to_dict(table: dict[tuple[int, int], PerTourCost]) -> di
         # Deterministic provenance stamp (SOURCE_DATE_EPOCH or 0): this file is
         # committed under results/paper_claims/, and cache freshness uses the
         # file mtime (not this field), so a wall-clock value here only churns git
-        # on every refresh with no content change (INC-48 class). Frozen so a
+        # on every refresh with no content change. Frozen so a
         # refresh with unchanged cost data is byte-identical.
         "generated_utc_epoch": float(os.environ.get("SOURCE_DATE_EPOCH", "0")),
         "entries": [dataclasses.asdict(v) for v in table.values()],
@@ -588,58 +714,36 @@ def per_tour_cost_table_from_dict(payload: dict) -> dict[tuple[int, int], PerTou
 
 @dataclasses.dataclass(frozen=True)
 class _AnchorSample:
-    """Internal: per-seed wall-time sample for one anchor configuration."""
+    """The seeds of one anchor configuration."""
     n: int
     beta: int
     max_tours: int
-    paths: tuple[str, ...]
-    wall_seconds_per_seed: tuple[float, ...]
-    youngest_mtime: float
+    rows: tuple[_SeedRow, ...]
+
+    @property
+    def paths(self) -> tuple[str, ...]:
+        return tuple(r.path for r in self.rows)
+
+    @property
+    def youngest_mtime(self) -> float:
+        return max(r.mtime for r in self.rows)
 
 
 def _gather_anchor_samples(
-    seed_glob_patterns: Sequence[str],
+    rows: Iterable[_SeedRow],
     min_max_tours: int = 500,
 ) -> dict[tuple[int, int, int], _AnchorSample]:
-    """Group existing seed JSONs by ``(n, β, max_tours)`` and compute per-seed walls.
+    """Group seeds by ``(n, β, max_tours)``.
 
     Only configurations with ``max_tours >= min_max_tours`` are returned —
     short-budget runs (e.g., ``mt70``) don't represent the basis-stabilisation
     regime that mt1000 sweeps spend most of their time in.
     """
-    paths = _expand_globs(seed_glob_patterns)
-    grouped: dict[tuple[int, int, int], dict] = {}
-    for p in paths:
-        d = _read_seed_json(p)
-        if d is None:
-            continue
-        try:
-            n = int(d["n"]); b = int(d["beta"])
-            mt = int(d.get("max_tours") or 0)
-            bkz_t = float(d["bkz_time"]); sd_t = float(d["sdbkz_time"])
-        except (KeyError, ValueError, TypeError):
-            continue
-        if mt < min_max_tours:
-            continue
-        try:
-            mtime = os.path.getmtime(p)
-        except OSError:
-            continue
-        bucket = grouped.setdefault((n, b, mt), {"paths": [], "walls": [], "mtimes": []})
-        bucket["paths"].append(p)
-        bucket["walls"].append(bkz_t + sd_t)
-        bucket["mtimes"].append(mtime)
-
-    out: dict[tuple[int, int, int], _AnchorSample] = {}
-    for key, bucket in grouped.items():
-        n, b, mt = key
-        out[key] = _AnchorSample(
-            n=n, beta=b, max_tours=mt,
-            paths=tuple(bucket["paths"]),
-            wall_seconds_per_seed=tuple(bucket["walls"]),
-            youngest_mtime=max(bucket["mtimes"]) if bucket["mtimes"] else 0.0,
-        )
-    return out
+    grouped: dict[tuple[int, int, int], list[_SeedRow]] = {}
+    for r in rows:
+        if (r.max_tours or 0) >= min_max_tours:
+            grouped.setdefault((r.n, r.beta, r.max_tours), []).append(r)
+    return {k: _AnchorSample(*k, rows=tuple(v)) for k, v in grouped.items()}
 
 
 def _select_best_anchor(
@@ -680,6 +784,43 @@ def _select_best_anchor(
 # Public API: sweep estimate
 # ---------------------------------------------------------------------------
 
+def _anchored_walls(
+    rows: Sequence[_SeedRow],
+    cost_table: dict[tuple[int, int], PerTourCost],
+    n: int,
+    beta: int,
+    max_tours: int,
+    q: Optional[int],
+) -> tuple[Optional[_AnchorSample], Optional[list[float]], list[str]]:
+    """Anchored method: best mt>=500 anchor's seeds, projected and cost-scaled."""
+    anchor = _select_best_anchor(n, beta, max_tours, _gather_anchor_samples(rows))
+    if anchor is None:
+        return None, None, ["No suitable anchor (no completed mt>=500 sweep with same "
+                            "beta found); anchored method unavailable."]
+    notes: list[str] = []
+    # Target cost: q-aware when q is given.
+    target_cost, target_note = None, None
+    if q is not None:
+        target_cost, target_note = _lookup_cost_q(_median_cost_table(rows, _BY_NBQ), n, beta, q)
+    if target_cost is None:
+        target_cost, target_note = _lookup_cost(cost_table, n, beta)
+    anchor_cost, anchor_note = _lookup_cost(cost_table, anchor.n, anchor.beta)
+    notes += [f"Anchored: {x}" for x in (target_note, anchor_note) if x is not None]
+    if anchor_cost is None or target_cost is None:
+        notes.append(
+            "Anchor selected but per-tour cost lookup failed for either "
+            f"target ({n}, {beta}) or anchor ({anchor.n}, {anchor.beta}); "
+            "anchored method unavailable."
+        )
+        return anchor, None, notes
+    anchor_total = anchor_cost.bkz_seconds_per_tour + anchor_cost.sdbkz_seconds_per_tour
+    if anchor_total <= 0:
+        notes.append("Anchor per-tour cost is zero; anchored method unavailable.")
+        return anchor, None, notes
+    cost_ratio = (target_cost.bkz_seconds_per_tour + target_cost.sdbkz_seconds_per_tour) / anchor_total
+    return anchor, [cost_ratio * sum(_projected_walls(r, max_tours)) for r in anchor.rows], notes
+
+
 def estimate_sweep_wall(
     n: int,
     beta: int,
@@ -688,15 +829,17 @@ def estimate_sweep_wall(
     num_workers: int = 22,
     cost_table: Optional[dict[tuple[int, int], PerTourCost]] = None,
     seed_glob_patterns: Optional[Sequence[str]] = None,
-    cache_path: Optional[str] = None,
     anchor_age_warn_days: float = 7.0,
     q: Optional[int] = None,
+    precision: Optional[int] = None,
+    q_source_glob_patterns: Optional[Sequence[str]] = None,
 ) -> SweepEstimate:
     """Estimate wall time for a planned convergence sweep at ``(n, β, max_tours)``.
 
     Returns a :class:`SweepEstimate` with both naive and anchored predictions
     and a recommendation between them. The function never raises on missing
-    data — degraded estimates carry explanatory strings in ``.notes``.
+    data — degraded estimates carry explanatory strings in ``.notes``. A
+    negative ``max_tours`` raises ValueError.
 
     Parameters
     ----------
@@ -707,27 +850,25 @@ def estimate_sweep_wall(
         (no queueing). With ``num_seeds > num_workers``, wall scales by
         ``ceil(num_seeds / num_workers)``.
     cost_table
-        Optional pre-computed per-tour cost table. Pass to share work
-        across multiple ``estimate_sweep_wall`` calls. If ``None``, the
-        table is computed inline (cache-aware).
-    seed_glob_patterns, cache_path
-        Forwarded to :func:`per_tour_cost_table` if ``cost_table`` is
-        not supplied.
+        Optional per-tour cost table; when given, naive is per tour × ``max_tours``.
+    seed_glob_patterns
+        Seed JSONs to read (default: :data:`DEFAULT_SEED_GLOBS`).
     anchor_age_warn_days
         If the youngest seed in the chosen anchor is older than this
-        threshold, the estimator flips ``method_recommended`` to
-        ``"naive"`` and adds a warning to ``notes`` containing the age
+        threshold, the anchored figures are suppressed and a warning
+        is added to ``notes`` containing the age
         and the most recent commit SHA touching the numerical hotspot
         files.
+    q, precision
+        Target modulus and MPFR precision; ``None`` blends all values.
+    q_source_glob_patterns
+        Same-engine seed trees to take an exact (n, β, q) cost from when
+        ``seed_glob_patterns`` has none (scaled, see :func:`_source_cost_q`).
     """
+    if max_tours < 0:
+        raise ValueError(f"max_tours must be >= 0, got {max_tours}")
     notes: list[str] = []
     patterns = tuple(seed_glob_patterns) if seed_glob_patterns is not None else DEFAULT_SEED_GLOBS
-
-    if cost_table is None:
-        cost_table = per_tour_cost_table(
-            seed_glob_patterns=patterns,
-            cache_path=cache_path,
-        )
 
     if num_seeds <= 0:
         # Empty pool: no work, no wall. Return a "0-wall, unknown method"
@@ -750,29 +891,39 @@ def estimate_sweep_wall(
 
     parallel_factor = max(1, math.ceil(num_seeds / max(1, num_workers)))
 
+    # One read; cloud twins and other precisions dropped.
+    rows, pool_notes = _precision_pool(
+        _drop_cloud_twins(_seed_rows(_expand_globs(patterns))), beta, precision)
+    notes.extend(pool_notes)
+    table_given = cost_table is not None
+    if cost_table is None:
+        cost_table = _median_cost_table(rows, _BY_NB)
+
+    # Naive: projected median seed wall; a caller's table: per tour × max_tours.
+    if table_given:
+        naive_cost, note = _lookup_cost(cost_table, n, beta)
+        naive_notes = [note] if note else []
+    else:
+        source = None
+        if q is not None and q_source_glob_patterns:
+            src_all = _drop_cloud_twins(_seed_rows(_expand_globs(q_source_glob_patterns)))
+            source = (_precision_pool(src_all, beta, precision)[0], src_all)
+        naive_cost, naive_notes = _naive_cost(rows, n, beta, max_tours, q, source)
+    notes.extend(naive_notes)
+
     naive_wall_h: Optional[float]
-    target_cost, target_note = None, None
-    # q-aware cost first (the dominant axis for NTRU/overstretched sweeps):
-    # exact (n, β, q) or nearest q from the run's own cells. Falls back to the
-    # (n, β) table when no q-keyed cell exists (e.g. the LWE q=97 corpus).
-    if q is not None:
-        table_q = _per_tour_cost_table_q(patterns)
-        target_cost, target_note = _lookup_cost_q(table_q, n, beta, q)
-    if target_cost is None:
-        target_cost, target_note = _lookup_cost(cost_table, n, beta)
-    if target_note is not None:
-        notes.append(target_note)
-    if target_cost is None:
+    if naive_cost is None:
         naive_wall_h = None
         notes.append(f"No per-tour cost data for (n={n}, β={beta}); naive method unavailable.")
     else:
         per_seed_seconds_naive = max_tours * (
-            target_cost.bkz_seconds_per_tour + target_cost.sdbkz_seconds_per_tour
+            naive_cost.bkz_seconds_per_tour + naive_cost.sdbkz_seconds_per_tour
         )
         naive_wall_h = _seconds_to_hours(per_seed_seconds_naive) * parallel_factor
 
-    samples = _gather_anchor_samples(patterns)
-    anchor = _select_best_anchor(n, beta, max_tours, samples)
+    anchor, scaled_per_seed_walls, anchor_notes = _anchored_walls(
+        rows, cost_table, n, beta, max_tours, q)
+    notes.extend(anchor_notes)
 
     anchored_wall_h: Optional[float] = None
     p95_wall_h: Optional[float] = None
@@ -787,44 +938,18 @@ def estimate_sweep_wall(
         anchor_used = (anchor.n, anchor.beta, anchor.max_tours)
         anchor_source_paths = anchor.paths
         anchor_age_days = (time.time() - anchor.youngest_mtime) / 86400.0
-
-        anchor_cost, anchor_note = _lookup_cost(cost_table, anchor.n, anchor.beta)
-        if anchor_note is not None:
-            notes.append(anchor_note)
-        if anchor_cost is None or target_cost is None:
-            notes.append(
-                "Anchor selected but per-tour cost lookup failed for either "
-                f"target ({n}, {beta}) or anchor ({anchor.n}, {anchor.beta}); "
-                "anchored method unavailable."
-            )
-        else:
-            anchor_total_per_tour = (
-                anchor_cost.bkz_seconds_per_tour + anchor_cost.sdbkz_seconds_per_tour
-            )
-            target_total_per_tour = (
-                target_cost.bkz_seconds_per_tour + target_cost.sdbkz_seconds_per_tour
-            )
-            if anchor_total_per_tour <= 0:
-                notes.append("Anchor per-tour cost is zero; anchored method unavailable.")
-            else:
-                cost_ratio = target_total_per_tour / anchor_total_per_tour
-                tour_ratio = max_tours / max(1, anchor.max_tours)
-
-                anchor_per_seed_walls = list(anchor.wall_seconds_per_seed)
-                scaled_per_seed_walls = [w * cost_ratio * tour_ratio for w in anchor_per_seed_walls]
-
-                p50_per_seed = statistics.median(scaled_per_seed_walls)
-                p95_per_seed = _percentile(scaled_per_seed_walls, 95)
-                mad_per_seed = _median_absolute_deviation(scaled_per_seed_walls)
-
-                anchored_wall_h = _seconds_to_hours(p50_per_seed) * parallel_factor
-                p95_wall_h = _seconds_to_hours(p95_per_seed) * parallel_factor
-                mad_wall_h = _seconds_to_hours(mad_per_seed) * parallel_factor
+        if scaled_per_seed_walls is not None:
+            anchored_wall_h = (_seconds_to_hours(statistics.median(scaled_per_seed_walls))
+                               * parallel_factor)
+            p95_wall_h = (_seconds_to_hours(_percentile(scaled_per_seed_walls, 95))
+                          * parallel_factor)
+            mad_wall_h = (_seconds_to_hours(_median_absolute_deviation(scaled_per_seed_walls))
+                          * parallel_factor)
 
         if anchor_age_days is not None and anchor_age_days > anchor_age_warn_days:
             stamp = (
                 f"Anchor age {anchor_age_days:.1f} d exceeds threshold "
-                f"{anchor_age_warn_days:.1f} d; falling back to naive."
+                f"{anchor_age_warn_days:.1f} d; anchored figures suppressed."
             )
             if last_sha:
                 stamp += f" Last commit touching numerical hotspots: {last_sha[:12]}."
@@ -836,19 +961,10 @@ def estimate_sweep_wall(
             anchored_wall_h = None
             p95_wall_h = None
             mad_wall_h = None
-            method = "naive" if naive_wall_h is not None else "unknown"
-        elif anchored_wall_h is not None:
-            method = "anchored"
-        elif naive_wall_h is not None:
-            method = "naive"
-        else:
-            method = "unknown"
-    else:
-        notes.append(
-            "No suitable anchor (no completed mt>=500 sweep with same beta found); "
-            "anchored method unavailable."
-        )
-        method = "naive" if naive_wall_h is not None else "unknown"
+
+    # Naive always recommended: anchored lost the backtest.
+    if naive_wall_h is not None:
+        method = "naive"
 
     if method == "unknown":
         notes.append(
@@ -870,3 +986,84 @@ def estimate_sweep_wall(
         method_recommended=method,
         notes=tuple(notes),
     )
+
+
+# ---------------------------------------------------------------------------
+# Public API: backtest
+# ---------------------------------------------------------------------------
+
+def backtest(root: str = "results/seeds") -> list[dict]:
+    """Leave-one-cell-out naive, anchored and cross-budget predictions per seed cell."""
+    abs_root = root if os.path.isabs(root) else os.path.join(REPO_ROOT, root)
+    rows = _drop_cloud_twins(_seed_rows(_expand_globs((os.path.join(abs_root, "**", "seed*.json"),))))
+
+    def tree(r: _SeedRow) -> str:
+        return os.path.relpath(r.path, abs_root).split(os.sep)[0]
+
+    cells: dict[str, list[_SeedRow]] = {}
+    by_tree_beta: dict[tuple, list[_SeedRow]] = {}
+    by_cell_key: dict[tuple, list[_SeedRow]] = {}
+    for r in rows:
+        cells.setdefault(os.path.dirname(r.path), []).append(r)
+        by_tree_beta.setdefault((tree(r), r.beta), []).append(r)
+        by_cell_key.setdefault((tree(r), r.n, r.beta, r.q, r.precision), []).append(r)
+
+    def total(cost: Optional[PerTourCost], mt: int) -> Optional[float]:
+        if cost is None:
+            return None
+        return mt * (cost.bkz_seconds_per_tour + cost.sdbkz_seconds_per_tour)
+
+    out: list[dict] = []
+    for cell, cell_rows in sorted(cells.items()):
+        r0 = cell_rows[0]
+        mt = r0.max_tours
+        if len(cell_rows) < 3 or not mt:
+            continue
+        ident = (r0.n, r0.q, r0.precision, mt)
+        others = [r for r in by_tree_beta[(tree(r0), r0.beta)]
+                  if os.path.dirname(r.path) != cell
+                  and (r.n, r.q, r.precision, r.max_tours) != ident]
+
+        same_budget, _ = _precision_pool([r for r in others if r.max_tours == mt],
+                                         r0.beta, r0.precision)
+        naive, _ = _naive_cost(same_budget, r0.n, r0.beta, mt, r0.q)
+
+        anchored_s = None
+        others, _ = _precision_pool(others, r0.beta, r0.precision)
+        if any((r.max_tours or 0) >= 500 for r in others):
+            _, walls, _ = _anchored_walls(others, _median_cost_table(others, _BY_NB),
+                                          r0.n, r0.beta, mt, r0.q)
+            anchored_s = statistics.median(walls) if walls else None
+
+        other_budgets = [r for r in by_cell_key[(tree(r0), r0.n, r0.beta, r0.q, r0.precision)]
+                         if r.max_tours != mt]
+        cross, _ = (_naive_cost(other_budgets, r0.n, r0.beta, mt, r0.q)
+                    if other_budgets else (None, []))
+
+        walls = [r.bkz_time + r.sdbkz_time for r in cell_rows]
+        out.append({
+            "cell": os.path.relpath(cell, abs_root),
+            "predicted_s": total(naive, mt),
+            "anchored_s": anchored_s,
+            "cross_budget_s": total(cross, mt),
+            "median_s": statistics.median(walls),
+            "max_s": max(walls),
+        })
+    return out
+
+
+def summarise_backtest(
+    cells: Sequence[dict], actual: str = "median_s", predicted: str = "predicted_s",
+) -> dict:
+    """Median/p90 error and >1.5x/>2x counts of ``predicted`` vs ``actual``."""
+    errs = sorted(abs(math.log(c[predicted] / c[actual])) for c in cells
+                  if c[predicted] is not None and c[predicted] > 0 and c[actual] > 0)
+    if not errs:
+        return {"cells": 0}
+    return {
+        "cells": len(errs),
+        "median_err": math.exp(statistics.median(errs)) - 1,
+        "p90_err": math.exp(_percentile(errs, 90)) - 1,
+        "over_1_5x": sum(e > math.log(1.5) for e in errs),
+        "over_2x": sum(e > math.log(2) for e in errs),
+    }

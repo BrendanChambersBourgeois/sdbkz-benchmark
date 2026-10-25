@@ -1,4 +1,4 @@
-"""_pidlock — the shared single-instance lock (ultrareview PR #3, 2026-08-21).
+"""_pidlock — the shared single-instance lock (review).
 
 Covers both halves that the two in-script versions each lacked: atomic create
 under a real multi-process race, and the anchored holder match (a recycled pid

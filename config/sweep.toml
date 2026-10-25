@@ -1,26 +1,12 @@
-# SD-BKZ benchmark — campaign configuration
+# Campaign definitions for scripts/run_campaign.py: one block per campaign
+# naming its generator, engine, cell grid (n, beta, q), precision, tours and
+# seed tree. Schema is validated by scripts/_config.py::load_campaign; a block
+# may set `inherits = "<base>"` to start from another campaign's settings.
 #
-# Single source of truth for the (n, β, q, precision, tours, num_seeds)
-# tuples that each `scripts/run_*.py` or `scripts/sweep_*.py` runner
-# currently hardcodes at module scope. Captured here for cross-script
-# audit and future migration — see `docs/design_decisions.md` ADR
-# (TBD) for the migration plan.
-#
-# Schema is validated by `scripts/_config.py::load_campaign`; unknown
-# keys are rejected in strict mode so a typo can't silently land a
-# wrong-precision sweep. Round-trip + schema tests live in
-# `tests/test_config.py`.
-#
-# Out of scope for this file (per the backlog design doc):
-#   - worker counts (deployment-specific)
-#   - S3 buckets, output dirs, file paths (conventions)
-#   - timeouts (tuning knobs)
-#   - Docker image choice (CI-level)
-#
-# Inheritance: a campaign block may set `inherits = "<base>"` to start
-# from another campaign's full settings and override individual fields.
-# Cycles are rejected; depth is capped at 8 levels to bound resolution
-# cost on pathological inputs.
+# Seed trees are separate per engine and per build; manifest cells are never
+# re-opened by a rerun campaign, which writes its own tree. g6k campaigns need
+# an image whose sieving dimension covers 2n (dim384 for n >= 129) and only
+# the fplll engine accepts an mpfr measurement GSO.
 
 config_version = 1
 
@@ -29,15 +15,8 @@ q = 97
 precision = 250
 num_seeds = 100
 store_per_tour = false
-# Lattice generator by name (see scripts/generators GENERATORS registry).
-# Every existing campaign inherits this default → the historical LWE-Kannan
-# construction, byte-for-byte unchanged. A campaign overrides it to route a
-# different generator (e.g. "ntru") through the same engine + dispatch.
 generator = "lwe_kannan"
 
-# -- Main paper sweep -------------------------------------------------------
-# q=97, β ∈ {20, 30, 40} × n ∈ {50..150 step 10}. 33 cells × 100 seeds
-# = 3,300 reference seeds frozen for the paper.
 [campaigns.main]
 description = "Paper main sweep, q=97 across the n×β grid"
 beta_grid = [20, 30, 40]
@@ -46,10 +25,6 @@ tours_by_beta = { "20" = 50, "30" = 70, "40" = 100 }
 num_seeds = 100
 store_per_tour = false
 
-# -- q=3329 ML-KEM verification --------------------------------------------
-# Same n / β grid but at the ML-KEM modulus + 1000-bit MPFR. Triggered
-# the §8 fplll cancellation finding. 100-seed n=100 set is the
-# headline; smaller intermediate n=70/80/90 fills are archived too.
 [campaigns.q3329]
 description = "q=3329 ML-KEM modulus, 1000-bit MPFR"
 inherits = "main"
@@ -61,29 +36,8 @@ tours_by_beta = { "30" = 70 }
 num_seeds = 100
 store_per_tour = true
 
-# -- §8 LOCAL rerun of the q=3329 headline cell (2026-09-02) ----------------
-# Owner decision 2026-09-02: the AWS rerun is dropped for good; this is the
-# zero-cost workstation replacement. Same cell as the canonical 100-seed set
-# (n=100, β=30, q=3329, 1000-bit MPFR, mt70, LWE-Kannan), same seeds 1..100,
-# run INSIDE a source-built fplll 5.5.0 + fpylll 0.6.4 image so the only
-# difference vs the contaminating engine is the GSO patch. Two arms, two
-# images (Dockerfile.fplll_patched --build-arg GSO_PATCH=...):
-#   q3329_kahan   — patches/fplll_gso_kahan.patch (sign-corrected 2026-08-13),
-#                   image sdbkz-fplll-patched:kahan-v3
-#   q3329_control — patches/fplll_gso_reorder_control.patch: the same loop
-#                   restructuring with the compensation held at zero, image
-#                   sdbkz-fplll-patched:reorder-control. A rate change between
-#                   the two arms isolates the compensation term; the 2026-04-10
-#                   "38% -> 0%" was measured with the FLIPPED (inert) term.
-# Each arm writes to its own seed_tag tree (never the SHA-locked q3329/ tree),
-# is excluded from the fplll manifest (lint NON_MANIFEST_SEED_TREES), and gets
-# manifest wiring with a per-engine label when the seeds land. Readout:
-# results/clamp_events.jsonl (raw get_r < 0, ctx carries the seed) and the
-# -345 sentinel in the stored profiles, against 38/100 canonical.
-# Queued in config/forever_worklist.txt with --image (run_campaign re-execs
-# inside the image for ANY campaign given --image) and --workers 20.
 [campaigns.q3329_kahan]
-description = "§8 local rerun: q=3329 n=100 β=30 p1000 on the sign-corrected Kahan fplll (sdbkz-fplll-patched:kahan-v3)"
+description = "Historical §8 rerun (diagnosis withdrawn): q=3329 n=100 β=30 p1000 on the sign-corrected Kahan fplll (sdbkz-fplll-patched:kahan-v3)"
 inherits = "q3329"
 seed_tag = "q3329_kahan"
 n_grid = [100]
@@ -92,7 +46,7 @@ num_seeds = 100
 store_per_tour = true
 
 [campaigns.q3329_control]
-description = "§8 local rerun control: same cell on the reorder-only, no-compensation fplll build (sdbkz-fplll-patched:reorder-control)"
+description = "Historical §8 rerun control (diagnosis withdrawn): same cell on the reorder-only, no-compensation fplll build (sdbkz-fplll-patched:reorder-control)"
 inherits = "q3329"
 seed_tag = "q3329_control"
 n_grid = [100]
@@ -100,10 +54,18 @@ beta_grid = [30]
 num_seeds = 100
 store_per_tour = true
 
-# -- β=40 cliff precision robustness ---------------------------------------
-# 20-seed re-run at n=130, β=40 at 500-bit MPFR (double the main-sweep
-# 250-bit) to confirm the cliff is structural rather than a precision
-# artefact. Paper §6.3 cites this set explicitly.
+[campaigns.q3329_mpfr]
+# mpfr measurement GSO is accepted only in a *_mpfr tree.
+description = "q=3329 re-measure: canonical cells, stock wheel, mpfr measurement GSO"
+inherits = "q3329"
+seed_tag = "q3329_mpfr"
+n_grid = [80, 90, 100]
+beta_grid = [30]
+num_seeds = 100
+store_per_tour = true
+metric_float_type = "mpfr"
+store_bases = true
+
 [campaigns.cliff500]
 description = "β=40 cliff precision robustness at n=130, 500-bit MPFR"
 inherits = "main"
@@ -113,10 +75,6 @@ precision = 500
 num_seeds = 20
 store_per_tour = true
 
-# -- β=40 1000-tour convergence bracket ------------------------------------
-# Eight-dimension cliff bracket extending to n=160 (v1.5.2). 20 seeds
-# each at q=97, 250-bit MPFR. The cliff bottoms in the n=130–140 band
-# and softens at n=150 / n=160; see paper §Limitations.
 [campaigns.convergence_beta40_mt1000]
 description = "β=40 1000-tour cliff bracket, q=97"
 inherits = "main"
@@ -126,10 +84,6 @@ tours_by_beta = { "40" = 1000 }
 num_seeds = 20
 store_per_tour = true
 
-# -- β=30 1000-tour convergence trio ---------------------------------------
-# n=90 / n=140 / n=150 mt1000 (each 20 seeds). Established the
-# tour-depth-dependent crossover at n=140 vs persistence at n=150 in
-# the v1.5.1 §Limitations text.
 [campaigns.convergence_beta30_mt1000]
 description = "β=30 1000-tour convergence trio, q=97"
 inherits = "main"
@@ -139,9 +93,6 @@ tours_by_beta = { "30" = 1000 }
 num_seeds = 20
 store_per_tour = true
 
-# -- 3× tours capability test -----------------------------------------------
-# β=30 with 3× tour budget (BKZ @ 210, SD-BKZ @ 70). Paper §5.3
-# capability gap at β≥30 finding (0/400 gaps closed).
 [campaigns.tours3x]
 description = "3× tour capability test, β=30 q=97"
 inherits = "main"
@@ -151,10 +102,6 @@ tours_by_beta = { "30" = 210 }
 num_seeds = 100
 store_per_tour = false
 
-# -- fplll version sensitivity ---------------------------------------------
-# Reviewer-defensive: paper results should not depend on the specific
-# fplll version inside the vendored fpylll 0.6.4 wheel. 5 seeds × 3
-# versions (5.4.3 / 5.4.4 / 5.4.5) at the canonical (n=100, β=30) cell.
 [campaigns.fplll_sensitivity]
 description = "fplll legacy-version sensitivity at (n=100, β=30, q=97)"
 inherits = "main"
@@ -164,13 +111,6 @@ tours_by_beta = { "30" = 70 }
 num_seeds = 5
 store_per_tour = false
 
-# -- NTRU construction smoke ------------------------------------------------
-# Greenfield NTRU generator (Ducas–van Woerden: circulant Z_q[x]/(x^n−1),
-# n prime, uniform-ternary σ²=2/3, 2n×2n basis). The ntru_smoke runner
-# BUILDS + structurally verifies bases (dim=2n, q·I_n block, key
-# consistency H·f≡g mod q) for each n∈n_grid × seed, then runs BKZ over
-# the full-basis [0,2n) metric (R*) in-memory (no per-seed JSONs).
-# `n` is the prime ring degree; `beta` is the smoke blocksize.
 [campaigns.ntru_smoke]
 description = "NTRU basis construction smoke (circulant DvW, dim=2n)"
 generator = "ntru"
@@ -182,14 +122,6 @@ tours_by_beta = { "2" = 1 }
 num_seeds = 3
 store_per_tour = false
 
-# -- NTRU pilot seed set ----------------------------------------------------
-# Real NTRU seeds written to results/seeds/ntru/q{q}/p{p}_mt{mt}/n_beta/.
-# Prime n {67,79} at q=97 sit BELOW the fatigue point (q≈0.004·n^2.484 is
-# ≈137 / ≈207), i.e. the standard (non-overstretched) regime where BKZ
-# does real blocksize-dependent work — verified non-degenerate (LLL does
-# NOT solve; ~68s/seed at n=67, advantage ≈ -0.017). q=97 matches the LWE
-# main sweep so the two engines are directly comparable. Scale n / β /
-# seeds (or push q toward fatigue) to map the NTRU fatigue transition.
 [campaigns.ntru]
 description = "NTRU seed set (circulant DvW, q=97 standard regime)"
 generator = "ntru"
@@ -201,15 +133,8 @@ tours_by_beta = { "20" = 50 }
 num_seeds = 20
 store_per_tour = false
 
-# -- NTRU fatigue q-sweep ---------------------------------------------------
-# Fixed n=89 (fatigue point q≈0.004·89^2.484 ≈ 278), sweep q across it via
-# `--q` override to locate the fatigue onset: standard regime (q below
-# fatigue, BKZ blocksize matters) → overstretched (q above, dense sublattice
-# found cheaply). precision=500 (headroom vs the q=3329 §8 cancellation;
-# watch results/clamp_events.jsonl for non-positive get_r). β=20, 10 seeds.
-#   for q in 97 149 211 257 307 401 547 691; do
-#     run_campaign --campaign ntru_qsweep --q $q; done
 [campaigns.ntru_qsweep]
+# precision ladders with q; do not pass --ulimit stack=-1 (breaks OpenBLAS).
 description = "NTRU fatigue q-sweep at n=89 (DvW circulant)"
 generator = "ntru"
 q = 277
@@ -220,20 +145,9 @@ tours_by_beta = { "20" = 50 }
 num_seeds = 10
 store_per_tour = false
 
-# -- NTRU n=127 Kahan-patch rerun (paper §8 validation #2) ------------------
-# Reruns the contaminated n=127 NTRU seeds under PATCHED fplll (Kahan-
-# compensated GSO, patches/fplll_gso_kahan.patch) to re-prove the §8
-# catastrophic-cancellation fix on a NEW modulus family vs the q=3329 LWE
-# validation #1. RUN INSIDE the patched image (Dockerfile.fplll_patched →
-# sdbkz-fplll-patched), sweeping q over the contaminated set via --q:
-#   for q in 971 1087 1201; do run_campaign --campaign ntru_n127_patched --q $q; done
-# seed_tag routes output to results/seeds/ntru_patched/ — the canonical
-# results/seeds/ntru/ tree is NEVER touched. precision=1000, β=20, mt=50,
-# 4 seeds = the exact params of the contaminated originals. The shared NTRU
-# worker wires the get_r clamp logger, so a residual §8 clamp is recorded
-# (expected: the catastrophic -345 floor is GONE under the patch).
 [campaigns.ntru_n127_patched]
-description = "NTRU n=127 Kahan-patched-fplll rerun (§8 validation #2)"
+# Historical patched-build cells; the image recipe is in git history (docs/images.md).
+description = "NTRU n=127 Kahan-patched-fplll rerun (historical, §8 diagnosis withdrawn)"
 generator = "ntru"
 seed_tag = "ntru_patched"
 q = 971
@@ -244,17 +158,13 @@ tours_by_beta = { "20" = 50 }
 num_seeds = 4
 store_per_tour = false
 
-# -- g6k engine NTRU pilot (Phase 4) ----------------------------------------
-# First g6k-backend science run (both boundary gates cleared: ADR-007
-# determinism, ADR-008 self-dual). Confirms the g6k full-seed pipeline via
-# run_single(backend="g6k") and the g6k SD-BKZ vs BKZ signature (d(LN)/DSD
-# differs while RHF ~equal — the Rowell cross-engine point). MUST RUN INSIDE
-# sdbkz-g6k:ref (the fplll image has no g6k). β=40 (g6k sieving needs a
-# non-trivial blocksize, unlike the fplll β=20 ntru sweep — cross-engine grid
-# is a Phase-4-proper decision). precision keys the seed path only; the g6k
-# sieve ignores MPFR bits. seed_tag=ntru_g6k → separate results/seeds tree.
-#   docker run --rm -v "$PWD":/work -w /work sdbkz-g6k:ref \
-#     python3 scripts/run_campaign.py --campaign ntru_g6k_pilot --workers 4
+[campaigns.ntru_n127_kahan_v3]
+# The tree name binds the kahan-v3 image; run_campaign refuses any other --image.
+description = "Historical NTRU n=127 rerun on the sign-corrected Kahan fplll (sdbkz-fplll-patched:kahan-v3)"
+inherits = "ntru_n127_patched"
+seed_tag = "ntru_patched_kahan_v3"
+image = "sdbkz-fplll-patched:kahan-v3"
+
 [campaigns.ntru_g6k_pilot]
 description = "g6k-engine NTRU pilot (Phase 4: SD-BKZ vs BKZ on the sieve)"
 generator = "ntru"
@@ -268,18 +178,6 @@ tours_by_beta = { "40" = 10 }
 num_seeds = 4
 store_per_tour = false
 
-# -- g6k RHF-blind-across-dimension run (Phase 4 (a)) ------------------------
-# Confirms the paper-1 thesis cross-engine, ACROSS DIMENSION on g6k: RHF is
-# blind to the SD-BKZ vs BKZ difference (rhf_bkz == rhf_sdbkz) while the
-# reference-free d(LN) / Rankin profile distance sees it — at every n, not
-# just the pilot cell. q=97 standard regime (advantage ~0, as for the fplll
-# ntru q=97 set); the POINT is the RHF-vs-d(LN) contrast, not a large
-# advantage. mt=50 (full trajectory, distinct path from the mt=10 pilot — no
-# collision). β=40 (g6k needs a non-trivial sieve blocksize). Cite Rowell
-# Ch3 (RHF-equal under non-exact oracle); our d(LN) measures past it.
-# RUN INSIDE sdbkz-g6k:ref, 20+ workers across seeds (sieve threads=1):
-#   docker run --rm -v "$PWD":/work -w /work sdbkz-g6k:ref \
-#     python3 scripts/run_campaign.py --campaign ntru_g6k_rhf --workers 22
 [campaigns.ntru_g6k_rhf]
 description = "g6k NTRU RHF-blind vs d(LN) across dimension (Phase 4a)"
 generator = "ntru"
@@ -293,17 +191,6 @@ tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
 
-# -- fplll cross-engine match at n=89 (anomaly investigation) ----------------
-# The g6k Phase-4a run surfaced a bimodal short-vector event at n=89: g6k
-# SD-BKZ finds a vector below the q-floor (gs[0] 4.46->2.36) on some seeds
-# (17,19) but not others (1). Is it real DSD-onset, or high-tour drift in the
-# g6k self-dual construction (ADR-008 validated only 3 tours)? This runs fplll
-# SD_VARIANT on the SAME 20 NTRU lattices, SAME (n=89, β=40, mt=50, q=97), so
-# the seed-by-seed pattern can be compared engine-to-engine. backend=fplll
-# (default); seed_tag default → results/seeds/ntru/q97/p250_mt50/n089_beta40/,
-# mirroring ntru_g6k's cell for direct comparison. RUN IN sdbkz-benchmark:ci,
-# 22 workers (fplll enum-40 mt=50 is heavy; parallel across the 20 seeds):
-#   python3 scripts/run_campaign.py --campaign ntru_xeng_n89 --workers 22
 [campaigns.ntru_xeng_n89]
 description = "fplll NTRU n=89 β=40 mt=50 — cross-engine match to ntru_g6k anomaly"
 generator = "ntru"
@@ -315,12 +202,6 @@ tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
 
-# -- fplll cross-engine tail (n=101/113), matches the g6k Phase-4a tail ------
-# fplll SD_VARIANT at the two slow dimensions, mirroring ntru_g6k's n=101/113
-# cells, so the morning has a dimension-resolved fplll-vs-g6k comparison of
-# the short-vector-event pattern. Same (β=40, mt=50, q=97). RUN IN
-# sdbkz-benchmark:ci. fplll enum-40 mt=50 at n=113 is heavy — may not finish
-# in one night; resumable (skips existing). Compared via compare_xengine.py.
 [campaigns.ntru_xeng_tail]
 description = "fplll NTRU n=101/113 β=40 mt=50 — cross-engine tail match to ntru_g6k"
 generator = "ntru"
@@ -332,19 +213,6 @@ tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
 
-# -- g6k DSD-onset q-sweep at fixed n=89 (Phase 4b) --------------------------
-# Map the g6k SD-BKZ DSD-onset by sweeping q ACROSS the NTRU fatigue point
-# (q_fat(89) ≈ 0.004·89^2.484 ≈ 280) at fixed n=89, β=40, mt=50. Thesis: the
-# SD-BKZ short-vector "fire" rate (gs_lognorms_sdbkz[0] below the q-floor)
-# GROWS as q → fatigue and into the overstretched regime, with SD-onset at
-# lower q than BKZ-onset — the reference-free DSD observable, now on the
-# sieve engine. (The Phase-4a fixed-q=97 sweep across n was the WRONG axis:
-# at fixed q, larger n is harder, so firing fell. q is the right
-# knob.) Sweep q via --q; match the fplll precision tier per q via
-# --precision (p250 for q<400, p500 for 400–899) so a future fplll β=40
-# match shares the seed paths. RUN IN sdbkz-g6k:ref, 22 workers:
-#   for q in 211 257 307; do run_campaign --campaign ntru_g6k_qsweep --q $q --precision 250 --workers 22; done
-#   for q in 401 521;     do run_campaign --campaign ntru_g6k_qsweep --q $q --precision 500 --workers 22; done
 [campaigns.ntru_g6k_qsweep]
 description = "g6k NTRU DSD-onset q-sweep at n=89, β=40 (Phase 4b)"
 generator = "ntru"
@@ -358,15 +226,6 @@ tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
 
-# -- fplll β=40 DSD-onset q-sweep — matched cross-engine baseline ------------
-# Same (n=89, β=40, mt=50, q-grid, DSD criterion) as ntru_g6k_qsweep, on the
-# fplll enum oracle. Removes the β=20-vs-β=40 confound: the existing fplll
-# NTRU q-sweep (the paper-2 DSD-onset trend) is β=20; this is β=40, so the
-# g6k(sieve,β40) vs fplll(enum,β40) onset comparison is apples-to-apples.
-# seed_tag default → results/seeds/ntru/q{q}/p250_mt50/n089_beta40/, the same
-# cells compare_xengine.py reads against ntru_g6k. RUN IN sdbkz-benchmark:ci
-# (rebuilt non-root). fplll enum-β40 mt=50 is heavy (~2h/cell) — long:
-#   for q in 97 113 137 157 181 211; do run_campaign --campaign ntru_xeng_qsweep --q $q --precision 250 --workers 22; done
 [campaigns.ntru_xeng_qsweep]
 description = "fplll NTRU β=40 DSD-onset q-sweep at n=89 — cross-engine match"
 generator = "ntru"
@@ -378,28 +237,6 @@ tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
 
-# -- NTRU n=113 β=20 DSD-onset q-sweep — trend ENDPOINT top-up ---------------
-# Reconstructs the recipe for the n=113 β=20 trend cells (originals made
-# 2026-06-03 via a temp block since removed; no recorded CLI command, --n is
-# ignored by the ntru persist loop which iterates campaign.n_grid). seed_tag
-# default → results/seeds/ntru/q{q}/p{prec}_mt50/n113_beta20/. Resumable:
-# skips existing seeds, tops up to 100. PRECISION MUST LADDER BY q to match the
-# existing cells exactly (else the new seeds split into a different p### dir).
-# RUN on the stable host (made the originals). workers=22.
-# Run slow-first (q947 p1000 = ~68min/seed sink) so the long pole starts early:
-#   RUN() { docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/work -w /work sdbkz-benchmark:ci "$@"; }
-#   p1000: for q in 947 1049 1163 1279; do RUN python3 scripts/run_campaign.py --campaign ntru_n113_qsweep --q $q --precision 1000 --seeds 100 --workers 22; done
-#   p500:  for q in 569 613 631 661 701 719 773 859; do RUN python3 scripts/run_campaign.py --campaign ntru_n113_qsweep --q $q --precision 500 --seeds 100 --workers 22; done
-#   p250:  for q in 409 449 487 523; do RUN python3 scripts/run_campaign.py --campaign ntru_n113_qsweep --q $q --precision 250 --seeds 100 --workers 22; done
-# DRY-RUN each first. --seeds works (fix ebcab5f); --beta does NOT (beta_grid sets it).
-# DO NOT use --ulimit stack=-1 (β=20 enum is shallow; the flag broke OpenBLAS
-# thread creation across forks -- dropped). If fork pressure ever
-# recurs, the fix is per-worker thread-pinning env vars (OPENBLAS_NUM_THREADS=1
-# OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1) -- byte-identity
-# RE-VERIFIED safe (verify.sh, n=50 refs matched to digit). The original
-# crash was the host VM init dying (p9io/dxgk), not this campaign.
-# Worker isolates a single seed's PYTHON failure (logs "error:" + continues);
-# a native crash kills only its worker, cell is resumable -- re-fire that q.
 [campaigns.ntru_n113_qsweep]
 description = "NTRU β=20 DSD-onset q-sweep at n=113 — trend endpoint top-up"
 generator = "ntru"
@@ -411,11 +248,6 @@ tours_by_beta = { "20" = 50 }
 num_seeds = 100
 store_per_tour = false
 
-# -- NTRU β=20 ball-out per-dim top-ups (trend cells -> 100 transition / 20 filler) --
-# Same pattern as ntru_n113_qsweep, for the other trend dims. --n is ignored by
-# the persist loop (iterates n_grid), so one block per dim. Driven by
-# ops/ballout_chain.sh with per-cell --q/--precision/--seeds (precision MUST
-# match each existing cell). n=89 reuses [campaigns.ntru_qsweep] (n_grid=[89]).
 [campaigns.ntru_n67_qsweep]
 description = "NTRU β=20 ball-out top-up at n=67"
 generator = "ntru"
@@ -449,16 +281,6 @@ tours_by_beta = { "20" = 50 }
 num_seeds = 100
 store_per_tour = false
 
-# -- Estimator d(LN) probe: n=130 β=40 mt=500 (paper-3 feasibility) ----------
-# Higher-tours rerun of the main n=130 β=40 cell to disambiguate the
-# d(real,CN11) dim-growth: convergence artifact vs structural. Baseline =
-# main/q97/n130_beta40 (p250 mt100, profiles stored). This = SAME (q97,n130,
-# β40,p250) at mt500, own tree results/seeds/estimator_probe/q97/n130_beta40/
-# (campaign-keyed -> NO collision with main). q3329_verify-class runner stores
-# initial_gs_lognorms + gs_lognorms_bkz. 20 seeds (fills cores; 1 wave ≤22).
-# Then: probe-branch cn11_converge.py compares d(real,CN11) main-mt100 vs this
-# mt500 -> shrinks=artifact(NO-GO) / stable=structural(GO). ~30h (1 wave @
-# ~32h/seed). SPECULATIVE -- easy to drop/retune.
 [campaigns.estimator_probe]
 description = "estimator d(LN) probe: n=130 β=40 mt=500 (convergence disambiguation)"
 inherits = "main"
@@ -470,24 +292,6 @@ tours_by_beta = { "40" = 500 }
 num_seeds = 20
 store_per_tour = false
 
-# -- P2 pre-submission robustness top-ups (backlog P2) ----------------------
-# Single-cell variants of the ntru / ntru_xeng_n89 recipes (the ntru runner
-# iterates n_grid, so a focused cell needs its own n_grid block — not a --n
-# override, which the ntru role ignores). Resumable: existing seeds skipped.
-#   docker run --rm -v "$PWD":/repo -w /repo sdbkz-benchmark:ci \
-#     python3 scripts/run_campaign.py --campaign ntru_n71_topup --workers 20
-#
-# n=71 β=20 q=97: top up the spike cell 20→40 (Cohen's d=0.70 vs plateau;
-# solidifies the "spike at n=71-73" framing). Identical params to [campaigns.ntru]
-# so output lands in the SAME results/seeds/ntru/q97/p250_mt50/n071_beta20 cell.
-# -- Cross-arch top-ups (all seed_tag=ntru_xarch) ---------------------------
-# These extend the onset/shoulder/plateau cells INSIDE the ntru_xarch tree, NOT
-# the canonical ntru/ tree. Run after the ntru_xarch verify campaign (which
-# writes seeds 1-20 per cell); these bump num_seeds so the SAME seed_tag fills
-# seeds 21+ (skip-existing makes them resumable). Canonical results/seeds/ntru/
-# is never written. Onset cells (n=71,73) carry the largest N -- the bimodal
-# win/lose split there benefits most from extra seeds (Fig 1). Promotion of any
-# of these into canonical ntru/ is a separate, deliberate maintainer action.
 [campaigns.ntru_n71_topup]
 description = "NTRU n=71 β=20 q=97 cross-arch top-up into ntru_xarch (onset)"
 generator = "ntru"
@@ -560,9 +364,6 @@ tours_by_beta = { "20" = 50 }
 num_seeds = 120
 store_per_tour = false
 
-# n=67 β=40 q=97 fplll: restores the Section 6 RHF agreement check (n=67/101/113) with
-# verified data. Identical params to [campaigns.ntru_xeng_n89] / the existing
-# n=101,113 β=40 q=97 fplll cells, so it is a like-for-like cross-dimension match.
 [campaigns.ntru_n67_beta40]
 description = "fplll NTRU n=67 β=40 mt=50 q=97 (restore Section 6 RHF agreement check)"
 generator = "ntru"
@@ -574,12 +375,6 @@ tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
 
-# -- NTRU cross-architecture regeneration -----------------------------------
-# Mirrors [campaigns.ntru] exactly but routes output to a separate seed_tag
-# (results/seeds/ntru_xarch/...), so the beta20 grid can be regenerated on a
-# different machine without deleting or colliding with the committed
-# results/seeds/ntru/ tree. Compare to ntru/ by science-field hash. Same
-# separate-tag pattern as ntru_patched and ntru_g6k.
 [campaigns.ntru_xarch]
 description = "NTRU beta20 grid, separate seed_tag for cross-architecture seed regeneration"
 generator = "ntru"
@@ -592,18 +387,6 @@ tours_by_beta = { "20" = 50 }
 num_seeds = 20
 store_per_tour = false
 
-# -- NTRU n=157 β=40 DSD-onset frontier (long-soak) -------------------------
-# Pushes the cross-engine DSD-onset trend (n=89/101/113 in Fig 6) to the next
-# frontier n=157, β=40. q=1109 sits just below the fatigue estimate
-# q_fat(157) ≈ 0.004·157^2.484 ≈ 1143 (ratio 0.97, matching the n=113 q=487
-# zero-cell at q_fat 503): the near-onset window where SD-BKZ is expected to
-# find the dense sublattice while plain BKZ does not (a discordant SD-only
-# McNemar cell). Reference-free two-part DSD criterion via extract_dsd_onset.
-# Heavy: fplll enum-β40 mt=50 at n=157 (lattice dim 314) is multi-day/seed;
-# resumable (skips existing, atomic tmp+os.replace) so safe to interrupt /
-# leave unattended. Default seed_tag → results/seeds/ntru/q1109/p500_mt50/
-# n157_beta40/ (brand-new cell, no collision). RUN IN sdbkz-benchmark:ci.
-#   python3 scripts/run_campaign.py --campaign ntru_n157_onset --workers 20
 [campaigns.ntru_n157_onset]
 description = "NTRU n=157 β=40 DSD-onset frontier (q≈0.97·q_fat, long-soak)"
 generator = "ntru"
@@ -615,17 +398,6 @@ tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
 
-# -- NTRU n=157 β=40 deep-convergence soak (mt=580, ~72h/seed) ---------------
-# Same cell as ntru_n157_onset (n=157, β=40, q=1109, p500) but 580 tours
-# instead of 50. The mt=50 cell ran to max_tours_reached with 0/20 DSD on
-# both oracles (a clean null at q=1109); this asks whether deep convergence
-# eventually triggers the dense-sublattice collapse — i.e. is the onset
-# tours-limited rather than q-limited. Linear in tours: measured 0.124h/tour
-# at this cell → ~72h/seed (>48h soak target). Resumable (skip-existing +
-# atomic writes); ~144MB RSS/seed, 20-wide fits the 15GB box with margin.
-# Separate path p500_mt580 → no collision with the mt=50 cell. RUN IN
-# sdbkz-benchmark:ci (here run natively — soak, not canonical-SHA science).
-#   python3 scripts/run_campaign.py --campaign ntru_n157_deep --workers 20
 [campaigns.ntru_n157_deep]
 description = "NTRU n=157 β=40 deep-convergence soak (mt=580, ~72h/seed)"
 generator = "ntru"
@@ -637,16 +409,6 @@ tours_by_beta = { "40" = 580 }
 num_seeds = 20
 store_per_tour = false
 
-# -- NTRU n=167 β=40 deep-tours WALL CONTROL (mt=580) --------------------------
-# The month run calls n>=167 a beta-WALL from mt=50 cells (best-vector ratio
-# saturates 40-58x the secret). This control distinguishes a true beta-wall
-# from a tour-budget artifact: same cell as the established n=167 wall point
-# q=3061 (2.3x q_fat, ratio ~40x at mt=50) but 580 tours. If mt=580 cracks (or
-# the ratio collapses), the "wall" is a tour-budget artifact and every WALL
-# verdict needs re-scoping (audit 2026-07-04 #3, major 4). Separate path
-# p500_mt580 -> no collision with the mt=50 cell. 8 seeds = 8 workers, ~1-2
-# days. RUN IN ISOLATION (not wired into onset_driver, which pins mt=50):
-#   python3 scripts/run_campaign.py --campaign ntru_n167_wall_deep --workers 8
 [campaigns.ntru_n167_wall_deep]
 description = "NTRU n=167 β=40 deep-tours wall control (mt=580 at the q=3061 wall cell)"
 generator = "ntru"
@@ -659,20 +421,6 @@ num_seeds = 8
 store_per_tour = false
 metric_float_type = "mpfr"
 
-# -- NTRU n=157 β=40 DSD-onset q-sweep (LOCATE the onset above q=1109) --------
-# The q=1109 cell (ntru_n157_onset, mt=50) is a clean 0/20 null on both oracles
-# -> the n=157 onset sits ABOVE q=1109. β=40 onset tracks q_fat (cf. n=113:
-# SD 464.6 / BKZ 499.0 vs q_fat(113)≈503), and q_fat(157)≈1143, yet q=1109
-# (0.97·q_fat) fired nothing -> the onset/q_fat ratio rises with n. Sweep q
-# upward to bracket BOTH the SD-BKZ and (higher) BKZ 50%-DSD crossings, giving
-# the 4th dimension point above n=89/101/113 for the Fig-6 trend. Same family
-# as ntru_qsweep / ntru_g6k_qsweep: ONE block, swept via --q. p500 matches the
-# q=1109 anchor (clean, 0 clamp events at q1109); watch results/clamp_events
-# .jsonl on the top cells. mt=50 (onset convention, ~6h/seed), N=20/cell.
-# Default seed_tag -> results/seeds/ntru/q{q}/p500_mt50/n157_beta40/ (new cells).
-# RUN IN sdbkz-benchmark:ci (here native — soak/onset scouting). Sweep:
-#   for q in 1201 1301 1451 1601 1801; do \
-#     python3 scripts/run_campaign.py --campaign ntru_n157_qsweep --q $q --workers 20; done
 [campaigns.ntru_n157_qsweep]
 description = "NTRU n=157 β=40 DSD-onset q-sweep (locate onset above q=1109)"
 generator = "ntru"
@@ -684,22 +432,9 @@ tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
 
-# -- NTRU n=157 β=40 PATCHED DSD-onset q-sweep (the trustworthy one) ----------
-# The p500-native n=157 cells are GSO-contaminated (min(gs)=-345 catastrophic
-# cancellation on 17/20 BKZ, 11/20 SD legs) -> DSD verdict UNRESOLVABLE, same
-# wall as n=127. This reruns the onset sweep under Kahan-patched fplll
-# (patches/fplll_gso_kahan.patch, image sdbkz-fplll-patched) which at n=127
-# cleanly separated BKZ-cancellation (-345 -> ~-0.1) from genuine SD-BKZ cracks
-# (stay -345). seed_tag -> results/seeds/ntru_patched/ (canonical ntru/ never
-# touched). p1000 + mt=50 (onset convention, matches n=89/101/113 trend cells;
-# n=127 patched also used p1000). Locates the n=157 onset for BOTH oracles AND
-# resolves q=1109 as the anchor point. RUN INSIDE the patched image:
-#   for q in 1109 1201 1301 1451 1601 1801; do \
-#     docker run --rm -v "$PWD":/work -w /work sdbkz-fplll-patched:val2 \
-#       python3 scripts/run_campaign.py --campaign ntru_n157_patched_qsweep \
-#       --q $q --workers 20; done
 [campaigns.ntru_n157_patched_qsweep]
-description = "NTRU n=157 β=40 patched-fplll DSD-onset q-sweep (clean GSO, onset)"
+# Historical patched-build cells; the image recipe is in git history (docs/images.md).
+description = "NTRU n=157 β=40 patched-fplll DSD-onset q-sweep (historical)"
 generator = "ntru"
 seed_tag = "ntru_patched"
 q = 1201
@@ -710,16 +445,6 @@ tours_by_beta = { "40" = 50 }
 num_seeds = 40
 store_per_tour = false
 
-# -- NTRU n=181 β=40 DSD-onset q-sweep — 5th trend point (n=89/101/113/157→181) -
-# Uses the cancellation-free secret-recovery readout (secret_recovered_{bkz,sdbkz}
-# via exact integer reduced-basis norms), which is independent of the fplll-enum
-# GSO and so runs NATIVE on dim 362 — no g6k, no patched image. q_fat(181)≈1622;
-# the n=157 onset landed at 1.93×q_fat (q=2203) and onset/q_fat rises with n, so
-# this sweep probes 1.9/2.1/2.3×q_fat. seed_tag default "ntru" (canonical tree).
-# All q PRIME (NTRU needs f invertible in Z_q[x]/(x^n−1)) — verified build_ntru ok.
-# Run native (no Docker):
-#   for q in 3083 3407 3733; do \
-#     python3 scripts/run_campaign.py --campaign ntru_n181_qsweep --q $q --workers 20; done
 [campaigns.ntru_n181_qsweep]
 description = "NTRU n=181 β=40 DSD-onset q-sweep (5th trend point, recovery readout, native fplll)"
 generator = "ntru"
@@ -731,31 +456,6 @@ tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
 
-# -- NTRU β=40 DSD-onset BOUNDARY map — q*(n) edge-tracing across the n-ladder ----
-# Goal: trace the onset boundary q*(n) = the q where β=40 FIRST cracks the planted
-# secret, as a function of n. NOT a dense n×q grid (days of compute, most cells are
-# deep-null or deep-crack we don't care about). Instead EDGE-BISECT per n:
-#   1. probe a high q (deep overstretch → near-certain crack) to confirm reachability
-#   2. bisect q downward to the first-crack edge → q*(n)  (~3–4 cells/n, not 8+)
-# Both --n and --q are CLI overrides (run_campaign.py:463,475), so one config drives
-# the whole ladder. Same cancellation-free recovery readout → NATIVE at every dim
-# (no g6k / no patched image). seed_tag default "ntru" (canonical tree). num_seeds=20
-# per cell; bump --seeds near the edge if a cell sits at a low single-digit rate.
-#
-# n-ladder (ALL PRIME — NTRU needs f invertible in Z_q[x]/(x^n−1)); q_fat=0.004·n^2.484
-# (scripts/generators/ntru.py); onset/q_fat RISES super-linearly with n, so the q
-# band widens up the ladder. PRIME q at representative multiples (pick/bisect within):
-#   n=157 dim=314 q_fat=1139 │ 1.9×→2179 2.2×→2521 2.5×→2851 2.8×→3191 3.1×→3533
-#   n=181 dim=362 q_fat=1622 │ 1.9×→3083 2.2×→3571 2.5×→4057 2.8×→4547 3.1×→5039
-#   n=211 dim=422 q_fat=2375 │ 1.9×→4513 2.2×→5227 2.5×→5939 2.8×→6653 3.1×→7369
-#   n=241 dim=482 q_fat=3304 │ 1.9×→6277 2.2×→7283 2.5×→8263 2.8×→9257 3.1×→10243
-#   n=271 dim=542 q_fat=4421 │ 1.9×→8419 2.2×→9733 2.5×→11057 2.8×→12379 3.1×→13709
-# (regenerate for any n: prime ≥ int(q_fat·mult), q_fat=0.004·n**2.484)
-# Cost climbs fast with dim: n=181≈4.7h/cell, n=211≈7–8h, n=241+ worse → climb one
-# rung at a time, do NOT pre-queue the whole ladder. Find each q*(n) before the next n.
-# Example (n=211 reachability probe, then bisect):
-#   python3 scripts/run_campaign.py --campaign ntru_onset_boundary --n 211 --q 7369 --workers 20
-#   python3 scripts/run_campaign.py --campaign ntru_onset_boundary --n 211 --q 5939 --workers 20
 [campaigns.ntru_onset_boundary]
 description = "NTRU β=40 DSD-onset boundary q*(n) — edge-bisection across n-ladder (recovery readout, native fplll)"
 generator = "ntru"
@@ -766,46 +466,8 @@ n_grid = [157, 181, 211, 241, 271]
 tours_by_beta = { "40" = 50 }
 num_seeds = 20
 store_per_tour = false
-# Frontier dims (n>=157): double-precision measurement GSO catastrophically
-# cancels (get_r<=0 -> -345 clamp sentinel poisons gs_lognorms/dln/advantage).
-# mpfr metric GSO removes it (feasibility probe 2026-07-04: dim 334 double=3
-# cancels, mpfr=0; +~2.6s/call =~ +260s/seed at mt=50, ~2-3% of seed runtime).
-# Crack verdicts (secret_recovered_*) are GSO-independent either way.
 metric_float_type = "mpfr"
 
-# -- NTRU n>=179 BUMPED-BETA wall test — budget-artifact vs fundamental wall ------
-# The month run calls n=173/179 a beta-WALL at beta=40 (best-vector ratio saturates
-# ~46.9x the secret; n=179's CLOSEST approach was ratio 57 at q=4591=2.909x q_fat,
-# never cracked). Open question: is that wall a REDUCTION-BUDGET artifact (crack it
-# with a stronger blocksize) or a FUNDAMENTAL hardness wall (bigger beta still fails)?
-# Controlled test: FIX the exact beta=40 near-miss cell (n=179, q=4591) and vary ONLY
-# beta upward. beta=40 control already on disk (results/.../n179_beta40); this adds
-# beta=50 and beta=60. A crack at beta>=50 => the n>=173 walls are budget-limited and
-# every WALL verdict needs re-scoping vs blocksize. Still NULL at beta=60 => the wall
-# is (blocksize-)fundamental up to beta=60. Mirrors ntru_n167_wall_deep (that varied
-# TOURS; this varies BETA — the stronger lever). Distinct path segment n179_beta{50,60}
-# => no collision with the beta=40 cells. Same cancellation-free recovery readout +
-# mpfr metric GSO (dim 358) => native fplll, no g6k/patched image.
-#
-# COST IS UNKNOWN: the estimator has ZERO beta>40 rows (whole corpus is beta20/40) and
-# refuses to predict; BKZ cost climbs steeply with blocksize, so beta=60 at dim 358
-# could be ~15-40h/seed. MANDATORY: cost with a 1-seed bootstrap BEFORE the full grid:
-#   python3 scripts/run_campaign.py --campaign ntru_wall_beta_bump --n 179 --q 4591 \
-#     --beta 50 --seeds 1 --workers 1      # measure, then estimate the 10-seed grid
-# Full grid once costed (10 seeds, RUN IN ISOLATION — not wired into onset_driver):
-#   python3 scripts/run_campaign.py --campaign ntru_wall_beta_bump --n 179 --q 4591 --workers 10
-# Confirmation dim after n=179 lands (n=181 qf~1622, 2.9x -> prime near 4703):
-#   python3 scripts/run_campaign.py --campaign ntru_wall_beta_bump --n 181 --q 4703 --workers 10
-# -- forever-runner idle-FILLER: extra statistical power, separate tree ---------
-# The never-idle floor for scripts/forever_runner.py. When the worklist is empty
-# the runner adds seeds to this campaign one step at a time. seed_tag=ntru_b2 =>
-# a SEPARATE results/seeds/ntru_b2/ tree (registered in _seed_paths, excluded from
-# the canonical manifest), so the filler can NEVER touch or re-open a published
-# cell's N (the 2026-08-08 B2 review's core integrity fix). Same study config as
-# ntru_onset_boundary (β40 mt50 p500 mpfr, cancellation-free recovery readout) so
-# the extra-power seeds are directly comparable to the frontier cells they mirror.
-# num_seeds is a high ceiling the runner ratchets toward; --n/--q pick the cell.
-# NOT run directly — the runner drives it. Default cell = the n=167 crack frontier.
 [campaigns.ntru_b2_backfill]
 description = "forever-runner idle-filler — extra-power seeds in the separate ntru_b2 tree"
 generator = "ntru"
@@ -819,10 +481,6 @@ num_seeds = 200
 store_per_tour = false
 metric_float_type = "mpfr"
 
-# Per-tour re-run of ntru_b2 seeds showing the mid-trajectory dLN jump, to
-# capture the profile either side of the step. Separate tree so no ntru_b2
-# seed is re-opened. Findings + open mechanism:
-# Research/postmortems/dln_discontinuity_2026-08-25_investigation.md
 [campaigns.ntru_b2_probe]
 inherits = "ntru_b2_backfill"
 description = "per-tour capture of the ntru_b2 dLN discontinuity"
@@ -831,22 +489,6 @@ q = 4591
 n_grid = [179]
 store_per_tour = true
 
-# -- g6k short-vector probe (2026-09-02) -------------------------------------
-# Owner question: the sub-q^2 non-secret legs of the beta=50 ladder (norm^2
-# 10-20k, q-independent, 40-90x above the secret) -- dense sublattice found
-# but not the secret key (DSD without SKR)? The seed JSONs hold only
-# min_actual_norm2, not the vector, so the reading cannot be tested on stored
-# data. This reruns seeds 1..8 of the cheapest band-bearing cell (n=179 q=4591
-# beta=50: seeds 1, 2, 4, 7 have BOTH legs in the band, 3, 5, 6 one leg, 8 both
-# legs exact = positive control) with store_short_vectors = true, which adds
-# short_vectors_{bkz,sdbkz} (three shortest exact integer rows) to the JSON.
-# Threads=1 determinism makes the rerun reproduce the original reduction.
-# Offline test at landing: v = (v_g, v_f) is in the dense sublattice iff it is
-# an integer combination of the n cyclic rotations of the regenerated secret
-# (g, f) -- solve the 2n x n system, round, verify exactly. Own tree
-# results/seeds/ntru_g6k_vecprobe/ (lint-excluded, no manifest); never merge
-# into ntru_g6k/. Runs on the deck (unpatched image is fine: that cell had 0
-# INC-63 aborts), 6 workers, ~13.4 h/seed -> 2 waves ~27 h.
 [campaigns.ntru_g6k_vecprobe]
 inherits = "ntru_wall_beta_bump"
 description = "g6k short-vector probe: band-bearing n=179 q=4591 beta=50 seeds rerun with the three shortest rows stored"
@@ -854,20 +496,12 @@ seed_tag = "ntru_g6k_vecprobe"
 q = 4591
 n_grid = [179]
 beta_grid = [50]
-# 2026-09-05: beta=40 control cell (same n, q as the beta=50 probe) needs its own
-# tour count because `inherits` replaces this map wholesale; 50 tours matches the
-# canonical ntru_g6k p500_mt50 beta=40 cells so the probe reruns those seeds byte-alike.
 tours_by_beta = { "40" = 50, "50" = 50, "60" = 50 }
 num_seeds = 8
 store_short_vectors = true
 
 [campaigns.ntru_wall_beta_bump]
 description = "NTRU n>=179 bumped-beta wall test (budget-artifact vs fundamental; beta 50/60 at the beta=40 near-miss cell)"
-# 2026-08-19: re-routed to the g6k backend (INC-54: fplll enum wedges past dim
-# ~300; beta50 at dim 358 hot-wedged 25h). MUST RUN INSIDE sdbkz-g6k:dim384
-# (MAX_SIEVING_DIM=384 >= dim 362; dim256 image refuses n>=129... wall dims).
-# seed_tag=ntru_g6k keeps engine trees separate — never merge sieve seeds into
-# the canonical fplll results/seeds/ntru/ ladder.
 generator = "ntru"
 backend = "g6k"
 seed_tag = "ntru_g6k"
@@ -878,37 +512,22 @@ n_grid = [179, 181]
 tours_by_beta = { "50" = 50, "60" = 50 }
 num_seeds = 10
 store_per_tour = false
-# metric_float_type dropped 2026-08-19: mpfr is fplll-only; g6k measures
-# through the Siever's GSO (run_campaign validation rejects mpfr+g6k).
-# Per-seed wall cap (INC-56 mechanism; replaces the broken outer `timeout docker
-# run`, which signals the CLI and never caps the container). A capped seed is
-# SIGKILLed + logged to results/wall_cap_events.jsonl and the wave continues.
-#
-# !!! THE VALUE BELOW IS KNOWN-WRONG AND KILLS EVERY SEED BY CONSTRUCTION !!!
-# MEASURED cost of a healthy β50/n179 seed (seeds 1-4, both legs to
-# max_tours_reached): bkz_time 15681-16018 s PLUS sdbkz_time 31565-32446 s
-# = 13.13-13.46 h, worst case 48464 s. 14400 s is 0.30× that. On 2026-08-20 all
-# 16 remaining seeds were killed at the cap: wave 1 had finished the entire
-# 50-tour BKZ leg and died 2.6-8.9 min into SD-BKZ tour 1. There was NO wedge.
-# The retracted "~20 min per seed" rationale was the mtime SPREAD of four seeds
-# that started within 0.1 s of each other — `timestamp` is a START stamp
-# (_bkz_core.py:235). See incidents.md INC-56/INC-57 correction 2026-08-20 and
-# the feedback_use_estimator lesson (never eyeball seed-flush mtime spans).
-#
-# TODO(owner): raise to >= 72000 (20 h) before relaunching. Left at the old value
-# deliberately — raising it commits ~13.2 h/seed of compute and that budget call
-# is yours, not the agent's. β60 is separately blocked on the g6k gauss_sieve
-# assertion and must not be relaunched until that is triaged.
 seed_wall_s = 14400
 
-# -- NTRU n=179 beta=40 deep-tours WALL CONTROL on g6k (mt=200) ---------------
-# The n=167 fplll mt=580 control turned the mt=50 "wall" at 2.30x q_fat into a
-# 7/8 crack (paper_findings 2026-09-13): the frontier beta=40 walls are
-# tour-budget statements. This asks the same at the top of the beta=40 frontier,
-# on the g6k engine (fplll is past its GSO ceiling at dim 358): n=179 q=4591,
-# the beta=40 mt=50 near-miss cell, at 4x the tour budget. Path p500_mt200 ->
-# no collision with the deck-owned mt=50 cells. Measured mt=50 cost here is
-# 6.7-8.0 h/seed (80 seeds), so ~27-32 h/seed at mt=200. Owner Q02 2026-09-23.
+[campaigns.ntru_q09_diag]
+description = "Instrumented rerun of n185 b60 q3907 seeds 15-16 (seed 16 slow-tour mode; 15 control)"
+inherits = "ntru_wall_beta_bump"
+seed_tag = "ntru_g6k_diag"
+image = "sdbkz-g6k:dim384-inc63"
+q = 3907
+n_grid = [185]
+beta_grid = [60]
+tours_by_beta = { "60" = 50 }
+num_seeds = 16
+store_per_tour = true
+sieve_trace = true
+seed_wall_s = 432000
+
 [campaigns.ntru_wall_deep_g6k]
 inherits = "ntru_wall_beta_bump"
 description = "NTRU n=179 beta=40 deep-tours wall control on g6k (mt=200 at the q=4591 near-miss cell)"
@@ -924,16 +543,8 @@ description = "NTRU n=179 beta=40 wall control at mt=580 on g6k (matches the n=1
 tours_by_beta = { "40" = 580 }
 
 [campaigns.ntru_g6k_backfill]
+# Never-idle filler: writes only non-manifest trees.
 description = "steamdeck forever-runner idle-filler — g6k β40 twins of the ntru_b2 frontier cells (cross-engine corpus)"
-# 2026-08-23: never-idle floor for the steamdeck node's forever-runner. Same
-# frontier (n,q) pairs as the workstation's fplll ntru_b2 filler, but through
-# the g6k backend into the ntru_g6k tree — builds the cross-engine β40 corpus
-# (Rowell RHF-equal claim; corpus-discordance analysis) out of idle time.
-# CELL OWNERSHIP: the steamdeck node OWNS these ntru_g6k β40 cells (and the
-# q4591 β50 wall cells); the workstation must not generate seeds there, or
-# node-pull will meet two different seeds with one filename. Runs inside
-# sdbkz-g6k:dim384 (n=179 is dim 358). No metric_float_type: mpfr is
-# fplll-only and run_campaign validation rejects mpfr+g6k.
 generator = "ntru"
 backend = "g6k"
 seed_tag = "ntru_g6k"
@@ -944,3 +555,68 @@ n_grid = [167, 173, 179]
 tours_by_beta = { "40" = 50 }
 num_seeds = 200
 store_per_tour = false
+
+[campaigns.ntru_exact]
+description = "Flag-scored fplll NTRU cells rerun to record secret_exact_match"
+inherits = "ntru"
+seed_tag = "ntru_exact"
+beta_grid = [20, 40]
+n_grid = [59, 61, 67, 71, 73, 79, 83, 89, 101, 113, 127]
+tours_by_beta = { "20" = 50, "40" = 50 }
+num_seeds = 100
+
+[campaigns.ntru_g6k_exact]
+description = "Flag-scored G6K NTRU cells rerun to record secret_exact_match"
+generator = "ntru"
+backend = "g6k"
+seed_tag = "ntru_g6k_exact"
+q = 97
+precision = 250
+beta_grid = [40]
+n_grid = [67, 79, 89, 101, 113]
+tours_by_beta = { "40" = 50 }
+num_seeds = 100
+store_per_tour = false
+
+[campaigns.ntru_wall_beta_bump_reject]
+# beta=60 ladder rerun on the reject-on-overflow build; seed_wall_s matches the canonical 48 h cap.
+inherits = "ntru_wall_beta_bump"
+description = "Beta=60 ladder rerun on the reject-on-overflow G6K build"
+seed_tag = "ntru_g6k_reject"
+image = "sdbkz-g6k:dim384-reject"
+q = 3907
+n_grid = [185]
+beta_grid = [60]
+num_seeds = 20
+seed_wall_s = 172800
+
+[campaigns.ntru_wall_b50_reject]
+inherits = "ntru_wall_beta_bump"
+description = "beta=50 n=179-185 frontier rerun on the reject-on-overflow G6K build"
+seed_tag = "ntru_g6k_reject"
+image = "sdbkz-g6k:dim384-reject"
+n_grid = [179, 181, 183, 185]
+beta_grid = [50]
+num_seeds = 20
+seed_wall_s = 172800
+
+[campaigns.ntru_wall_deep_g6k_reject]
+inherits = "ntru_wall_deep_g6k"
+description = "n=179 beta=40 mt=200 wall control rerun on the reject-on-overflow G6K build"
+seed_tag = "ntru_g6k_reject"
+image = "sdbkz-g6k:dim384-reject"
+seed_wall_s = 172800
+
+[campaigns.ntru_g6k_vecprobe_reject]
+inherits = "ntru_g6k_vecprobe"
+description = "the 48 vecprobe seeds rerun with short vectors on the reject-on-overflow G6K build"
+seed_tag = "ntru_g6k_vecprobe_reject"
+image = "sdbkz-g6k:dim384-reject"
+seed_wall_s = 172800
+
+[campaigns.ntru_wall_deep580_g6k_reject]
+inherits = "ntru_wall_deep580_g6k"
+description = "n=179 beta=40 mt=580 wall control rerun on the reject-on-overflow G6K build"
+seed_tag = "ntru_g6k_reject"
+image = "sdbkz-g6k:dim384-reject"
+seed_wall_s = 518400

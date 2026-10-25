@@ -1,11 +1,7 @@
-# Digest-pinned per ADR-004; see Dockerfile (main) for the digest
-# resolution provenance.
+# Cloud sweep image (campaign decommissioned; kept in parity with Dockerfile).
 FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c
 
-# Pin system library versions
-# MPFR 4.2.1 — required by fplll for arbitrary-precision floating point.
-# Apt pinned via snapshot.debian.org (ADR-004) so the package set is
-# frozen against the dated Debian archive rather than current mirrors.
+# Apt pinned to a dated snapshot.debian.org archive (ADR-004).
 RUN printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20240614T000000Z/\nSuites: bookworm bookworm-updates\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: http://snapshot.debian.org/archive/debian-security/20240614T000000Z/\nSuites: bookworm-security\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n' \
         > /etc/apt/sources.list.d/debian.sources \
     && apt-get -o Acquire::Check-Valid-Until=false update \
@@ -18,12 +14,7 @@ RUN printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20240614
         pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Pin Python packages to exact versions used in the experiment.
-# fpylll 0.6.4 bundles fplll 5.5.0 (libfplll.so.9.0.0) as a vendored library.
-# matplotlib + render-touching transitive deps pinned to match the main
-# Dockerfile (figure-SHA-byte-identity-gate sensitivity, see Dockerfile
-# comment 2026-05-03). Cloud campaign decommissioned 2026-04-10; pins kept
-# in parity so a future revival inherits the same reproducibility chain.
+# Pins match the main Dockerfile (figure byte-identity gate).
 RUN pip install --no-cache-dir \
         fpylll==0.6.4 \
         cysignals==1.12.6 \
@@ -39,12 +30,7 @@ RUN pip install --no-cache-dir \
         pytest==9.0.3 \
         boto3
 
-# Non-root runtime — match host UID/GID so bind-mounted volumes don't
-# produce root-owned host files (Incident #32; backlog
-# backlog/2026-04-20_v3_dockerfile_scope.md §8).
-# Cloud campaign decommissioned 2026-04-10; the USER directive is
-# included for parity with the main Dockerfile so a future revival
-# inherits the same hygiene.
+# Non-root runtime matching the host UID/GID.
 ARG HOST_UID=1000
 ARG HOST_GID=1000
 RUN if ! getent group ${HOST_GID} >/dev/null; then \
@@ -55,12 +41,6 @@ RUN if ! getent group ${HOST_GID} >/dev/null; then \
     fi
 
 WORKDIR /experiment
-# Copy the full scripts/ directory so sweep_cloud.py can import its
-# siblings (log.py, q3329_verify, etc.) via the same scripts/-relative
-# paths used in the host repo. Previously only sweep_cloud.py was
-# copied, which silently broke any import once the repo restructure
-# moved helpers into scripts/ (see main Dockerfile for the 2026-04-09
-# commentary on the parallel bug).
 COPY --chown=${HOST_UID}:${HOST_GID} scripts/ scripts/
 RUN chown -R ${HOST_UID}:${HOST_GID} /experiment
 

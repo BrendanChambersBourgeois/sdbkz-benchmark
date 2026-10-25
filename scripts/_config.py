@@ -49,11 +49,14 @@ CAMPAIGN_FIELDS: frozenset[str] = frozenset({
     "num_seeds",
     "store_per_tour",
     "store_short_vectors",
+    "store_bases",
     "generator",
     "seed_tag",
     "backend",
     "metric_float_type",
     "seed_wall_s",
+    "sieve_trace",
+    "image",
 })
 
 # Top-level (non-campaign) keys allowed in the TOML root. `default` is
@@ -105,22 +108,35 @@ class Campaign:
     # Float type for the MEASUREMENT GSO only (the reduction is always mpfr).
     # "double" (default) = the historical byte-identical path; "mpfr" removes
     # the catastrophic get_r cancellation at frontier dims (n>=157) that
-    # clamps gs_lognorms to the -345 sentinel (deep audit 2026-07-04 finding
-    # 1). fplll-only: a g6k campaign must leave this at "double".
+    # clamps gs_lognorms to the -345 sentinel. fplll-only: a g6k campaign must
+    # leave this at "double".
     metric_float_type: str = "double"
     # Opt-in: store the three shortest exact integer rows per reduction leg
     # (NTRU runner only; _bkz_core.run_single store_short_vectors). Off for
     # every historical campaign so their per-seed JSON schema is unchanged.
     store_short_vectors: bool = False
+    # Opt-in: save every tour's integer basis, both legs, to a
+    # per-seed .npz OUTSIDE git for offline exact checks (q3329_verify only).
+    # Side files only; the per-seed JSON is unchanged either way.
+    store_bases: bool = False
     # Per-seed wall-clock cap in SECONDS (None = off, the historical
     # unbounded path). When set, the NTRU runner runs each seed in its own
     # subprocess and SIGKILLs any seed exceeding this many seconds, logging
     # it to results/wall_cap_events.jsonl and moving on — the wave is not
-    # stalled by one wedged seed (INC-56: g6k β≥50 past dim ~300 hot-wedges
+    # stalled by one wedged seed (g6k β≥50 past dim ~300 hot-wedges
     # per-seed like the fplll enum, and an outer `timeout docker run` does
     # NOT cap the container). Off by default so every existing campaign keeps
     # the byte-identical mp.Pool path untouched.
     seed_wall_s: int | None = None
+    # Opt-in per-tour sieve accounting (g6k backend only): one record per
+    # tour to results/sieve_trace_events.jsonl, never the per-seed JSON. Off
+    # for every other campaign, which keeps g6k's dummy_tracer path.
+    sieve_trace: bool = False
+    # Container image the campaign must run in (None = host / backend
+    # default). For trees whose name is the engine provenance (e.g. the
+    # kahan-v3 rerun), run_campaign defaults --image to this and refuses any
+    # other value, so a run on the wrong engine cannot write into the tree.
+    image: str | None = None
 
 
 def _read_toml(path: str) -> dict[str, Any]:
@@ -277,6 +293,9 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
             f"{ctx}: metric_float_type={metric_float_type!r} is fplll-only; "
             "the g6k backend measures through the Siever's GSO"
         )
+    sieve_trace = bool(merged.get("sieve_trace", False))
+    if sieve_trace and backend != "g6k":
+        raise ConfigError(f"{ctx}: sieve_trace is g6k-only (backend={backend!r})")
 
     seed_wall_raw = merged.get("seed_wall_s")
     if seed_wall_raw is None:
@@ -317,6 +336,9 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
         metric_float_type=metric_float_type,
         seed_wall_s=seed_wall_s,
         store_short_vectors=bool(merged.get("store_short_vectors", False)),
+        store_bases=bool(merged.get("store_bases", False)),
+        sieve_trace=sieve_trace,
+        image=(str(merged["image"]) if merged.get("image") else None),
     )
 
 

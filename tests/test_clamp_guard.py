@@ -1,5 +1,5 @@
 """Track 2 C: the clamp-poison guard in analysis._data drops sentinel seeds
-from advantage aggregates (deep audit 2026-07-04 finding 2)."""
+from advantage aggregates."""
 import importlib
 import warnings
 

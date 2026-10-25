@@ -1,0 +1,55 @@
+Note 2026-10-25: the guard rejects any sum outside [-32767, 32767], so an exact
+-32768 (representable in int16) is also rejected and counted. Negligible; kept
+as is so the guard stays symmetric. git apply ignores this text before the
+first diff header; the hunks below are unchanged.
+
+diff --git a/kernel/sieving.cpp b/kernel/sieving.cpp
+index cf29dce..a122d8f 100644
+--- a/kernel/sieving.cpp
++++ b/kernel/sieving.cpp
+@@ -217,6 +217,29 @@ bool Siever::nv_sieve()
+     }
+ }
+ 
++// Reject-on-overflow (2026-10-13, applied on top of the INC-63 tolerant patch).
++// Coefficients x are int16 (ZT), so addsub_vec wraps a sum outside
++// [-32767, 32767] and the stored vector is no longer the one the length test
++// accepted. Refuse such a reduction instead (callers treat it as no
++// reduction); count rejections and report the count at powers of two.
++static std::atomic<unsigned long> g_overflow_rejects{0};
++static inline bool zt_sum_overflows(std::array<ZT,MAX_SIEVING_DIM> const &a,
++                                    std::array<ZT,MAX_SIEVING_DIM> const &b, int sign, unsigned int n)
++{
++  for (unsigned int i = 0; i < n; ++i)
++  {
++    long const v = (long)a[i] + (long)sign * (long)b[i];
++    if (UNLIKELY(v > 32767 || v < -32767))
++    {
++      unsigned long const k = ++g_overflow_rejects;
++      if ((k & (k - 1)) == 0)
++        std::fprintf(stderr, "g6k reduce_in_db: rejected int16-overflow reduction #%lu (n=%u)\n", k, n);
++      return true;
++    }
++  }
++  return false;
++}
++
+ // Same as reduce_in_db, but additionally returns which one of {ce1, ce2} was reduced
+ short Siever::gauss_no_upd_reduce_in_db(CompressedEntry *ce1, CompressedEntry *ce2)
+ {
+@@ -284,6 +307,7 @@ short Siever::gauss_no_upd_reduce_in_db(CompressedEntry *ce1, CompressedEntry *c
+   }
+ //  STATS(stat_R++);
+ 
++  if (zt_sum_overflows(db[ce1->i].x, db[ce2->i].x, sign, n)) return 0;
+   std::array<ZT,MAX_SIEVING_DIM> x_new = db[ce1->i].x;
+   addsub_vec(x_new, db[ce2->i].x, static_cast<ZT>(sign));
+   auto new_uid = uid_hash_table.compute_uid(x_new);
+@@ -368,6 +392,7 @@ CompressedEntry* Siever::reduce_in_db(CompressedEntry *ce1, CompressedEntry *ce2
+     }
+ //    STATS(stat_R++);
+ 
++    if (zt_sum_overflows(db[ce1->i].x, db[ce2->i].x, sign, n)) return nullptr;
+     std::array<ZT,MAX_SIEVING_DIM> x_new = db[ce1->i].x;
+     addsub_vec(x_new, db[ce2->i].x, static_cast<ZT>(sign));
+     auto new_uid = uid_hash_table.compute_uid(x_new);

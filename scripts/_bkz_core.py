@@ -138,7 +138,7 @@ def _secret_recovery(
     """Cancellation-free crack detector from the EXACT integer reduced basis.
 
     The GSO-based DSD criterion fails at high n (fpylll ``get_r`` cancels ->
-    -345 sentinel; see INC-51). This reads the planted secret instead: the
+    -345 sentinel). This reads the planted secret instead: the
     circulant NTRU short vector is ``s = (g, f)`` (ternary), and its n cyclic
     rotations span the dense sublattice (every rotation is a lattice vector).
     Integer row norms are exact, so this works at any dimension.
@@ -146,10 +146,12 @@ def _secret_recovery(
     Returns:
       secret_norm2  ||(g, f)||^2 (the target short-vector length, squared)
       min_norm2     min over reduced-basis rows of the exact integer ||b||^2
-      recovered     min_norm2 <= secret_norm2 (a dense-sublattice vector found;
-                    in the overstretched regime the only vectors that short ARE
-                    the secret rotations) -- layout-independent primary signal
-      exact_match   some row equals +/- a cyclic rotation of s (strict bonus)
+      recovered     min_norm2 <= secret_norm2. Over-counts: when g(1)=0
+                    (~4% of keys at n>=157) h(1)=0 mod q, so the all-ones
+                    vector (0, 1) of norm2 n, shorter than a typical key, is a
+                    lattice vector
+      exact_match   some row equals +/- a cyclic rotation of s -- the crack
+                    verdict (extract_dsd_onset._seed_fires; paper 2 scores it)
       shortest_rows the three shortest reduced-basis rows as [norm2, coords]
                     (ascending; exact integers) -- consumed only by callers
                     that opt in via store_short_vectors, so the per-seed JSON
@@ -213,6 +215,9 @@ def run_single(
     secret_g: Any = None,
     metric_float_type: str = "double",
     store_short_vectors: bool = False,
+    sieve_trace: bool = False,
+    tour_cb: Optional[Callable[..., None]] = None,
+    basis_cb: Optional[Callable[[str, int, Any], None]] = None,
 ) -> dict[str, Any]:
     """Run BKZ and SD-BKZ on a single (n, beta, seed) lattice.
 
@@ -226,6 +231,10 @@ def run_single(
     below) removes the catastrophic get_r cancellation at frontier dims
     (n>=157) that otherwise clamps gs_lognorms to the -345 sentinel. The
     integer secret-recovery readout is GSO-independent and unaffected.
+
+    ``basis_cb(leg, tour, B)`` (side channel) sees the integer
+    basis: ("init", 0, B_init) after LLL, then (variant, t, B) after each
+    tour. It must not mutate B; the result dict is the same with or without it.
     """
     FPLLL.set_precision(precision)
     FPLLL.set_random_seed(seed)
@@ -257,8 +266,7 @@ def run_single(
         # ctx attributes any clamp events to this (n,beta,q,seed,variant) leg in
         # the results/clamp_events.jsonl side-log so the 87k events can be joined
         # back to seeds. It affects ONLY the clamp-log string, never the returned
-        # metrics -- per-seed JSON bytes are unchanged (audit 2026-07-04 finding 2;
-        # per CLAUDE.md the counter goes to the side-log, NOT the seed schema).
+        # metrics -- per-seed JSON bytes are unchanged.
         return metrics_from_gso(M, dim, m, ln_p, full=full,
                                 log_clamp_fn=log_clamp_fn,
                                 warn_on_clamp=warn_on_clamp,
@@ -267,6 +275,8 @@ def run_single(
     # Initial quality (LLL-reduced, no BKZ yet)
     B_init = IntegerMatrix.from_matrix(L)
     LLL.reduction(B_init)
+    if basis_cb is not None:
+        basis_cb("init", 0, B_init)
     if metric_float_type == "double":
         M_init = GSO.Mat(B_init)
     else:
@@ -279,7 +289,7 @@ def run_single(
     result["initial_gs_lognorms"] = [float(x) for x in init["gs_lognorms"]]
 
     for variant in ("bkz", "sdbkz"):
-        # Side-channel only (INC-58 note: wall-cap / crash / seed-failed
+        # Side-channel only (wall-cap / crash / seed-failed
         # records carried no variant, so leg attribution was inference).
         # Reports which leg is starting; must never affect the science path,
         # so a broken callback is swallowed.
@@ -297,6 +307,7 @@ def run_single(
             backend, B_init=B_init, beta=beta, variant=variant,
             seed=seed, precision=precision,
             metric_float_type=metric_float_type,
+            sieve_trace=sieve_trace,
         )
 
         vctx = f"n{n} b{beta} q{q} s{seed} {variant}"
@@ -313,10 +324,18 @@ def run_single(
         prev_rankin = init["rankin"]
         t0 = time.time()
 
+        tour_cb_failed = False
         for t in range(1, max_tours + 1):
+            if tour_cb is not None:
+                w0, c0 = time.monotonic(), time.process_time()
             engine.tour()
+            if tour_cb is not None:
+                tour_wall = time.monotonic() - w0
+                tour_cpu = time.process_time() - c0
 
             M = engine.gso()
+            if basis_cb is not None:
+                basis_cb(variant, t, M.B)
             if store_per_tour:
                 metrics = _metrics(M, full=True, ctx=vctx)
                 rankin_per_tour.append([float(x) for x in metrics["rankin"]])
@@ -327,6 +346,21 @@ def run_single(
             else:
                 metrics = _metrics(M, full=False, ctx=vctx)
             dln_per_tour.append(metrics["dln"])
+            # Side-channel only (sieve trace): per-tour timing + the
+            # engine's sieve summary. A broken callback never touches science,
+            # but its first failure per leg is logged, not swallowed.
+            if tour_cb is not None:
+                try:
+                    tour_cb(variant, t, tour_wall, tour_cpu, metrics["dln"],
+                            getattr(engine, "tour_stats", None))
+                except Exception as e:
+                    if not tour_cb_failed:
+                        tour_cb_failed = True
+                        PIPELINE.error(
+                            "tour_cb failed", cat="sweep", n=n, beta=beta,
+                            seed=seed, variant=variant, tour=t,
+                            error=f"{type(e).__name__}: {e}",
+                        )
 
             delta = float(np.mean(np.abs(
                 np.array(metrics["rankin"]) - np.array(prev_rankin)
@@ -364,7 +398,7 @@ def run_single(
             stag_gs = [float(x) for x in full_m["gs_lognorms"]]
 
         # Cancellation-free crack readout from the EXACT integer reduced basis
-        # (INC-51): the GSO-based DSD criterion fails at high n, but integer row
+        # The GSO-based DSD criterion fails at high n, but integer row
         # norms vs the planted secret are exact at any dimension. Additive only;
         # only emitted for NTRU callers that pass the secret (LWE-Kannan and any
         # caller without secret_f/g is byte-identical to before).

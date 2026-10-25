@@ -1,10 +1,10 @@
-"""INC-45 Phase 3.5 — per-family array-presence assertion in validate_seeds.
+"""per-family array-presence assertion in validate_seeds.
 
 Locks the hardening that turns a silently-skipped array check into a loud
 failure: GS-bearing families (sweep/q3329/NTRU) MUST carry the three GS
 profiles; trajectory families (convergence/tours3x) MUST carry finite
 per-tour d(LN) arrays. Without these, a seed that lost its arrays to a bug
-passed green — the INC-45 failure mode (pass via absence), one layer down.
+passed green — the failure mode (pass via absence), one layer down.
 """
 import json
 import os

@@ -1,6 +1,6 @@
 """Cancellation-free secret-recovery readout (_bkz_core._secret_recovery).
 
-Validates the INC-51 fix: detect NTRU crack from the EXACT integer reduced
+Validates the fix: detect NTRU crack from the EXACT integer reduced
 basis (immune to the high-n GSO -345 cancellation), using the planted secret.
 """
 import os

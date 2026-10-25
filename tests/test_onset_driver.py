@@ -21,8 +21,14 @@ def _write_cell(root, n, q, seeds):
         (d / f"seed{i:04d}.json").write_text(json.dumps(s))
 
 
+# _bkz_core writes all four together; the driver scores only exact_match.
+READOUT_KEYS = ("secret_recovered_bkz", "secret_recovered_sdbkz",
+                "secret_exact_match_bkz", "secret_exact_match_sdbkz")
+
+
 def _seed(secret_norm2=210, min_bkz=7460, min_sd=7460, recovered=False,
-          status="completed", drop_keys=()):
+          status="completed", drop_keys=(), exact=None):
+    exact = recovered if exact is None else exact
     j = {
         "status": status,
         "secret_norm2": secret_norm2,
@@ -30,6 +36,8 @@ def _seed(secret_norm2=210, min_bkz=7460, min_sd=7460, recovered=False,
         "min_actual_norm2_sdbkz": min_sd,
         "secret_recovered_bkz": recovered,
         "secret_recovered_sdbkz": recovered,
+        "secret_exact_match_bkz": exact,
+        "secret_exact_match_sdbkz": exact,
     }
     for k in drop_keys:
         j.pop(k, None)
@@ -61,10 +69,20 @@ def test_incomplete_too_few_seeds(repo):
 
 def test_missing_recovery_key_is_incomplete_not_null(repo):
     # THE BUG: absent keys must read as INCOMPLETE (re-run), never NULL.
-    seeds = [_seed(drop_keys=("secret_recovered_bkz", "secret_recovered_sdbkz"))] \
-        * od.SEEDS
+    seeds = [_seed(drop_keys=READOUT_KEYS)] * od.SEEDS
     _write_cell(repo, 113, 701, seeds)
     assert od.verdict(113, 701) is None
+
+
+def test_all_ones_vector_leg_is_not_a_crack(repo):
+    # g(1)=0 key: the all-ones vector (norm^2 n < secret_norm2) sets
+    # secret_recovered but is not the secret. Scored like extract_dsd_onset
+    # (secret_exact_match), it must not count as a crack or toward a rate.
+    seeds = [_seed()] * (od.SEEDS - 1) + \
+            [_seed(min_sd=167, recovered=True, exact=False)]
+    _write_cell(repo, 167, 3271, seeds)
+    assert od.verdict(167, 3271) == "NULL"
+    assert od._variant_rates(167, 3271) == (0.0, 0.0)
 
 
 def test_uncompleted_status_is_incomplete(repo):
@@ -124,8 +142,8 @@ def test_known_skips_incomplete_cells(repo):
 
 def _seed_rates(bkz, sd):
     j = _seed()
-    j["secret_recovered_bkz"] = bkz
-    j["secret_recovered_sdbkz"] = sd
+    j["secret_recovered_bkz"] = j["secret_exact_match_bkz"] = bkz
+    j["secret_recovered_sdbkz"] = j["secret_exact_match_sdbkz"] = sd
     return j
 
 
@@ -205,13 +223,12 @@ def test_lock_blocks_on_live_onset_driver(repo, monkeypatch, tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# Audit #4 (2026-07-05) residuals: legacy-schema cell guard, anchored lock match.
+# Audit #4 residuals: legacy-schema cell guard, anchored lock match.
 # ---------------------------------------------------------------------------
 
 def test_legacy_cell_detected_and_abandons(repo):
-    # pre-INC-51 schema: parseable, completed, no recovery keys anywhere.
-    seeds = [_seed(drop_keys=("secret_recovered_bkz",
-                              "secret_recovered_sdbkz"))] * od.SEEDS
+    # pre-fix schema: parseable, completed, no recovery keys anywhere.
+    seeds = [_seed(drop_keys=READOUT_KEYS)] * od.SEEDS
     _write_cell(repo, 113, 631, seeds)
     assert od._legacy_cell(113, 631) is True
     assert od.run_cell(113, 631, deadline=float("inf"), dry=True) is False
@@ -223,8 +240,7 @@ def test_modern_cell_not_legacy(repo):
 
 
 def test_partial_cell_not_legacy(repo):
-    seeds = [_seed(drop_keys=("secret_recovered_bkz",
-                              "secret_recovered_sdbkz"))] * (od.SEEDS - 1)
+    seeds = [_seed(drop_keys=READOUT_KEYS)] * (od.SEEDS - 1)
     _write_cell(repo, 113, 631, seeds)
     assert od._legacy_cell(113, 631) is False   # incomplete -> normal re-run
 

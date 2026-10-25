@@ -3,11 +3,13 @@
 
 Two families of number that have NO committed provenance in the repo:
 
-  4b. campaign cost  ~= 6,430 core-hours     (sdbkz_paper2.tex:302, 781)
-  4c. three bootstrap CIs on the n=89 / n=101 beta=40 onset gaps
-        [-0.04, +0.46]  n=89 fplll onset-modulus gap   (tex:562, point +0.16)
-        [+0.28, +2.19]  n=89 G6K   onset-modulus gap   (tex:563, point +0.82)
-        [ 6.1%, 11.0%]  n=101 fplll DSD onset-% gap     (tex:634, point ~9%)
+  4b. campaign cost  ~= 6,430 core-hours     (tab:coverage caption)
+  4c. three bootstrap CIs on the n=89 / n=101 beta=40 onset gaps, as printed
+        [-0.06, +0.49]  n=89 fplll onset-modulus gap   (point +0.16)
+        [+0.27, +3.17]  n=89 G6K   onset-modulus gap   (point +0.82, 0.42% of q)
+        [ 6.1%, 11.1%]  n=101 fplll DSD onset-% gap     (point 9%)
+      (recomputed: +0.161 [-0.061,+0.487]; +0.817 [+0.273,+3.169];
+       9.10% [6.06,11.12])
 
 Every DSD verdict is scored with the EXISTING primitives imported from
 ``scripts/extract_dsd_onset.py`` (``_seed_fires``, ``_q_grid``, ``short_threshold``)
@@ -36,10 +38,16 @@ BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 SCRIPTS = os.path.join(BASE, "scripts")
 if SCRIPTS not in sys.path:
     sys.path.insert(0, SCRIPTS)
-from extract_dsd_onset import _q_grid, _seed_fires  # noqa: E402  (existing primitives)
+from extract_dsd_onset import (  # noqa: E402  (existing primitives)
+    DEFAULT_TOURS,
+    _q_grid,
+    _seed_fires,
+)
+
+from _paper2_claims.pointer import in_coverage  # noqa: E402  (tab:coverage scope)
 
 DEFAULT_RATE = 0.5
-TOURS_DEFAULT = 50
+TOURS_DEFAULT = DEFAULT_TOURS  # single source: extract_dsd_onset
 RNG_SEED = 20260710          # pinned so the CIs are byte-reproducible
 B = 10000                    # bootstrap resamples
 
@@ -88,13 +96,13 @@ def _paper2_cost_cells() -> list[tuple]:
 
 def _core_hours():
     """Ground-truth core-hours: sum the ACTUAL recorded bkz_time+sdbkz_time over
-    every paper-2 coverage seed (results/seeds/{ntru,ntru_g6k}, n in P2_NS), from
+    every paper-2 coverage seed (results/seeds/{ntru,ntru_g6k}, n in P2_NS, excl.
+    n=127 beta=40; pointer.in_coverage), from
     the seed JSONs the manifests point at. This replaces the earlier per-tour cost-
     table proxy, which priced every cell at the cost table's higher-precision
     sampling instead of the actual p250 bulk-run times and so OVER-estimated ~2.2x
     (13,999 vs the tex ~6,430). The recorded times are ground truth -- no
-    extrapolation -- and vindicate the tex figure (see paper_findings 2026-08-12)."""
-    P2_NS = {59, 61, 67, 71, 73, 79, 83, 89, 101, 113, 127}
+    extrapolation -- and vindicate the tex figure."""
     total = 0.0
     breakdown: dict = defaultdict(float)
     rows: set = set()
@@ -104,7 +112,7 @@ def _core_hours():
                      ("g6k_seed_manifest.json", "ntru_g6k")]:
         man = json.load(open(os.path.join(BASE, "results", mf)))
         for s in man["seeds"]:
-            if s["path"].split("/")[2] != tree or s["n"] not in P2_NS:
+            if s["path"].split("/")[2] != tree or not in_coverage(s):
                 continue
             n_seeds += 1
             rows.add((s["n"], s["beta"], s.get("max_tours", TOURS_DEFAULT)))
@@ -133,7 +141,7 @@ def _fire_matrix(tree: str, n: int, beta: int, variant: str):
     mat: dict[int, dict[int, int]] = {}
     for q in _q_grid(tree, n, beta):
         pat = os.path.join(BASE, "results", "seeds", tree, f"q{q}",
-                           "p*_mt*", f"n{n:03d}_beta{beta:02d}", "seed*.json")
+                           f"p*_mt{TOURS_DEFAULT}", f"n{n:03d}_beta{beta:02d}", "seed*.json")
         cell: dict[int, int] = {}
         for f in sorted(glob.glob(pat)):
             sid = int(re.search(r"seed(\d+)", os.path.basename(f)).group(1))
@@ -190,9 +198,10 @@ def _bootstrap_gap(tree, n, beta, estimand, rng_seed=RNG_SEED, b=B):
     Design = per-cell resampling: each q-cell's seeds are resampled with
     replacement INDEPENDENTLY (SD/BKZ paired within a cell -- the two legs of a
     seed), because seeds at different q are genuinely independent reductions
-    (same PRNG seed, different modulus). This reproduces the published n=89 fplll
-    CI [-0.04,+0.46] to ~0.02 and the n=89 G6K lower bound 0.28; a single common
-    index across all q (fully paired across q) over-narrows the tails.
+    (same PRNG seed, different modulus). This is the recipe behind the printed
+    CIs (n=89 fplll [-0.06,+0.49], G6K [+0.27,+3.17]; n=101 [6.1%,11.1%]); a
+    single common index across all q (fully paired across q) over-narrows the
+    tails.
 
     estimand: 'abs'  -> gap = BKZ_onset - SD_onset (modulus units)
               'pct'  -> gap = 100*(BKZ_onset - SD_onset)/SD_onset (percent)
@@ -243,7 +252,7 @@ def build_records() -> list[dict]:
     ch_match = 6400.0 <= total <= 6500.0
     records.append({
         "claim_id": "cost_core_hours",
-        "tex_lines": [302, 781],
+        "tex_anchors": [r"$\approx$6{,}430 core-hours"],
         "verbatim": "about 6,430 core-hours of reduction across both oracles",
         "paper_value": 6430.0,
         "source": {"kind": "manifest+recorded_seed_times",
@@ -251,7 +260,8 @@ def build_records() -> list[dict]:
                    "manifests": ["results/seed_manifest.json",
                                  "results/g6k_seed_manifest.json"]},
         "method": ("GROUND TRUTH: sum of recorded (bkz_time + sdbkz_time)/3600 over "
-                   "every paper-2 coverage seed (trees ntru+ntru_g6k, n in {59..127}) "
+                   "every paper-2 coverage seed (trees ntru+ntru_g6k, n in {59..127}, "
+                   "excl. n=127 beta=40) "
                    f"from the manifests -- {nseeds} seed-pairs, {ncells} (n,beta,tours) "
                    "rows; no cost-table extrapolation"),
         "recomputed_value": round(total, 1),
@@ -274,24 +284,21 @@ def build_records() -> list[dict]:
     # ---- 4c bootstrap CIs ----------------------------------------------------
     ci_specs = [
         {"claim_id": "bootstrap_ci_n89_fplll_onset_gap", "tree": "ntru",
-         "n": 89, "estimand": "abs", "tex_lines": [562],
-         "verbatim": "+0.16 units, CI [-0.04, +0.46] (spans 0)",
-         "paper_point": 0.16, "paper_lo": -0.04, "paper_hi": 0.46, "unit": "modulus"},
+         "n": 89, "estimand": "abs", "tex_anchors": [r"$[-0.06, +0.49]$"],
+         "verbatim": "+0.16 units, CI [-0.06, +0.49] (spans 0)",
+         "paper_point": 0.16, "paper_lo": -0.06, "paper_hi": 0.49, "unit": "modulus"},
         {"claim_id": "bootstrap_ci_n89_g6k_onset_gap", "tree": "ntru_g6k",
-         "n": 89, "estimand": "abs", "tex_lines": [563],
-         "verbatim": "+0.82 units, CI [+0.28, +2.19]",
-         "paper_point": 0.82, "paper_lo": 0.28, "paper_hi": 2.19, "unit": "modulus",
-         "extra": (" Point est and lower bound reproduce (0.273 vs 0.28); the UPPER "
-                   "bound is wider under this recipe (3.17 vs 2.19). The g6k SD onset "
-                   "sits ~0.14 above the q=193 cell (rate 0.49, one seed short of 0.5), "
-                   "so resamples that push SD just below the crossing send the gap "
-                   "far up -> a long, recipe-sensitive right tail. The original 2.19 "
-                   "needs the exact committed rng_seed/B/interp-edge handling (not in "
-                   "any repo file) to reproduce byte-for-byte.")},
+         "n": 89, "estimand": "abs",
+         "tex_anchors": [r"the G6K gap $+0.82$ ($[+0.27, +3.17]$)"],
+         "verbatim": "+0.82 units, CI [+0.27, +3.17]",
+         "paper_point": 0.82, "paper_lo": 0.27, "paper_hi": 3.17, "unit": "modulus",
+         "extra": (" The upper bound is RNG-stream sensitive: the g6k SD onset sits "
+                   "~0.14 above the q=193 cell (rate 0.49, one seed short of 0.5), "
+                   "a long right tail the tex states.")},
         {"claim_id": "bootstrap_ci_n101_fplll_rate_gap", "tree": "ntru",
-         "n": 101, "estimand": "pct", "tex_lines": [634],
-         "verbatim": "9% gap, CI [6.1%, 11.0%]",
-         "paper_point": 9.0, "paper_lo": 6.1, "paper_hi": 11.0, "unit": "percent"},
+         "n": 101, "estimand": "pct", "tex_anchors": [r"$[6.1\%,11.1\%]$"],
+         "verbatim": "9% gap, CI [6.1%, 11.1%]",
+         "paper_point": 9.0, "paper_lo": 6.1, "paper_hi": 11.1, "unit": "percent"},
     ]
     for spec in ci_specs:
         point, lo, hi, meta = _bootstrap_gap(spec["tree"], spec["n"], 40,
@@ -304,12 +311,12 @@ def build_records() -> list[dict]:
         match = bool(point_ok and lo_ok and hi_ok)
         records.append({
             "claim_id": spec["claim_id"],
-            "tex_lines": spec["tex_lines"],
+            "tex_anchors": spec["tex_anchors"],
             "verbatim": spec["verbatim"],
             "paper_value": {"point": spec["paper_point"],
                             "ci": [spec["paper_lo"], spec["paper_hi"]]},
             "source": {"kind": "seeds",
-                       "glob": f"results/seeds/{spec['tree']}/q*/p*_mt*/"
+                       "glob": f"results/seeds/{spec['tree']}/q*/p*_mt{TOURS_DEFAULT}/"
                                f"n{spec['n']:03d}_beta40/"},
             "method": (f"per-cell nonparametric bootstrap (each q-cell resampled "
                        f"independently, SD/BKZ paired within cell), B={B}, "

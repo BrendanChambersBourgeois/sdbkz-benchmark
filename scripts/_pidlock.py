@@ -1,6 +1,6 @@
 """Single-instance pid lock shared by the long-running drivers.
 
-History (why both halves matter -- ultrareview PR #3, 2026-08-21):
+Why both halves matter:
   * forever_runner.py had the ATOMIC create (O_CREAT|O_EXCL) but a LOOSE holder
     match (any argv basename == script), so a SIGKILL-orphaned lock whose pid was
     recycled to `tail -f scripts/forever_runner.py` blocked the restart; with

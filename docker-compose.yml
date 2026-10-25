@@ -1,8 +1,6 @@
 # Pass HOST_UID + HOST_GID through to the build so the container's
 # runtime user matches the host invoker — bind-mounted ./results +
-# ./logs receive host-owned files instead of root-owned ones (backlog
-# backlog/2026-04-20_v3_dockerfile_scope.md §8;
-# Incident #32 recurrence pattern). Defaults match a typical Linux
+# ./logs receive host-owned files instead of root-owned ones. Defaults match a typical Linux
 # desktop; expanded from `${UID:-1000}`/`${GID:-1000}` so a Linux user
 # on a non-1000 UID, or a WSL user, can override via shell env.
 
@@ -22,7 +20,7 @@ services:
     # No CPU limit — the wrapper scripts (sweep_parallel.py,
     # run_q3329_n100_local.py, etc.) already control parallelism via
     # their --workers flag. A hardcoded `cpus: "22"` here was specific
-    # to Brendan's 13900K and broke on collaborator machines with
+    # to one 32-thread workstation and broke on collaborator machines with
     # fewer than 22 logical CPUs (Docker rejects the value at run
     # time with "range of CPUs is from 0.01 to N.00").
 

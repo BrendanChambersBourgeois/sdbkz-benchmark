@@ -1,3 +1,12 @@
+Correction: the cause stated in the
+comment inside this patch ("stores the exactly RECOMPUTED length, which
+can round to >= the pre-reduction length") is retracted. The non-improving
+swap comes from int16 coefficient overflow in addsub_vec: the stored vector
+wraps and is no longer the one the length test measured. This patch only
+tolerates and counts the swap; patches/g6k_gauss_reject_overflow.patch rejects
+the overflowing reduction. The hunks below are unchanged, so builds apply the
+same code as before. git apply ignores this text before the first diff header.
+
 --- a/kernel/sieving.cpp
 +++ b/kernel/sieving.cpp
 @@ -19,6 +19,8 @@

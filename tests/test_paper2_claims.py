@@ -5,11 +5,10 @@ in results/paper_claims/paper2_claims.json must still match its paper value. A
 future silent tex/figure/data drift on any of those turns into a red test (the
 paper-2 analogue of the verify_reference.json guard).
 
-DERIVED-UNRESOLVED records (the numbers that did NOT reproduce — R²=0.957,
-core-hours, one bootstrap CI, the strict-max RHF bound) are deliberately NOT
-asserted true: they are documented discrepancies awaiting a maintainer paper
-pass, and the test asserts only that their COUNT hasn't grown (no new
-regression sneaking in under that status).
+DERIVED-UNRESOLVED records are documented discrepancies, not asserted true;
+the test asserts only that their set hasn't grown. The four 2026-07-10 ones
+(R², core-hours, one bootstrap CI, the RHF bound) resolved in 2026-10, and the
+n=163 BKZ bound-vs-onset reading with the 40/100 at q=4049.
 """
 from __future__ import annotations
 
@@ -19,14 +18,8 @@ import os
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LEDGER = os.path.join(REPO, "results", "paper_claims", "paper2_claims.json")
 
-# The known-unresolved set as of 2026-07-10 (paper numbers that did not
-# reproduce from committed data). Growth beyond this is a regression.
-KNOWN_UNRESOLVED = {
-    "per_position_slope_flatten_r2",   # R²=0.957 prose-only, best recipe 0.953
-    "cost_core_hours",                 # tex ≈6,430; recomputed ~14,000
-    "bootstrap_ci_n89_g6k_onset_gap",  # CI upper bound method-sensitive
-    "rhf_fplll_le_2e-6_n101_113",      # strict max 1.76e-5 > 2e-6 (median holds)
-}
+# Paper claims that do not reproduce as read. Growth beyond this is a regression.
+KNOWN_UNRESOLVED: set[str] = set()
 
 
 def _ledger() -> dict:
@@ -40,8 +33,9 @@ def test_ledger_present_and_shaped():
     assert d["records"], "ledger has no records"
     for r in d["records"]:
         for k in ("claim_id", "paper_value", "recomputed_value", "match",
-                  "status", "source", "method"):
+                  "status", "source", "method", "tex_anchors", "tex_lines"):
             assert k in r, f"{r.get('claim_id')} missing {k}"
+        assert r["tex_lines"], f"{r['claim_id']} points at no tex line"
 
 
 def test_recomputed_and_pointer_all_match():
@@ -66,3 +60,12 @@ def test_status_taxonomy_valid():
     allowed = {"RECOMPUTED", "POINTER", "DERIVED", "DERIVED-UNRESOLVED"}
     for r in d["records"]:
         assert r["status"] in allowed, f"{r['claim_id']}: bad status {r['status']}"
+
+
+def test_committed_ledger_matches_builder():
+    """The committed ledger is what the builder emits from the current tex and
+    seeds: a tex or seed edit without `make paper2-claims` turns this red."""
+    import sys
+    sys.path.insert(0, os.path.join(REPO, "scripts"))
+    from build_paper2_claims import build
+    assert build() == _ledger(), "stale ledger: run `make paper2-claims`"

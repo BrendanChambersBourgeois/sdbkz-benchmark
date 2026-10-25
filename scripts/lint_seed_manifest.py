@@ -75,12 +75,19 @@ NON_MANIFEST_SEED_TREES = frozenset({
     # Patched-fplll (Kahan) validation campaign — its own tree by
     # design, never overwrites or joins the canonical seeds.
     "ntru_patched",
-    # §8 local rerun arms (2026-09-02): the q=3329 headline cell on the
+    # Rerun of the same n=127 cell on the sign-corrected Kahan build;
+    # SHA set in results/patched_seed_manifest.json.
+    "ntru_patched_kahan_v3",
+    # §8 local rerun arms: the q=3329 headline cell on the
     # sign-corrected Kahan build and on the reorder-only control build. Own
-    # trees, own engine binaries, never the canonical q3329/ hashes; manifest
-    # wiring with per-engine labels is owed when the seeds land.
+    # trees, own engine binaries, never the canonical q3329/ hashes; SHA set
+    # with per-engine labels in results/patched_seed_manifest.json.
     "q3329_kahan",
     "q3329_control",
+    # q=3329 re-measure with the measurement GSO in mpfr:
+    # stock wheel, same cells as canonical q3329/, own tree;
+    # seeds carry metric_float_type and per-tour arrays, so no manifest.
+    "q3329_mpfr",
     # forever-runner idle-filler tree — extra statistical power written to a
     # separate tree so it never re-opens a published cell's N (B2 review).
     "ntru_b2",
@@ -91,7 +98,18 @@ NON_MANIFEST_SEED_TREES = frozenset({
     # g6k short-vector probe (2026-09-02, store_short_vectors=true reruns of
     # band-bearing ntru_g6k seeds): own tree, extra keys, no manifest.
     "ntru_g6k_vecprobe",
-    # flatter-preprocessing A/B probe (2026-08-13): paired baseline/flatter
+    # Instrumented rerun: own tree, per-tour arrays, no manifest.
+    "ntru_g6k_diag",
+    # Exact-field reruns of the flag-scored NTRU cells:
+    # own trees, extra keys, no manifest; the canonical cells stay put.
+    "ntru_exact",
+    "ntru_g6k_exact",
+    # beta=60 reruns on the reject-on-overflow G6K build:
+    # own tree, no manifest; the tolerant-build ntru_g6k cells stay put.
+    "ntru_g6k_reject",
+    # vecprobe reruns on the reject build: own tree, extra keys, no manifest.
+    "ntru_g6k_vecprobe_reject",
+    # flatter-preprocessing A/B probe: paired baseline/flatter
     # cells at n=130/140/150 (+ a partial n=157 cell) testing flatter as a
     # pre-reduction step before the standard BKZ/SD-BKZ run. The flatter
     # preprocessing step ran outside the committed campaign tooling, so the

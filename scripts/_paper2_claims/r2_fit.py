@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Paper-2 claims ledger slice 4a: R^2 = 0.957 per-position slope-flattening fit.
+"""Paper-2 claims ledger slice 4a: R^2 ~ 0.95 per-position slope-flattening fit.
 
-Claim (sdbkz_paper2.tex:604 + fig caption :621): the per-position SD-BKZ vs BKZ
-profile-difference redistribution at n=89, beta=40 is "~96% predicted by slope
-flattening alone (R^2=0.957)".
+Claim (fig:perpos caption): the per-position SD-BKZ vs BKZ profile-difference
+redistribution at n=89, beta=40 is "~95% predicted by slope flattening alone
+(R^2 ~ 0.95)" (earlier printed as R^2=0.957).
 
 This is a PROSE/CAPTION-ONLY number. `analysis/plots/ntru_per_position.py` reads
 the same gs_lognorms_{bkz,sdbkz} data but computes NO fit and holds NO literal
@@ -15,11 +15,10 @@ linear-in-position model d_i ~ a*(i - ibar) (intercept ~0 by determinant
 conservation), plus the two refinements the plan lists (tail-restrict i>=n;
 BKZ-profile-slope predictor).
 
-RESULT: no principled recipe reproduces 0.957 to <=0.001. The number is
-underdetermined -- engine choice / q-band / tail-restriction each swing it
-across 0.94-0.96. See build_records()[0]["note"] for the full candidate table.
-Per the plan Step 4a mandate, this is recorded match=false / DERIVED-UNRESOLVED
-rather than shipping a different R^2 as if it were the paper value.
+RESULT: no principled recipe reproduced the old 0.957 to <=0.001 (the value
+scatters 0.94-0.96 with engine / q-band / tail choice); the tex now prints
+~0.95, which the primary recipe (0.9531) meets within half a printed unit.
+See build_records()[0]["note"] for the full candidate table.
 
 Exposes build_records() -> list[dict] (ledger schema). Read-only on
 results/seeds/. Run directly to print the candidate landscape + the record.
@@ -140,8 +139,8 @@ def candidate_landscape() -> dict[str, float]:
 # plain linear-in-position d_i ~ a*(i - ibar), free intercept, R^2 about mean.
 PRIMARY_LABEL = "both | band[127,157] | position | tail=0"
 
-PAPER_VALUE = 0.957
-TOL = 0.001
+PAPER_VALUE = 0.95   # tex "R^2 ~ 0.95" (fig:perpos caption; was 0.957)
+TOL = 0.005          # half a unit of the printed 2nd decimal
 
 
 def build_records() -> list[dict]:
@@ -157,31 +156,20 @@ def build_records() -> list[dict]:
     table = "; ".join(f"{lbl}={val:.4f}" for lbl, val in ranked)
 
     note = (
-        "PROSE/CAPTION-ONLY number (sdbkz_paper2.tex:604,621); no code or "
-        "committed file contains 0.957 (finding 6 item 7.6). Data path is "
-        "byte-identical to analysis/plots/ntru_per_position._per_position_mean "
-        "(same glob, _fat exclusion, shape guard, per-position mean over 100 "
-        "seeds/cell of gs_sdbkz-gs_bkz). The 'pure slope-flattening' model "
-        "d_i ~ a*(i - ibar) (intercept ~0 by determinant conservation) does "
-        "NOT reproduce 0.957 to <=0.001 under any documented recipe: the value "
-        "is underdetermined and scatters across 0.94-0.96 with engine/q-band/"
-        "tail choice. Closest principled candidate: "
-        f"'{closest_lbl}'={closest_val:.4f} (rounds to "
-        f"{closest_val:.3f}, |delta|={abs(closest_val-PAPER_VALUE):.4f}). "
-        f"Primary plain recipe ('{PRIMARY_LABEL}')={primary:.4f}. Tried both "
-        "documented refinements (i) tail-restrict i>=n and (ii) BKZ-profile-"
-        "slope predictor -- neither lands within tol. Full candidate landscape "
-        f"[{table}]. Per plan Step 4a, recording DERIVED-UNRESOLVED rather "
-        "than shipping a different R^2 as the paper number; needs a human call "
-        "on the exact engine/band the author used (or the tex value is an "
-        "unbacked ~ estimate)."
+        "CAPTION number (fig:perpos, 'R^2 ~ 0.95'; was 0.957). "
+        "Data path is byte-identical to "
+        "analysis/plots/ntru_per_position._per_position_mean. Pure slope-"
+        "flattening fit d_i ~ a*(i - ibar); the value scatters 0.94-0.96 with "
+        "engine/q-band/tail choice, which '~0.95' covers. "
+        f"Primary recipe ('{PRIMARY_LABEL}')={primary:.4f}; closest candidate "
+        f"'{closest_lbl}'={closest_val:.4f}. Candidate landscape [{table}]."
     )
 
     rec = {
         "claim_id": "per_position_slope_flatten_r2",
-        "tex_lines": [604, 621],
-        "verbatim": ("a fit to pure slope-flattening explains ~96% of the "
-                     "per-position signal (R^2=0.957)"),
+        "tex_anchors": [r"($R^2\approx0.95$)"],
+        "verbatim": ("the redistribution is ~95% predicted by slope "
+                     "flattening alone (R^2 ~ 0.95)"),
         "paper_value": PAPER_VALUE,
         "source": {
             "kind": "seeds",

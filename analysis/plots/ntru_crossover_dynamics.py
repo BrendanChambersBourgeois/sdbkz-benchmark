@@ -19,8 +19,7 @@ longest run before averaging. A stopped run's last value is its converged value,
 so the carried-forward mean at the last tour equals the mean of the per-seed
 final values exactly. (The previous version truncated every seed to the
 shortest run in the cell, which at n=89 read "BKZ converged" at tour 18, where
-no BKZ run had terminated: 59.73 plotted vs 47.26 true mean; see
-paper_findings 2026-09-18, figure-layer audit item 1.)
+no BKZ run had terminated: 59.73 plotted vs 47.26 true mean.)
 
 §7 note: the per-engine curves are d(LN) DISTANCES (paper 1's convergence
 metric) and the reported result is the crossover TOUR measured against BKZ's own

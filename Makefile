@@ -83,15 +83,14 @@ HOST_GID ?= $(shell id -g)
 IMG_COMMON = --build-arg HOST_UID=$(HOST_UID) --build-arg HOST_GID=$(HOST_GID)
 IMG_JOBS = --build-arg BUILD_JOBS=$(BUILD_JOBS)
 
-.PHONY: images image-digests image-benchmark-ci image-g6k-ref image-g6k-ci image-g6k-dim256 image-g6k-dim384 image-g6k-dim384-inc63 image-fplll-kahan-v3 image-fplll-reorder-control image-fplll54
+.PHONY: images image-digests image-benchmark-ci image-g6k-ref image-g6k-ci image-g6k-dim256 image-g6k-dim384 image-g6k-dim384-inc63 image-g6k-dim384-reject image-fplll54
 
 images:  ## List the image-* rebuild targets (builds nothing)
 	@grep -E '^image-[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
 
 image-digests:  ## Print image ID + RepoDigests for every tag in use (read-only)
 	@for t in sdbkz-benchmark:ci sdbkz-g6k:ref sdbkz-g6k:ci sdbkz-g6k:dim256 \
-	          sdbkz-g6k:dim384 sdbkz-g6k:dim384-inc63 \
-	          sdbkz-fplll-patched:kahan-v3 sdbkz-fplll-patched:reorder-control \
+	          sdbkz-g6k:dim384 sdbkz-g6k:dim384-inc63 sdbkz-g6k:dim384-reject \
 	          sdbkz-fplll54; do \
 	    out=$$($(DOCKER) image inspect --format '{{.Id}} {{.RepoDigests}} {{.Created}}' "$$t" 2>&1) || out="ABSENT ($$(printf '%s' "$$out" | tr -s '\n' ' '))"; \
 	    printf '%s %s\n' "$$t" "$$out"; \
@@ -100,7 +99,7 @@ image-digests:  ## Print image ID + RepoDigests for every tag in use (read-only)
 image-benchmark-ci:  ## Build sdbkz-benchmark:ci (Dockerfile, fpylll 0.6.4 wheel)
 	$(DOCKER) build -f Dockerfile $(IMG_COMMON) -t sdbkz-benchmark:ci .
 
-image-g6k-ref:  ## Build sdbkz-g6k:ref (Dockerfile.g6k defaults: dim 128, INC-63 patch)
+image-g6k-ref:  ## Build sdbkz-g6k:ref (Dockerfile.g6k defaults: dim 128, gauss_sieve patch)
 	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) -t sdbkz-g6k:ref .
 
 image-g6k-ci:  ## Build sdbkz-g6k:ci locally (same recipe CI builds)
@@ -110,25 +109,20 @@ image-g6k-dim256:  ## Build sdbkz-g6k:dim256 (G6K_MAX_SIEVING_DIM=256)
 	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) \
 	    --build-arg G6K_MAX_SIEVING_DIM=256 -t sdbkz-g6k:dim256 .
 
-image-g6k-dim384:  ## Build sdbkz-g6k:dim384 (dim 384, INC-63 patch NOT applied)
+image-g6k-dim384:  ## Build sdbkz-g6k:dim384 (dim 384, gauss_sieve patch NOT applied)
 	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) \
 	    --build-arg G6K_MAX_SIEVING_DIM=384 --build-arg APPLY_INC63=0 \
 	    -t sdbkz-g6k:dim384 .
 
-image-g6k-dim384-inc63:  ## Build sdbkz-g6k:dim384-inc63 (dim 384, INC-63 patch applied)
+image-g6k-dim384-inc63:  ## Build sdbkz-g6k:dim384-inc63 (dim 384, gauss_sieve patch applied)
 	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) \
 	    --build-arg G6K_MAX_SIEVING_DIM=384 --build-arg APPLY_INC63=1 \
 	    -t sdbkz-g6k:dim384-inc63 .
 
-image-fplll-kahan-v3:  ## Build sdbkz-fplll-patched:kahan-v3 (sign-corrected Kahan GSO patch)
-	$(DOCKER) build -f Dockerfile.fplll_patched $(IMG_COMMON) $(IMG_JOBS) \
-	    --build-arg GSO_PATCH=patches/fplll_gso_kahan.patch \
-	    -t sdbkz-fplll-patched:kahan-v3 .
-
-image-fplll-reorder-control:  ## Build sdbkz-fplll-patched:reorder-control (loop reorder, no compensation)
-	$(DOCKER) build -f Dockerfile.fplll_patched $(IMG_COMMON) $(IMG_JOBS) \
-	    --build-arg GSO_PATCH=patches/fplll_gso_reorder_control.patch \
-	    -t sdbkz-fplll-patched:reorder-control .
+image-g6k-dim384-reject:  ## Build sdbkz-g6k:dim384-reject (dim 384, gauss_sieve patch + reject-on-overflow guard)
+	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) \
+	    --build-arg G6K_MAX_SIEVING_DIM=384 --build-arg APPLY_INC63=1 \
+	    --build-arg REJECT_OVERFLOW=1 -t sdbkz-g6k:dim384-reject .
 
 image-fplll54:  ## Build sdbkz-fplll54 (fplll 5.4.5 + fpylll 0.6.0 sensitivity image)
 	$(DOCKER) build -f Dockerfile.fplll54 $(IMG_COMMON) -t sdbkz-fplll54 .

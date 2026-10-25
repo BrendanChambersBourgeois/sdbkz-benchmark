@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Estimate wall time for a planned convergence sweep.
 
-CLI wrapper around :mod:`seed_timing`. Reads existing seed JSONs (or a
-cached per-tour cost table at
-``results/paper_claims/per_tour_cost_table.json``) and prints both a
-naive and an anchored prediction with a recommendation between them.
+CLI wrapper around :mod:`seed_timing`. Reads existing seed JSONs and
+prints both a naive and an anchored prediction with a recommendation
+between them.
 
 Usage examples
 --------------
@@ -16,10 +15,12 @@ Usage examples
     python3 scripts/estimate_sweep_time.py --n 110 --beta 30 --max-tours 500 \\
         --seeds 40 --workers 22
 
-    # Force a fresh-table compute (skip the cache, useful after recent
-    # seed additions if the cache hasn't been refreshed yet)
-    python3 scripts/estimate_sweep_time.py --n 90 --beta 30 --max-tours 1000 \\
-        --no-cache
+    # Self-anchor on a running campaign's own cells (q- and precision-keyed)
+    python3 scripts/estimate_sweep_time.py --n 173 --beta 40 --max-tours 50 \\
+        --from-campaign ntru_b2_backfill --q 4073
+
+    # How accurate is it? Leave-one-cell-out over results/seeds
+    python3 scripts/estimate_sweep_time.py --backtest
 
 The estimator is advisory: it always exits 0 and never blocks anything.
 A single ``estimate`` event is emitted to ``logs/pipeline.jsonl`` per
@@ -39,7 +40,7 @@ from log import get_logger  # noqa: E402
 PIPELINE = get_logger("estimate_sweep_time")
 
 
-def _campaign_seed_glob(name: str, beta: int) -> tuple[str, ...]:
+def _campaign_seed_glob(c, beta: int) -> tuple[str, ...]:
     """Glob patterns for a campaign's OWN completed seed cells (the #1
     self-anchor). Scopes to the campaign's tree (= engine+generator regime,
     #4) and its (β, mt), across whatever q/precision/n cells have run.
@@ -48,8 +49,6 @@ def _campaign_seed_glob(name: str, beta: int) -> tuple[str, ...]:
     (ntru, ntru_g6k, q3329, …) and the q97 trees (main, convergence, …); the
     non-matching patterns simply glob to nothing.
     """
-    from _config import load_campaign
-    c = load_campaign(name)
     tree = c.seed_tag or ("ntru" if c.generator == "ntru" else "main")
     b = beta if beta in c.tours_by_beta else c.beta_grid[0]
     mt = c.tours_by_beta.get(b) or c.tours_by_beta[c.beta_grid[0]]
@@ -73,31 +72,25 @@ def _format_hours(h):
 def _print_report(est, *, stream=sys.stderr, scoped=0):
     """Human-readable summary of a SweepEstimate, written to stderr.
 
-    ``scoped`` is the number of the run's own cell-seeds the anchor was
+    ``scoped`` is the number of the run's own cell-seeds the estimate was
     scoped to (--from-campaign / --seed-glob); >0 means the naive figure is
-    built from fresh, same-regime data and IS the estimate, even if the
-    banded "anchored" method (which needs ≥500-tour data) is unavailable.
+    built from fresh, same-regime data.
     """
     print(file=stream)
     print(f"Sweep estimate — n={est.n}, β={est.beta}, max_tours={est.max_tours}", file=stream)
     print(f"  pool: {est.num_seeds} seeds × {est.num_workers} workers", file=stream)
     print(f"  recommendation: {est.method_recommended}", file=stream)
     print(file=stream)
-    # #1/#4: say which corpus the figure rests on. Scoped to the run's own
-    # cells -> the naive figure is fresh + same-regime (accurate). Unscoped
-    # naive -> interpolated from the distant/wrong-regime global corpus, so
-    # flag it as a rough estimate rather than hand it back silently.
-    if scoped:
+    # Say which corpus the figure rests on.
+    if scoped and est.method_recommended == "naive":
         print(f"  >>> SELF-ANCHORED on {scoped} of this run's own cell-seeds "
               f"(fresh, same regime) — "
               f"{_format_hours(est.predicted_wall_h_naive)} is the estimate.",
               file=stream)
-        print("      (The banded p95 method needs ≥500-tour data; the "
-              "naive-from-own-cells figure is the accurate one here.)", file=stream)
         print(file=stream)
     elif est.method_recommended == "naive":
-        print(f"  >>> NO VALID ANCHOR — {_format_hours(est.predicted_wall_h_naive)} "
-              f"is a ROUGH naive estimate (no fresh same-regime data).", file=stream)
+        print(f"  >>> DEFAULT CORPUS (LWE q=97) — {_format_hours(est.predicted_wall_h_naive)} "
+              f"is ROUGH for any other regime.", file=stream)
         print("      For a new experiment type, anchor on its own cells once one "
               "has run:\n        estimate_sweep_time … --from-campaign <name>",
               file=stream)
@@ -143,26 +136,45 @@ def _estimate_to_log_ctx(est):
     }
 
 
+def _backtest():
+    """--backtest: estimator accuracy over results/seeds."""
+    cells = seed_timing.backtest()
+    with_anchor = [c for c in cells if c["anchored_s"] is not None]
+    summ = seed_timing.summarise_backtest
+    lines = {
+        "naive vs median seed": summ(cells),
+        "naive vs slowest seed": summ(cells, "max_s"),
+        "anchored": summ(with_anchor, predicted="anchored_s"),
+        "naive, same cells": summ(with_anchor),
+        "naive cross-budget": summ(cells, predicted="cross_budget_s"),
+    }
+    PIPELINE.info("backtest", cat="estimator", **{k.replace(" ", "_").replace(",", ""): v
+                                                   for k, v in lines.items()})
+    for label, s in lines.items():
+        if not s["cells"]:
+            print(f"{label:22s}: no predictable cells", file=sys.stderr)
+            continue
+        print(f"{label:22s}: {s['cells']:3d} cells, median err {s['median_err']:6.1%}, "
+              f"p90 {s['p90_err']:6.1%}, >1.5x {s['over_1_5x']:3d}, >2x {s['over_2x']:3d}",
+              file=sys.stderr)
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(
         description="Estimate wall time for a planned convergence sweep "
                     "(naive + anchored predictions, recommendation between them).",
     )
-    ap.add_argument("--n", type=int, required=True,
-                    help="lattice dimension (required)")
-    ap.add_argument("--beta", type=int, required=True,
-                    help="block size (required)")
-    ap.add_argument("--max-tours", type=int, required=True, dest="max_tours",
-                    help="tour budget for the planned sweep (required)")
+    ap.add_argument("--n", type=int,
+                    help="lattice dimension (required unless --backtest)")
+    ap.add_argument("--beta", type=int,
+                    help="block size (required unless --backtest)")
+    ap.add_argument("--max-tours", type=int, dest="max_tours",
+                    help="tour budget for the planned sweep (required unless --backtest)")
     ap.add_argument("--seeds", type=int, default=20,
                     help="number of seeds in the planned sweep (default: 20)")
     ap.add_argument("--workers", type=int, default=22,
                     help="worker pool size (default: 22)")
-    ap.add_argument("--cache-path", default=seed_timing.DEFAULT_CACHE_PATH, dest="cache_path",
-                    help=f"per-tour-cost cache path "
-                         f"(default: {seed_timing.DEFAULT_CACHE_PATH})")
-    ap.add_argument("--no-cache", action="store_true",
-                    help="ignore the cache and compute the table fresh from seed JSONs")
     ap.add_argument("--anchor-age-warn-days", type=float, default=7.0, dest="anchor_age_warn_days",
                     help="if youngest anchor seed is older than this, recommendation flips "
                          "to naive and a warning is emitted (default: 7)")
@@ -175,25 +187,48 @@ def main(argv=None):
     # --seed-glob takes an explicit pattern (non-campaign trees / power user).
     ap.add_argument("--from-campaign", default=None, dest="from_campaign",
                     help="anchor on this campaign's own completed cells — a "
-                         "fresh, same-regime self-anchor (forces --no-cache)")
+                         "fresh, same-regime self-anchor")
     ap.add_argument("--seed-glob", default=None, dest="seed_glob",
                     help="explicit seed-glob to anchor on (overrides the default corpus)")
     ap.add_argument("--q", type=int, default=None,
                     help="target modulus q — cost is q-aware (the dominant axis "
-                         "for NTRU/overstretched sweeps): exact (n,β,q) or nearest q")
+                         "for NTRU/overstretched sweeps): exact (n,β,q), then with "
+                         "--from-campaign that q in same-engine trees (scaled), else nearest q")
+    ap.add_argument("--precision", type=int, default=None,
+                    help="MPFR precision of the planned sweep; naive cost uses only "
+                         "seeds at this precision when any exist (default: the "
+                         "campaign's with --from-campaign, else all)")
+    ap.add_argument("--backtest", action="store_true",
+                    help="measure the naive method leave-one-cell-out against "
+                         "results/seeds and exit")
     args = ap.parse_args(argv)
 
-    cache_path = None if args.no_cache else args.cache_path
+    if args.backtest:
+        return _backtest()
+    if None in (args.n, args.beta, args.max_tours):
+        ap.error("--n, --beta and --max-tours are required")
+    if args.max_tours <= 0:
+        ap.error(f"--max-tours must be positive, got {args.max_tours}")
 
-    # Resolve the anchor seed glob (#1/#4). When scoped to a run's own tree we
-    # force a fresh table (no stale global cache).
+    # Resolve the anchor seed glob.
     seed_glob_patterns = None
+    q_source = None
     if args.seed_glob:
         seed_glob_patterns = (args.seed_glob,)
-        cache_path = None
     elif args.from_campaign:
-        seed_glob_patterns = _campaign_seed_glob(args.from_campaign, args.beta)
-        cache_path = None
+        from _config import load_all_campaigns, load_campaign
+        campaign = load_campaign(args.from_campaign)
+        seed_glob_patterns = _campaign_seed_glob(campaign, args.beta)
+        if args.precision is None:
+            args.precision = campaign.precision
+        # A rerun campaign has not yet run most of its q's; the trees it reruns
+        # have. Same generator + engine = same regime, so their exact q (scaled
+        # to this run) beats this run's nearest q.
+        q_source = tuple(dict.fromkeys(
+            p for c in load_all_campaigns().values()
+            if (c.generator, c.backend) == (campaign.generator, campaign.backend)
+            and args.beta in c.tours_by_beta
+            for p in _campaign_seed_glob(c, args.beta) if p not in seed_glob_patterns))
 
     est = seed_timing.estimate_sweep_wall(
         n=args.n,
@@ -201,15 +236,18 @@ def main(argv=None):
         max_tours=args.max_tours,
         num_seeds=args.seeds,
         num_workers=args.workers,
-        cache_path=cache_path,
         anchor_age_warn_days=args.anchor_age_warn_days,
         seed_glob_patterns=seed_glob_patterns,
         q=args.q,
+        precision=args.precision,
+        q_source_glob_patterns=q_source,
     )
 
     PIPELINE.info(
         "estimate",
         cat="estimator",
+        q=args.q,
+        precision=args.precision,
         **_estimate_to_log_ctx(est),
     )
 

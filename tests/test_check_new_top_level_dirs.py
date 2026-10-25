@@ -1,4 +1,4 @@
-"""Tests for the INC-39 top-level directory guard.
+"""Tests for the top-level directory guard.
 
 Covers the pure logic of _top_level_violations against synthetic file
 lists. The git-diff fallback path is exercised by the CI step itself
@@ -47,7 +47,7 @@ def test_unallowlisted_dir_is_flagged():
 
 
 def test_inc39_archives_dir_is_flagged():
-    # The actual INC-39 regression: _archives/ in the public repo.
+    # The original regression: _archives/ in the public repo.
     paths = [
         "_archives/logs_legacy_2026-04-25.tar.gz",
         "_archives/CHECKSUMS.sha256",

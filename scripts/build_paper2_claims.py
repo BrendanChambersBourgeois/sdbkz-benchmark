@@ -8,8 +8,9 @@ ledger record per flagged number, mirroring the build_verify_reference.py idiom
 (deterministic emit -> regenerable, so an edited figure/tex number can be diffed
 against a committed source of truth).
 
-Each record: {claim_id, tex_lines, verbatim, paper_value, source, method,
-recomputed_value, match, status, note}. status taxonomy:
+Each record: {claim_id, tex_anchors, tex_lines, verbatim, paper_value, source,
+method, recomputed_value, match, status, note}; tex_lines are the tex lines
+holding a tex_anchor, found at build time. status taxonomy:
   RECOMPUTED         rebuilt from committed seeds via extract_dsd_onset (byte-
                      identical to the figure/table path)
   POINTER            copied verbatim from a committed validation JSON/manifest,
@@ -17,7 +18,7 @@ recomputed_value, match, status, note}. status taxonomy:
   DERIVED            a new computation defined in the vendored modules
   DERIVED-UNRESOLVED the paper number did NOT reproduce; the recomputed value +
                      a note are recorded so the discrepancy is visible, NOT
-                     papered over (route any tex fix via paper_findings.md)
+                     papered over (fix the tex, then rebuild)
 
 The compute lives in scripts/_paper2_claims/ (vendored + tested by the
 2026-07-10 fleet, importing extract_dsd_onset primitives). This script only
@@ -38,6 +39,7 @@ sys.path.insert(0, SCRIPT_DIR)
 
 from _paper2_claims import (  # noqa: E402
     derived_numeric,
+    frontier,
     pointer,
     r2_fit,
     recomputed,
@@ -50,6 +52,7 @@ except Exception:  # pragma: no cover
     PIPELINE = None
 
 OUT = os.path.join(BASE, "results", "paper_claims", "paper2_claims.json")
+TEX = os.path.join(BASE, "paper2", "latex", "sdbkz_paper2.tex")
 SCHEMA_VERSION = 1
 
 _SLICES = (
@@ -57,7 +60,28 @@ _SLICES = (
     ("pointer", pointer),
     ("derived", derived_numeric),
     ("r2", r2_fit),
+    ("frontier", frontier),
 )
+
+
+def _resolve_tex_lines(records: list[dict]) -> None:
+    """Set tex_lines from tex_anchors against the current tex, so they track tex
+    edits. An anchor on no line means the printed claim changed: fail loud and
+    update the anchor and paper_value together."""
+    with open(TEX) as f:
+        lines = f.read().splitlines()
+    missing = []
+    for r in records:
+        hits: set[int] = set()
+        for a in r["tex_anchors"]:
+            found = {i for i, line in enumerate(lines, 1) if a in line}
+            if not found:
+                missing.append(f"{r['claim_id']}: {a!r}")
+            hits |= found
+        r["tex_lines"] = sorted(hits)
+    if missing:
+        raise SystemExit("tex anchors not found in paper2/latex/sdbkz_paper2.tex:\n  "
+                         + "\n  ".join(missing))
 
 
 def build() -> dict:
@@ -67,6 +91,7 @@ def build() -> dict:
         for r in recs:
             r.setdefault("slice", name)
         records.extend(recs)
+    _resolve_tex_lines(records)
     records.sort(key=lambda r: r["claim_id"])
 
     n_match = sum(1 for r in records if r.get("match"))
@@ -104,7 +129,7 @@ def main(argv=None) -> int:
           f"{manifest['n_match']} match; by_status={manifest['by_status']}")
     if manifest["unresolved"]:
         print("  UNRESOLVED (paper number did not reproduce — see records + "
-              "route tex fixes via paper_findings.md):")
+              "fix the tex, then rebuild):")
         for cid in manifest["unresolved"]:
             print(f"    - {cid}")
     print(f"  wrote {os.path.relpath(OUT, BASE)}")

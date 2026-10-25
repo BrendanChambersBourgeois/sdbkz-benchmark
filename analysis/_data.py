@@ -487,8 +487,7 @@ def _seed_has_sentinel(seed: SeedDict) -> bool:
     """True if either variant's stored GS profile carries the -345 clamp
     sentinel (gs_lognorm < -300). Such a seed's dln/advantage/rankin were
     computed off a catastrophically-cancelled double-precision GSO and are
-    untrustworthy, so they must not enter an aggregate (deep audit 2026-07-04
-    finding 2). The recovery verdict is unaffected -- only the GSO metrics are."""
+    untrustworthy, so they must not enter an aggregate. The recovery verdict is unaffected -- only the GSO metrics are."""
     for variant in ("bkz", "sdbkz"):
         gs = seed.get(f"gs_lognorms_{variant}") or []
         if any(x is not None and x < -300.0 for x in gs):

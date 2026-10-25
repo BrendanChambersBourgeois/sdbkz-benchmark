@@ -79,6 +79,20 @@ def test_real_convergence_beta40_bracket_has_eight_dims():
     assert bracket.tours_by_beta[40] == 1000
 
 
+def test_real_q38_reject_campaign_has_own_tree_image_and_cap():
+    import _seed_paths
+    c = _config.load_campaign("ntru_wall_beta_bump_reject")
+    assert (c.backend, c.seed_tag, c.image) == \
+        ("g6k", "ntru_g6k_reject", "sdbkz-g6k:dim384-reject")
+    # Same beta=60 parameters as the tolerant-build ladder it reruns.
+    assert (c.beta_grid, c.precision, c.tours_by_beta[60]) == ((60,), 500, 50)
+    assert c.seed_wall_s == 172800
+    assert _seed_paths.seed_dir_for(
+        "ntru_g6k_reject", 185, 60, q=3907, precision=500, max_tours=50
+    ) == os.path.join("results", "seeds", "ntru_g6k_reject", "q3907",
+                      "p500_mt50", "n185_beta60")
+
+
 # ---------------------------------------------------------------------------
 # Synthetic — exercises every validation branch
 # ---------------------------------------------------------------------------

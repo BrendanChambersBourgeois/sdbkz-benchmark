@@ -83,18 +83,32 @@ PIPELINE = get_logger("run_campaign")
 
 # --- g6k backend containment -------------------------------------------------
 # The g6k module only exists inside the sieving image; the host toolchain is
-# fplll-only (memory: g6k_vm_image_gap). 2026-08-28: all 12 queued beta=50
-# worklist lines no-opped host-side in ~66 s each, every seed failing with
-# "ModuleNotFoundError: No module named 'g6k'", and rc=0 archived them as done.
-# Fix: when a g6k campaign is dispatched where the module is missing, re-exec
-# this exact invocation inside G6K_IMAGE instead of failing seed by seed.
-G6K_IMAGE = "sdbkz-g6k:dim384"   # MAX_SIEVING_DIM=384 >= dim 362 wall cells
+# fplll-only. When a g6k campaign is dispatched where the module is missing,
+# re-exec this exact invocation inside G6K_IMAGE instead of failing seed by
+# seed (a host-side run would archive every seed as done with rc=0).
+# Default dim384-inc63: the unpatched dim384 kernel aborts at beta=60.
+G6K_IMAGE = "sdbkz-g6k:dim384-inc63"   # MAX_SIEVING_DIM=384 >= dim 362 wall cells
 _IN_CONTAINER_ENV = "SDBKZ_IN_CONTAINER"
 
 
 def _g6k_available() -> bool:
     import importlib.util
     return importlib.util.find_spec("g6k") is not None
+
+
+# Inside a container the campaign `image` key is never checked (the
+# runner picked the image), so a campaign writing the reject tree proves its
+# siever carries the reject-on-overflow guard (stderr prefix of
+# patches/g6k_gauss_reject_overflow.patch) before any seed runs.
+# Trees written only by the reject-on-overflow build (beta=50/60 ladder, vecprobe reruns).
+REJECT_TREES = frozenset({"ntru_g6k_reject", "ntru_g6k_vecprobe_reject"})
+_REJECT_MARKER = b"rejected int16-overflow reduction"
+
+
+def _siever_has_reject_guard() -> bool:
+    import g6k.siever
+    with open(g6k.siever.__file__, "rb") as f:
+        return _REJECT_MARKER in f.read()
 
 
 def _g6k_container_argv(argv: list, image: str = None,
@@ -206,9 +220,9 @@ def _dispatch_q3329_verify(
     way; only the wall-time fields differ).
 
     Effective seed range follows --start/--end if supplied; otherwise
-    the runner generates seeds 1..N. q3329_verify only accepts a seeds
-    count (not a range), so we synthesise the range via env var when
-    --start is set and let the runner pick it up.
+    the runner generates seeds 1..N. --start is forwarded as the first
+    seed (until 2026-10-24 it went to an env var nothing read, so a
+    window starting above 1 silently ran seeds 1..count).
     """
     if beta not in campaign.tours_by_beta:
         raise ConfigError(
@@ -222,6 +236,7 @@ def _dispatch_q3329_verify(
         "--n", str(n),
         "--beta", str(beta),
         "--seeds", str(seeds),
+        "--start", str(start),
         "--precision", str(campaign.precision),
         "--generator", campaign.generator,
         "--max-tours", str(tours),
@@ -229,15 +244,20 @@ def _dispatch_q3329_verify(
     ]
     if campaign.seed_tag:
         argv.extend(["--seed-tag", campaign.seed_tag])
+    # Dropped until 2026-10-11: q3329_kahan / q3329_control
+    # asked for store_per_tour and got false. q3329_verify refuses mpfr
+    # outside a *_mpfr tree.
+    if campaign.store_per_tour:
+        argv.append("--store-per-tour")
+    if campaign.metric_float_type != "double":
+        argv.extend(["--metric-float-type", campaign.metric_float_type])
+    if campaign.store_bases:
+        argv.append("--store-bases")
     if campaign.q != 3329:
         # q3329_verify defaults to Q=3329; pass --q to override for
         # main + cliff500 campaigns.
         argv.extend(["--q", str(campaign.q)])
     env = dict(os.environ)
-    if start != end:
-        # Hint the runner about the explicit range so resume logic
-        # only checks the requested window.
-        env["BKZ_SEED_RANGE"] = f"{start}-{end}"
     env["BKZ_TOURS"] = str(tours)
 
     if dry_run:
@@ -335,6 +355,12 @@ def _ntru_log_clamp(ctx: str, position: int, raw_value: float) -> None:
               script_name="run_campaign", log_path=_CLAMP_LOG_FILE)
 
 
+# NTRU task tuple: (n, beta, seed, q, precision, max_tours, generator,
+# seed_tag, backend, metric_float_type, store_short_vectors, store_per_tour,
+# sieve_trace). Defaults for the fields after `backend`.
+_NTRU_TASK_TAIL_DEFAULTS = ("double", False, False, False)
+
+
 def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
     """Pool worker: build + structurally verify + BKZ one NTRU (n, β, seed),
     then write its per-seed JSON. Returns (n, β, seed, advantage|None,
@@ -345,6 +371,11 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
     tree to write under, e.g. "ntru" or "ntru_patched"); the per-tour get_r
     clamp logger is wired so a §8 cancellation is recorded, not silent.
     """
+    # Only the builders' shapes: run_packed's 9 fields, run_campaign's 13. A
+    # 10-12 field tuple would silently take tail defaults.
+    if len(task) not in (9, 9 + len(_NTRU_TASK_TAIL_DEFAULTS)):
+        raise ValueError(f"NTRU task tuple has {len(task)} fields, want 9 or "
+                         f"{9 + len(_NTRU_TASK_TAIL_DEFAULTS)}")
     import json
 
     import numpy as np
@@ -353,9 +384,12 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
     from generators import build_ntru, get_metric_span
 
     (n, beta, seed, q, precision, max_tours, generator, seed_tag,
-     backend, metric_float_type, store_short_vectors) = task
+     backend) = task[:9]
+    # 9-field tuple (run_packed): the tail takes _NTRU_TASK_TAIL_DEFAULTS.
+    metric_float_type, store_short_vectors, store_per_tour, sieve_trace = (
+        tuple(task[9:]) + _NTRU_TASK_TAIL_DEFAULTS[len(task) - 9:])
     # Track which reduction leg is in flight so a failure / wall-cap kill /
-    # crash can be attributed (INC-58 note: variant was inference before).
+    # crash can be attributed.
     # `leg_notify` additionally forwards transitions to the capped scheduler.
     current_leg = [None]
 
@@ -375,7 +409,7 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
         # Corrupt/unparseable seed JSON: quarantine aside (never delete data --
         # CLAUDE.md) and fall through to regenerate. Without this an existence-
         # only skip wedges the cell forever: the file is never regenerated and
-        # every verdict read fails on it (audit 2026-07-04 #3, major 1).
+        # every verdict read fails on it.
         # The rename itself can fail (read-only dir, ENOSPC); contain it to
         # this seed's status tuple instead of letting it propagate through
         # imap_unordered and abort the whole cell (audit #4 2026-07-05).
@@ -416,6 +450,9 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
             backend=backend, secret_f=f, secret_g=g,
             metric_float_type=metric_float_type,
             store_short_vectors=store_short_vectors,
+            store_per_tour=store_per_tour,
+            sieve_trace=sieve_trace,
+            tour_cb=_sieve_trace_cb(task) if sieve_trace else None,
         )
         write_seed_atomic(out, r)
         # Centralised per-seed completion event (side-log only; never touches
@@ -437,26 +474,53 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
     return (n, beta, seed, r["advantage"], "ok")
 
 
-# Per-seed wall-cap side log. A wedged seed (INC-56: g6k β≥50 past dim ~300
+# Per-seed wall-cap side log. A wedged seed (g6k β≥50 past dim ~300
 # hot-wedges in native code and never returns) is SIGKILLed and recorded here,
 # never in the per-seed JSON (SHA byte-identity). Same jsonl-side-file discipline
 # as results/clamp_events.jsonl.
 _WALL_CAP_LOG_FILE = os.path.join(REPO_ROOT, "results", "wall_cap_events.jsonl")
 
 
-def _append_seed_event(rec: dict) -> None:
-    """Append one event record to results/wall_cap_events.jsonl (never a seed JSON)."""
+# Per-tour sieve accounting side log (campaign sieve_trace = true).
+_SIEVE_TRACE_LOG_FILE = os.path.join(REPO_ROOT, "results",
+                                     "sieve_trace_events.jsonl")
+
+
+def _append_seed_event(rec: dict, path: str | None = None) -> None:
+    """Append one event record to a results/*.jsonl side log (never a seed
+    JSON); default results/wall_cap_events.jsonl, looked up at call time."""
     import datetime
     import json
+    path = path or _WALL_CAP_LOG_FILE
     rec.setdefault("ts",
                    datetime.datetime.now(datetime.UTC).isoformat())
     try:
-        os.makedirs(os.path.dirname(_WALL_CAP_LOG_FILE), exist_ok=True)
-        with open(_WALL_CAP_LOG_FILE, "a") as fh:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a") as fh:
             fh.write(json.dumps(rec) + "\n")
     except OSError as e:  # a full/RO disk must not abort the wave
-        PIPELINE.error("wall_cap log write failed", cat="seed",
+        PIPELINE.error("side log write failed", cat="seed",
+                       path=os.path.basename(path),
                        error=f"{type(e).__name__}: {e}")
+
+
+def _sieve_trace_cb(task: tuple):
+    """tour_cb for run_single: one record per tour to the sieve trace log.
+    Written as each tour ends, so a wall-cap SIGKILL loses at most the tour
+    in flight."""
+    fields = {**_task_fields(task), "max_tours": task[5], "backend": task[8]}
+
+    def _cb(variant, tour, wall_s, cpu_s, dln, stats) -> None:
+        _append_seed_event(
+            {"event": "sieve_trace", **fields, "variant": variant,
+             "tour": tour, "wall_s": round(wall_s, 3),
+             "cpu_s": round(cpu_s, 3), "dln": dln, "passes": stats},
+            path=_SIEVE_TRACE_LOG_FILE)
+        PIPELINE.debug("sieve trace tour", cat="sweep", n=fields["n"],
+                       beta=fields["beta"], seed=fields["seed"],
+                       variant=variant, tour=tour, wall_s=round(wall_s, 1),
+                       cpu_s=round(cpu_s, 1))
+    return _cb
 
 
 def _task_fields(task: tuple) -> dict:
@@ -477,7 +541,7 @@ def _log_worker_crash(task: tuple, elapsed_s: float, exitcode: int,
                       variant: str | None = None) -> None:
     """Append one worker-crash event: the seed subprocess died WITHOUT reporting
     (SIGSEGV/SIGABRT in fplll, MPFR or the g6k siever, or an external SIGKILL such
-    as the OOM killer) -- ultrareview PR #3 (2026-08-21). Negative exitcode =
+    as the OOM killer). Negative exitcode =
     -signal (multiprocessing convention)."""
     import signal as _signal
     sig = None
@@ -525,8 +589,8 @@ def _run_tasks_capped(
     Returns (results, killed, crashed): results = (n,β,seed,adv,status) tuples
     for seeds that reported back; killed = (task, elapsed_s) for wall-cap kills;
     crashed = (task, elapsed_s, exitcode) for workers that exited non-zero
-    WITHOUT reporting (native SIGSEGV/SIGABRT, external SIGKILL) -- ultrareview
-    PR #3: previously these vanished from the tally, so a wave could end with
+    WITHOUT reporting (native SIGSEGV/SIGABRT, external SIGKILL);
+    previously these vanished from the tally, so a wave could end with
     done < total and no log line. len(results)+len(killed)+len(crashed) ==
     len(tasks) always; a mismatch is logged as an error, never raised.
     """
@@ -621,6 +685,7 @@ def _run_tasks_capped(
 
 def _dispatch_ntru(
     campaign: Campaign, *, dry_run: bool, persist: bool, workers: int = 22,
+    first_seed: int = 1,
 ) -> int:
     """NTRU runner: for each (n ∈ n_grid, β ∈ beta_grid, seed) build the
     NTRU basis, verify its structure (dim=2n, q·I_n, key consistency
@@ -648,7 +713,7 @@ def _dispatch_ntru(
         for n in campaign.n_grid:
             for beta in campaign.beta_grid:
                 max_tours = campaign.tours_by_beta[beta]
-                for seed in range(1, campaign.num_seeds + 1):
+                for seed in range(first_seed, campaign.num_seeds + 1):
                     if dry_run:
                         print(f"[dry-run] ntru_smoke n={n} q={q} seed={seed} "
                               f"β={beta} (in-memory)")
@@ -686,10 +751,11 @@ def _dispatch_ntru(
         (n, beta, seed, q, campaign.precision,
          campaign.tours_by_beta[beta], campaign.generator, seed_tag,
          campaign.backend, campaign.metric_float_type,
-         campaign.store_short_vectors)
+         campaign.store_short_vectors, campaign.store_per_tour,
+         campaign.sieve_trace)
         for n in campaign.n_grid
         for beta in campaign.beta_grid
-        for seed in range(1, campaign.num_seeds + 1)
+        for seed in range(first_seed, campaign.num_seeds + 1)
     ]
     if dry_run:
         for n, beta, seed, *_ in tasks:
@@ -707,7 +773,7 @@ def _dispatch_ntru(
     advs: dict[int, list] = {}
 
     if campaign.seed_wall_s:
-        # Capped path (INC-56): one subprocess per seed, hard per-seed wall cap,
+        # Capped path: one subprocess per seed, hard per-seed wall cap,
         # wedged seeds SIGKILLed + logged, wave continues. Opt-in only — every
         # campaign without seed_wall_s keeps the byte-identical mp.Pool path below.
         print(f"NTRU: {total} tasks across {nproc} workers, "
@@ -773,6 +839,7 @@ def _dispatch_ntru(
         PIPELINE.error("ntru run failed", cat="sweep",
                        campaign=campaign.name, q=q,
                        n_grid=list(campaign.n_grid), seeds=campaign.num_seeds,
+                       first_seed=first_seed,
                        tasks=total, skipped=skipped, errors=errored,
                        wall_cap_killed=n_killed, crashed=n_crashed)
         print(f"NTRU run FAILED: 0 of {total - skipped} attempted seeds "
@@ -783,6 +850,7 @@ def _dispatch_ntru(
     PIPELINE.info("ntru run ok", cat="sweep",
                   campaign=campaign.name, q=q,
                   n_grid=list(campaign.n_grid), seeds=campaign.num_seeds,
+                  first_seed=first_seed,
                   tasks=total, written=written, skipped=skipped, errors=errored)
     print(f"NTRU run OK: {written} seeds written / {total} tasks.")
     return 0
@@ -812,16 +880,17 @@ def main() -> int:
                     help="override campaign MPFR precision")
     ap.add_argument("--seed-timeout-s", type=int, default=None,
                     help="per-seed wall-clock cap in seconds (NTRU runner): "
-                         "SIGKILL + skip + log any seed exceeding it (INC-56). "
+                         "SIGKILL + skip + log any seed exceeding it. "
                          "Overrides the campaign's seed_wall_s; omit = campaign "
                          "default / off.")
     ap.add_argument("--image", default=None,
                     help="container image for the re-exec. g6k campaigns: "
-                         "overrides the default g6k image (e.g. "
-                         "sdbkz-g6k:dim384-inc63 for INC-63 reruns; no effect "
-                         "when g6k is importable in-process). Any other "
-                         "campaign: forces the whole run inside that image "
-                         "(the §8 rerun arms on the rebuilt-fplll images).")
+                         "overrides the default g6k image (G6K_IMAGE, "
+                         "sdbkz-g6k:dim384-inc63; no effect when g6k is "
+                         "importable in-process). Any other campaign: forces "
+                         "the whole run inside that image (the §8 rerun arms "
+                         "on the rebuilt-fplll images). A campaign with an "
+                         "`image` key defaults to it and refuses any other.")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the resolved dispatch invocation; do not run")
     args = ap.parse_args()
@@ -833,6 +902,14 @@ def main() -> int:
     except ConfigError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 2
+
+    if campaign.image:
+        if args.image and args.image != campaign.image:
+            print(f"ERROR: campaign {args.campaign} runs only in "
+                  f"{campaign.image}; got --image {args.image}",
+                  file=sys.stderr)
+            return 2
+        args.image = campaign.image
 
     if (args.image and campaign.backend != "g6k"
             and not os.environ.get(_IN_CONTAINER_ENV)):
@@ -865,6 +942,12 @@ def main() -> int:
                       campaign=args.campaign, image=args.image or G6K_IMAGE)
         os.execvp(cmd[0], cmd)   # replaces this process; rc = container rc
 
+    if campaign.seed_tag in REJECT_TREES and not _siever_has_reject_guard():
+        print(f"ERROR: campaign {args.campaign} writes {campaign.seed_tag} but the "
+              f"loaded g6k siever lacks the reject-on-overflow guard; run it "
+              f"in {campaign.image}", file=sys.stderr)
+        return 2
+
     # CLI overrides (q / precision) for exploratory sweeps. The seed-path
     # tree keys on q + precision, so overridden runs land in their own dirs.
     import dataclasses
@@ -879,8 +962,7 @@ def main() -> int:
     # the new tail (21..100); the original 20 stay byte-identical.
     if args.seeds is not None:
         campaign = dataclasses.replace(campaign, num_seeds=args.seeds)
-    # --seed-timeout-s overrides the campaign's seed_wall_s (per-seed wall cap,
-    # INC-56). Folded like q/precision/seeds. Positive-only; <=0 is a usage error.
+    # --seed-timeout-s overrides the campaign's seed_wall_s (per-seed wall cap). Folded like q/precision/seeds. Positive-only; <=0 is a usage error.
     if args.seed_timeout_s is not None:
         if args.seed_timeout_s <= 0:
             print("ERROR: --seed-timeout-s must be a positive integer (seconds)",
@@ -924,6 +1006,10 @@ def main() -> int:
     seeds = args.seeds if args.seeds is not None else (
         end - start + 1 if start is not None else campaign.num_seeds
     )
+    if start is not None and not 1 <= start <= end:
+        print(f"ERROR: bad seed range --start {start} --end {end}",
+              file=sys.stderr)
+        return 2
 
     if not get_run_id():
         new_run_id()
@@ -935,15 +1021,19 @@ def main() -> int:
         precision=campaign.precision, q=campaign.q,
         max_tours=campaign.tours_by_beta.get(beta),
         generator=campaign.generator,
+        first_seed=start or 1,
         dry_run=args.dry_run,
     )
 
     role = _select_runner(args.campaign)
-    if role == "ntru_smoke":
-        return _dispatch_ntru(campaign, dry_run=args.dry_run, persist=False)
-    if role == "ntru":
-        return _dispatch_ntru(campaign, dry_run=args.dry_run, persist=True,
-                              workers=args.workers)
+    if role in ("ntru_smoke", "ntru"):
+        # --start/--end select a seed range (e.g. one seed of a cell); --end
+        # wins over --seeds / num_seeds as the last seed.
+        if end is not None:
+            campaign = dataclasses.replace(campaign, num_seeds=end)
+        return _dispatch_ntru(campaign, dry_run=args.dry_run,
+                              persist=role == "ntru", workers=args.workers,
+                              first_seed=start or 1)
     if role == "q3329_verify":
         return _dispatch_q3329_verify(
             campaign, n, beta,

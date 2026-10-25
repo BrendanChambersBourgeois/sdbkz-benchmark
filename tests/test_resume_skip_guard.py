@@ -1,6 +1,5 @@
 """run_campaign resume-skip validation: a corrupt seed JSON is quarantined
-aside (bytes preserved) and regenerated instead of wedging the cell forever
-(audit 2026-07-04 #3, major 1)."""
+aside (bytes preserved) and regenerated instead of wedging the cell forever."""
 import importlib
 import json
 import os

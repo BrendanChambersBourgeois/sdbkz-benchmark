@@ -22,12 +22,14 @@ _KNOWN_CAMPAIGNS = frozenset({
     "main", "q3329", "cliff500", "fplll_sensitivity",
     "tours3x", "convergence", "ntru", "ntru_patched", "ntru_g6k",
     "ntru_xarch", "estimator_probe",
-    # §8 local rerun of the q=3329 headline cell on rebuilt fplll engines
-    # (2026-09-02): the sign-corrected Kahan build and the reorder-only
+    # q=3329 headline cell rerun on rebuilt fplll engines: the sign-corrected Kahan build and the reorder-only
     # control build. Same layout as q3329, separate roots, so neither engine
     # can ever write into the SHA-locked canonical q3329/ tree.
     "q3329_kahan", "q3329_control",
-    # g6k short-vector probe (2026-09-02): reruns of band-bearing ntru_g6k
+    # q=3329 re-run with the measurement GSO in mpfr:
+    # stock wheel, same layout, own root beside the double-measured trees.
+    "q3329_mpfr",
+    # g6k short-vector probe: reruns of band-bearing ntru_g6k
     # seeds with store_short_vectors = true, in its own tree so no ntru_g6k
     # seed is re-opened and the G6K manifest walk never sees it.
     "ntru_g6k_vecprobe",
@@ -40,6 +42,28 @@ _KNOWN_CAMPAIGNS = frozenset({
     # per-tour GS profile at the dLN discontinuity is recorded. Same layout,
     # separate root so an ntru_b2 seed is never re-opened or overwritten.
     "ntru_b2_probe",
+    # The 12 n=127 ntru_patched seeds rerun on the
+    # sign-corrected Kahan build (sdbkz-fplll-patched:kahan-v3). Seed files
+    # carry no engine field, so the tree name is the provenance; the old
+    # flipped-sign seeds stay untouched in ntru_patched/.
+    "ntru_patched_kahan_v3",
+    # Instrumented rerun of n185 b60 q3907 seeds 15-16
+    # (sieve_trace + store_per_tour). Own tree so the G6K manifest cell
+    # (ntru_g6k) is never re-opened; seed 16 is censored there.
+    "ntru_g6k_diag",
+    # The flag-scored canonical NTRU cells (n<=127, no exact
+    # field) rerun at their canonical parameters so every leg records
+    # secret_exact_match. Own trees: the canonical ntru/ and ntru_g6k/ seeds
+    # and their SHA manifests never move.
+    "ntru_exact", "ntru_g6k_exact",
+    # The beta=60 ladder rerun on the reject-on-overflow G6K
+    # build (sdbkz-g6k:dim384-reject). Own tree: the tolerant-build ntru_g6k
+    # cells and the G6K manifest never move.
+    "ntru_g6k_reject",
+    # The 48 ntru_g6k_vecprobe seeds rerun on the same reject build with
+    # store_short_vectors. Own tree: their b50 cells and seeds are also rerun
+    # in ntru_g6k_reject, so sharing that tree would collide.
+    "ntru_g6k_vecprobe_reject",
 })
 
 
@@ -95,7 +119,7 @@ def seed_dir_for(
         leaf_dir = os.path.join(
             NEW_LAYOUT_ROOT, "q3329", f"p{p}_mt{mt}", n_beta
         )
-    elif campaign in ("q3329_kahan", "q3329_control"):
+    elif campaign in ("q3329_kahan", "q3329_control", "q3329_mpfr"):
         # q3329 layout under its own root: the §8 rerun arms on the rebuilt
         # fplll engines (see _KNOWN_CAMPAIGNS). Never the canonical q3329/ tree.
         p = int(_require(precision, "precision", campaign))
@@ -165,7 +189,10 @@ def seed_dir_for(
         leaf_dir = os.path.join(
             NEW_LAYOUT_ROOT, "estimator_probe", f"q{q}", f"p{p}_mt{mt}", n_beta
         )
-    elif campaign in ("ntru_b2", "ntru_b2_probe", "ntru_g6k_vecprobe"):
+    elif campaign in ("ntru_b2", "ntru_b2_probe", "ntru_g6k_vecprobe",
+                      "ntru_patched_kahan_v3", "ntru_g6k_diag",
+                      "ntru_exact", "ntru_g6k_exact", "ntru_g6k_reject",
+                      "ntru_g6k_vecprobe_reject"):
         # forever-runner idle-filler: same layout as ntru, separate root so the
         # extra-power seeds never touch or re-open a published cell's N.
         # ntru_b2_probe shares the layout under its own root for the same

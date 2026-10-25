@@ -22,9 +22,9 @@ events to `logs/pipeline.jsonl` via `log.py::get_logger` (enforced by `lint_logg
 | `run_campaign.py` | Single dispatcher driven by `config/sweep.toml` — the canonical way to launch a sweep. |
 | `forever_runner.py` | Never-idle service: works the worklist, else fills the NTRU grid. Systemd unit `config/forever-runner.service`. |
 | `sweep_parallel.py`, `run_packed.py`, `run_sweep_fill.py` | Local multi-worker sweep runners. |
-| `sweep_cloud.py`, `submit_jobs.py` | AWS Batch submission path. |
+| `sweep_cloud.py`, `submit_jobs.py` | AWS Batch submission path (cloud decommissioned 2026-04-10; kept for provenance). |
 | `onset_driver.py` | DSD-onset bisection over `q` (`qfat(n)=0.004·n^2.484`). |
-| `estimate_sweep_time.py` | Wall-time estimator — anchor-based; **size timeouts with this, never by eye**. |
+| `estimate_sweep_time.py` | Wall-time estimator from completed seeds (`--from-campaign` to self-anchor, `--backtest` for its accuracy); **size timeouts with this, never by eye**. |
 
 ## Manifests & integrity gates
 
@@ -32,6 +32,7 @@ events to `logs/pipeline.jsonl` via `log.py::get_logger` (enforced by `lint_logg
 |--------|------|
 | `build_seed_manifest.py` / `lint_seed_manifest.py` | Build + verify the fplll `results/seed_manifest.json` (no orphans / ghosts / drift). |
 | `build_g6k_manifest.py` / `lint_g6k_manifest.py` | The **separate** g6k manifest (ADR-005; never merged with the fplll one). |
+| `build_patched_manifest.py` (`make manifest-patched`) | The patched-fplll manifest `results/patched_seed_manifest.json` (Kahan and reorder-control builds; own SHA set, gated by `tests/test_patched_manifest.py`). |
 | `verify.sh` | Numerical-reproducibility gate (`NUM_SEEDS=1` in CI): re-runs seeds, byte-compares. |
 | `verify_g6k.sh` / `g6k_probe.py` | g6k determinism gate — regenerate the reference probe in-image, exact SHA-256 match. |
 | `validate_seeds.py`, `q3329_verify.py` | Per-seed schema/integrity checks. |
@@ -44,7 +45,7 @@ and the figure-parity sync.
 
 ## Lint / CI helpers
 
-`lint_logging.py` (central-logging coverage), `check_new_top_level_dirs.py` (INC-39 guard),
+`lint_logging.py` (central-logging coverage), `check_new_top_level_dirs.py`,
 `install_git_hooks.sh`.
 
 ## `archive/`

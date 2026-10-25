@@ -1,59 +1,15 @@
 # Patches
 
-Out-of-tree patches referenced by the paper. Not part of the benchmark core — apply only if you need the described fix.
+Out-of-tree patches applied by the Docker recipes. Not part of the benchmark core.
 
-## `fplll_gso_kahan.patch`
-
-Kahan-compensated subtraction in `fplll/gso_interface.cpp` (function `MatGSOInterface<ZT,FT>::update_gso_row`). Addresses the catastrophic-cancellation bug in fplll's squared-form GSO recurrence described in **§8 of the paper**.
-
-**Symptom:** at `q=3329`, `n=100`, `β=30`, MPFR=1000 bits, 38% of seeds produce a degenerate final basis where one Gram–Schmidt log-norm crashes to the precision floor (~−345). Root cause: the diagonal update
-
-```
-r(i,i) = ‖b_i‖² − Σ_{k<i} μ(i,k)² · ‖b*_k‖²
-```
-
-is computed as a naive in-place subtract loop with no compensation, reorthogonalisation, or sign check. When `b_i` is nearly in the span of preceding `b*_k` — exactly the regime BKZ drives the basis into — the two large positive operands cancel and the residual loses precision, occasionally flipping sign.
-
-**Fix:** replace the naive loop with a Kahan-compensated subtraction that maintains a running residual and folds the low-order bits lost on each step back into the accumulator. Code only — no test files, so the patch touches just `fplll/gso_interface.cpp` and `fplll/gso_interface.h`.
-
-**Measured effect:** paired on seeds 1–100 at the same parameters, 14/100 bases degenerate with this patch against 46/100 for the reorder-only control build below (McNemar χ² = 22.3). The patch lowers the rate; a geometric floor remains. An earlier "0/55 patched" figure (quoted in paper 1 §8) was measured with a sign-flipped, inert build and is superseded. Passes all 15 fplll regression tests (`make check`) unchanged.
-
-## `fplll_gso_kahan_tests.patch`
-
-Optional regression test, kept in a separate diff so the code fix above stays test-free. Adds `tests/test_gso_kahan.cpp` (+ the `tests/Makefile.am` wiring): two near-degenerate bases on which the plain subtraction leaves a nonpositive `r(i,i)` (min `r = -0.625` and `-2.125`) with the `double` backend, while the compensated form keeps every GS norm positive. Fixtures hold under FMA contraction of the mul/sub pair. With this applied, `make check` runs 16/16.
-
-Apply **after** `fplll_gso_kahan.patch`.
-
-### Applying
-
-```
-git clone https://github.com/fplll/fplll.git
-cd fplll
-git checkout 1987472            # fplll HEAD as of 2025-10-15, verified 15/15 make check pass
-git apply /path/to/sdbkz-benchmark/patches/fplll_gso_kahan.patch
-git apply /path/to/sdbkz-benchmark/patches/fplll_gso_kahan_tests.patch   # optional
-./autogen.sh && ./configure && make && make check
-sudo make install
-```
-
-Also verified against fplll **5.5.0** (the version vendored inside fpylll 0.6.4, used by the paper's Docker build on 2026-04-10). Newer fplll HEADs may re-apply cleanly but have not been tested.
-
-Rebuild fpylll against the patched fplll afterwards.
-
-### Status
-
-This is a **new instance** of an already-open failure family in fpylll/fplll (related: fpylll #272). It was filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) (2026-05-08) and closed unmerged by the maintainer (2026-05-17); the corrected patch is now kept **local to this repo** — applied out-of-tree against a stock fplll checkout, not resubmitted or reopened. Maintained on the local fork branch `fix/gso-kahan-cancellation` as two commits (code fix, then the test), clang-format 18 clean. If you ship the patch in a downstream distribution, cite the paper.
-
-All `q=97` results in the paper are unaffected and do not require this patch. Only `q=3329` (and presumably other cryptographic moduli at `n≥100`) trigger the cancellation.
-
-## `fplll_gso_reorder_control.patch`
-
-**Control, not a fix.** The Kahan patch's loop restructuring and scratch members in `update_gso_row` with the compensation term held at zero: `y = ftmp2 + 0`, `t = ftmp1 − y`, `ftmp1 = t`, no residual carried. Numerically the naive subtraction with the same temporaries and operation count. Built into `sdbkz-fplll-patched:reorder-control` via `Dockerfile.fplll_patched --build-arg GSO_PATCH=patches/fplll_gso_reorder_control.patch` for the §8 local rerun (`[campaigns.q3329_control]`, 2026-09-02): a degeneracy-rate change between this build and the Kahan build (`sdbkz-fplll-patched:kahan-v3`) isolates the compensation term; a change between this build and stock fplll 5.5.0 isolates the rebuild / reordering. Needed because the 2026-04-10 "38% → 0%" measurement was taken with the flipped (inert) compensation (see the disclosure timeline, 2026-08-13 and 2026-09-02 rows). Applies to fplll 5.5.0 exactly where the Kahan patch does; never ship it.
+The fplll Gram–Schmidt patches (`fplll_gso_kahan.patch`, its tests diff and `fplll_gso_reorder_control.patch`) left the tree on 2026-10-13: the q=3329 floors they targeted came from our double-precision measurement GSO, not from fplll (Paper 2, Appendix A). Git history keeps them (`78f43c95`).
 
 ## `g6k_gauss_nonimproving_tolerant.patch`
 
+**Later finding:** the trigger is int16 coefficient overflow in the in-db reduction, not float32 prediction error; a wrapped vector can then repeat the same non-improving swap indefinitely. See `g6k_gauss_reject_overflow.patch` below. The text in this section predates that.
+
 Tolerant handling of non-improving in-database reductions in G6K's `kernel/sieving.cpp`
-`gauss_sieve` (INC-63, 2026-08-31). Applies to g6k commit `c71e084`.
+`gauss_sieve`. Applies to g6k commit `c71e084`.
 
 **Symptom:** every NTRU β=60 seed at n∈{179,181} (9/9 attempts, both compute nodes) and 2 of
 ~1300 β=50 seeds abort 65–109 minutes in with `RuntimeError: Aborted` (cysignals-translated
@@ -66,7 +22,7 @@ python3: sieving.cpp:118: void Siever::gauss_sieve(std::size_t): Assertion `cv2_
 **Root cause:** `gauss_no_upd_reduce_in_db` accepts a reduction when the PREDICTED new length
 (cached float32 lengths + a float32 inner product of cached `yr` coordinates) beats
 `REDUCE_LEN_MARGIN` (1.01), but then stores the exactly RECOMPUTED length
-(`recompute_data_for_entry`), which can be arbitrarily larger — the INC-63 diagnostic build
+(`recompute_data_for_entry`), which can be arbitrarily larger — a diagnostic build
 measured `old_len=183593.9 → new_len=13861248` (75.5×, both finite) at sieve context 49 on the
 crashing seed. This is float32 prediction breakdown at large-norm NTRU cells, not marginal
 rounding. The bgj1 and bdgl
@@ -99,6 +55,19 @@ Wired into `Dockerfile.g6k` (COPY + `git apply` before `autoreconf`).
 ### Status
 
 Local to this repo, out-of-tree against a stock g6k checkout; not filed upstream. Root-cause
-verdict confirmed by the INC-63 diagnostic image (`GAUSS_ASSERT_DUMP` build): both lengths
+verdict confirmed by a diagnostic image (`GAUSS_ASSERT_DUMP` build): both lengths
 finite, recomputed 75.5× the pre-reduction length — prediction breakdown, not NaN poisoning.
 Determinism SHA gate (`verify_g6k.sh`) passes bit-exact on the patched image.
+
+## `g6k_gauss_reject_overflow.patch`
+
+Applied **after** `g6k_gauss_nonimproving_tolerant.patch` (g6k commit `c71e084`). G6K stores
+coefficients as int16 (`ZT`), and `addsub_vec` wraps a sum outside the int16 range, so the
+stored vector is no longer the one whose length the reduction test accepted. The patch checks
+the coefficient sum before `addsub_vec` in `gauss_no_upd_reduce_in_db` and `reduce_in_db` and
+refuses the reduction if any coefficient would leave [-32767, 32767]. Rejections are counted and
+the count is reported on stderr at powers of two; nothing is substituted silently. Sieving contexts
+of 50 and above run the default hk3 sieve, which this patch does not change.
+
+Wired into `Dockerfile.g6k` behind `REJECT_OVERFLOW=1` (default `0`); image
+`sdbkz-g6k:dim384-reject` (`make image-g6k-dim384-reject`). Local, not filed upstream.

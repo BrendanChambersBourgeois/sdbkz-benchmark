@@ -1,56 +1,24 @@
-# G6K determinism-locked variant — source-builds fplll → fpylll → G6K
-# (General Sieve Kernel) for a SEPARATE, single-threaded, SHA-lockable
-# sieving engine alongside the fplll BKZ path. This image NEVER replaces
-# the main Dockerfile's fplll path; it stands beside it (ADR-005).
-#
-# Phase 0 recon verdict (2026-06-04, settled): G6K is byte-reproducible
-# ONLY at threads=1. Multi-threaded sieving is nondeterministic even with
-# every RNG seed pinned — the nondeterminism is the order of concurrent
-# vector insertions into the sieve database (a thread-scheduling race),
-# which no seed controls. Contract is therefore non-negotiable:
-#     threads=1  +  FPLLL.set_random_seed(S)  +  SieverParams["seed"]=S
-#     +  same machine/build  +  default sieve params.
-# threads>1 is REJECTED by g6k_probe.py / verify_g6k.sh, not merely warned.
-#
-# Digest-pinned base per ADR-004; see Dockerfile (main) for the digest
-# resolution provenance (resolved 2026-05-14 from Docker Hub v2 API; tag
-# python:3.12.3-bookworm last_updated 2024-05-14T18:08:59Z).
+# G6K (General Sieve Kernel) image: source-built fplll -> fpylll -> G6K as a
+# separate, single-threaded, SHA-locked sieving engine beside the fplll path.
+# G6K is byte-reproducible only at threads=1 (concurrent sieve-db insertion
+# order is a scheduling race no seed controls); g6k_probe.py and verify_g6k.sh
+# reject threads>1.
 FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c
 
-# -- Reproducible compilation target ----------------------------------------
-# -march=x86-64-v2 (NOT -march=native). -march=native bakes the build host's
-# exact ISA into the binary and breaks cross-machine bit-identity — the whole
-# point of the determinism gate. x86-64-v2 (SSE4.2/POPCNT, ~Nehalem+) is the
-# universal x86-64 floor: it produces a binary that is byte-identical on every
-# machine AND runs on every GitHub-hosted runner (INC-55: the fleet drifted to
-# include v2-only runners, and an AVX2/FMA binary SIGILLs on `import
-# g6k.siever` there).
-#
-# CRITICAL (INC-55, 2026-08-14): g6k's own `./configure` defaults to
-# `--enable-native`, which detects the build host's SIMD and APPENDS AVX2/FMA
-# flags on top of our CXXFLAGS — silently overriding the v2 target. Setting
-# these ENV vars alone does nothing for the g6k siever (disassembly showed
-# AVX2 `ymm`/`vfmadd` in the "v2" .so). The g6k configure below MUST pass
-# `--disable-native` for this v2 target to actually take effect. fplll/fpylll
-# honour the ENV directly.
-#
-# WARNING — this determines the g6k determinism reference SHA. Any change to
-# the effective target (e.g. adding/removing --disable-native) changes the
-# binary, so the reference MUST be re-captured (run scripts/g6k_probe.py in the
-# freshly built image, write the SHAs into results/g6k_seed_manifest.json)
-# before the HARD byte-identity gate can pass.
+# -march=x86-64-v2, not native: a native build bakes the host ISA into the
+# binary and breaks cross-machine bit-identity (AVX2 builds SIGILL on v2-only
+# CI runners). g6k's ./configure defaults to --enable-native and appends AVX2
+# flags on top of CXXFLAGS, so the configure call below must pass
+# --disable-native. Any change to the effective target changes the
+# determinism reference SHA in results/g6k_seed_manifest.json.
 ENV CFLAGS="-O3 -march=x86-64-v2 -Wp,-U_FORTIFY_SOURCE" \
     CXXFLAGS="-O3 -march=x86-64-v2 -Wp,-U_FORTIFY_SOURCE"
 
-# make -j parallelism. Defaults to all cores; override at build time with
-# --build-arg BUILD_JOBS=4 to coexist with other CPU-heavy work on the
-# build host (e.g. a live sweep) without starving it.
+# make -j parallelism; default all cores.
 ARG BUILD_JOBS=
 
-# Apt pinned via snapshot.debian.org (ADR-004) — frozen Debian archive at
-# 20240614T000000Z so the libgmp/libmpfr headers match the runtime libs
-# the base-image digest bakes in. autoconf/automake/libtool needed for
-# fplll ./autogen.sh; git to clone pinned upstream commits.
+# Apt pinned to a dated snapshot.debian.org archive so headers match the
+# runtime libs baked into the base-image digest.
 RUN printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20240614T000000Z/\nSuites: bookworm bookworm-updates\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: http://snapshot.debian.org/archive/debian-security/20240614T000000Z/\nSuites: bookworm-security\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n' \
         > /etc/apt/sources.list.d/debian.sources \
     && apt-get -o Acquire::Check-Valid-Until=false update \
@@ -67,9 +35,7 @@ RUN printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20240614
         git \
     && rm -rf /var/lib/apt/lists/*
 
-# -- Build fplll (master @ 1987472) from source -----------------------------
-# Phase 0-pinned commit; produces libfplll.so.9. --disable-static keeps the
-# image small; ldconfig so fpylll + g6k link against /usr/local/lib.
+# fplll from source (libfplll.so.9).
 ARG FPLLL_COMMIT=1987472
 RUN git clone https://github.com/fplll/fplll.git /tmp/fplll \
     && cd /tmp/fplll \
@@ -81,12 +47,7 @@ RUN git clone https://github.com/fplll/fplll.git /tmp/fplll \
     && ldconfig \
     && rm -rf /tmp/fplll
 
-# -- Python build deps ------------------------------------------------------
-# Pinned to the main image's numerical-core versions where they overlap
-# (numpy/scipy/cysignals) so the g6k path shares one ABI surface with the
-# fplll path. Cython>=3 required by both fpylll and g6k. six is a g6k
-# runtime import (g6k/algorithms/workout.py). No matplotlib/figure deps:
-# this image only sieves + emits hashes, never renders.
+# Python build deps, pinned to the main image's versions where they overlap.
 RUN pip install --no-cache-dir \
         "Cython>=3.0,<3.1" \
         cysignals==1.12.6 \
@@ -95,11 +56,8 @@ RUN pip install --no-cache-dir \
         six==1.17.0 \
         pytest==9.0.3
 
-# -- Build fpylll (@ e25ade8, reports 0.6.4) from source --------------------
-# Phase 0-pinned commit. Built from source (NOT the PyPI wheel) because the
-# wheel bundles its own fplll + ships no headers, so G6K's C++ kernel could
-# not link against it. --no-build-isolation so the build sees the Cython +
-# numpy + cysignals pinned above and the system fplll headers in /usr/local.
+# fpylll from source (reports 0.6.4): the PyPI wheel bundles its own fplll
+# and ships no headers, so the G6K kernel could not link against it.
 ARG FPYLLL_COMMIT=e25ade8
 RUN git clone https://github.com/fplll/fpylll.git /tmp/fpylll \
     && cd /tmp/fpylll \
@@ -107,46 +65,22 @@ RUN git clone https://github.com/fplll/fpylll.git /tmp/fpylll \
     && pip install --no-cache-dir --no-build-isolation . \
     && rm -rf /tmp/fpylll
 
-# -- Build G6K (@ c71e084) from source --------------------------------------
-# Phase 0-pinned commit (2025-11-09 master). pip install --no-build-isolation
-# so g6k's setup.py finds the installed fpylll (it imports fpylll to resolve
-# include paths) + Cython. Installs the g6k package + compiled siever exts
-# into site-packages so `import g6k` works with no PYTHONPATH gymnastics.
-#
-# G6K_MAX_SIEVING_DIM: kernel/siever.h caps the sieving context at
-# MAX_SIEVING_DIM (default 128). g6k's setup.py runs ./configure itself
-# (with no arguments) when no Makefile exists, so env CXXFLAGS defines
-# are NOT honoured — the knob is configure's --with-max-sieving-dim
-# (configure.ac AC_ARG_WITH), which must be run BEFORE pip install.
-# Our NTRU lattices have dim=2n; n>=101 (dim 202) exceeds the default
-# cap and G6K refuses to sieve. Build with
-# --build-arg G6K_MAX_SIEVING_DIM=256 for an n>=101-capable image
-# (larger fixed-size vector arrays; byte-identity vs the 128-build must
-# be re-gated — verify_g6k.sh against the captured reference decides
-# whether the reference SHAs carry over).
-# INC-63 (2026-08-31): kernel/sieving.cpp gauss_sieve asserted strict length
-# improvement after an in-db reduction, but gauss_no_upd_reduce_in_db validates
-# only the PREDICTED length (cached float32 lens + float32 yr inner product)
-# and stores the exactly RECOMPUTED one, which the INC-63 diagnostic measured
-# at 75.5x the pre-reduction length (both finite) on the crashing seed; every
-# beta=60 NTRU seed (and 2 of ~1300 beta=50 seeds) died on that assert. The patch replaces the assert with the
-# NDEBUG-equivalent tolerant swap plus a counter + rate-limited stderr report
-# (bgj1/bdgl already re-validate after recompute; gauss is the outlier).
-# Byte-identity: any completed seed never took the failing branch (it would
-# have aborted), so reference SHAs are expected to carry over — but the
-# binary changes, so verify_g6k.sh against the captured reference is the
-# gate that decides, per the warning above.
-#
-# APPLY_INC63 (1 = apply the patch, the default and the behaviour since
-# ff108a7c; 0 = build the unpatched pre-INC-63 kernel). It exists so every
-# image tag in use can be rebuilt from this one file (see docs/images.md):
+# G6K from source. G6K_MAX_SIEVING_DIM caps the sieving context (default 128;
+# NTRU lattices have dim 2n, so n>=101 needs 256 and n>=129 needs 384); it is
+# a configure knob, so configure runs before pip install.
+# APPLY_INC63 (1 = apply patches/g6k_gauss_nonimproving_tolerant.patch, the
+# default; 0 = stock gauss_sieve assert) and REJECT_OVERFLOW (1 = also apply
+# patches/g6k_gauss_reject_overflow.patch, needs APPLY_INC63=1) select the
+# gauss_sieve variant. Image tags (docs/images.md):
 #   sdbkz-g6k:dim384        G6K_MAX_SIEVING_DIM=384 APPLY_INC63=0
 #   sdbkz-g6k:dim384-inc63  G6K_MAX_SIEVING_DIM=384 APPLY_INC63=1
-# Any other value fails the build rather than silently picking one.
+#   sdbkz-g6k:dim384-reject G6K_MAX_SIEVING_DIM=384 APPLY_INC63=1 REJECT_OVERFLOW=1
 ARG G6K_COMMIT=c71e084
 ARG G6K_MAX_SIEVING_DIM=128
 ARG APPLY_INC63=1
+ARG REJECT_OVERFLOW=0
 COPY patches/g6k_gauss_nonimproving_tolerant.patch /tmp/g6k_gauss_nonimproving_tolerant.patch
+COPY patches/g6k_gauss_reject_overflow.patch /tmp/g6k_gauss_reject_overflow.patch
 RUN git clone https://github.com/fplll/g6k.git /tmp/g6k \
     && cd /tmp/g6k \
     && git checkout ${G6K_COMMIT} \
@@ -155,14 +89,18 @@ RUN git clone https://github.com/fplll/g6k.git /tmp/g6k \
          0) echo "APPLY_INC63=0: INC-63 gauss_sieve patch NOT applied" ;; \
          *) echo "APPLY_INC63 must be 0 or 1, got '${APPLY_INC63}'" >&2; exit 1 ;; \
        esac \
+    && case "${REJECT_OVERFLOW}" in \
+         1) [ "${APPLY_INC63}" = 1 ] || { echo "REJECT_OVERFLOW=1 needs APPLY_INC63=1" >&2; exit 1; } \
+            && git apply --verbose /tmp/g6k_gauss_reject_overflow.patch ;; \
+         0) ;; \
+         *) echo "REJECT_OVERFLOW must be 0 or 1, got '${REJECT_OVERFLOW}'" >&2; exit 1 ;; \
+       esac \
     && autoreconf -i \
     && ./configure --disable-native --with-max-sieving-dim=${G6K_MAX_SIEVING_DIM} \
     && pip install --no-cache-dir --no-build-isolation . \
     && rm -rf /tmp/g6k
 
-# Non-root runtime — match host UID/GID so bind-mounted volumes don't
-# produce root-owned host files (Incident #32 pattern; backlog
-# backlog/2026-04-20_v3_dockerfile_scope.md §8).
+# Non-root runtime matching the host UID/GID so bind mounts stay host-owned.
 ARG HOST_UID=1000
 ARG HOST_GID=1000
 RUN if ! getent group ${HOST_GID} >/dev/null; then \
@@ -174,18 +112,14 @@ RUN if ! getent group ${HOST_GID} >/dev/null; then \
 
 WORKDIR /experiment
 COPY --chown=${HOST_UID}:${HOST_GID} scripts/ scripts/
-# Ship the g6k manifest so the default CMD (verify_g6k.sh) reads its
-# reference SHA without a host bind-mount. SEPARATE from the fplll
-# seed_manifest.json the main image ships (ADR-005).
+# The g6k manifest (separate from the fplll seed_manifest.json) so the
+# default CMD reads its reference SHA without a bind mount.
 COPY --chown=${HOST_UID}:${HOST_GID} results/g6k_seed_manifest.json results/
 RUN chown -R ${HOST_UID}:${HOST_GID} /experiment
 
-# Build-time sanity: confirm the engine imports and report the linked
-# fplll. Still root so /usr/local/lib reads succeed without group fuss.
 RUN python3 -c "import g6k; from g6k import Siever, SieverParams; import fpylll; print('g6k OK; fpylll', fpylll.__version__)" \
     && (strings /usr/local/lib/libfplll.so* 2>/dev/null | grep -oE 'fplll-[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)
 
 USER ${HOST_UID}:${HOST_GID}
 
-# Default: run the single-threaded determinism verify (SHA gate).
 CMD ["bash", "scripts/verify_g6k.sh"]

@@ -22,8 +22,8 @@ def write_seed_atomic(path: str, obj) -> None:
     half-written seed JSON that breaks the resumable skip or the SHA gate.
     os.replace alone is atomic against SIGKILL, but the tmp file's CONTENTS
     need durability before the rename to survive power loss or a hard crash
-    (INC-45 Phase 4b, overnight-run exposure; the Steam Machine node is a
-    household games console that gets power-cycled mid-run).
+    (the Steam Machine node is a household console that gets power-cycled
+    mid-run).
     """
     parent = os.path.dirname(path)
     if parent:

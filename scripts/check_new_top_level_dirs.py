@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Guard: refuse commits that add an un-allowlisted top-level directory.
 
-Scoped to the public-repo / internal-archive boundary lesson from
-INC-39 (2026-04-25). Adding a new top-level directory to the public
+Scoped to the public-repo / internal-archive boundary. Adding a new top-level directory to the public
 repo is almost always either intentional (in which case the allowlist
 below should be edited in the same commit) or accidental (in which
 case the commit should be reworked to put the artifact offline at
@@ -126,7 +125,7 @@ def main(argv: list[str] | None = None) -> int:
         file=sys.stderr,
     )
     print(
-        "(Per INC-39: new public-repo top-level dirs need explicit review.)",
+        "(New public-repo top-level dirs need explicit review.)",
         file=sys.stderr,
     )
     print("", file=sys.stderr)

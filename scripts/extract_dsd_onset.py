@@ -25,15 +25,23 @@ n=101 428.6/512.2, n=113 729.2/930.4 -- seed-backed end to end since the
 reaches q=1279 at n=113). SENSITIVITY: freezing the threshold at its n=89
 value 2.888 across the n-grid (the pre-2026-06-11 behaviour) shifts only the
 near-zero-gap rows (n=67 -> 166.6/167.5, n=79 -> 181.7/182.5, n=113 BKZ ->
-925.0) and leaves the gap trend unchanged (1,0,19,20,28 -> ...,27).
+925.0) and leaves the gap trend unchanged (1,0,19,19,28 -> ...,27).
 
 Scoring is recovery-first: when a seed carries the cancellation-free
-``secret_recovered_{variant}`` field (n>=157 frontier), that exact-integer verdict
-is used; pre-fix seeds that lack it fall back to the GSO ``_is_dsd`` criterion
+``secret_exact_match_{variant}`` field (n>=157 frontier: a reduced row equals
++/- a rotation of the secret), that exact-integer verdict is used. The looser
+``secret_recovered_*`` (norm <= secret) is not scored: it also fires on g(1)=0
+keys via the all-ones vector of norm^2 n. Pre-fix seeds that
+lack the field fall back to the GSO ``_is_dsd`` criterion
 above -- so the committed n<=113 tab:dsdgap trend is byte-identical while the
 n>=157 frontier no longer false-nulls cracked-but-clamped bases (deep audit
 2026-07-04, finding 3). Onsets are always PER-VARIANT 50%-rate crossings; do not
 conflate with onset_driver's first-crack search signal.
+
+Cells are read at ONE tour budget, default 50 (the paper-2 estimand; the
+p*_mt<max_tours> glob still pools precisions, e.g. the n=89 q=97 p250+p500
+reruns). Budget controls that share a cell (mt10/mt200/mt580) are read with
+--max-tours, never pooled into the 50-tour ladder.
 
 Pure analysis -- reads results/seeds/, never runs a reduction. Reused for both
 engines (fplll tree results/seeds/ntru/, g6k tree results/seeds/ntru_g6k/) and
@@ -43,6 +51,7 @@ CLI:
     python3 scripts/extract_dsd_onset.py --n 89 --beta 20
     python3 scripts/extract_dsd_onset.py --n 89 --beta 40 --engine g6k
     python3 scripts/extract_dsd_onset.py --trend            # the 5-point table
+    python3 scripts/extract_dsd_onset.py --n 179 --beta 40 --engine g6k --max-tours 580
 """
 from __future__ import annotations
 
@@ -70,6 +79,7 @@ def short_threshold(n: int) -> float:
 
 
 DEFAULT_RATE = 0.5                  # onset = DSD-rate crossing of this fraction
+DEFAULT_TOURS = 50                  # tour budget read per cell (paper-2 estimand)
 ENGINE_TREE = {"fplll": "ntru", "g6k": "ntru_g6k"}
 # The committed paper-2 5-point trend (Table tab:dsdgap), beta=20, fplll.
 TREND_NS = [67, 79, 89, 101, 113]
@@ -89,12 +99,13 @@ def _is_dsd(seed: dict, variant: str, n: int) -> bool:
 
 
 def _is_recovered(seed: dict, variant: str) -> Optional[bool]:
-    """Cancellation-free crack verdict (INC-51): True iff the reduced basis
-    found a vector at least as short as the planted secret (exact integer
-    norms, computed in _bkz_core._secret_recovery). Authoritative at high n
+    """Cancellation-free crack verdict: True iff a reduced-basis row
+    equals +/- a cyclic rotation of the planted secret (exact integer match,
+    _bkz_core._secret_recovery). Not secret_recovered_*, which also fires on
+    g(1)=0 keys via the all-ones vector. Authoritative at high n
     where the GSO-based _is_dsd clamps to the -345 sentinel. Returns None when
     the field is absent (pre-fix seeds) so callers can fall back to _is_dsd."""
-    return seed.get(f"secret_recovered_{variant}")
+    return seed.get(f"secret_exact_match_{variant}")
 
 
 SENTINEL_LOGNORM = -300.0          # gs_lognorm <= this = the -345.4 clamp sentinel
@@ -110,18 +121,21 @@ def _seed_is_poisoned(seed: dict, variant: str) -> bool:
 
 def _seed_fires(seed: dict, variant: str, n: int) -> bool:
     """Crack verdict for one seed/variant. Prefer the cancellation-free
-    secret-recovery field when present (authoritative at any dimension); fall
-    back to the GSO-based _is_dsd only for pre-fix seeds that lack it. This is
-    the fix for extract producing false nulls on the n>=157 frontier, where
-    cracked bases have min(gs) below B1_FLOOR yet the recovery field is True."""
+    exact-match field (_is_recovered) when present (authoritative at any
+    dimension); fall back to the GSO-based _is_dsd only for pre-fix seeds that
+    lack it. This is the fix for extract producing false nulls on the n>=157
+    frontier, where cracked bases have min(gs) below B1_FLOOR yet the exact
+    match is True."""
     rec = _is_recovered(seed, variant)
     if rec is not None:
         return bool(rec)
     return _is_dsd(seed, variant, n)
 
 
-def _cell_rate(tree: str, n: int, beta: int, q: int, variant: str):
-    """(fires, total) for one (tree, n, beta, q) cell, or None if absent.
+def _cell_rate(tree: str, n: int, beta: int, q: int, variant: str,
+               max_tours: int = DEFAULT_TOURS):
+    """(fires, total) for one (tree, n, beta, q) cell at one tour budget, or
+    None if absent. Precisions pool; other budgets do not.
 
     Each seed is scored by _seed_fires (recovery field first, _is_dsd fallback).
     Byte-identity note: pre-fix cells (no recovery field) score exactly as before
@@ -130,7 +144,7 @@ def _cell_rate(tree: str, n: int, beta: int, q: int, variant: str):
     visible rather than silent -- warning goes to stderr/pipeline, not stdout, so
     the committed trend table is unaffected."""
     pat = os.path.join(BASE, "results", "seeds", tree, f"q{q}",
-                       "p*_mt*", f"n{n:03d}_beta{beta:02d}", "seed*.json")
+                       f"p*_mt{max_tours}", f"n{n:03d}_beta{beta:02d}", "seed*.json")
     files = sorted(glob.glob(pat))
     if not files:
         return None
@@ -150,21 +164,22 @@ def _cell_rate(tree: str, n: int, beta: int, q: int, variant: str):
     return fires, len(files)
 
 
-def _q_grid(tree: str, n: int, beta: int) -> list[int]:
+def _q_grid(tree: str, n: int, beta: int, max_tours: int = DEFAULT_TOURS) -> list[int]:
     pat = os.path.join(BASE, "results", "seeds", tree, "q*",
-                       "p*_mt*", f"n{n:03d}_beta{beta:02d}")
+                       f"p*_mt{max_tours}", f"n{n:03d}_beta{beta:02d}")
     qs = set()
     for d in glob.glob(pat):
-        # .../q<NNN>/p<prec>_mt*/n...  (p* spans p250/p500/p1000 ladder)
+        # .../q<NNN>/p<prec>_mt<T>/n...  (p* spans p250/p500/p1000 ladder)
         for part in d.split(os.sep):
             if part.startswith("q") and part[1:].isdigit():
                 qs.add(int(part[1:]))
     return sorted(qs)
 
 
-def _interp_onset(curve: list[tuple[int, float]], rate: float):
+def _interp_onset(curve: list[tuple[int, float]], rate: float, ndigits: int | None = 1):
     """First q at which the DSD rate crosses `rate`, linearly interpolated
-    between the bracketing cells. Returns (onset_q, note)."""
+    between the bracketing cells. Returns (onset_q, note); ndigits=None keeps
+    the interpolated onset unrounded."""
     if not curve:
         return None, "no cells"
     # already above the threshold at the smallest q -> onset at/below grid
@@ -176,29 +191,33 @@ def _interp_onset(curve: list[tuple[int, float]], rate: float):
             if r == prev_r:
                 return float(q), "flat crossing"
             onset = prev_q + (q - prev_q) * (rate - prev_r) / (r - prev_r)
-            return round(onset, 1), f"interp [{prev_q},{q}]"
+            return (onset if ndigits is None else round(onset, ndigits)), f"interp [{prev_q},{q}]"
         prev_q, prev_r = q, r
     return None, f"never reaches {rate:.0%} (grid max q={curve[-1][0]}, max rate {curve[-1][1]:.0%})"
 
 
-def onset_for(tree: str, n: int, beta: int, variant: str, rate: float):
+def onset_for(tree: str, n: int, beta: int, variant: str, rate: float,
+              max_tours: int = DEFAULT_TOURS):
     """Return (onset_q_or_None, note, curve) for one variant."""
     curve = []
-    for q in _q_grid(tree, n, beta):
-        cell = _cell_rate(tree, n, beta, q, variant)
+    for q in _q_grid(tree, n, beta, max_tours):
+        cell = _cell_rate(tree, n, beta, q, variant, max_tours)
         if cell:
             curve.append((q, cell[0] / cell[1]))
     onset, note = _interp_onset(curve, rate)
     return onset, note, curve
 
 
-def report_cell(tree: str, n: int, beta: int, rate: float) -> dict:
-    out = {}
+def report_cell(tree: str, n: int, beta: int, rate: float,
+                max_tours: int = DEFAULT_TOURS) -> dict:
+    out, raw = {}, {}
     for variant in ("sdbkz", "bkz"):
-        onset, note, curve = onset_for(tree, n, beta, variant, rate)
+        onset, note, curve = onset_for(tree, n, beta, variant, rate, max_tours)
         out[variant] = {"onset": onset, "note": note,
                         "curve": [(q, round(r, 3)) for q, r in curve]}
-    sd, bkz = out["sdbkz"]["onset"], out["bkz"]["onset"]
+        raw[variant] = _interp_onset(curve, rate, ndigits=None)[0]
+    # gap from the unrounded onsets (Table 3 caption); printed onsets stay 1-dp
+    sd, bkz = raw["sdbkz"], raw["bkz"]
     out["gap_pct"] = (round(100.0 * (bkz - sd) / sd)
                       if sd and bkz else None)
     return out
@@ -220,6 +239,9 @@ def main() -> int:
     ap.add_argument("--engine", choices=("fplll", "g6k"), default="fplll")
     ap.add_argument("--rate", type=float, default=DEFAULT_RATE,
                     help="DSD-rate crossing that defines onset (default 0.5)")
+    ap.add_argument("--max-tours", type=int, default=DEFAULT_TOURS,
+                    help="tour budget to read (default 50; e.g. 580 for the "
+                         "tab:frontier dagger rows)")
     ap.add_argument("--trend", action="store_true",
                     help="print the 5-point beta=20 fplll trend (Table tab:dsdgap)")
     ap.add_argument("--show-curve", action="store_true",
@@ -234,7 +256,7 @@ def main() -> int:
               f"rate {args.rate:.0%} crossing), beta={args.beta}, {tree}:")
         print(f"{'n':>4} {'SD onset':>9} {'BKZ onset':>10} {'gap%':>5}")
         for n in TREND_NS:
-            r = report_cell(tree, n, args.beta, args.rate)
+            r = report_cell(tree, n, args.beta, args.rate, args.max_tours)
             sd, bkz, gap = r["sdbkz"]["onset"], r["bkz"]["onset"], r["gap_pct"]
             print(f"{n:>4} {str(sd):>9} {str(bkz):>10} {str(gap):>5}"
                   + ("" if gap is not None else f"   <- {r['sdbkz']['note']} / {r['bkz']['note']}"))
@@ -242,7 +264,7 @@ def main() -> int:
 
     if args.n is None:
         ap.error("provide --n (or --trend)")
-    r = report_cell(tree, args.n, args.beta, args.rate)
+    r = report_cell(tree, args.n, args.beta, args.rate, args.max_tours)
     _print_one(args.n, args.beta, tree, r)
     if args.show_curve:
         for variant in ("sdbkz", "bkz"):

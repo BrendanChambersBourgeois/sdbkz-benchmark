@@ -1,4 +1,4 @@
-"""_classify_no_report — INC-58 follow-up: 'cannot authenticate' vs 'host down'.
+"""_classify_no_report — 'cannot authenticate' vs 'host down'.
 
 A healthy node with no open ControlMaster socket used to be reported
 identically to a dead one (reachable=False, nothing else)."""
@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
 import json  # noqa: E402
 import stat  # noqa: E402
 
+import node_sync as ns  # noqa: E402
 from node_sync import _classify_no_report, _merge_log, _secure_ctrl_dir  # noqa: E402
 
 
@@ -98,3 +99,38 @@ def test_ctrl_dir_symlink_refused(tmp_path):
     (tmp_path / "cm").symlink_to(real)
     err = _secure_ctrl_dir(str(tmp_path / "cm" / "%C"))
     assert err and "refusing" in err
+
+
+def test_push_seeds_finished_seeds_only_never_overwrites(tmp_path, monkeypatch):
+    import argparse
+    import subprocess
+
+    import node_sync
+    (tmp_path / "results" / "seeds" / "t" / "q7" / "c").mkdir(parents=True)
+    monkeypatch.setattr(node_sync, "REPO", tmp_path)
+    calls = []
+    monkeypatch.setattr(subprocess, "run", lambda argv, **kw: calls.append(argv)
+                        or subprocess.CompletedProcess(argv, 0, "<f+++++++++ q7/c/seed0001.json\n", ""))
+    args = argparse.Namespace(tree="t", cells=["q7/c"], dry_run=False, node="n",
+                              remote_dir="lattice", control_path="/tmp/x/%C")
+    assert node_sync.cmd_push_seeds(args) == 0
+    argv = calls[0]
+    assert "--ignore-existing" in argv and "--include=seed*.json" in argv and argv[-1].startswith("n:")
+    assert f"{tmp_path}/results/seeds/t/./q7/c" in argv
+    args.cells = ["../t/q7/c"]
+    assert node_sync.cmd_push_seeds(args) == 2 and len(calls) == 1  # refused before rsync
+
+
+# ---------- never open a master (C51) ----------
+
+def test_ssh_base_never_opens_a_master():
+    assert ns._ssh_base(None) == ["ssh", "-o", "ControlMaster=no"]
+    assert ns._ssh_base("/tmp/x/%C")[-2:] == ["-o", "ControlPath=/tmp/x/%C"]
+
+
+def test_require_master_fails_fast_without_socket(monkeypatch):
+    class R:
+        returncode, stderr = 255, "Control socket connect(/x): No such file or directory"
+    monkeypatch.setattr(ns.subprocess, "run", lambda *a, **k: R())
+    err = ns._require_master(None, "deck")
+    assert err and "no live ControlMaster socket for deck" in err

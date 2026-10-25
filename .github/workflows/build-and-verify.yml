@@ -94,14 +94,13 @@ jobs:
           # auto-exempt; everything else must be wired.
           python3 scripts/lint_logging.py
 
-      - name: Guard — no un-allowlisted new top-level directories (INC-39)
+      - name: Guard — no un-allowlisted new top-level directories
         run: |
           # Refuses any push that introduces a top-level directory not
           # in the ALLOWED_TOP_LEVEL set in the script. Public-vs-internal
           # boundary check — the local pre-commit hook catches this on
           # the author's machine, and this CI step catches the case
           # where the author bypassed or did not install the hook
-          # (postmortem action item #2 from INC-39, 2026-04-25).
           # Compare against the merge base with main; on push to main,
           # github.event.before is the previous tip.
           BASE="${{ github.event.before }}"
@@ -125,8 +124,8 @@ jobs:
           # Strict mypy is gated only on the numerical-core files
           # the paper's SHA-256 reproducibility chain pivots on, as listed in
           # pyproject.toml [tool.mypy]. Wider coverage is intentionally
-          # deferred — `feedback_type_hints_opportunistic.md` documents
-          # the on-touch policy for the rest of the tree.
+          # deferred: the rest of the tree gets type hints when a file
+          # is next touched.
           python3 -m pip install mypy==2.1.0
           python3 -m mypy
 
@@ -213,26 +212,35 @@ jobs:
             results/seeds/cliff500/ results/seeds/convergence/ \
             results/seeds/fplll_sensitivity/ \
             results/seeds/ntru_g6k/ results/seeds/ntru_g6k_vecprobe/ \
+            results/seeds/ntru_g6k_diag/ \
             results/seeds/ntru/ results/seeds/ntru_patched/ \
+            results/seeds/ntru_patched_kahan_v3/ \
             results/seeds/ntru_b2/ results/seeds/ntru_b2_probe/ \
-            results/seeds/q3329_kahan/ results/seeds/q3329_control/
-          # ntru_g6k wired in per INC-45 Phase 3: validates 1784/1784 clean
+            results/seeds/ntru_exact/ results/seeds/ntru_g6k_exact/ \
+            results/seeds/ntru_g6k_reject/ \
+            results/seeds/q3329_kahan/ results/seeds/q3329_control/ \
+            results/seeds/q3329_mpfr/
+          # ntru_exact: exact-field reruns of the flag-scored fplll NTRU cells;
+          # ntru_g6k_exact (the G6K cells) and q3329_mpfr (MPFR measurement GSO)
+          # joined once their first seeds were on disk.
+          # ntru_g6k: validates 1784/1784 clean
           # (sieve path — no fplll squared-form GSO cancellation).
+          # ntru_g6k_reject: the same G6K cells on the build that rejects an
+          # int16-overflow reduction; joined once its first seeds were on disk.
           # ntru_g6k_vecprobe wired in 2026-09-05: g6k probe tree (store_short_vectors,
           # same per-seed schema plus short_vectors_* rows; non-manifest, like
-          # ntru_b2_probe). Validates 8/8 with the known INC-45 residual incidents.
+          # ntru_b2_probe). Validates 8/8.
           # ntru_b2 + ntru_b2_probe wired in 2026-08-30: same fplll path and
           # per-seed schema as ntru (b2 = never-idle filler tree, b2_probe =
           # per-tour diagnostic re-run; both deliberately non-manifest, see
           # lint_seed_manifest.NON_MANIFEST_SEED_TREES).
-          # ntru/ + ntru_patched wired in per INC-45 Phase 4b (verdict
-          # 2026-06-14): fplll squared-form GSO volume-drift is classified —
+          # ntru/ + ntru_patched: fplll squared-form GSO volume-drift is classified —
           # small drift (0.1-10 nat) is GSO-arithmetic/Kahan-family numerical
-          # residual (_incident id=45), >10 nat is structural dense-sublattice
+          # residual, >10 nat is structural dense-sublattice
           # collapse (_incident id=46). Both are incident-logged, never
           # silenced and never errored (mirrors the q=3329 id=26 path), so the
           # families validate green (0 errors) with every nonzero Δ visible.
-          # DEFERRED_FAMILIES is now empty; the
+          # DEFERRED_FAMILIES holds only ntru_flatter (reason in the test); the
           # test_seed_validation_coverage.py guard enforces full coverage.
           # tours3x: non-strict (legacy duplicate warnings carried over
           # from the pre-v1.3 pilot seeds co-existing with extended seeds
@@ -322,13 +330,12 @@ jobs:
     # Build target is x86-64-v2 (SSE4.2/POPCNT), the universal x86-64 floor.
     # History: was x86-64-v3, but the g6k stack SIGILLed (exit 132, illegal
     # instruction) on `import g6k.siever` on v2-only fleet runners that lack
-    # AVX2. Pinning the runner image + rerunning did not fix it (INC-55, 3
-    # consecutive fails); the real fix, now applied, is the v2 re-baseline in
+    # AVX2. Pinning the runner image + rerunning did not fix it; the real fix, now applied, is the v2 re-baseline in
     # Dockerfile.g6k. v2 imports on every GitHub-hosted runner. Changing -march
     # changed the determinism reference SHA, so the manifest reference is reset
     # to PENDING until re-captured at v2 (the lint --require-ref step below
     # keeps this job red until then; the determinism-verify step is gated
-    # behind it). See INC-55.
+    # behind it).
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -365,7 +372,7 @@ jobs:
           # (vacuously until Phase 4 seeds) ghost/drift. Host python is fine —
           # the lint reads JSON only, no g6k import. --require-ref treats the
           # PENDING sentinel as a hard failure: expected RED until the v2
-          # reference SHA is re-captured (INC-55), which gates the verify step
+          # reference SHA is re-captured, which gates the verify step
           # below so it cannot run against an unset reference.
           python3 scripts/lint_g6k_manifest.py --require-ref
 
@@ -374,15 +381,24 @@ jobs:
           # Regenerate the reference probe inside the image and SHA-compare.
           # HARD byte-identity gate: only exit 0 passes; SHA drift (exit 1) or
           # PENDING (exit 4) both fail. Currently unreached — the lint step
-          # above fails first while the v2 reference is PENDING (INC-55). Once
+          # above fails first while the v2 reference is PENDING. Once
           # the reference is re-captured at v2 this becomes the live gate.
           docker run --rm sdbkz-g6k:ci bash scripts/verify_g6k.sh
+
+      - name: G6K sieve trace leaves the reduction unchanged
+        run: |
+          # The only g6k-side proof that sieve_trace campaigns run the same
+          # reduction as dummy_tracer; the pytest job's image has no g6k and
+          # skips this file.
+          docker run --rm -v "${{ github.workspace }}:/repo" -w /repo \
+            sdbkz-g6k:ci python3 -m pytest -q -p no:cacheprovider \
+            tests/test_sieve_trace_g6k.py
 
       - name: G6K diagnostic banner on failure
         if: failure()
         run: |
           echo "::error::G6K build or determinism verify failed."
           echo "  - threads>1 anywhere is a contract violation (Phase 0)."
-          echo "  - a PENDING reference (INC-55, v2 re-capture owed) fails lint --require-ref."
+          echo "  - a PENDING reference (v2 re-capture owed) fails lint --require-ref."
           echo "  - SHA drift means the x86-64-v2 build is not bit-identical."
           echo "  - check Dockerfile.g6k pins (fplll 1987472 / fpylll e25ade8 / g6k c71e084)."

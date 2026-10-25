@@ -15,7 +15,7 @@ Pure-python (exact binomial via math.comb) — no scipy dependency, so the
 eventual builder inherits none. Read-only on results/seeds/.
 
 build_records() -> list[dict], each dict = the ledger record schema:
-  {claim_id, tex_lines, verbatim, paper_value, source, method,
+  {claim_id, tex_anchors, verbatim, paper_value, source, method,
    recomputed_value, match, status, note}
 """
 from __future__ import annotations
@@ -29,7 +29,7 @@ from math import comb
 # --- locate the repo and import the committed scoring primitives ------------
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # repo root (scripts/_paper2_claims/ -> up 3)
 sys.path.insert(0, os.path.join(REPO, "scripts"))
-from extract_dsd_onset import _seed_fires, onset_for  # noqa: E402
+from extract_dsd_onset import DEFAULT_TOURS, _seed_fires, onset_for  # noqa: E402
 
 ENGINE_TREE = {"fplll": "ntru", "g6k": "ntru_g6k"}
 BETA = 40
@@ -38,27 +38,34 @@ RATE = 0.5
 # ---------------------------------------------------------------------------
 # Paper values (plan section 2.2 / 2.3 table; tex = paper2/latex/sdbkz_paper2.tex)
 # ---------------------------------------------------------------------------
-# onset[(n, engine)] = (sd, bkz, gap_pct, tex_lines)
+# onset[(n, engine)] = (sd, bkz, gap_pct, tex_anchors)
+_N89 = r"& 193.7 & 193.8 & 193.1 & 194.0"
 ONSET_PAPER = {
-    (89, "fplll"): (193.7, 193.8, 0, [560, 561, 562, 586]),
-    (89, "g6k"):   (193.1, 194.0, 0, [560, 561, 563, 586]),
-    (101, "fplll"): (257.3, 280.7, 9, [634, 661, 793]),
-    (101, "g6k"):   (249.9, 268.3, 7, [634, 662, 793]),
-    (113, "fplll"): (464.6, 499.0, 7, [643, 663]),
-    (113, "g6k"):   (456.3, 482.2, 6, [644, 664]),
+    (89, "fplll"): (193.7, 193.8, 0, [_N89]),
+    (89, "g6k"):   (193.1, 194.0, 0, [_N89]),
+    (101, "fplll"): (257.3, 280.7, 9, [r"101 & fplll & 257.3 & 280.7",
+                                       r"recovers a $9\%$ SD$<$BKZ DSD-onset"]),
+    (101, "g6k"):   (249.9, 268.3, 7, [r"101 & G6K   & 249.9 & 268.3",
+                                       r"$[6.1\%,11.1\%]$) and $7\%$ on G6K"]),
+    (113, "fplll"): (464.6, 499.0, 7, [r"113 & fplll & 464.6 & 499.0",
+                                       r"($7\%$ gap fplll,"]),
+    (113, "g6k"):   (456.3, 482.2, 6, [r"113 & G6K   & 456.3 & 482.2",
+                                       r"$6\%$ G6K), and at $q=487$"]),
 }
 
-# transition[(n, engine)] = (q, b_paper, c_paper, chi2_paper, p_paper, p_sided, tex_lines)
+# transition[(n, engine)] = (q, b_paper, c_paper, chi2_paper, p_paper, p_sided, tex_anchors)
 #   p_paper is None where the tex cites only the count+chi2 (fplll n=101).
-#   p_sided records which sign-test convention the tex actually used for the
-#   cited p — the paper is INTERNALLY INCONSISTENT: g6k n=101 cites the
-#   two-sided p, but fplll/g6k n=113 cite the one-sided p (see plan 2.3 and
-#   the note on each record).
+#   All cited p are two-sided (n=113 was one-sided earlier).
+_P113 = r"(sign test $p\approx3.8\times10^{-6}$ and $1.2\times10^{-4}$)"
 TRANSITION_PAPER = {
-    (101, "fplll"): (271, 24, 1, 21.16, None, None, [636, 637, 638, 661]),
-    (101, "g6k"):   (271, 17, 0, 17.0, 1.5e-5, "two-sided", [636, 662]),
-    (113, "fplll"): (487, 19, 0, 19.0, 1.9e-6, "one-sided", [645, 646, 647, 648, 663]),
-    (113, "g6k"):   (487, 14, 0, 14.0, 6.1e-5, "one-sided", [645, 664]),
+    (101, "fplll"): (271, 24, 1, 21.2, None, None, [r"($24{:}1$, $\chi^2{=}21.2$)"]),
+    (101, "g6k"):   (271, 17, 0, 17.0, 1.5e-5, "two-sided",
+                     [r"($17{:}0$, $\chi^2{=}17.0$)",
+                      r"two-sided sign test ($p\approx1.5\times10^{-5}$)"]),
+    (113, "fplll"): (487, 19, 0, 19.0, 3.8e-6, "two-sided",
+                     [r"($19{:}0$, $\chi^2{=}19.0$)", _P113]),
+    (113, "g6k"):   (487, 14, 0, 14.0, 1.2e-4, "two-sided",
+                     [r"($14{:}0$, $\chi^2{=}14.0$)", _P113]),
 }
 
 
@@ -76,7 +83,7 @@ def _recompute_onsets(n: int, engine: str):
 
 def _cell_files(tree: str, n: int, beta: int, q: int):
     pat = os.path.join(REPO, "results", "seeds", tree, f"q{q}",
-                       "p*_mt*", f"n{n:03d}_beta{beta:02d}", "seed*.json")
+                       f"p*_mt{DEFAULT_TOURS}", f"n{n:03d}_beta{beta:02d}", "seed*.json")
     return sorted(glob.glob(pat))
 
 
@@ -129,13 +136,13 @@ def build_records() -> list[dict]:
         tree = ENGINE_TREE[engine]
         sd_r, bkz_r, gap_r = _recompute_onsets(n, engine)
         src = {"kind": "seeds",
-               "glob": f"results/seeds/{tree}/q*/p*_mt50/n{n:03d}_beta{BETA:02d}/"}
+               "glob": f"results/seeds/{tree}/q*/p*_mt{DEFAULT_TOURS}/n{n:03d}_beta{BETA:02d}/"}
         for variant, paper, recomputed in (("sdbkz", sd_p, sd_r),
                                            ("bkz", bkz_p, bkz_r)):
             match = recomputed is not None and abs(recomputed - paper) <= 0.1
             records.append({
                 "claim_id": f"onset_n{n}_{engine}_{'sd' if variant == 'sdbkz' else 'bkz'}",
-                "tex_lines": tex,
+                "tex_anchors": tex,
                 "verbatim": f"{engine} SD {sd_p} / BKZ {bkz_p}"
                             + (f" ({gap_p}% gap)" if gap_p else " (null window)"),
                 "paper_value": paper,
@@ -152,7 +159,7 @@ def build_records() -> list[dict]:
         gmatch = gap_r is not None and gap_r == gap_p
         records.append({
             "claim_id": f"gap_n{n}_{engine}",
-            "tex_lines": tex,
+            "tex_anchors": tex,
             "verbatim": f"{engine} n={n}: {gap_p}% SD-vs-BKZ onset gap"
                         + (" (null / dense window)" if gap_p == 0 else ""),
             "paper_value": gap_p,
@@ -171,13 +178,13 @@ def build_records() -> list[dict]:
         b_r, c_r, N = _discordant(tree, n, q)
         chi2_r = _chi2(b_r, c_r)
         src = {"kind": "seeds",
-               "glob": f"results/seeds/{tree}/q{q}/p*_mt50/n{n:03d}_beta{BETA:02d}/"}
+               "glob": f"results/seeds/{tree}/q{q}/p*_mt{DEFAULT_TOURS}/n{n:03d}_beta{BETA:02d}/"}
 
         # 2a. discordant counts b:c (exact string match)
         cnt_match = (b_r == b_p and c_r == c_p)
         records.append({
             "claim_id": f"mcnemar_counts_n{n}_{engine}",
-            "tex_lines": tex,
+            "tex_anchors": tex,
             "verbatim": f"{engine} n={n} transition (q={q}): {b_p}:{c_p} discordant",
             "paper_value": f"{b_p}:{c_p}",
             "source": src,
@@ -193,7 +200,7 @@ def build_records() -> list[dict]:
         chi2_match = _approx(chi2_r, chi2_p, rtol=5e-3)
         records.append({
             "claim_id": f"mcnemar_chi2_n{n}_{engine}",
-            "tex_lines": tex,
+            "tex_anchors": tex,
             "verbatim": f"{engine} n={n} transition (q={q}): chi2={chi2_p}",
             "paper_value": chi2_p,
             "source": src,
@@ -208,20 +215,15 @@ def build_records() -> list[dict]:
         if p_p is not None:
             two = _sign_p_two_sided(b_r, c_r)
             one = _sign_p_one_sided(b_r, c_r)
-            # The tex value matches whichever convention p_sided names; the
-            # task-specified formula is the TWO-sided one. We report the value
-            # under the paper's own convention and flag the inconsistency.
+            # Report the value under the convention p_sided names (all
+            # two-sided).
             recomputed = two if p_sided == "two-sided" else one
             pmatch = _approx(recomputed, p_p, rtol=5e-2)
             note = (f"Exact binomial sign-test. Paper cites the {p_sided} p. "
-                    f"two-sided={two:.3e}, one-sided={one:.3e}. "
-                    "PAPER SIDEDNESS INCONSISTENCY: g6k n=101 cites two-sided "
-                    "(1.5e-5) while n=113 (fplll/g6k) cite one-sided "
-                    "(1.9e-6/6.1e-5); the task-specified two-sided formula alone "
-                    "only reproduces g6k n=101.")
+                    f"two-sided={two:.3e}, one-sided={one:.3e}.")
             records.append({
                 "claim_id": f"signtest_p_n{n}_{engine}",
-                "tex_lines": tex,
+                "tex_anchors": tex,
                 "verbatim": f"{engine} n={n} transition (q={q}): sign p~={p_p:.1e} ({p_sided})",
                 "paper_value": p_p,
                 "source": src,

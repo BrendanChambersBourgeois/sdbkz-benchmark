@@ -1,26 +1,29 @@
 #!/usr/bin/env python3
 """Build results/patched_seed_manifest.json — the SHA set for the patched
-fplll engines (results/seeds/ntru_patched/, q3329_kahan/, q3329_control/).
+fplll engines (results/seeds/ntru_patched/, ntru_patched_kahan_v3/,
+q3329_kahan/, q3329_control/).
 
 The patched seeds are produced by the Kahan-compensated GSO build
-(Dockerfile.fplll_patched, paper Appendix A): their squared-form arithmetic
+(Dockerfile.fplll_patched, since removed from the tree, docs/images.md
+note 2; paper Appendix A): their squared-form arithmetic
 differs from stock fplll, so their byte hashes are NOT comparable to the main
 fplll manifest and must live in a separate set -- the same reasoning that keeps
 g6k separate (ADR-005). Until now these 12 n=127 validation seeds were tracked
-by NO manifest (INC-49); this closes the gap with the same SHA-256 + verify-gate
+by NO manifest; this closes the gap with the same SHA-256 + verify-gate
 discipline as build_g6k_manifest.
 
 Behaviour mirrors build_g6k_manifest:
   - Walks each tree in PATCHED_TREES for seed*.json, parses the v1.3 path,
     computes SHA-256; verify-gated (status=="completed" + finite advantage).
     Entries carry campaign (= tree dir) and the engine build that produced
-    them: ntru_patched = Kahan v1 (n=127 validation), q3329_kahan = kahan-v3
-    rerun at n=100 beta=30, q3329_control = reorder-only control build
-    (same loop reorder, no Kahan compensation).
+    them: ntru_patched = Kahan v1 (n=127 validation, sign-inverted build),
+    ntru_patched_kahan_v3 = kahan-v3 rerun of the same n=127 cells,
+    q3329_kahan = kahan-v3 rerun at n=100 beta=30, q3329_control =
+    reorder-only control build (same loop reorder, no Kahan compensation).
   - Creates the manifest scaffold on first run; preserves top-level blocks on
     re-run, rebuilding only seeds[].
   - Deterministic timestamp (SOURCE_DATE_EPOCH or epoch 0) so re-runs are
-    byte-stable -- no wall-clock churn (INC-48).
+    byte-stable -- no wall-clock churn.
 
 Usage:
     python3 scripts/build_patched_manifest.py
@@ -49,6 +52,7 @@ DEFAULT_MANIFEST = os.path.join("results", "patched_seed_manifest.json")
 # tree dir under results/seeds -> engine build tag carried per entry
 PATCHED_TREES: dict[str, str] = {
     "ntru_patched": "fplll-kahan",
+    "ntru_patched_kahan_v3": "fplll-kahan-v3",
     "q3329_kahan": "fplll-kahan-v3",
     "q3329_control": "fplll-reorder-control",
 }

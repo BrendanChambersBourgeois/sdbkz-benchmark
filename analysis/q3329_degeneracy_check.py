@@ -1,159 +1,21 @@
 #!/usr/bin/env python3
-"""q=3329 numerical-instability detection and rate estimation.
+"""q=3329 GSO-floor detection and rate estimation.
 
-Detects the **fplll Gram-Schmidt cancellation** at q=3329, n=100, β=30
-documented in Section 8 of the paper. For each seed JSON in
-results/cloud/ and results/q3329/ matching the q=3329 n=100 β=30 group,
-checks whether either algorithm's Gram-Schmidt log-norms drop below
-−100 (the canonical Section-8 detection threshold, which in practice
-picks up exactly the wrapper's −345.39 clamp fingerprint). Reports
-counts, rates with 95% Wilson confidence intervals, the clean subset
-statistics, and a per-seed breakdown.
+For each seed JSON in results/cloud/ and results/q3329/ matching the q=3329
+n=100 β=30 group, counts legs whose stored Gram-Schmidt log-norms drop below
+−100, i.e. carry the −345.39 clamp sentinel that scripts/q3329_verify.py
+substitutes when its measurement GSO returns get_r(i,i) <= 0. Reports counts,
+rates with 95% Wilson confidence intervals, the clean subset and a per-seed
+breakdown.
 
-═══════════════════════════════════════════════════════════════════════
-THE CAUSE, FULLY RESOLVED (2026-04-10)
-═══════════════════════════════════════════════════════════════════════
-
-The q=3329 instability is a **numerical-precision failure in fplll's
-Gram-Schmidt update code**, located precisely at:
-
-    fplll/gso_interface.cpp:147-151
-    MatGSOInterface<ZT, FT>::update_gso_row
-
-Every BKZ tour, every LLL call, every `get_r(i,i)` query — for every
-FT instantiation (double, long double, dpe, dd, qd, mpfr_t) — funnels
-through this single shared function. Both `MatGSO` and `MatGSOGram`
-inherit it via `using MatGSOInterface<ZT, FT>::update_gso_row;`.
-
-**The Gram-Schmidt variant is neither CGS, MGS, nor Householder — it
-is the Cholesky-style squared-form recurrence:**
-
-    r(i,i) = ‖b_i‖²  −  Σ_{k<i}  μ_{i,k}² · ‖b*_k‖²
-
-computed as a single in-place scalar subtraction loop. fplll never
-materializes the projected vector `b*_i` at all — the diagonal entry
-is computed directly as a difference of two large positive numbers.
-This is **strictly worse than MGS** for cancellation, because MGS
-would at least compute `b*_i = b_i − Σ μ_{ik} b*_k` as a vector and
-then take its norm (single subtraction error per coordinate). The
-squared form puts the entire accumulated rounding error into one
-scalar subtract, with no compensation and no sanity check.
-
-Existing sanity checks in the fplll code path: **zero**. No clamp on
-negative `r(i,i)`. No sign assertion. No reorthogonalization trigger.
-No `FPLLL_DEBUG_CHECK(r(i,j).sgn() > 0)` for the diagonal case. The
-only check is `mu(i,j).is_finite()` after the subsequent divide,
-which catches divide-by-zero but silently accepts finite-but-negative
-values. A bad sign in `r(i,i)` then propagates as a finite negative
-`μ(j,i)` for later `j > i`, producing wrong-but-finite contributions
-to the rest of the GSO pipeline. The corruption only becomes visible
-when an outside caller (e.g. `scripts/q3329_verify.py:88`) reads
-`get_r(i,i)` and notices the sign.
-
-**The −345.39 floor measured here is the wrapper's clamp constant**,
-not a precision floor or a real Gram-Schmidt log-norm. It is exactly
-`0.5 * log(1e-300)`, substituted by `scripts/q3329_verify.py:88` when
-`get_r(i,i) <= 0` fires:
-
-    if r_val <= 0:
-        r_val = 1e-300                  # ← clamp
-    ... 0.5 * math.log(r_val)           # ← = −345.38776394910684
-
-Every degenerate seed hits this exact constant to 14 digits across
-every source (cloud, local, Dylan 9950X3D) — the single substitution
-constant is the cleanest possible failure fingerprint.
-
-═══════════════════════════════════════════════════════════════════════
-EVIDENCE — FOUR CORROBORATING INDEPENDENT OBSERVATIONS
-═══════════════════════════════════════════════════════════════════════
-
-1. **Raw negative value observed.** `analysis/investigate_q3329_get_r.py`
-   reproduced cloud seed 1 tour-by-tour and captured
-   `MatGSO.get_r(293, 293) = -1.2805632996020577` at tour 30 — a
-   finite, non-zero, non-NaN, non-Inf, non-positive squared norm.
-   Mathematically impossible for a physical ‖b*_i‖². Preserved at
-   `results/q3329_get_r_investigation.json`.
-
-2. **Run-to-run non-determinism on bit-identical input.** Two
-   independent reproducers running cloud seed 1 with the same lattice
-   (verified element-wise via `np.array_equal`), same MPFR=1000
-   precision, and same `FPLLL.set_random_seed(1)` produce *different*
-   trajectories starting at tour 1. The prior `investigate_q3329_get_r`
-   run hit the collapse at tour 30; a fresh wrapper-free reproducer
-   survived 40 tours cleanly on the exact same input. A stable
-   physical small-positive Gram-Schmidt norm would not flip sign
-   across runs. This is direct evidence the value is teetering
-   exactly on zero with the FP operation path deciding the sign —
-   the hair-trigger signature of cancellation near unit roundoff.
-   (See paper §8.2 for the full cross-machine breakdown and paper §8.3
-   for the root-cause analysis and Kahan patch.)
-
-3. **Cross-machine reproducibility.** Two entirely different CPU
-   microarchitectures hit the same population-level rate to within
-   sampling noise: Intel Raptor Lake 13900K under VMware reports
-   21/55 = 38.2%, AMD Zen 5 9950X3D native reports 17/45 = 37.8%.
-   Combined 100-seed dataset: **38/100 = 38.0%, Wilson 95% CI
-   [29.1%, 47.8%]**. A 0.4 pp difference between vendors with
-   different FP execution paths, different AVX implementations, and
-   different FMA behaviour rules out any microarchitecture-specific
-   cause. The bug is in the algorithm, not the silicon.
-
-4. **BKZ vs SD-BKZ symmetry.** Of 47 degenerate events across 100
-   seeds, 25 affect BKZ and 22 affect SD-BKZ (ratio 1.14:1, well
-   within sampling noise for 47 events). This rules out any bug in
-   only the forward pass, only the SD variant, or only one side of
-   the algorithm. Both algorithms call the same `update_gso_row`,
-   and both hit the same cancellation.
-
-═══════════════════════════════════════════════════════════════════════
-WHAT IS RULED OUT
-═══════════════════════════════════════════════════════════════════════
-
-  1. **Precision-only causes.** 500-bit vs 1000-bit MPFR produces
-     bit-identical dln/advantage values — if precision were the
-     cause, doubling it would change the output. It does not.
-     Compensation (not precision) is what's missing.
-
-  2. **One-sided algorithm bugs.** See evidence §4 above.
-
-  3. **Random floating-point noise.** Every degenerate seed hits the
-     EXACT clamp constant, not scattered nearby values. Stochastic
-     FP error would scatter.
-
-  4. **Code-wide bugs in the lattice wrapper scripts.** A 20-seed
-     verification at n=50 β=30 q=3329 (same wrapper, same MPFR
-     config, same tours) is 100% clean. Dimension-dependent, so the
-     wrapper code is fine.
-
-  5. **Codepath bugs affecting all (n, β, q).** All q=97 configs are
-     unaffected at every dimension n=50–150. Modulus-and-dimension-
-     specific to the corner of parameter space where LWE-Kannan at
-     q=3329, n=100 makes the tail Gram-Schmidt vectors teeter near
-     the FP unit roundoff of the ambient working precision.
-
-  6. **Microarchitecture-specific cause.** See evidence §3 above.
-
-═══════════════════════════════════════════════════════════════════════
-THE FIX
-═══════════════════════════════════════════════════════════════════════
-
-A 14-line Kahan-compensated subtraction replacement for the inner
-loop at `gso_interface.cpp:147-151`. Template-agnostic (works for all
-FT types including MPFR), no API change, no algorithm change, no
-caller change. Compensated summation moves the computed value off
-the zero crossing by precisely the amount of accumulated rounding
-error that the naive loop was losing, which converts the 38%
-hair-trigger hit rate to 0% on the 55-seed patched rerun reported
-in paper §8.3.
-
-═══════════════════════════════════════════════════════════════════════
-
-This script's "ANY degenerate" rate measures the rate at which
-fpylll's `get_r` returns a non-positive value in the active basis
-block — equivalently, the rate at which the squared-form scalar
-subtraction in `gso_interface.cpp:147-151` fails to maintain the
-non-negativity invariant. It is the operational metric for the
-paper's Section 8 discussion.
+The floors are a measurement artefact, not an fplll reduction failure: the
+harness re-measures the reduced basis with a double-precision GSO, and at
+dim ~300 the Gram matrix condition number exceeds 2^53, so the diagonal
+cancels to a non-positive value. Re-measured in MPFR the same cells show
+0 floors and the stored bases pass exact integer LLL checks at every tour
+(Paper 2, Appendix A). The Paper 1 §8 attribution to fplll's update_gso_row
+and the Kahan-patch result are withdrawn; the "degenerate" rate here is the
+record of what the double-precision measurement produced.
 
 Usage:
     python3 analysis/q3329_degeneracy_check.py

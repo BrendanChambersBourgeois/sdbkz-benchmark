@@ -1,6 +1,6 @@
-"""INC-45 Phase 2 — structural guard for seed-validation coverage.
+"""Structural guard for seed-validation coverage.
 
-Root cause of INC-45: the CI `validate_seeds.py` directory list in
+The CI `validate_seeds.py` directory list in
 `.github/workflows/build-and-verify.yml` was hand-maintained and silently
 drifted. The entire NTRU family (`ntru/`, `ntru_g6k/`, `ntru_patched/` —
 7,476 seeds, the whole empirical basis of Paper 2) was never validated
@@ -8,9 +8,7 @@ because nobody added it to that list, and nothing complained.
 
 This guard fails the build the moment a seed family under
 `results/seeds/` is neither fed to `validate_seeds.py` in CI nor placed on
-an explicit, documented deferral allowlist. The allowlist must shrink to
-empty as INC-45 remediation completes (Phase 3 wires `ntru_g6k`; Phase 4
-wires `ntru` + `ntru_patched` after the volume-drift classification).
+an explicit, documented deferral allowlist. The allowlist is empty by default.
 
 The pure helpers (`validated_families`, `coverage_violations`) are unit-
 tested against synthetic inputs; the repo-level tests run them against the
@@ -34,7 +32,7 @@ SEEDS_ROOT = os.path.join(REPO, "results", "seeds")
 # `test_no_unguarded_seed_family`.
 DEFERRED_FAMILIES: dict[str, str] = {
     "ntru_flatter": (
-        "flatter-preprocessing A/B probe (2026-08-13): paired baseline/"
+        "flatter-preprocessing A/B probe: paired baseline/"
         "flatter cells whose layout carries an extra baseline|flatter level "
         "that the v1.3 path parser does not know, and whose preprocessing "
         "driver is not yet committed. Deferred until the driver lands "
@@ -42,8 +40,8 @@ DEFERRED_FAMILIES: dict[str, str] = {
         "canonical manifest (lint_seed_manifest.NON_MANIFEST_SEED_TREES)."
     ),
 }
-# INC-45 was fully remediated 2026-06-14 (allowlist empty); ntru_flatter is
-# the single re-addition (2026-08-30) and carries its exit condition above.
+# The allowlist is empty by default; ntru_flatter is
+# the single re-addition and carries its exit condition above.
 # Every other results/seeds/* family is CI-validated.
 #   - ntru_g6k removed Phase 3 (validates 1784/1784 clean).
 #   - ntru + ntru_patched removed Phase 4b: volume-drift classified (verdict
@@ -140,7 +138,7 @@ def test_coverage_flags_sorted_and_multiple():
 # --------------------------------------------------------------------------
 def test_no_unguarded_seed_family():
     """Every family under results/seeds/ is validated in CI or explicitly
-    deferred. This is the INC-45 regression guard."""
+    deferred. This is the regression guard."""
     validated = validated_families(open(WORKFLOW).read())
     disk = _disk_families()
     violations = coverage_violations(disk, validated, set(DEFERRED_FAMILIES))
@@ -148,7 +146,7 @@ def test_no_unguarded_seed_family():
         f"seed families neither validated in CI nor on the deferral "
         f"allowlist: {violations}. Add them to the validate_seeds dir list "
         f"in {os.path.relpath(WORKFLOW, REPO)}, or add to DEFERRED_FAMILIES "
-        f"with a documented reason (see INC-45)."
+        f"with a documented reason."
     )
 
 
@@ -172,6 +170,6 @@ def test_deferred_allowlist_is_honest():
 @pytest.mark.parametrize("fam", ["main", "q3329", "cliff500",
                                  "convergence", "fplll_sensitivity", "tours3x"])
 def test_known_lwe_families_are_validated(fam):
-    """The pre-INC-45 validated families must stay wired in — a regression
+    """The pre-fix validated families must stay wired in — a regression
     here means someone dropped a family from the CI list."""
     assert fam in validated_families(open(WORKFLOW).read())

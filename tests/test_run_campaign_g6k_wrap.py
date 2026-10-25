@@ -1,4 +1,4 @@
-"""g6k container re-exec + full-failure rc (2026-08-28 incident).
+"""g6k container re-exec + full-failure rc.
 
 All 12 queued beta=50 worklist lines dispatched host-side, every seed died in
 seconds with "ModuleNotFoundError: No module named 'g6k'", run_campaign
@@ -13,6 +13,8 @@ archived the whole 7.2-day ladder as done in ~12 minutes. Two guards now:
 """
 import os
 import sys
+
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
 
@@ -69,7 +71,7 @@ def test_g6k_available_matches_find_spec():
     assert rc._g6k_available() == (importlib.util.find_spec("g6k") is not None)
 
 
-# -- §8 local rerun arms (2026-09-02): q3329_* routing, --image re-exec ------
+# -- §8 local rerun arms: q3329_* routing, --image re-exec ------
 
 def test_select_runner_routes_q3329_rerun_arms():
     assert rc._select_runner("q3329_kahan") == "q3329_verify"
@@ -111,3 +113,60 @@ def test_dispatch_q3329_verify_forwards_workers_and_seed_tag(capsys):
     rc._dispatch_q3329_verify(rc.load_campaign("q3329"), 100, 30, start=1,
                               end=100, seeds=100, workers=1, dry_run=True)
     assert "--seed-tag" not in capsys.readouterr().out
+
+
+def test_dispatch_q3329_verify_forwards_seed_window(capsys):
+    # 2026-10-24: --start 51 --end 100 became "--seeds 50" alone, so the
+    # runner ran seeds 1-50 (all on disk) and did nothing.
+    rc._dispatch_q3329_verify(rc.load_campaign("q3329_mpfr"), 80, 30, start=51,
+                              end=100, seeds=50, workers=1, dry_run=True)
+    assert "--seeds 50 --start 51 " in capsys.readouterr().out
+
+
+def test_dispatch_q3329_verify_forwards_store_per_tour_and_metric(capsys):
+    # both knobs were dropped for q3329 campaigns.
+    rc._dispatch_q3329_verify(rc.load_campaign("q3329_kahan"), 100, 30,
+                              start=1, end=100, seeds=100, workers=1,
+                              dry_run=True)
+    out = capsys.readouterr().out
+    assert "--store-per-tour" in out
+    assert "--metric-float-type" not in out  # double stays implicit
+    assert "--store-bases" not in out
+    c = rc.load_campaign("q3329_mpfr")
+    assert (c.seed_tag, c.metric_float_type) == ("q3329_mpfr", "mpfr")
+    rc._dispatch_q3329_verify(c, 100, 30, start=1, end=100, seeds=100,
+                              workers=20, dry_run=True)
+    out = capsys.readouterr().out
+    assert "--metric-float-type mpfr" in out
+    assert "--seed-tag q3329_mpfr" in out
+    assert "--store-bases" in out  # off unless a campaign asks
+    rc._dispatch_q3329_verify(rc.load_campaign("main"), 100, 30, start=1,
+                              end=100, seeds=100, workers=1, dry_run=True)
+    assert "--store-per-tour" not in capsys.readouterr().out
+
+
+# -- reject tree: refuse a siever without the overflow guard -------------
+
+@pytest.mark.parametrize("campaign", ["ntru_wall_beta_bump_reject", "ntru_g6k_vecprobe_reject"])
+def test_reject_tree_refuses_siever_without_guard(monkeypatch, capsys, campaign):
+    # In a container the image key is never checked; the siever must prove it.
+    monkeypatch.setenv("PIPELINE_LOG_TAG", "test")  # --dry-run rewrites it
+    monkeypatch.setattr(rc, "_g6k_available", lambda: True)
+    monkeypatch.setattr(rc, "_siever_has_reject_guard", lambda: False)
+    monkeypatch.setattr(sys, "argv", ["run_campaign.py", "--campaign",
+                                      campaign, "--dry-run"])
+    assert rc.main() == 2
+    assert "reject-on-overflow guard" in capsys.readouterr().err
+
+
+def test_siever_guard_reads_loaded_siever_so(tmp_path, monkeypatch):
+    import types
+    so = tmp_path / "siever.so"
+    pkg, mod = types.ModuleType("g6k"), types.ModuleType("g6k.siever")
+    mod.__file__, pkg.siever = str(so), mod
+    monkeypatch.setitem(sys.modules, "g6k", pkg)
+    monkeypatch.setitem(sys.modules, "g6k.siever", mod)
+    so.write_bytes(b"\0g6k reduce_in_db: " + rc._REJECT_MARKER + b" #%d\0")
+    assert rc._siever_has_reject_guard()
+    so.write_bytes(b"\0tolerant build\0")
+    assert not rc._siever_has_reject_guard()

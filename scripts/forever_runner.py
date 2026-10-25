@@ -11,7 +11,7 @@ The reconciled MINIMAL design from the 2026-08-08 B2 plan review
       * archive each worklist line's outcome; stop LOUD after too many
         consecutive failures (a systemic breakage), never churn.
 
-Owner injects higher-value work by editing config/forever_worklist.txt (add a
+Higher-value work is injected by editing config/forever_worklist.txt (add a
 line, or reorder). The runner NEVER mutates that file — it tracks completed lines
 in results/logs/forever_worklist.done — so an edit-while-running can't race a rewrite.
 
@@ -39,7 +39,7 @@ from log import get_logger  # noqa: E402
 log = get_logger("forever_runner")
 
 REPO = Path(__file__).resolve().parent.parent
-WORKLIST = REPO / "config" / "forever_worklist.txt"       # tracked, owner-editable run-list
+WORKLIST = REPO / "config" / "forever_worklist.txt"       # run-list (gitignored)
 DONE_LOG = REPO / "results" / "logs" / "forever_worklist.done"    # runtime (gitignored)
 FAILED_LOG = REPO / "results" / "logs" / "forever_worklist.failed"
 LOCK = REPO / "results" / "logs" / "forever_runner.lock"
@@ -47,7 +47,7 @@ LOCK = REPO / "results" / "logs" / "forever_runner.lock"
 FLOOR_SLEEP_S = 60          # top-of-loop sleep: makes busy-spin structurally impossible
 MAX_CONSEC_FAIL = 3         # stop LOUD after this many back-to-back failures (systemic)
 # Hard wall-clock backstop for ANY campaign child that has no explicit @budget_h.
-# INC-54: a beta50 probe hot-wedged ~25h inside one fplll enum call (1 core pinned,
+# a beta50 probe hot-wedged ~25h inside one fplll enum call (1 core pinned,
 # no heartbeat) and, with timeout=None, would have run forever -- the R1 watchdog's
 # CPU-idle gate cannot see a single-core wedge on a 24-core box. A finite default cap
 # turns every wedge into a self-terminate. A line that legitimately needs longer MUST
@@ -65,7 +65,7 @@ FILLER_TREE = "ntru_b2"      # seed tree the filler writes = seed_tag of FILLER_
 
 # A worklist line that returns rc=0 faster than this is suspicious: a full-cell
 # re-dispatch (all skips) and a silent no-op look identical from the outside
-# (INC-60: 12 lines x ~66 s archived a 7.2-day ladder). Warn, never stop.
+# (12 lines x ~66 s archived a 7.2-day ladder). Warn, never stop.
 FAST_DONE_WARN_S = 300
 
 
@@ -76,7 +76,7 @@ _CURRENT_CHILD: subprocess.Popen[bytes] | None = None   # the in-flight campaign
 def _kill_child_group(p: subprocess.Popen[bytes] | None) -> None:
     """SIGTERM then SIGKILL the child's whole process group. run_campaign spawns its
     own worker pool; killing only the direct child would orphan the wedged workers
-    (exactly the INC-54 enum worker), so we signal the session group started via
+    (exactly the enum worker), so we signal the session group started via
     start_new_session=True."""
     if p is None or p.poll() is not None:
         return
@@ -93,7 +93,7 @@ def _kill_child_group(p: subprocess.Popen[bytes] | None) -> None:
 
 def _install_signal_handlers() -> None:
     """On SIGTERM/SIGINT (systemd stop, Ctrl-C): kill the in-flight child group and
-    RELEASE THE LOCK before dying. INC-54: without this, a stop leaves a stale lock
+    RELEASE THE LOCK before dying. Without this, a stop leaves a stale lock
     (acquire_lock reclaims a dead-pid lock on the next start, but prompt release is
     cleaner and lets a same-second restart re-lock without the reclaim path)."""
     def _term(signum, _frame):
@@ -110,7 +110,7 @@ def _install_signal_handlers() -> None:
 def acquire_lock() -> bool:
     """Single-instance lock via _pidlock (atomic create + anchored holder match).
 
-    Ultrareview PR #3 (2026-08-21): the previous in-file version matched ANY argv
+    The previous in-file version matched ANY argv
     basename == forever_runner.py, so a recycled pid running `tail -f
     scripts/forever_runner.py` blocked the restart; main() returned 0 and
     Restart=on-failure then left the never-idle floor silently dead."""
@@ -162,7 +162,7 @@ def _record(logfile: Path, rc: int, line: str) -> None:
 # --------------------------------------------------------------------- execution
 def _effective_timeout_s(budget_h: float | None) -> float:
     """Wall cap in seconds: an explicit @budget_h wins (up OR down); otherwise the
-    DEFAULT_MAX_WALL_H backstop so a wedge can never run unbounded (INC-54)."""
+    DEFAULT_MAX_WALL_H backstop so a wedge can never run unbounded."""
     h = budget_h if budget_h is not None else DEFAULT_MAX_WALL_H
     return h * 3600
 
@@ -175,7 +175,7 @@ def _run_campaign(args: list[str], budget_h: float | None, dry: bool) -> int:
         return 0
     timeout = _effective_timeout_s(budget_h)
     # Own session/process-group so a timeout kill reaps the worker pool too, not just
-    # the run_campaign parent (else the wedged enum worker is orphaned -- INC-54).
+    # the run_campaign parent (else the wedged enum worker is orphaned).
     p = subprocess.Popen(cmd, cwd=str(REPO), start_new_session=True)
     _CURRENT_CHILD = p
     try:
@@ -187,7 +187,7 @@ def _run_campaign(args: list[str], budget_h: float | None, dry: bool) -> int:
                      event="budget")
         else:
             log.error(f"WALL-CAP: no @budget_h and ran > {DEFAULT_MAX_WALL_H}h -- "
-                      f"killed (likely hot-wedge, INC-54); moving on", cat="runner",
+                      f"killed (likely hot-wedge); moving on", cat="runner",
                       event="wall_cap")
         return 0                                  # capped stop = intended, not a failure loop
     finally:
@@ -220,7 +220,7 @@ def run_worklist_line(line: str, dry: bool) -> int:
         log.warning(
             f"FAST-DONE: line finished rc=0 in {elapsed:.0f}s "
             f"(< {FAST_DONE_WARN_S}s) -- a full-cell re-dispatch and a "
-            f"silent no-op look identical; verify it did real work (INC-60)",
+            f"silent no-op look identical; verify it did real work",
             cat="runner", event="fast_done", elapsed_s=round(elapsed, 1))
     return rc
 
@@ -302,7 +302,7 @@ def main(argv=None) -> int:
     if not args.dry_run and not acquire_lock():
         return 3                                 # non-zero: Restart=on-failure retries, status shows it
     if not args.dry_run:
-        _install_signal_handlers()               # release lock + kill child on stop (INC-54)
+        _install_signal_handlers()               # release lock + kill child on stop
     consec_fail = 0
     it = 0
     try:

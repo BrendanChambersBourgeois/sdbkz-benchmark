@@ -1,4 +1,4 @@
-"""INC-48 guard: the manifest timestamp is byte-stable in deterministic mode.
+"""The manifest timestamp is byte-stable in deterministic mode.
 
 `make manifest` used to embed a wall-clock generated_utc + per-seed
 verified_at_utc, so every rebuild churned ~10k lines with no content change.
