@@ -1,84 +1,14 @@
 # Security policy
 
-## Scope
+This is a research benchmark, not a service. Two things count as security reports here:
 
-This is a **research benchmark repository**, not a deployed service or library. "Security" here means two overlapping things:
+1. Numerical-correctness bugs with cryptographic context (lattice reduction informs post-quantum parameter choices).
+2. Evidence integrity: the SHA-256 seed manifests, cross-environment bit-identity and append-only logs the papers rely on.
 
-1. **Numerical-correctness bugs with cryptographic context.** Lattice reduction underwrites security estimates for post-quantum schemes (ML-KEM, Kyber, Dilithium, FrodoKEM, etc.). Bugs in reduction routines — catastrophic cancellation, incorrect Gram–Schmidt output, silent precision loss — can mis-inform parameter choice. When we find one, we treat it as a security-adjacent disclosure even when no direct exploit exists.
-2. **Evidence integrity.** The paper cites SHA-256-verified seeds, bit-identical reproducibility across three compute environments, and an append-only audit chain. The CI gates and lint rules in this repo exist to keep those claims true across every commit.
+Report to brendanchambersbou@gmail.com with the affected commit or tag and a reproduction path. Acknowledgment within 7 days, triage within 30; no fix timeline is guaranteed. Upstream findings (fplll, fpylll, G6K, MPFR) are coordinated so the fix lands upstream first.
 
-If you have concerns under (1) or (2), please reach out via the contact flow below.
+## Withdrawn finding
 
-## Reporting
+Paper 1 §8 reported Gram–Schmidt cancellation in fplll at q=3329 and a Kahan-compensated patch ([fplll PR #550](https://github.com/fplll/fplll/pull/550), closed unmerged). Both are withdrawn: the reduction at 1000-bit MPFR is clean and the −345 floors came from this repository's own double-precision measurement GSO (Paper 2, Appendix A). The patch and its disclosure doc left the tree on 2026-10-13.
 
-Contact: **brendanchambersbou@gmail.com** (GPG key available on request). Please include:
-
-- A short description of the issue.
-- The affected commit hash or release tag.
-- A reproduction path if available (container command, seed parameters, expected vs observed output).
-
-**Response expectations**:
-
-- Acknowledgment within 7 days of receipt.
-- Triage decision within 30 days (confirmed / can't-reproduce / out-of-scope / needs-more-info).
-- No guaranteed fix timeline. This is a research repo attached to a published paper, not a deployed service with an SLA. Critical findings (numerical correctness + cryptographic context) will be prioritised; polish / doc issues may sit in backlog.
-
-For upstream library findings (fplll, fpylll, MPFR), coordinate timing so the fix lands upstream before the public disclosure lands here.
-
-## Known findings
-
-None open.
-
-### Withdrawn: fplll Gram–Schmidt cancellation at q=3329
-
-Paper 1 §8 reported catastrophic cancellation in fplll's Gram–Schmidt recurrence at q=3329 and a Kahan-compensated patch as its fix (filed as [fplll PR #550](https://github.com/fplll/fplll/pull/550), closed unmerged). Both are withdrawn: the reduction ran at 1000 bits and is clean, and the floors came from our own double-precision measurement GSO (Paper 2, Appendix A). The patch, its disclosure doc and the incident narrative left the tree on 2026-10-13; git history keeps them (`78f43c95`).
-
-## Defensive engineering
-
-The repo embeds several policies that keep evidence integrity auditable:
-
-### `log_clamp` side-log
-
-Every defensive numerical clamp (substitution of a sentinel value for a non-positive Gram–Schmidt norm) writes the raw pre-substitute value to `results/clamp_events.jsonl` — timestamp, script, seed context, position, raw `get_r()` return value. The file is append-only, never truncated, and is the canonical audit trail for numerical investigations. It is kept locally and is not tracked in git; copies are available on request.
-
-**Why this exists:** defensive clamps log the raw value before substituting, so a silent substitution cannot hide a real return.
-
-### Never-raises logging
-
-`scripts/log.py::PipelineLogger` wraps every structured event emission in a try/except that drops the event and continues. A logging failure cannot block compute. An on-disk corruption of `logs/pipeline.jsonl` at worst loses the failing event, never the seed that was being computed.
-
-### Append-only audit chain
-
-- `logs/pipeline.jsonl` — every committed script emits structured events via `get_logger()`. Enforced by `scripts/lint_logging.py` as a CI gate.
-- `results/clamp_events.jsonl` — defensive-clamp side-log per above (kept locally, not tracked in git; copies are available on request).
-- `results/seed_manifest.json` — every seed file indexed with SHA-256, size, mtime, verified flag. Rebuilt deterministically from the on-disk tree.
-
-All three are append-only by policy. The repo's data-discipline rule (see [`CONTRIBUTING.md`](CONTRIBUTING.md)) forbids `rm` of experimental data without backup; no exception has ever been taken.
-
-### `validate_seeds.py --strict --sha-check`
-
-Per-commit CI gate. Verifies every committed seed JSON against its schema, its parsed filename, its advantage-finite invariant, and a SHA-256 spot check against hardcoded reference hashes. Any drift fails the build. A volume-preservation threshold (0.1 nats absolute, tuned against the 1,960-seed q=97 dataset) catches accumulated-rounding regressions that pass schema checks.
-
-### `lint_seed_manifest.py`
-
-Enforces three invariants over the manifest + tree:
-
-- **No orphans:** every file under `results/seeds/` appears in the manifest.
-- **No ghosts:** every manifest entry's `path` resolves to an existing file.
-- **No drift:** (opt-in `--sha-check`) on-disk SHA-256 matches the manifest record.
-
-CI runs the fast mode (orphan + ghost) on every push. The full `--sha-check` runs pre-tag locally.
-
-### Cross-environment bit-identity
-
-`results/hash_verification.txt` records SHA-256 hashes for the 100-seed (n=100, β=20) cross-environment verification. Identical across Intel 13900K (Ubuntu 24.04, MPFR 4.2.1) and AWS Batch (Debian Bookworm, MPFR 4.2.0). A cross-architecture smoke test on q=3329 n=100 β=30 seed 11 produced bit-identical output between Intel 13900K and AMD 9950X3D (different CPU vendors, different FP execution paths, different AVX / FMA behavior). Rules out microarchitecture as a failure source for numerical findings.
-
-## Not in scope
-
-- **Supply-chain attacks on pinned dependencies.** We pin fpylll, cysignals, numpy, matplotlib, scipy, pytest in `Dockerfile` + `pyproject.toml`. If a pinned upstream is compromised, the CI reproducibility gate (`verify.sh`) will fail rather than silently corrupt data.
-- **Key escrow or cryptographic protocol design.** This is a benchmark of a specific BKZ variant against a reference algorithm; it does not propose primitives.
-- **Classical ML / AI model supply chain.** No ML training or inference happens in this repo.
-
-## Acknowledgements
-
-Cross-architecture reproducibility verification (AMD Zen 5) courtesy of Dylan Chambers Bourgeois. Early feedback + methodology discussion from Trill White (Deakin University).
+Out of scope: supply-chain compromise of pinned dependencies (the CI reproducibility gate fails rather than silently drifting), cryptographic protocol design.

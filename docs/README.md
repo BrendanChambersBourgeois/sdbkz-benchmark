@@ -9,4 +9,4 @@ Reference documentation for the benchmark.
 | [`ntru_metric_validity.md`](ntru_metric_validity.md) | Whether d(LN) is a valid reference on NTRU bases (LN vs ZGSA; report the unsigned divergence) and the DSD validation. |
 | [`images.md`](images.md) | Docker image tags: Dockerfile, build args and `make image-*` target for each. |
 
-For contributor workflow see [`../CONTRIBUTING.md`](../CONTRIBUTING.md); for operational recipes see [`../COOKBOOK.md`](../COOKBOOK.md); for release history see [`../CHANGELOG.md`](../CHANGELOG.md).
+Contributor workflow: [`../CONTRIBUTING.md`](../CONTRIBUTING.md); release history: [`../CHANGELOG.md`](../CHANGELOG.md).

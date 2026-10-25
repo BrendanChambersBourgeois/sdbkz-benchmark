@@ -7,7 +7,6 @@ paper1/** linguist-documentation
 CHANGELOG.md         linguist-documentation
 CONTRIBUTING.md      linguist-documentation
 SECURITY.md          linguist-documentation
-COOKBOOK.md          linguist-documentation
 
 # Engineering docs subtree (ADRs, post-mortems, schema refs, query
 # recipes). All prose; should not be counted as code.
