@@ -29,9 +29,15 @@ Versions follow loose SemVer. Bump on:
 ## Unreleased
 
 ### Added
+- Reject-build rerun campaigns for the G6K β=50 frontier (n=179–185) and the n=179 β=40 deep-tour cells.
+- `patches/g6k_gauss_reject_overflow.patch` (refuse int16-overflowing reductions), `Dockerfile.g6k` `REJECT_OVERFLOW` build arg, `make image-g6k-dim384-reject`.
+- `[campaigns.ntru_wall_beta_bump_reject]`: the `ntru_wall_beta_bump` ladder rerun on the reject build, tree `results/seeds/ntru_g6k_reject/`.
+- `[campaigns.ntru_n127_kahan_v3]`: the patched NTRU cells rerun on the sign-corrected Kahan build, tree `results/seeds/ntru_patched_kahan_v3/`.
+- `sieve_trace` campaign flag (g6k only): per-tour sieve timings to `results/sieve_trace_events.jsonl` (gitignored); `[campaigns.ntru_q09_diag]` writes `results/seeds/ntru_g6k_diag/` (not in the manifest).
+- Campaign `image` key: the campaign's default `--image`; a different `--image` is refused.
 - `make image-*` targets and `docs/images.md` (image tag to build recipe); `Dockerfile.g6k` `APPLY_INC63` build arg.
 - `config/forever-runner.service.d/`: reference copies of the runner drop-ins.
-- `[campaigns.ntru_wall_deep_g6k]`: n=179 β=40 deep-tours wall control on g6k.
+- `[campaigns.ntru_wall_deep_g6k]` / `[campaigns.ntru_wall_deep580_g6k]`: deep-tours wall controls on g6k.
 - `scripts/_seed_io.py`: shared atomic seed write, resume validation and corrupt quarantine, now used by all four runners.
 - `store_short_vectors` campaign flag and `[campaigns.ntru_g6k_vecprobe]`.
 - `scripts/vecprobe_membership.py` (`make vecprobe-membership`): exact rotation-span membership of stored short vectors; output `results/analysis/vecprobe_membership.json`.
@@ -45,28 +51,54 @@ Versions follow loose SemVer. Bump on:
 - +126 `ntru_g6k` seeds (n=179/181/185 β=60, node filler); G6K manifest 2,956.
 - +40 `ntru_g6k` seeds (n=181 β=60, n=179 β=40 mt200 wall control); G6K manifest 2,996.
 - +18 `ntru_g6k` seeds (n=185 β=60 q3907); G6K manifest 3,014.
+- +20 `ntru_g6k` seeds (`ntru_wall_deep580_g6k`); G6K manifest 3,034.
+- +70 `ntru_b2` mirror seeds (not in the manifest).
+- `results/seeds/ntru_patched_kahan_v3/` (12 seeds); patched manifest 224.
 - `results/seeds/ntru_flatter/` exploratory A/B tree (124 seeds, not in the manifest).
-- `[campaigns.ntru_b2_probe]` (3 seeds; `store_per_tour` is a no-op on this path).
+- `[campaigns.ntru_b2_probe]` (3 seeds, written before `store_per_tour` reached the NTRU path).
 - g6k as a second reduction engine (`scripts/_engine_backends.py`, `run_single(backend=...)`); g6k self-dual BKZ variant.
 - `Dockerfile.fplll_patched` (fplll 5.5.0 + Kahan patch + fpylll 0.6.4); `[campaigns.ntru_n127_patched]`.
 - `scripts/compare_xengine.py` and the `results/validation/` tree.
+- `[campaigns.ntru_exact]` / `[campaigns.ntru_g6k_exact]`: the flag-scored NTRU cells rerun to record `secret_exact_match`; trees `results/seeds/ntru_exact/` and `results/seeds/ntru_g6k_exact/` (not in the manifest).
 - Campaign config `backend` and `seed_tag` fields; `g6k_probe.py --tours` / `--reseed`; campaigns `ntru_g6k_pilot`, `ntru_g6k_rhf`, `ntru_xeng_n89`, `ntru_xeng_tail`.
 - NTRU β=20 ball-out: 1,858 seeds across 57 cells.
 - `scripts/extract_dsd_onset.py`.
 - `scripts/build_g6k_manifest.py`.
 - Per-seed events in `logs/pipeline.jsonl` from both runners.
 - Steam Machine second compute node (`steamdeck`): `make node-push-worklist` / `node-status` / `node-pull`; `[campaigns.ntru_g6k_backfill]`.
+- `[campaigns.q3329_mpfr]`: the §8 cells re-measured with an MPFR measurement GSO, tree `results/seeds/q3329_mpfr/` (not in the manifest).
+- `store_bases` campaign flag: per-tour integer bases from `q3329_verify.py`, written outside the repo; `scripts/check_bases_exact.py` checks them in exact integer arithmetic.
+- +80 `ntru` seeds; fplll manifest 13,629.
+- First `q3329_mpfr`, `ntru_exact` and `ntru_g6k_exact` seeds (not in the manifest).
+- +8,622 seeds (`ntru`, `ntru_exact`, `ntru_g6k_exact`, `ntru_g6k_reject`, `q3329_mpfr`) and two `q3329_mpfr` cell summaries; fplll manifest 13,693.
+- `node_sync.py push-seeds`: copy finished seed cells to a node (never overwrites) so its runner skips cells another host ran.
 
 ### Changed
+- CI strict `validate_seeds` list covers `ntru_g6k_exact` and `q3329_mpfr`.
+- Paper 2: one BKZ cell read at 100 seeds; censored seeds explained.
+- `estimate_sweep_time.py`: naive estimate (always recommended) projects early-stopped seeds, keys on precision, skips `_cloud` duplicates; `--backtest` added; `--cache-path` / `--no-cache` removed.
+- g6k campaigns default to `sdbkz-g6k:dim384-inc63`.
+- CI strict `validate_seeds` list covers `ntru_g6k_reject`.
+- `run_campaign.py --start/--end` reach the NTRU runner; `validate_seeds.py` allows the longer legs of the `ntru_g6k_diag` tree.
+- Paper 2: frontier section, exact secret-match scoring, trim.
+- Paper 2: Paper 1 corrections appendix extended; Appendix B covers the patched-build rerun.
+- Paper 2: deep-tours wall-control row in the frontier table; Limitations mirrors at 100 seeds; paired-test sentence no longer omits a significant cell.
+- Paper 2: wall paragraph cites the deep-tours wall-control counts.
+- README, CONTRIBUTING, ROADMAP, `docs/` and `paper.md`: G6K image, counts and commit convention brought up to date.
 - Kahan §8 wording in README, `paper.md`, patches and disclosure docs updated to the paired 100-seed rerun.
 - `paper.md` reproducibility and count wording aligned with CI and the manifests.
 - Paper 2 draft: corrections appendix for Paper 1, DSD-flag range of validity, crossover and phase-map figures fixed.
 - CI workflows: read-only token permissions, pinned lint and coverage tools.
+- `extract_dsd_onset.py` and `onset_driver.py` score `secret_exact_match`; all-ones-vector legs no longer count as recovered.
+- `extract_dsd_onset.py` reads one tour budget per cell (`--max-tours`).
+- `run_campaign.py` rejects NTRU task tuples of the wrong length.
+- `extract_dsd_onset.py --trend` computes the gap from unrounded onsets.
+- Paper 2 claims ledger: frozen-scope coverage filter, tex lines by anchor, frontier table records.
 - `boto3` moved to the `[cloud]` extra.
 - `scripts/_runner_core.py` moved to `scripts/archive/` (no callers).
 - `node_sync.py` validates merged log lines and locks down the ssh control directory.
 - `sweep_parallel.py`, `run_packed.py` and `run_3x_extended.py` validate an existing seed before resume-skipping it and quarantine a corrupt one instead of skipping the cell forever; seed writes are atomic. Seed bytes are unchanged.
-- `build_patched_manifest.py` walks the `q3329_kahan` / `q3329_control` trees; entries carry `campaign` and `engine`.
+- `build_patched_manifest.py` walks the `q3329_kahan` / `q3329_control` / `ntru_patched_kahan_v3` trees; entries carry `campaign` and `engine`.
 - CI strict `validate_seeds` list covers `q3329_kahan` / `q3329_control`; README G6K count follows the manifest.
 - `forever_runner` warns on fast rc=0 lines; `node_sync` status gives a reason; steamdeck unit restart budget.
 - `results/wall_cap_events.jsonl` gitignored and mirrored.
@@ -77,8 +109,25 @@ Versions follow loose SemVer. Bump on:
 - DSD criterion finalised as the n-dependent two-part test; paper-2 Table 2 regenerated.
 - Paper-2 accuracy pass (§2.3, §6, §7, bibliography).
 - Paper 2 cites Wang (ePrint 2024/713) for the dynamical-systems analysis of pnj-BKZ.
+- `estimate_sweep_time.py --from-campaign --q`: a q the campaign has not run takes that exact q from same-engine trees, scaled own/source, before the nearest q.
+- Paper 2: reject-build β=60 rows in the frontier table; the n=163 paired test counts every seed.
+- `tests/test_paper2_claims.py` fails when the committed claims ledger differs from a fresh build.
+- `ntru_g6k_vecprobe_reject` campaign: the vecprobe seeds rerun on the reject build in their own tree.
+- Comments, docs and tests trimmed to what the code and data need.
 
 ### Fixed
+- Paper 2: the reject-build identity sentence counts rejected reductions; the 61-of-69 sentence names the d(LN) advantage.
+- `run_campaign.py` forwards `--start` to `q3329_verify.py`; a seed window starting above 1 no longer runs seeds 1..count.
+- `node_sync.py pull` counts only copied files as new seeds, not directory lines.
+- `validate_seeds.py --strict` fails on a listed directory that does not exist.
+- `q3329_verify.py` writes one summary file per cell.
+- `install_git_hooks.sh` installs pre-commit, commit-msg and pre-push with an optional local guard.
+- `node_sync.py` never opens its own ssh master socket and fails fast when none is open.
+- `run_campaign.py` forwards `store_per_tour` and the MPFR metric to `q3329_verify.py`.
+- `validate_seeds.py` labels large NTRU volume drift as the clamp sentinel.
+- Paper 2 and `paper.md`: the floors are attributed to the double-precision measurement GSO, not fplll; Appendix B rewritten; frontier measurement scope stated; HF-threshold paragraph corrected.
+- `results/dGSA_summary.json` regenerated over the full main sweep (3,388 seeds) by `analysis/gsa_robustness.py`.
+- NTRU runner path no longer drops `store_per_tour`.
 - `forever_runner.py` idle filler no longer stalls once every cell reaches the same count.
 - CI path-migration test tracks `q3329_verify.py` `--seed-tag` summary tree.
 - `_pidlock` reclaim race.
@@ -95,6 +144,11 @@ Versions follow loose SemVer. Bump on:
 - `lint_seed_manifest.py` no longer flags the separate trees as orphans.
 - Top-level-dir test allowlist for `paper1/` + `paper2/`.
 - `CITATION.cff` concept DOI corrected.
+- README, SECURITY.md and docs: the §8 fplll-bug finding marked withdrawn.
+
+### Removed
+- Runner worklists, node unit file, roadmap, audit notes, archived scripts and the cross-engine report; git history keeps them.
+- fplll Kahan and reorder-control GSO patches, `Dockerfile.fplll_patched` and its make targets, the fplll disclosure doc and the post-mortem doc; git history keeps them.
 
 ## [2.0.0] — 2026-06-03
 
@@ -219,7 +273,7 @@ into the v2.0.0 bundle since they ship in the same tag)
   beta_grid, negative q / precision / tours, empty grids,
   non-table default, load_all coverage). Full suite 181 → 203 cases.
 - **`scripts/check_new_top_level_dirs.py`** allowlist gains
-  `"config"` so the INC-39 pre-commit / CI guard accepts the new
+  `"config"` so the pre-commit / CI guard accepts the new
   top-level directory.
 
 ### Changed
@@ -513,7 +567,7 @@ prior to this paragraph; merged to main 2026-05-20 via `5b5c2c4`)
   HOST_GID=$(id -g)` (defaults `1000:1000` for the common Linux
   desktop case). `COPY --chown` and a final `chown -R` ensure
   bind-mounted `./results` + `./logs` no longer produce root-owned
-  host files (Incident #32 closed). `docker-compose.yml` injects
+  host files. `docker-compose.yml` injects
   `${UID:-1000}` / `${GID:-1000}` automatically;
   `.github/workflows/build-and-verify.yml` resolves runner UID/GID
   dynamically and feeds it as build-args. README Troubleshooting
@@ -527,8 +581,7 @@ prior to this paragraph; merged to main 2026-05-20 via `5b5c2c4`)
   `docker run sdbkz-benchmark:ci python3 analysis/paper_figures.py`
   without bind-mounting the host repo. Bulk seed data stays out of
   the image via `.dockerignore`. Image size delta ~11 MB (well under
-  the 50 MB budget). Closes INC-36 from the 2026-04-20 fresh-VM
-  reproducibility audit. Also adds an MPFR-version comment near the
+  the 50 MB budget). Closes the fresh-VM reproducibility finding. Also adds an MPFR-version comment near the
   base image line so an auditor sees that 4.2.0 vs 4.2.1 drift
   across reference environments is accounted for, not silent.
 
@@ -604,11 +657,11 @@ prior to this paragraph; merged to main 2026-05-20 via `5b5c2c4`)
   commit SHAs (`actions/checkout`, `actions/upload-artifact`,
   `ossf/scorecard-action`, `github/codeql-action`); header comment
   rewritten with refresh-on-bump instructions. Commit `a4a0843`.
-- **A33** — `CONTRIBUTING.md` onboarding gains a pre-INC-32
+- **A33** — `CONTRIBUTING.md` onboarding gains a
   rebuild note: stale local images still run as root and produce
   root-owned bind mounts; rebuild with
   `--build-arg HOST_UID=$(id -u) --build-arg HOST_GID=$(id -g)`
-  after pulling INC-32 fix. Commit `49890db`.
+  after pulling the fix. Commit `49890db`.
 
 ### Removed
 - **`scripts/health_check.sh`** — dormant cron probe retired
@@ -616,28 +669,26 @@ prior to this paragraph; merged to main 2026-05-20 via `5b5c2c4`)
   (per the script's own header). No callers anywhere in the repo;
   README §scripts entry dropped alongside. Backup retained offline
   at `_archives/health_check.sh.dormant_2026-04-25.bak`
-  per the never-delete-without-backup rule. INC-39.
+  per the never-delete-without-backup rule.
 - **`logs/convergence_n{90,140,150}_mt1000_stdout.log`** +
   **`logs/convergence_n150_mt1000_stdout.log.pre_refactor`** —
   legacy stdout captures from completed sweeps. Tarball + SHA-256
   manifest retained offline at
   `_archives/logs_legacy_2026-04-25.tar.gz`
   (SHA-256 in `_archives/CHECKSUMS_legacy_2026-04-25.sha256`; audit chain stays out
-  of the public repo per INC-39). `logs/` now contains only
+  of the public repo). `logs/` now contains only
   `pipeline.jsonl` (authoritative), `.gitkeep` (placeholder), and
   the in-flight n=130 β=40 mt1000 sweep stdout (which will be
   archived to the same offline location after that sweep completes).
 - **`_archives/`** directory — added then reverted in the same
   Unreleased window, then **scrubbed from git history via
-  `git-filter-repo` + force-push** (INC-39 escalated to critical;
-  bounded scrub preserved v1.5.0 / Zenodo correspondence intact).
+  `git-filter-repo` + force-push** (bounded scrub preserved v1.5.0 / Zenodo correspondence intact).
   Originally added in the commit now `90d118d` (was `0c85b5f`
   pre-rewrite); reverted in the commit now `09b6e81` (was `d541129`).
   Internal audit chain belongs offline, not in the public-facing
   reproducibility surface. Now `.gitignore`d so future archive
   tarballs stay local by default. Pre-rewrite repo bundle preserved
-  offline at `_archives/sdbkz_pre_inc39_rewrite_2026-04-25/`.
-  INC-39.
+  offline.
 
 ## [1.5.0] — 2026-04-22
 
@@ -704,7 +755,7 @@ https://github.com/BrendanChambersBourgeois/sdbkz-benchmark/releases/tag/v1.5.0.
   `analysis/figures/*.png`), runtime caches (`logs/`, `_archives/`,
   `.git/`, `__pycache__`, `.ruff_cache`, `.pytest_cache`), and
   local-only files (`.claude/`, `CLAUDE.md`, `*.original.md`).
-  Fresh-VM reproducibility test (2026-04-20) observed 557.7 MB build
+  Fresh-VM reproducibility test observed 557.7 MB build
   context — shrinks to <50 MB. No image content change (all four
   Dockerfiles still `COPY scripts/` only).
 - **README `Troubleshooting` subsection** under 90-second quickstart
@@ -731,7 +782,7 @@ https://github.com/BrendanChambersBourgeois/sdbkz-benchmark/releases/tag/v1.5.0.
   `_archives/logs_legacy_2026-04-20.tar.gz`
   with SHA-256 in the adjacent `CHECKSUMS.sha256` before rm. (Audit
   chain lives offline by convention — the in-repo `_archives/` path
-  is `.gitignore`d per INC-39, 2026-04-25.) `logs/` retains
+  is `.gitignore`d.) `logs/` retains
   `pipeline.jsonl` + `.gitkeep` + active stdout captures only.
 - **Empty dir `results/3x_tours_extended/`** — scaffold never
   populated, rmdir.
@@ -1064,15 +1115,7 @@ authoritative precision for all sweep seeds.
     pages (single sentence pushed overflow). (54ec605)
 
 ### Fixed
-- Replaced malformed `patches/fplll_gso_kahan.patch` with a
-  regenerated single-hunk version. The file initially shipped in
-  d57808c was a byte-for-byte copy of the broken original from the
-  2026-04-10 investigation directory — `BUILD_REPORT.md` flagged it
-  as having a corrupt first hunk (header claimed 6→7 lines but body
-  contained 6→6). The actual patch used for the 55-seed verification
-  was a corrected version written inside an ephemeral Docker
-  container and never saved back. Caught during pre-submission
-  apply-check against fplll HEAD. (161f188)
+- Replaced malformed `patches/fplll_gso_kahan.patch` with a regenerated single-hunk version (161f188).
 
 ## [1.0] — 2026-04-14
 
@@ -1090,20 +1133,12 @@ at commit `40991a4`.
 - n=130 β=40 seeds 76-99 (24 of 25, run in progress)
 
 ### Changed
-- Documentation structure split: `CHANGELOG.txt` → `CHANGELOG.md` +
-  `incidents.md` + `sessions/`. Legacy log frozen as
-  `CHANGELOG.txt.frozen-2026-04-09`.
+- `CHANGELOG.md` replaces the legacy changelog.
 
 ### Fixed
-- `scripts/sync_research.sh` now backs up `results/convergence/` and
-  `results/convergence_test/` to the Research mirror (f3a75f5,
-  see legacy Incident 23)
-- **Incident #29:** `run_sweep_fill.py` was created and referenced in
-  Dylan's handoff doc but never pushed. Dylan lost one overnight compute
-  window (~18h delay on 25 seeds). See `incidents.md` #29.
+- Backup now covers `results/convergence/` and `results/convergence_test/` (f3a75f5).
+- `scripts/run_sweep_fill.py` was missing from the remote; now pushed.
 
 ## Pre-split history
 
-Everything before 2026-04-09 lives in `CHANGELOG.txt.frozen-2026-04-09`.
-That file is the authoritative record for the campaign's first phase
-(repo creation through n=140 β=30 convergence test). Do not edit it.
+Changes before 2026-04-09 are not recorded here.

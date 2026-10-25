@@ -14,9 +14,9 @@ docker run --rm sdbkz-benchmark:ci bash scripts/verify.sh        # ~3 min, 5 see
 
 If verify.sh passes you have a numerically-correct build. If it fails, open an issue with the output — the reference values are hardcoded in `scripts/verify.sh` and any mismatch indicates a real divergence.
 
-If you cloned before 2026-04-25 (INC-32 non-root `runner` user fix), rebuild the local image — the layered cache still runs as root and produces root-owned bind mounts. Pull, then `docker build --build-arg HOST_UID=$(id -u) --build-arg HOST_GID=$(id -g) -t sdbkz-benchmark:ci .` (omit build-args if your host UID/GID is `1000:1000`). See README Troubleshooting for the WSL / non-1000 UID path.
+If you cloned before 2026-04-25 (non-root `runner` user fix), rebuild the local image — the layered cache still runs as root and produces root-owned bind mounts. Pull, then `docker build --build-arg HOST_UID=$(id -u) --build-arg HOST_GID=$(id -g) -t sdbkz-benchmark:ci .` (omit build-args if your host UID/GID is `1000:1000`). See README Troubleshooting for the WSL / non-1000 UID path.
 
-Host-side install (no Docker) is supported for analysis/docs work; use the Docker image for anything that runs BKZ.
+Host-side install (no Docker) is supported for analysis work; use the Docker image for anything that runs BKZ.
 
 If you intend to commit anything back, install the local git hooks so the pre-commit guards run on your machine:
 
@@ -24,7 +24,7 @@ If you intend to commit anything back, install the local git hooks so the pre-co
 bash scripts/install_git_hooks.sh
 ```
 
-Currently installs a single hook (`pre-commit` → `scripts/check_new_top_level_dirs.py`) that refuses commits introducing un-allowlisted new top-level directories — guards the public-vs-internal-archive boundary that produced INC-39 (2026-04-25). The same check runs in CI, so a missed install only delays the warning; it does not let a violation slip into `main`.
+Installs `pre-commit` (→ `scripts/check_new_top_level_dirs.py`, which refuses commits introducing un-allowlisted new top-level directories), `commit-msg` and `pre-push`. Each hook also runs an optional local guard named by `git config --local hooks.localGuard` and refuses to run if that is set but missing. The top-level-directory check guards the public-vs-internal-archive boundary. The same check runs in CI, so a missed install only delays the warning; it does not let a violation slip into `main`.
 
 ## Where to start reading
 
@@ -54,43 +54,18 @@ Every reader routes through `load_all_seeds` with either `campaign=...` (v1.3+ d
 
 ## Branch + commit conventions
 
-Observed from actual history:
+Current convention:
 
 - Branch names: `vN.M-<topic>` for release work, `<topic>-<detail>` for fixes. Examples: `v1.2-consolidation`, `v1.3-seed-index`, `v1.3-coverage-expansion`, `fix-ci-pytest-in-docker`, `v1.4-docs`.
-- Commit subjects: conventional-ish prefix (`feat(scope)`, `fix(scope)`, `docs(scope)`, `chore(scope)`, `refactor(scope)`, `ci(scope)`), 50-70 chars.
-- Commit bodies: prose paragraph explaining *why*, a short bullet list of *what*, and a **Verification** block summarising the gates that passed (pytest counts, ruff, verify.sh, lint_seed_manifest, figure SHA parity where relevant).
-- Co-authored-by trailer on Claude-Code-assisted commits.
-
-Example (`c53e08a`):
-
-```
-feat(seeds): q=3329 intermediate fill +25 seeds at 1000-bit MPFR
-
-Overnight sweep 2026-04-18 (branch: overnight-sweep-20260418,
-rename: v1.3-coverage-expansion pending). Tops up q=3329 β=30
-intermediate-dimension coverage at 1000-bit MPFR, max_tours=70,
-matching the paper §8 headline campaign precision:
-
-  n=70: +5 seeds  (seeds 21-25),  3.09h wall,  22-worker pool
-  n=80: +10 seeds (seeds 21-30),  6.93h wall,   8-worker pool
-  n=90: +10 seeds (seeds 21-30),  8.72h wall,   8-worker pool
-  ─────────────────────────────────
-  total +25 seeds, ~18.7h cumulative worker-wall
-
-Per-seed advantages all positive (+0.17 to +0.98 nats...)
-...
-Manifest: 4387 → 4412 entries (forward-compat walker shipped in
-prior commit 2b5365c). lint_seed_manifest --sha-check: 0 orphan /
-0 ghost / 0 drift.
-...
-```
+- Commits: one subject line under 72 characters with a conventional prefix (`feat:`, `fix:`, `docs:`, `data:`, `config:`, `ci:`, `paper2:`), no body; Co-Authored-By trailer on Claude-Code-assisted commits.
+- Seed data and doc updates land as one `data:` and one `docs:` commit per day.
 
 ## Testing expectations
 
 Before every commit:
 
 ```bash
-python3 -m pytest tests/                                  # ~10s, 337 tests
+python3 -m pytest tests/                                  # ~1.5 min
 python3 scripts/lint_seed_manifest.py                     # ~0.1s
 python3 -m ruff check scripts/ analysis/                  # ~0.2s
 python3 -m mypy                                           # ~3s, strict on _*_core
@@ -100,7 +75,6 @@ bash scripts/verify.sh --check-only                       # ~0.5s
 Before a commit that touches `_math_core` or `_bkz_core`:
 
 ```bash
-python3 scripts/test_math_core_parity.py                  # 576 bit-identity comparisons
 bash scripts/verify.sh                                    # regenerates 5 seeds (~3min)
 ```
 
@@ -118,7 +92,7 @@ Figure SHA-256 byte-identity is the hard invariant for anything analysis-side. A
 
 Every committed script must emit structured events through `scripts/log.py::get_logger`. `scripts/lint_logging.py` scans `scripts/` + `analysis/` on every CI run and fails if any entry-point file uses bare `print()` without a matching PIPELINE emit.
 
-The append-only event stream at `logs/pipeline.jsonl` is the answer to "what happened during this session / sweep / incident". Queryable with `jq`; see [`COOKBOOK.md`](COOKBOOK.md) and [`docs/pipeline_log_queries.md`](docs/pipeline_log_queries.md).
+The append-only event stream at `logs/pipeline.jsonl` is the answer to "what happened during this session / sweep / incident". Queryable with `jq`; see [`COOKBOOK.md`](COOKBOOK.md).
 
 ## Data discipline
 
@@ -127,9 +101,9 @@ The repo enforces a "never delete experimental data" rule. Seed JSONs, clamp eve
 - No `rm -rf results/` or any subset thereof without an explicit backup step.
 - No truncation of `logs/pipeline.jsonl` or `results/clamp_events.jsonl`.
 - No rewriting committed seed JSONs. If a seed needs to be re-generated, the new version lands with a different path (e.g. under `results/seeds/<campaign>/<new_precision_bucket>/...`) and the manifest indexes both.
-- Moving corrupted data is acceptable: it goes to a clearly-named `*_corrupted` location *inside* the repo (visible to reviewers), or to an offline archive at `_archives/` for non-paper-grade artifacts. **Never put `_archives/` inside the public repo** — that path is `.gitignore`d so the audit chain stays offline (paper-grade boundary; INC-39, 2026-04-25). Never `/dev/null`.
+- Moving corrupted data is acceptable: it goes to a clearly-named `*_corrupted` location *inside* the repo (visible to reviewers), or to an offline archive kept outside the repository for non-paper-grade artifacts. **Never put that archive inside the public repo** — the audit chain stays offline (paper-grade boundary). Never `/dev/null`.
 
-Rationale: the policy is zero-tolerance. The one time we bent it (an early incident) produced a 9-day debugging loss. Narrative at [`docs/incident_q3329_post_mortem.md`](docs/incident_q3329_post_mortem.md).
+Rationale: the policy is zero-tolerance.
 
 ## Sudo / destructive actions
 
@@ -143,7 +117,7 @@ Scripts that invoke `sudo` or destructive commands (`docker system prune`, `git 
 
 All changes ship under a **paper-safety invariant**: zero SHA-256 drift on paper-cited files (seeds, figures, patches, paper PDF). Anything additive (docs, tests, infra) is safe. Anything that touches `_math_core`, `_bkz_core`, `_seed_paths.py` path logic, or scientific constants (`BETAS`, `NS`, `TOURS_BY_BETA`, `PRECISION`, MPFR settings) requires the full parity suite before commit and an explicit callout in the commit body.
 
-The paper PDF, LaTeX source, and HTML mirror under `paper1/` are edited exclusively through `paper_findings.md` (external to the repo) plus a camera-ready session. Direct edits to `paper1/*.pdf` / `paper1/*.html` / `paper1/latex/*.tex` from a feature branch are not an accepted workflow.
+The paper PDF, LaTeX source, and HTML mirror under `paper1/` are not edited in place; the built files land in a camera-ready commit. Direct edits to `paper1/*.pdf` / `paper1/*.html` / `paper1/latex/*.tex` from a feature branch are not an accepted workflow.
 
 ## Getting help
 

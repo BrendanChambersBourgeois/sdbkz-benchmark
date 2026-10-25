@@ -82,7 +82,7 @@ better-reduced basis (it cracks the dense sublattice; BKZ does not).
 
 ---
 
-## Phase 3 addendum — q-sweep gated on ZGSA (2026-06-03)
+## Phase 3 addendum — q-sweep gated on ZGSA
 
 Ran a fatigue q-sweep at fixed n=89 (fatigue q≈278), β=20, precision 500,
 8 seeds/q, then re-derived the result under ZGSA (Z-shape, slope-swept) and
@@ -117,8 +117,8 @@ precursor in the middle third under any reference.
 **Verdict:** the fatigue phenomenon is real and locatable reference-free,
 but the SD-BKZ "advantage" magnitude/sign is not a valid NTRU observable.
 Report the divergence, not the signed advantage. GSO health clean at
-precision 500 for q≤691 (no new clamp events; the §8 Kahan path is only
-needed near q=3329).
+precision 500 for q≤691 (no new clamp events; the q=3329 floors were a
+double-precision measurement artifact, not an fplll defect).
 
 ### DSD validation — is the q=257 peak real fatigue or the formula?
 
@@ -150,15 +150,14 @@ not the signed d(LN) advantage, is the NTRU result to carry into Phase 4.
 
 ### Phase 4 — gap-vs-n trend (5 clean points, n=127 excluded)
 
-> **SUPERSEDED (2026-06-11).** Canonical trend = `scripts/extract_dsd_onset.py
+> **SUPERSEDED.** Canonical trend = `scripts/extract_dsd_onset.py
 > --trend` (two-part criterion `#{gs < log√(2n·2/3)+0.5} <= n+1 ∧ min(gs) >
 > 1.5`, n-dependent threshold, 50%-rate crossing, up to 100 seeds/cell after
 > the 2026-06-07 ball-out): 67: 144.6/145.4 g1 · 79: 171.2/171.0 g0 ·
 > 89: 238.0/283.3 g19 · 101: 428.6/512.2 g20 · 113: 729.2/930.4 g28 (paper-2
 > Table tab:dsdgap). The table below is the original ~15–20-seed extraction
 > under this doc's `short==n ∧ b1→floor` criterion — kept as history; it
-> lands within grid resolution of the canonical numbers. Criterion lineage +
-> correction record: Research drive paper_findings.md (2026-06-11 entries).
+> lands within grid resolution of the canonical numbers.
 
 DSD onset (rate crossing 50%; short-count→n ∧ b1→floor) per variant, swept
 in q across each n's crack zone, ~15–20 seeds/cell:
@@ -178,14 +177,20 @@ crack-vs-fatigue ratio also drifts up steeply (BKZ crack 1.0× → 1.85×
 q_fatigue), so the DvW estimate q_fat≈0.004·n^2.484 increasingly
 under-predicts the measured crack for the circulant at finite n.
 
-**n=127 EXCLUDED — fplll §8 catastrophic-cancellation regime.** At n=127
-(dim 254), high q + p1000, 16/152 seeds hit the §8 GSO cancellation:
-`M.get_r` goes non-positive and is silently substituted with CLAMP_FLOOR_R
-(1e-300), so b1 collapses to 0.5·ln(1e-300) = −345.388 and the divergence
-is numerical garbage (>100 nats). n=67–113 are clean (0 contaminated,
-worst b1 ≈ 0). The crack at n=127 is also above the practical q-grid
-(>2.69× fatigue). Excluded from the trend; the 5 clean points already
-establish the dimension-dependence. (NB: the NTRU pool worker passes
-log_clamp_fn=None, so these §8 clamps are silent — a high-q run wanting an
-audit trail should wire the clamp logger; the b1≤−100 filter catches the
-contamination at analysis time.)
+**n=127 EXCLUDED — no exact-recovery field, thin cells.** None of the 152
+n=127 seeds records `secret_exact_match_*`, and the cells above q=971 hold
+3-4 seeds. The DSD flag stays ≤25% up to q=1811, but that is the flag, not
+the lattice: b1 has the key's norm on SD 4/4 and BKZ 3/4 legs at q=1811
+(SD from q=1201). Excluded from the trend; the 5 clean points already
+establish the dimension-dependence. Separately, 16/152 n=127 seeds carry a
+−345.388 floor on 17 legs: the double-precision GSO that measured these
+profiles (`GSO.Mat` default) returned a non-positive `r_ii` at one tail
+position, substituted with CLAMP_FLOOR_R (1e-300), giving 0.5·ln(1e-300). It
+is a measurement artifact, not an fplll reduction defect and not a crack: b1
+stays near the q-vector and the leg's d(LN) is meaningless (>100 nats). At
+n=67–113 (β=20) one leg floors (n=113 q=773 seed 13 BKZ; its DSD verdict is
+unchanged when re-measured in MPFR). (NB: these 16 seeds predate clamp
+logging, wired into the NTRU worker on 2026-06-04; later clamps go to
+results/clamp_events.jsonl (kept locally; available on request) without
+n/q/seed, so the min-gs ≤ −100 filter is how a floor is matched to a seed.
+`metric_float_type="mpfr"` avoids them.)

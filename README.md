@@ -8,7 +8,7 @@
 
 The CI workflow builds the Docker image from a fresh checkout and runs the numerical verification on every commit, so any environment-level reproducibility regression breaks the build immediately.
 
-## 90-second quickstart
+## Quickstart
 
 ```bash
 git clone https://github.com/BrendanChambersBourgeois/sdbkz-benchmark
@@ -45,32 +45,31 @@ Or with `docker compose`, export the env first (compose expands `${UID}`/`${GID}
 
 ## Engineering TL;DR
 
-This repo is (a) the empirical data + papers for a two-engine lattice-reduction benchmark — 13,549 manifest-gated fplll seeds (LWE-Kannan + NTRU campaigns) plus 3,014 G6K sieve seeds under a separate engine manifest — and (b) a case study in defensive engineering for numerical experiments. Paper 1 (LWE-Kannan, published via Zenodo) is joined by paper 2 (in progress, `paper2/`): NTRU dense-sublattice-discovery onset and a cross-engine (enumeration vs sieving) study with G6K wired as a second reduction engine behind a determinism-gated seam. The headline finding is a **catastrophic-cancellation bug in fplll's Gram–Schmidt recurrence** (`fplll/gso_interface.cpp:147–151`) that corrupts 38% of bases at q=3329 n=100 β=30 with 1000-bit MPFR. The bug reproduces on both Intel 13900K and AMD 9950X3D hosts. A Kahan-compensated patch lowers the degeneracy rate but does not remove it: on the same 100 seeds, 14/100 degenerate with the patch against 46/100 for a reorder-only control build (McNemar χ² = 22.3); the residual cases are a geometric floor the compensation cannot rescue. An earlier 0/55 figure (quoted in paper 1 §8) was measured with a sign-flipped, inert build of the patch and is superseded. The patch passes all 15 fplll regression tests (16/16 with the bundled test). The bug is a new instance of the cancellation family in fpylll #272; the patch was filed upstream as [fplll PR #550](https://github.com/fplll/fplll/pull/550) (2026-05-08), closed unmerged 2026-05-17, and is now kept **local-only** (not resubmitted). It ships in-repo, split as `patches/fplll_gso_kahan.patch` (code) + `patches/fplll_gso_kahan_tests.patch` (tests); see `patches/README.md` and `docs/disclosure/fplll_gso_kahan_findings.md`.
+This repo is (a) the empirical data + papers for a two-engine lattice-reduction benchmark — 13,693 manifest-gated fplll seeds (LWE-Kannan + NTRU campaigns) plus 3,034 G6K sieve seeds under a separate engine manifest — and (b) a case study in defensive engineering for numerical experiments. Paper 1 (LWE-Kannan, published via Zenodo) is joined by paper 2 (in progress, `paper2/`): NTRU dense-sublattice-discovery onset and a cross-engine (enumeration vs sieving) study with G6K wired as a second reduction engine behind a determinism-gated seam.
 
-The rest of the repo is the infrastructure that made finding it possible: pinned Docker builds, SHA-256 seed manifests (13,549 hash-verified fplll entries + 3,014 hash-indexed G6K entries, both lint-gated in CI), field-hash-identical seed output across two environments (plus AMD and fresh-VM spot checks), per-claim evidence ledger, and 337 unit tests covering clamp semantics, file-identity dedup, manifest integrity, path migration, statistical helpers, NTRU construction checks, and the v2.0.0 symlink-drop regression guard.
+The rest of the repo is the infrastructure that made finding it possible: pinned Docker builds, SHA-256 seed manifests (13,693 hash-verified fplll entries + 3,034 hash-indexed G6K entries, both lint-gated in CI), field-hash-identical seed output across two environments (plus AMD and fresh-VM spot checks), per-claim evidence ledger, and a unit-test suite covering clamp semantics, file-identity dedup, manifest integrity, path migration, statistical helpers, NTRU construction checks, and the v2.0.0 symlink-drop regression guard.
 
 ## Engineering highlights
 
-- **fplll cancellation bug + Kahan patch.** Paper §8.3 isolates a never-flagged numerical pathology in fplll's GSO computation triggered at cryptographic moduli. Full chain: diagnostic script → raw `get_r()` capture → cross-machine reproduction → algorithm-level root cause → Kahan patch → paired 100-seed patch vs control rerun. `patches/fplll_gso_kahan.patch` is drop-in on fplll HEAD (commit `1987472`); filed as [fplll PR #550](https://github.com/fplll/fplll/pull/550) (2026-05-08), closed unmerged 2026-05-17, now kept local-only (see `patches/README.md`).
 
-- **Verify-gated seed manifests.** `results/seed_manifest.json` indexes every fplll seed file with SHA-256, size, mtime, verified flag, per-seed advantage — 13,549 entries across 7 campaigns; `scripts/lint_seed_manifest.py` checks three invariants on every CI run (no orphan files, no ghost entries, no hash drift), 0 violations across the v1.3.x → v2.x release chain. The G6K engine has its own manifest (`results/g6k_seed_manifest.json`, 3,014 entries, `scripts/lint_g6k_manifest.py`) — the two engines' hashes are not comparable and are never merged (ADR-005).
+- **Verify-gated seed manifests.** `results/seed_manifest.json` indexes every fplll seed file with SHA-256, size, mtime, verified flag, per-seed advantage — 13,693 entries across 7 campaigns; `scripts/lint_seed_manifest.py` checks three invariants on every CI run (no orphan files, no ghost entries, no hash drift), 0 violations across the v1.3.x → v2.x release chain. The G6K engine has its own manifest (`results/g6k_seed_manifest.json`, 3,034 entries, `scripts/lint_g6k_manifest.py`) — the two engines' hashes are not comparable and are never merged (ADR-005).
 
 - **Cross-environment reproducibility.** `hash_verification.txt` records identical SHA-256 hashes for 100 seeds (n=100 β=20) in two environments — a local Ubuntu 24.04 VM (MPFR 4.2.1) and AWS Batch Debian Bookworm (MPFR 4.2.0) — computed over all deterministic result fields (timings and timestamps excluded). An AMD 9950X3D host and a fresh Ubuntu VM were spot-checked against it; their per-seed hashes are not appended.
 
-- **A Valve Steam Machine as a second compute node.** The G6K frontier campaigns run two-node: the workstation plus a Steam Machine (SteamOS, 6-core AMD Zen 4 APU) doing unattended scientific compute through rootless podman — the node has no native toolchain, so everything runs inside the same pinned `sdbkz-g6k:dim384` image, driven by a worklist file and `make node-push-worklist` / `make node-status` / `make node-pull` (pulls never overwrite an existing seed; the node's `pipeline.jsonl` merges content-keyed into the canonical log). Repurposing a consumer gaming box surfaced real failure modes, each documented and fixed in-repo: rootless podman's user-namespace mapping silently denied every bind-mount write until `--userns=keep-id` (INC-58, a 36 h outage), a deterministic 221 ms failure exhausted the systemd start-rate budget (now `StartLimitIntervalSec=0` + `RestartSec=300`), and `timeout`-wrapping the container kills the CLI, not the workload. The n=181 β=50 wall-break cell was produced on this node.
+- **A Valve Steam Machine as a second compute node.** The G6K frontier campaigns ran two-node: the workstation plus a Steam Machine (SteamOS, 6-core AMD Zen 4 APU) doing unattended scientific compute through rootless podman — the node has no native toolchain, so everything runs inside the same pinned G6K image (`sdbkz-g6k:dim384`, then `sdbkz-g6k:dim384-inc63` with `patches/g6k_gauss_nonimproving_tolerant.patch` from 2026-09-02; see `docs/images.md`), driven by a worklist file and `make node-push-worklist` / `make node-status` / `make node-pull` (pulls never overwrite an existing seed; the node's `pipeline.jsonl` merges content-keyed into the canonical log). Repurposing a consumer gaming box surfaced real failure modes, each documented and fixed in-repo: rootless podman's user-namespace mapping silently denied every bind-mount write until `--userns=keep-id`, a deterministic 221 ms failure exhausted the systemd start-rate budget (now `StartLimitIntervalSec=0` + `RestartSec=300`), and `timeout`-wrapping the container kills the CLI, not the workload. The n=181 β=50 wall-break cell was produced on this node.
 
-- **Append-only audit chain.** Every defensive clamp fire (non-positive `get_r` value) is logged with its raw value, timestamp, script name and seed context to `results/clamp_events.jsonl`, never truncated. That side-log (and `results/wall_cap_events.jsonl`, the wall-cap censoring log) is kept locally and is not tracked in git; copies are available on request. `logs/pipeline.jsonl` receives structured events from every committed script (enforced by `scripts/lint_logging.py`).
+- **Append-only audit chain.** Every defensive clamp fire (non-positive `get_r` value) is logged with its raw value, timestamp, script name and seed context to `results/clamp_events.jsonl`, never truncated. That side-log (and `results/wall_cap_events.jsonl`, the wall-cap censoring log, and `results/sieve_trace_events.jsonl`, the per-tour sieve trace) is kept locally and is not tracked in git; copies are available on request. `logs/pipeline.jsonl` receives structured events from every committed script (enforced by `scripts/lint_logging.py`).
 
-- **CI-gated numerical reproducibility.** `.github/workflows/build-and-verify.yml` runs on every push: Docker build from scratch → import smoke tests → 345-test pytest suite (mypy strict on numerical-core, ruff F/W/I/B/UP, pytest --cov 75% floor) → `verify.sh` regenerating one reference seed (n=50 β=20) in a fresh container and comparing its final d(LN) values and advantage to the committed reference at tolerance 1e-4 → `verify_g6k.sh` exact-SHA gate on one G6K reference probe → `validate_seeds.py` schema + volume-drift checks → manifest lints + paper-figure parity gate. Any regression in any of these fails the build.
+- **CI-gated numerical reproducibility.** `.github/workflows/build-and-verify.yml` runs on every push: Docker build from scratch → import smoke tests → pytest suite (mypy strict on numerical-core, ruff F/W/I/B/UP, pytest --cov 75% floor) → `verify.sh` regenerating one reference seed (n=50 β=20) in a fresh container and comparing its final d(LN) values and advantage to the committed reference at tolerance 1e-4 → `verify_g6k.sh` exact-SHA gate on one G6K reference probe → `validate_seeds.py` schema + volume-drift checks → manifest lints + paper-figure parity gate. Any regression in any of these fails the build.
 
-- **Incident-driven hardening.** Repo policies are written against real operational incidents, not conjectured ones. Defensive clamps must log raw values before substituting (introduced after a clamp hid the real `get_r` return for 9 days and produced a wrong Section 8 in a draft paper — see [`docs/incident_q3329_post_mortem.md`](docs/incident_q3329_post_mortem.md)). Data is never deleted without backup. `sudo` paths require explicit opt-in.
+- **Incident-driven hardening.** Repo policies are written against real operational incidents, not conjectured ones. Defensive clamps must log raw values before substituting. Data is never deleted without backup. `sudo` paths require explicit opt-in.
 
 ## Data-flow architecture
 
 ```mermaid
 flowchart LR
   A[runners<br/>run_campaign · sweep_parallel · q3329_verify<br/>run_3x_extended · run_convergence · ...] -->|writes| B[results/seeds/<br/>&lt;campaign&gt;/]
-  B -->|indexed by| C[results/seed_manifest.json<br/>13,549 entries · SHA-256]
+  B -->|indexed by| C[results/seed_manifest.json<br/>13,693 entries · SHA-256]
   C -->|read by| D[analysis/_data.py<br/>load_all_seeds campaign=...]
   D -->|renders| E[paper figures<br/>stats tables<br/>runtime tables]
   B -->|validated by| F[lint_seed_manifest<br/>validate_seeds]
@@ -79,7 +78,7 @@ flowchart LR
   A -->|structured events| I[logs/pipeline.jsonl]
 ```
 
-Every writer routes through `scripts/_seed_paths.py::seed_path_for()`. Every reader queries the manifest. Cross-validation via SHA-256 on read. The campaign tree (`main`, `q3329`, `cliff500`, `fplll_sensitivity`, `tours3x`, `convergence`, `ntru`, plus the engine-separate `ntru_g6k` and validation-only `ntru_patched`) is the single source of truth post-v1.3.
+Every writer routes through `scripts/_seed_paths.py::seed_path_for()`. Every reader queries the manifest. Cross-validation via SHA-256 on read. The campaign tree (`main`, `q3329`, `cliff500`, `fplll_sensitivity`, `tours3x`, `convergence`, `ntru`, plus the trees kept out of the fplll manifest and listed in `NON_MANIFEST_SEED_TREES` in `scripts/lint_seed_manifest.py`: the G6K tree `ntru_g6k`, the patched-fplll trees, and the filler, probe and diagnostic trees) is the single source of truth post-v1.3.
 
 **v2.0.0 layout change.** The pre-v1.3 top-level seed directories (`results/raw/`, `results/cloud/`, `results/q3329/`, `results/cliff_500bit/`, `results/3x_tours/`, `results/convergence/`, `results/convergence_test/`, `results/fplll5*_sensitivity/`, etc.) lived as back-compat symlinks from v1.3 through v1.5.2 to give external citations time to re-path. They were retired at v2.0.0; `results/seed_path_crosswalk.csv` (4,387 rows, committed) is the permanent old→new reconciler. Any paper-era reference to a pre-v2 path resolves through that crosswalk to the canonical `results/seeds/<campaign>/...` location.
 
@@ -105,15 +104,15 @@ This project benchmarks the **self-dual BKZ (SD-BKZ)** algorithm against standar
 | n=120 | 71% win, d=0.60 | 100% win, d=4.97, mean +0.741 | 44% win, mean −0.028 |
 | n=130 | 54% win (coin flip) | 100% win, d=3.19, mean +0.352 | 0% win, mean −1.334 |
 | n=140 | 22% win (BKZ wins) | 32% win, mean −0.036 (crossover) | 0% win, mean −1.452 |
-| n=150 | 12% win (BKZ wins) | 0% win, mean −0.395 | 0% win, mean −1.293 |
+| n=150 | 12% win (BKZ wins) | 0% win, mean −0.395 | 0% win, mean −1.292 |
 
-All 33 groups at 100 seeds. Full statistical tables (95% CIs, Cohen's d, t-test and Wilcoxon p-values) in the paper.
+Values over seeds 1–100; the four variance-filled groups carry 122 seeds. Full statistical tables (95% CIs, Cohen's d, t-test and Wilcoxon p-values) in the paper.
 
 Key findings (ordered most to least critical):
 
-- **β=30 inverted-U:** Peak at n=100 (mean +1.346 nats, d=6.20, 100 seeds — largest effect in the dataset), declining through +0.741 at n=120, +0.352 at n=130, −0.036 at n=140, to −0.395 at n=150 (0% win). The backward pass becomes harmful at high dimensions even for the workhorse block size.
+- **β=30 inverted-U:** Peak at n=100 (mean +1.346 nats, d=6.20, 100 seeds — largest mean advantage in the dataset), declining through +0.741 at n=120, +0.352 at n=130, −0.036 at n=140, to −0.395 at n=150 (0% win). The backward pass becomes harmful at high dimensions even for the workhorse block size.
 
-- **β=40 cliff:** 100% win at n=50–110 collapses to 44% at n=120 (mean −0.028) and crashes to 0% at n=130 (−1.334), n=140 (−1.452), and n=150 (−1.293). Not a gradual decline — a structural breakdown: a 2.5-nat swing over two dimension steps (n=110 → n=130).
+- **β=40 cliff:** 90–100% win at n=50–110 (100% from n=70) collapses to 44% at n=120 (mean −0.028) and crashes to 0% at n=130 (−1.334), n=140 (−1.452), and n=150 (−1.292). Not a gradual decline — a structural breakdown: a 2.5-nat swing over two dimension steps (n=110 → n=130).
 
 - **Peak migration with block size:** β=40 overtakes β=30 at n=110 (+1.158 vs +1.112, both at 100 seeds). β=40's own peak lies in n=100–110 and is not resolvable between those two dimensions: at 122 seeds each the means are +1.169 and +1.163 (bootstrap 95% CI of the difference [−0.032, +0.043]). Paper 1 states the peak as n=110; that is superseded. The stronger oracle gives a narrower window of effectiveness and a more violent post-peak collapse.
 
@@ -125,13 +124,13 @@ Key findings (ordered most to least critical):
 
 - **RHF is blind to the d(LN) advantage:** At n=100 β=30, d(LN) shows 100% win while RHF (root Hermite factor) shows 40%, with near-zero correlation (r=−0.08). The standard metric is structurally insensitive to the SD-BKZ effect — methodologically important for anyone using RHF as a quality measure.
 
-- **q=3329 numerical instability in fplll's GSO (Section 8 of the paper):** At n=100 β=30 q=3329 (1000-bit MPFR, 100 seeds: 10 cloud + 45 Intel 13900K + 45 AMD 9950X3D), **38% of seeds (Wilson 95% CI [29.1%, 47.8%]) exhibit a degenerate final basis** with a Gram–Schmidt log-norm crashing to the precision floor (~−345). Root cause: the Cholesky-style squared-form GSO recurrence in `fplll/gso_interface.cpp:147–151` computes r(i,i) = ‖b_i‖² − Σ μ_{i,k}² · ‖b*_k‖² as a single scalar subtract with no compensation, reorthogonalisation, or sign check. A Kahan-compensated patch lowers the rate to 14/100, against 46/100 for a reorder-only control build on the same seeds (McNemar χ² = 22.3); the remaining degenerate bases are cases the compensation cannot rescue, and raw negative `get_r` returns still occur under the patch. (Paper 1 quotes 0/55 patched; that run used a sign-flipped, inert build of the patch and is superseded.) The hit rate is near-symmetric across BKZ (25) and SD-BKZ (22), confirming the bug is in the shared GSO code path. Sharp dimension onset: 0/20 degenerate at n=50, 70, 80 and 1/20 at n=90, jumping to 38/100 at n=100. Cross-machine reproducible (Intel 38.2% vs AMD 37.8%; seed 11 bit-identical across architectures). This is a new instance of the cancellation family in fpylll #272 — not a new bug class — and was filed as [fplll PR #550](https://github.com/fplll/fplll/pull/550) (2026-05-08), closed unmerged 2026-05-17, now kept local-only. q=97 results are unaffected. All q=3329 results are Future Work in the paper.
+- **q=3329 (Section 8 of Paper 1), withdrawn:** Paper 1 attributes degenerate final bases at n=100 β=30 q=3329 (38/100 seeds with a Gram–Schmidt log-norm at the −345 floor) to cancellation in fplll's GSO recurrence and reports a Kahan-compensated patch as the fix. Both are withdrawn. The reduction ran at 1000-bit MPFR and is clean; the floors come from a separate double-precision measurement GSO in our own code (Paper 2, Appendix A). All q=3329 results are Future Work in the paper.
 
 - SD-BKZ costs 2.3–2.7× the runtime of BKZ across all configurations.
 
 ## Papers and patches
 
-The `paper1/` directory holds the technical writeup documenting the benchmark design, results, and the fplll numerical bug findings; `paper2/` holds the in-progress NTRU + cross-engine technical report (`paper2/latex/`, same `make` flow). Paper 1 is generated from `paper1/latex/` via `make` and ships in both HTML and LaTeX form alongside the benchmark code:
+The `paper1/` directory holds the technical writeup documenting the benchmark design and results; `paper2/` holds the in-progress NTRU + cross-engine technical report (`paper2/latex/`, same `make` flow). Paper 1 is generated from `paper1/latex/` via `make` and ships in both HTML and LaTeX form alongside the benchmark code:
 
 | File | Purpose |
 |---|---|
@@ -150,8 +149,6 @@ cd paper1/latex && make
 ```
 
 Requires a TeX Live distribution with `pdflatex`, `bibtex`, and standard LaTeX packages.
-
-The **Kahan-compensated fplll GSO patch** referenced in paper §8.3 ships split in two: `patches/fplll_gso_kahan.patch` (code only — `gso_interface.cpp`/`.h`) and `patches/fplll_gso_kahan_tests.patch` (a separate regression-test diff), documented with apply-order in `patches/README.md`. Code-only applies cleanly to fplll HEAD (commit `1987472`, 15/15 regression tests; 16/16 with the tests patch). Filed as [fplll PR #550](https://github.com/fplll/fplll/pull/550), closed unmerged, now kept local-only. Only needed to reproduce the q=3329 numerical-instability analysis — `q=97` results are unaffected.
 
 ## Quick start
 
@@ -235,7 +232,7 @@ The cloud runner (`scripts/sweep_cloud.py`) accepts the following arguments insi
 | `--q` | 97 | LWE modulus (97 or 3329) |
 | `--precision` | auto | MPFR precision in bits (250 for q≤97, 500 for q>97) |
 
-**Precision notes:** q=3329 at n≥100 exposes a catastrophic-cancellation bug in fplll's squared-form GSO recurrence (paper §8). Higher MPFR precision delays the symptom but does not fix it. 250-bit triggers visible GSO clamping, 500-bit produces per-tour d(LN) spikes of 100–300 nats, and 1000-bit still hits 38% degeneracy at n=100 β=30. The Kahan-compensated patch (paper §8.3) lowers the rate (14/100 vs 46/100 for a control build on the same seeds) but does not eliminate it.
+**Precision notes:** at q=3329 and n≥100 the recorded Gram–Schmidt profiles come from a double-precision measurement GSO, separate from the MPFR reduction (`--metric-float-type`, default `double`), and that measurement loses accuracy there: −345 floors and large d(LN) spikes at these settings are measurement artefacts, not reduction outcomes (Paper 2, Appendix A). Campaign `q3329_mpfr` re-measures in MPFR.
 
 ### Watchdog system (decommissioned for the cloud campaign)
 
@@ -295,7 +292,7 @@ fig_dimension_scaling(groups, output_dir="./figures")
 ## Experiment scripts
 
 Canonical entry point (v2.0.0 consolidation):
-- **`scripts/run_campaign.py`** — Single-entry dispatcher driven by `config/sweep.toml`. Routes by campaign name to the right underlying runner (q3329_verify for main/cliff500/q3329/q3329_*, run_convergence for convergence_*, run_3x_extended for tours3x, Docker-image instructions for fplll_sensitivity). Usage: `python3 scripts/run_campaign.py --campaign <name> [--n N] [--beta B] [--start S] [--end E] [--seeds N] [--workers W] [--dry-run]`. Replaces six per-cell launcher scripts (`run_cliff_500bit.py`, `run_n100_beta40.py`, `run_q3329_n90.py`, `run_q3329_n100_local.py`, `run_overnight_q3329_intermediate_1000bit.py`, and the dispatch surface of `run_fplll54_sensitivity.py`) deleted at v2.0.0 consolidation.
+- **`scripts/run_campaign.py`** — Single-entry dispatcher driven by `config/sweep.toml`. Routes by campaign name to the right underlying runner (q3329_verify for main/cliff500/q3329/q3329_*, run_convergence for convergence_*, run_3x_extended for tours3x, the shared NTRU pool worker for ntru and ntru_*, Docker-image instructions for fplll_sensitivity); g6k campaigns re-exec inside a container (`--image`, else the campaign's `image` key, else `sdbkz-g6k:dim384-inc63`) when the host lacks g6k. Usage: `python3 scripts/run_campaign.py --campaign <name> [--n N] [--beta B] [--start S] [--end E] [--seeds N] [--workers W] [--dry-run]`. Replaces six per-cell launcher scripts (`run_cliff_500bit.py`, `run_n100_beta40.py`, `run_q3329_n90.py`, `run_q3329_n100_local.py`, `run_overnight_q3329_intermediate_1000bit.py`, and the dispatch surface of `run_fplll54_sensitivity.py`) deleted at v2.0.0 consolidation.
 
 Workhorses (called by the dispatcher; also usable standalone):
 - **`scripts/sweep_parallel.py`** — Local VM q=97 sweep workhorse (multiprocessing pool). Walks the canonical `results/seeds/main/q97/` tree.
@@ -314,7 +311,6 @@ Cloud / submission / ops:
 
 Data hygiene and logging:
 - **`scripts/validate_seeds.py`** — Per-seed schema and volume-drift validator; enforces a 0.1-nat volume-preservation threshold tuned against the 1,960-seed q=97 dataset.
-- **`scripts/split_fat_seeds.py`** — Splits `*_fat.json` per-tour trajectory companion files from the lean seed records.
 - **`scripts/log.py`** — Shared logging helper that emits structured events to `logs/pipeline.jsonl` (every committed script routes through it).
 
 ## Data format
@@ -324,7 +320,7 @@ Each per-seed result is written as two JSON files next to each other under the c
 - **`seedNNNN.json` (lean)** — the canonical record: inputs, final d(LN) for BKZ and SD-BKZ, initial Rankin profile, termination reason, wall-clock time, SHA-256 inputs. This file defines the seed's identity and is what reproducibility verification hashes against. Cloud-half copies carry the `_cloud` suffix; per-tour fat companions carry `_fat`.
 - **`seedNNNN_fat.json` (companion)** — optional per-tour trajectories and full Gram–Schmidt log-norm profiles. Present for groups where the sweep was run with `store_per_tour=True`. Absent fat files never invalidate a seed.
 
-`scripts/archive/split_fat_seeds.py` (one-shot, kept for audit chain) performs the split when a legacy run produced a single combined file. Downstream analysis code in `analysis/_data.py` tolerates either layout.
+Downstream analysis code in `analysis/_data.py` tolerates either layout.
 
 ### Supplementary artifacts
 
@@ -345,9 +341,9 @@ All results are produced with identical software versions across three independe
 | MPFR | 4.2.x | 4.2.1 | 4.2.0 | 4.2.1 |
 | cysignals | 1.12.6 | pip | pip (Docker) | pip (Docker) |
 
-**SHA-256 verification:** All 100 seeds of (n=100, β=20) were computed independently on the Intel and AWS environments and are bit-identical across all seeds (see `hash_verification.txt`). A cross-architecture smoke test on the q=3329 n=100 β=30 seed 11 produced bit-identical output between Intel 13900K and AMD 9950X3D (0/70 per-tour trajectory differences, exact match on `bkz_final_dln` and `sdbkz_final_dln` to 10 decimal places), ruling out any microarchitecture-specific cause for the numerical findings in paper §8. The MPFR 4.2.0 vs 4.2.1 difference does not affect output.
+**SHA-256 verification:** All 100 seeds of (n=100, β=20) were computed independently on the Intel and AWS environments and are bit-identical across all seeds (see `hash_verification.txt`). A cross-architecture smoke test on the q=3329 n=100 β=30 seed 11 produced bit-identical output between Intel 13900K and AMD 9950X3D (0/70 per-tour trajectory differences, exact match on `bkz_final_dln` and `sdbkz_final_dln` to 10 decimal places), ruling out microarchitecture as a failure source for numerical findings. The MPFR 4.2.0 vs 4.2.1 difference does not affect output.
 
-**Fourth environment (G6K engine):** the G6K frontier cells are produced two-node — this workstation plus a Valve Steam Machine (SteamOS, rootless podman) running the same pinned `sdbkz-g6k:dim384` image under the threads=1 determinism contract (ADR-007). The engines' seed trees and manifests stay separate (ADR-005), cell ownership is split so no seed path is ever generated on both machines, and every pulled seed passes the same G6K manifest SHA-256 lint.
+**Fourth environment (G6K engine):** the G6K frontier cells were produced two-node — this workstation plus a Valve Steam Machine (SteamOS, rootless podman) — inside the same pinned G6K image (`sdbkz-g6k:dim384`, then `sdbkz-g6k:dim384-inc63` from 2026-09-02; recipes in `docs/images.md`) under the threads=1 determinism contract (ADR-007). The engines' seed trees and manifests stay separate (ADR-005), cell ownership is split so no seed path is ever generated on both machines, and every pulled seed passes the same G6K manifest SHA-256 lint.
 
 See `Dockerfile` (local) and `Dockerfile.cloud` (AWS) for exact build specs. Python dependencies are pinned in `pyproject.toml`.
 
@@ -357,7 +353,7 @@ The author thanks Dylan Chambers Bourgeois for contributing compute resources (A
 
 ## References
 
-Core references for the benchmark design and the algorithms under test. The full 15-reference bibliography lives in the paper.
+Core references for the benchmark design and the algorithms under test. The references the paper cites are listed in `paper.bib`.
 
 - Li, J. & Nguyen, P.Q. (2024). "A Complete Analysis of the BKZ Lattice Reduction Algorithm." *Journal of Cryptology*. IACR ePrint 2020/1237. *(Defines the Rankin-profile fixed point and the d(LN) metric this benchmark is built around.)*
 - White, T. (2026). "Dynamic analysis of lattice basis reduction algorithms." *AMSI Summer Research Scholarships 2025–26*, Deakin University. [Profile](https://srs.amsi.org.au/student-profile/trillion-white/) · [Report (PDF)](https://srs.amsi.org.au/wp-content/uploads/sites/92/2026/03/white_trill_srs-report.pdf)

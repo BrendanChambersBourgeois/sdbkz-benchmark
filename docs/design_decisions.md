@@ -23,7 +23,7 @@ A pre-v1.2 audit identified ~884 LOC of duplicated lattice-math and BKZ-driver c
 
 Each maintained its own copy of `ln_fixed_point`, `build_lwe_kannan`, `metrics_from_gso`, `log_clamp` (defensive-clamp side-log helper), and a single-seed BKZ driver (`run_single`). The copies had drifted: different clamp-logging semantics, different `floor_mode` defaults, different schema-emit decisions (`store_per_tour` key appearance conditions).
 
-The drift was not academic. It caused the 9-day q=3329 incident (narrative at [`incident_q3329_post_mortem.md`](incident_q3329_post_mortem.md)): one copy of the defensive clamp silently substituted a sentinel value without logging the raw pre-clamp `get_r()` return, while the other copy logged it. Draft paper §8 was written against the silent-clamp output, then had to be rewritten once the raw return was finally captured. Cost: ~9 days of debugging and a substantial §8 rewrite before submission.
+The copies of the defensive clamp drifted apart in what and how they logged.
 
 ### Decision
 
@@ -32,7 +32,7 @@ Extract the pure math + defensive-clamp helpers into `scripts/_math_core.py` as 
 - `ln_fixed_point(size, beta)` — Li–Nguyen Rankin profile, identical semantics to every legacy caller.
 - `build_lwe_kannan(n, m, q, seed)` — deterministic lattice generator.
 - `metrics_from_gso(M, dim, m, ln_profile, ...)` — post-tour metric extraction with clamp-event side-log.
-- `log_clamp(ctx, position, raw_value, ...)` — one canonical defensive-clamp logger; writes raw pre-substitute values to `results/clamp_events.jsonl`.
+- `log_clamp(ctx, position, raw_value, ...)` — one canonical defensive-clamp logger; writes raw pre-substitute values to `results/clamp_events.jsonl` (kept locally; available on request).
 - Named constants: `CLAMP_FLOOR_R = 1e-300` (sentinel for non-positive `get_r()` returns).
 
 The BKZ driver itself goes into sibling `scripts/_bkz_core.py`:
@@ -46,7 +46,7 @@ The six legacy scripts now import from `_math_core` + `_bkz_core`; their local `
 
 **Intended**:
 - **Single source of truth**: every variant runs the same math. Drift is structurally impossible — changing `_math_core.metrics_from_gso` changes it for every caller, full stop.
-- **Bit-identical output across the migration**: the v1.2-consolidation merge was gated on `scripts/archive/confirm_v1_2.py` (30 seeds × 4 run_single paths, byte-compared to v1.1.0 baselines) and `scripts/archive/test_math_core_parity.py` (576 comparisons across 6 legacy copies). 0 failures. (Both one-shot verifiers were retired to `scripts/archive/` at v2.0.0.)
+- **Bit-identical output across the migration**: the v1.2-consolidation merge was gated on a 30-seed × 4-path byte comparison against v1.1.0 baselines and a 576-comparison parity check (both scripts in git history; 576 comparisons across 6 legacy copies). 0 failures. (Both one-shot verifiers were retired to `scripts/archive/` at v2.0.0.)
 - **Faster onboarding**: a new reader follows one import chain (variant script → `_bkz_core.run_single` → `_math_core`) instead of re-reading the same ~150 lines in six files.
 - **Defensive-clamp invariant concentrated in one place**: the "log raw value before substituting" discipline now lives at exactly one call site. Any future runner that wants clamp handling must use the shared helper; there is no second implementation to drift from.
 
@@ -57,8 +57,8 @@ The six legacy scripts now import from `_math_core` + `_bkz_core`; their local `
 
 ### Verification artefacts
 
-- `scripts/archive/test_math_core_parity.py` — standalone 576-comparison parity check (60 `ln_fixed_point` pairs × 6 legacy copies + 36 `build_lwe_kannan` pairs × 6 legacy copies). Runs in ~0.2 s. 0 failures on v1.2.0 tree.
-- `scripts/archive/confirm_v1_2.py` — end-to-end 30-seed confirmation across 4 `run_single` paths, byte-compared against v1.1.0 baseline JSONs.
+- parity check (git history) — standalone 576-comparison parity check (60 `ln_fixed_point` pairs × 6 legacy copies + 36 `build_lwe_kannan` pairs × 6 legacy copies). Runs in ~0.2 s. 0 failures on v1.2.0 tree.
+- v1.2 confirmation (git history) — end-to-end 30-seed confirmation across 4 `run_single` paths, byte-compared against v1.1.0 baseline JSONs.
 - `tests/test_math_core_edge_cases.py` — pytest suite covering clamp semantics, `log_clamp` schema, `ln_fixed_point` boundaries, `build_lwe_kannan` determinism, `metrics_from_gso` sensitivity to negative `get_r` values. 17 tests, ~0.2 s.
 
 ---
@@ -130,12 +130,12 @@ A CI gate (`scripts/lint_seed_manifest.py`) enforces three invariants on every p
 - **SHA-256 as corruption detector**: every read can verify the manifest record. The CI lint runs the fast invariants on every push and the full `--sha-check` locally pre-tag.
 - **Figure byte-identity preserved across the migration**: 14/14 paper PNGs SHA-256 identical pre- vs post-migration, verified by `diff` on the hash column (empty diff on the full v1.3 commit chain).
 - **Forward-compat walker fix caught by v1.3.1**: when the overnight q=3329 fill landed seeds directly in the v1.3 tree (bypassing the legacy-dir → symlink path), the v1 walker missed them. Surfaced as 25 orphans under `lint_seed_manifest`; fixed in commit `2b5365c` by extending the walker to recurse `results/seeds/` natively with realpath-based dedup. Gap-caught-by-CI-gate, exactly the value the lint was designed to deliver.
-- **Manifest schema is a referenced artefact**: `SECURITY.md` cites the `lint_seed_manifest` invariants as evidence-integrity policy; `docs/disclosure/fplll_gso_kahan_findings.md` cites the manifest as the SHA-256 authority. The manifest is not just an index — it's part of the security story.
+- **Manifest schema is a referenced artefact**: `SECURITY.md` cites the `lint_seed_manifest` invariants as evidence-integrity policy. The manifest is not just an index — it's part of the security story.
 
 **Accepted costs**:
 - **Two layers during the v1.x transition**: backwards-compat symlinks at old paths coexist with the canonical v1.3 tree. Duplicated inodes, near-zero disk cost, clear extra cognitive load for any reader who notices the symlinks. Scheduled to drop at v2.0.0 (breaking layout change; see the v2.0.0 line in [`ROADMAP.md`](../ROADMAP.md)).
 - **Campaign-intent mapping is a judgement call**: cloud-sourced q=3329 seeds remapped from `main` (where `sweep_cloud.py` originally filed them) to `q3329` (intent-aware). Documented inline in `scripts/build_seed_manifest.py`; called out in the manifest-build commit message. Low-risk when the judgement follows the paper's narrative; future reviewers can always regroup.
-- **`paper/hash_verification.txt` paths still reference pre-v1.3 `results/raw/`**: preserved through v1.4 via symlinks. The `results/seed_path_crosswalk.csv` crosswalk is the permanent record; paper §9 will gain a one-sentence pointer at the v2.0.0 breaking change.
+- **`hash_verification.txt` paths still reference pre-v1.3 `results/raw/`**: preserved through v1.4 via symlinks. The `results/seed_path_crosswalk.csv` crosswalk is the permanent record; paper §9 will gain a one-sentence pointer at the v2.0.0 breaking change.
 
 ### Verification artefacts
 
@@ -265,7 +265,7 @@ Rejected because:
 
 ## ADR-005 — G6K as a separate, single-threaded, SHA-locked sieve path (Phase 1)
 
-**Status**: scaffolded 2026-06-04 on branch `generators-refactor`; determinism reference captured 2026-08-13. The CI `g6k-build-and-verify` job is a hard byte-identity gate (build target `x86-64-v2` after INC-55 — see decision 3).
+**Status**: scaffolded 2026-06-04 on branch `generators-refactor`; determinism reference captured 2026-08-13. The CI `g6k-build-and-verify` job is a hard byte-identity gate (build target `x86-64-v2`, see decision 3).
 
 ### Context
 
@@ -281,7 +281,7 @@ Phase 0 recon (2026-06-04, `/tmp/g6k_phase0_report.md`) settled the blocker ques
 
 1. **Contract is `threads=1`, non-negotiable.** `g6k_probe.py` rejects `threads>1` with exit 3 rather than warning — an MT hash that got recorded would silently poison the reference. `lint_g6k_manifest.py` invariant (1) enforces `threads==1` on the contract, the reference, and every seed entry.
 2. **Source-build, not the wheel.** `Dockerfile.g6k` source-builds fplll (@`1987472`) → fpylll (@`e25ade8`, reports 0.6.4) → g6k (@`c71e084`). The PyPI `fpylll` wheel bundles its own fplll and ships no headers, so G6K's C++ kernel cannot link against it. Base image digest-pinned + apt via snapshot.debian.org per ADR-004.
-3. **`-march=x86-64-v2` via `--disable-native` (NOT `-march=native`).** Native bakes the build host's exact ISA into the binary and breaks cross-machine bit-identity — the whole point of the determinism gate. `Dockerfile.g6k` sets ENV `CFLAGS`/`CXXFLAGS` to `-march=x86-64-v2` (SSE4.2/POPCNT, the universal x86-64 floor). **INC-55 gotcha (fixed 2026-08-14):** g6k's own `./configure` defaults to `--enable-native`, which detects the build host's SIMD and *appends* AVX2/FMA on top of our CXXFLAGS — so setting the ENV alone was a no-op (the shipped siever `.so` still showed AVX2 `ymm`/`vfmadd` and `SIGILL`ed on the v2-only GitHub runners the fleet now includes). The build therefore passes **`--disable-native`** to g6k's configure so the v2 target actually takes effect; the rebuilt `.so` contains zero AVX2/FMA/AVX512 instructions and runs identically on every x86-64-v2+ machine. The determinism reference (`basis cf22519d…` / `rprof d4faf05a…`) is unchanged — the n=80/β60/seed42 probe is genuinely ISA-invariant (the AVX2 and pure-v2 builds produce byte-identical basis + r-profile), so no re-baseline was needed. Phase 0 hashes were `-march=native` and are **not** valid references here.
+3. **`-march=x86-64-v2` via `--disable-native` (NOT `-march=native`).** Native bakes the build host's exact ISA into the binary and breaks cross-machine bit-identity — the whole point of the determinism gate. `Dockerfile.g6k` sets ENV `CFLAGS`/`CXXFLAGS` to `-march=x86-64-v2` (SSE4.2/POPCNT, the universal x86-64 floor). **the v2 re-baseline gotcha (fixed 2026-08-14):** g6k's own `./configure` defaults to `--enable-native`, which detects the build host's SIMD and *appends* AVX2/FMA on top of our CXXFLAGS — so setting the ENV alone was a no-op (the shipped siever `.so` still showed AVX2 `ymm`/`vfmadd` and `SIGILL`ed on the v2-only GitHub runners the fleet now includes). The build therefore passes **`--disable-native`** to g6k's configure so the v2 target actually takes effect; the rebuilt `.so` contains zero AVX2/FMA/AVX512 instructions and runs identically on every x86-64-v2+ machine. The determinism reference (`basis cf22519d…` / `rprof d4faf05a…`) is unchanged — the n=80/β60/seed42 probe is genuinely ISA-invariant (the AVX2 and pure-v2 builds produce byte-identical basis + r-profile), so no re-baseline was needed. Phase 0 hashes were `-march=native` and are **not** valid references here.
 4. **Separate manifest, never merged.** `results/g6k_seed_manifest.json` is distinct from `results/seed_manifest.json`. The two engines produce non-comparable hashes; merging them would invite cross-engine confusion in any downstream SHA audit. `lint_g6k_manifest.py` invariant (3a) enforces disjointness of both `path` and `sha256` between the two manifests.
 5. **Separate CI job.** `.github/workflows/build-and-verify.yml` gains a `g6k-build-and-verify` job independent of the fplll regression job, so a still-pending g6k reference cannot mask — and a g6k drift cannot be confused with — the fplll byte-identity proof.
 
@@ -383,7 +383,7 @@ ADR-005/006 locked g6k byte-identity for a **single** `pump_n_jump_bkz_tour` (th
 
 ### Boundary (Gate 2 — still open, blocks g6k seeds)
 
-**g6k SD-BKZ semantics — undecided.** fplll's `SD_VARIANT` (self-dual BKZ) has no stock g6k equivalent. Recon (2026-06-04): g6k HAS dual machinery — `SieverParams.dual_mode`, `g6k.temp_params(dual_mode=…)`, and a shipped `slide_tour` (Gama–Nguyen slide reduction, dual-aware). Options: (A) construct a self-dual pump-BKZ tour (primal + `temp_params(dual_mode=True)` pass) — the faithful analog, our construction, needs validation; (B) use stock `slide_tour` — rejected, slide ≠ SD, conflates the comparison; (C) reframe g6k as bkz-only — narrower, ships. Gate 1 (this ADR) is the prerequisite for all of them and is now cleared. ADR-008 will settle A vs C.
+**g6k SD-BKZ semantics — undecided.** fplll's `SD_VARIANT` (self-dual BKZ) has no stock g6k equivalent. Recon: g6k HAS dual machinery — `SieverParams.dual_mode`, `g6k.temp_params(dual_mode=…)`, and a shipped `slide_tour` (Gama–Nguyen slide reduction, dual-aware). Options: (A) construct a self-dual pump-BKZ tour (primal + `temp_params(dual_mode=True)` pass) — the faithful analog, our construction, needs validation; (B) use stock `slide_tour` — rejected, slide ≠ SD, conflates the comparison; (C) reframe g6k as bkz-only — narrower, ships. Gate 1 (this ADR) is the prerequisite for all of them and is now cleared. ADR-008 will settle A vs C.
 
 ### Verification artefacts
 

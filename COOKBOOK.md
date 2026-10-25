@@ -135,7 +135,7 @@ mkdir -p results/corrupted
 mv results/seeds/main/q97/n<bad>_beta<bad>/seed<bad>.json results/corrupted/
 ```
 
-The `results/corrupted/` folder is gitignored. See [`docs/incident_q3329_post_mortem.md`](docs/incident_q3329_post_mortem.md) for the q=3329 precision incidents that drove this convention.
+The `results/corrupted/` folder is gitignored.
 
 ---
 

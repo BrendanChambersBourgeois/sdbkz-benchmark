@@ -23,17 +23,15 @@ Contact: **brendanchambersbou@gmail.com** (GPG key available on request). Please
 - Triage decision within 30 days (confirmed / can't-reproduce / out-of-scope / needs-more-info).
 - No guaranteed fix timeline. This is a research repo attached to a published paper, not a deployed service with an SLA. Critical findings (numerical correctness + cryptographic context) will be prioritised; polish / doc issues may sit in backlog.
 
-For upstream library findings (fplll, fpylll, MPFR), coordinate timing so the fix lands upstream before the public disclosure lands here. The fplll Kahan-patch finding (see below) is the reference case: it was filed upstream but the maintainer declined it, so the corrected patch now ships in-repo, local-only.
+For upstream library findings (fplll, fpylll, MPFR), coordinate timing so the fix lands upstream before the public disclosure lands here.
 
 ## Known findings
 
-### fplll Gram–Schmidt cancellation at cryptographic moduli
+None open.
 
-- **Disclosure doc:** [`docs/disclosure/fplll_gso_kahan_findings.md`](docs/disclosure/fplll_gso_kahan_findings.md)
-- **Patch:** [`patches/fplll_gso_kahan.patch`](patches/fplll_gso_kahan.patch) (code only) + [`patches/fplll_gso_kahan_tests.patch`](patches/fplll_gso_kahan_tests.patch) (separate regression-test diff), documented in [`patches/README.md`](patches/README.md)
-- **Paper reference:** §8 of `paper1/latex/sdbkz_paper_latex.tex` (and `paper1/sdbkz_paper.html` mirror)
-- **Upstream status:** filed as [fplll PR #550](https://github.com/fplll/fplll/pull/550) (2026-05-08), closed unmerged by the maintainer 2026-05-17; the corrected patch is now kept **local-only** (not resubmitted or reopened). See the disclosure doc timeline.
-- **Impact summary:** At cryptographic moduli (e.g. q=3329 for ML-KEM) with `n ≥ 100`, the squared-form Gram–Schmidt recurrence in `fplll/gso_interface.cpp:147–151` suffers catastrophic cancellation, producing non-positive diagonal entries for the squared norm. Observed degeneracy rate: **38.0%** (Wilson 95% CI [29.1%, 47.8%]) at n=100 β=30 q=3329 with 1000-bit MPFR, across 100 seeds spanning 3 compute environments. The Kahan-compensated subtraction patch drops the rate to **0/55**, passes all 15 fplll regression tests (16/16 with the bundled test). `q=97` (the paper's main-sweep modulus) is unaffected at every dimension up to n=150.
+### Withdrawn: fplll Gram–Schmidt cancellation at q=3329
+
+Paper 1 §8 reported catastrophic cancellation in fplll's Gram–Schmidt recurrence at q=3329 and a Kahan-compensated patch as its fix (filed as [fplll PR #550](https://github.com/fplll/fplll/pull/550), closed unmerged). Both are withdrawn: the reduction ran at 1000 bits and is clean, and the floors came from our own double-precision measurement GSO (Paper 2, Appendix A). The patch, its disclosure doc and the incident narrative left the tree on 2026-10-13; git history keeps them (`78f43c95`).
 
 ## Defensive engineering
 
@@ -41,9 +39,9 @@ The repo embeds several policies that keep evidence integrity auditable:
 
 ### `log_clamp` side-log
 
-Every defensive numerical clamp (substitution of a sentinel value for a non-positive Gram–Schmidt norm) writes the raw pre-substitute value to `results/clamp_events.jsonl` — timestamp, script, seed context, position, raw `get_r()` return value. The file is append-only, never truncated, and is the canonical audit trail for the §8 instability investigation.
+Every defensive numerical clamp (substitution of a sentinel value for a non-positive Gram–Schmidt norm) writes the raw pre-substitute value to `results/clamp_events.jsonl` — timestamp, script, seed context, position, raw `get_r()` return value. The file is append-only, never truncated, and is the canonical audit trail for numerical investigations. It is kept locally and is not tracked in git; copies are available on request.
 
-**Why this exists:** in the 9-day q=3329 incident (narrative at [`docs/incident_q3329_post_mortem.md`](docs/incident_q3329_post_mortem.md)), an earlier clamp silently substituted a sentinel without logging the raw value. The defective `get_r()` return was invisible for 9 days while a draft §8 was being written against clamped output. Never again.
+**Why this exists:** defensive clamps log the raw value before substituting, so a silent substitution cannot hide a real return.
 
 ### Never-raises logging
 
@@ -52,7 +50,7 @@ Every defensive numerical clamp (substitution of a sentinel value for a non-posi
 ### Append-only audit chain
 
 - `logs/pipeline.jsonl` — every committed script emits structured events via `get_logger()`. Enforced by `scripts/lint_logging.py` as a CI gate.
-- `results/clamp_events.jsonl` — defensive-clamp side-log per above.
+- `results/clamp_events.jsonl` — defensive-clamp side-log per above (kept locally, not tracked in git; copies are available on request).
 - `results/seed_manifest.json` — every seed file indexed with SHA-256, size, mtime, verified flag. Rebuilt deterministically from the on-disk tree.
 
 All three are append-only by policy. The repo's data-discipline rule (see [`CONTRIBUTING.md`](CONTRIBUTING.md)) forbids `rm` of experimental data without backup; no exception has ever been taken.

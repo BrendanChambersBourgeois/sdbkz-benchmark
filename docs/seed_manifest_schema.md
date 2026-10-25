@@ -1,6 +1,6 @@
 # Seed manifest schema reference
 
-`results/seed_manifest.json` is the single authoritative index over every seed file in the `results/seeds/<campaign>/` tree. This doc is the schema reference — if you're writing analysis code that queries the manifest, this is the field-by-field contract.
+`results/seed_manifest.json` is the single authoritative index over every seed file in the `results/seeds/<campaign>/` tree except the trees listed in `NON_MANIFEST_SEED_TREES` (`scripts/lint_seed_manifest.py`); `ntru_g6k` and the patched-fplll trees have their own manifests. This doc is the schema reference — if you're writing analysis code that queries the manifest, this is the field-by-field contract.
 
 ADR-002 ([`docs/design_decisions.md`](design_decisions.md)) covers *why* the manifest exists. This doc covers *what it contains.*
 
@@ -43,7 +43,7 @@ Every entry has these fields. None are optional unless marked.
 | `n`                | int            | Secret dimension.                                                                           |
 | `beta`             | int            | BKZ block size.                                                                             |
 | `seed`             | int            | Per-group seed number.                                                                     |
-| `q`                | int            | Modulus. 97 (main/q97 sweeps), 3329 (ML-KEM, q3329 campaign), and ~100 distinct values 97–5869 across the `ntru` overstretched sweep. |
+| `q`                | int            | Modulus. 97 (main/q97 sweeps), 3329 (ML-KEM, q3329 campaign), and 184 distinct values, 97–7177, across the `ntru` overstretched sweep. |
 | `precision`        | int or null    | MPFR precision in bits. `null` for tours3x (runs at implicit 250); `ntru` uses 250 / 500 / 1000. |
 | `max_tours`        | int or null    | Tour budget. `null` for tours3x (varies per subcampaign).                                   |
 | `store_per_tour`   | bool or null   | Whether the seed JSON includes per-tour trajectories.                                       |
