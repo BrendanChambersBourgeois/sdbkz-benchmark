@@ -60,7 +60,7 @@ COPY --chown=${HOST_UID}:${HOST_GID} analysis/ analysis/
 COPY --chown=${HOST_UID}:${HOST_GID} tests/ tests/
 COPY --chown=${HOST_UID}:${HOST_GID} results/paper_claims/ results/paper_claims/
 COPY --chown=${HOST_UID}:${HOST_GID} \
-     results/summary.json results/runtime_table.json \
+     results/runtime_table.json \
      results/profile_decomposition.json results/convergence_headroom.json \
      results/dGSA_summary.json results/seed_manifest.json \
      results/hash_verification.txt results/

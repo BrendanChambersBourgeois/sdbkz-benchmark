@@ -1,36 +1,12 @@
 """Tests for the v2.0.0 symlink-drop path migration.
 
-The migration deletes the back-compat symlink tree at
-`results/{raw,cloud,q3329,cliff_500bit,fplll5*_sensitivity,3x_tours,
-3x_tours_extended,convergence,convergence_test}` and promotes the
-v1.3 `results/seeds/<campaign>/` tree as the sole canonical layout.
-
-These tests guard against three regression classes:
-
-  1. **Functional callsites** — any script that still calls
-     `glob.glob` or `open` against the deleted directories breaks at
-     runtime post-deletion. Static scan + integration smoke catch
-     this before the destructive step lands.
-
-  2. **Path-helper contracts** — `_seed_paths.seed_path_for` is the
-     canonical surface every migrated caller routes through. Assert
-     its output for each of the campaign+(n,β) tuples that the
-     migration touched.
-
-  3. **Examples bootstrap** — the three example scripts must still
-     load_all_seeds + select the right seed against the manifest,
-     because the README pipeline points new readers at them.
-
-Synthetic-only — never reads `results/seeds/`. The examples test
-uses subprocess against the live manifest because the examples are
-__main__ entry points (would need to be importable to test inline,
-and the README contract is that they're standalone scripts).
+No script may read the deleted legacy directories, and `_seed_paths.seed_path_for`
+must return the canonical path for every migrated campaign tuple.
 """
 from __future__ import annotations
 
 import os
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -160,53 +136,3 @@ def test_q3329_verify_summary_dir_under_canonical_tree():
 # ---------------------------------------------------------------------------
 # Examples integration smoke — live manifest, --campaign flag honoured
 # ---------------------------------------------------------------------------
-
-def _has_manifest() -> bool:
-    return (REPO_ROOT / "results" / "seed_manifest.json").exists()
-
-
-@pytest.mark.skipif(not _has_manifest(),
-                    reason="live manifest not present in this checkout")
-def test_example_01_inspect_one_seed_runs():
-    result = subprocess.run(
-        [sys.executable, "examples/01_inspect_one_seed.py",
-         "--n", "50", "--beta", "20", "--seed", "1"],
-        cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=30,
-    )
-    assert result.returncode == 0, result.stderr
-    out = result.stdout
-    assert "n=50" in out
-    assert "advantage" in out.lower()
-    assert "Source: results/seed_manifest.json" in out
-
-
-@pytest.mark.skipif(not _has_manifest(),
-                    reason="live manifest not present in this checkout")
-def test_example_02_compare_two_groups_runs():
-    result = subprocess.run(
-        [sys.executable, "examples/02_compare_two_groups.py",
-         "--group1", "100", "30", "--group2", "150", "30"],
-        cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=60,
-    )
-    assert result.returncode == 0, result.stderr
-    assert "Cohen's d" in result.stdout
-    assert "Δ mean" in result.stdout
-
-
-@pytest.mark.skipif(not _has_manifest(),
-                    reason="live manifest not present in this checkout")
-def test_example_03_plot_basis_profile_runs(tmp_path):
-    # Routes the PNG write to tmp_path so the test works under a
-    # read-only repo mount (CI mounts ${workspace}:/repo:ro for the
-    # smoke step; the default `examples/output/` target inherits
-    # that read-only-ness and the matplotlib savefig errnos 30).
-    result = subprocess.run(
-        [sys.executable, "examples/03_plot_basis_profile.py",
-         "--n", "50", "--beta", "20", "--seed", "1",
-         "--output-dir", str(tmp_path)],
-        cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=60,
-    )
-    assert result.returncode == 0, result.stderr
-    assert "Saved:" in result.stdout
-    # PNG actually landed in tmp_path, not the read-only default.
-    assert (tmp_path / "profile_n50_beta20_seed1.png").exists()

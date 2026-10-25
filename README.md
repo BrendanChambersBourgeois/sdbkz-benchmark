@@ -21,7 +21,7 @@ docker run --rm -e NUM_SEEDS=1 sdbkz-benchmark:ci bash scripts/verify.sh
 
 `verify.sh` regenerates one reference seed inside the pinned container and compares it to hardcoded values to 4 decimal places. Run `pytest` and `analysis/paper_figures.py` inside the image too; the host Python is not pinned. If bind-mounted files come out root-owned, rebuild with `--build-arg HOST_UID=$(id -u) --build-arg HOST_GID=$(id -g)`.
 
-Other entry points: `make help` lists the targets; `python3 scripts/run_campaign.py --campaign <name> --dry-run` shows what a campaign in `config/sweep.toml` would run; `python3 examples/01_inspect_one_seed.py` prints one stored result.
+Other entry points: `make help` lists the targets; `python3 scripts/run_campaign.py --campaign <name> --dry-run` shows what a campaign in `config/sweep.toml` would run.
 
 ## Results (Paper 1, q=97, 100 seeds per cell)
 

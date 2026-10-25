@@ -130,11 +130,11 @@ ALLOWLIST_BASENAMES = frozenset({
     # mirrors the g6k split, not an fplll canonical seed.
     "patched_seed_manifest.json",
     "seed_path_crosswalk.csv",
-    "summary.json",
     "summary_convergence.json",
     "summary_q3329.json",
     # Top-level analysis-rollup JSONs (written by analysis/ scripts).
     "runtime_table.json",
+    "summary.json",
     "q3329_degeneracy_check.json",
     "q3329_get_r_investigation.json",
     "dGSA_summary.json",

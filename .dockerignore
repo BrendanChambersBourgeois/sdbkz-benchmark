@@ -45,7 +45,6 @@ tags
 compile_*.sh
 
 # Example outputs (generated PNGs)
-examples/output/
 
 # OS / editor
 .DS_Store

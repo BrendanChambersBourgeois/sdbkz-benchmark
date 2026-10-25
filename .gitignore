@@ -40,7 +40,7 @@ white_trill_srs-report.pdf
 .DS_Store
 
 # Example outputs (generated PNGs)
-examples/output/
+results/summary.json
 
 # Claude Code local config (not for repo)
 CLAUDE.md
