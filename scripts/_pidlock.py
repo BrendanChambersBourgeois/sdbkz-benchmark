@@ -1,29 +1,10 @@
 """Single-instance pid lock shared by the long-running drivers.
 
-Why both halves matter:
-  * forever_runner.py had the ATOMIC create (O_CREAT|O_EXCL) but a LOOSE holder
-    match (any argv basename == script), so a SIGKILL-orphaned lock whose pid was
-    recycled to `tail -f scripts/forever_runner.py` blocked the restart; with
-    main() returning 0 and Restart=on-failure the never-idle floor died silently.
-  * onset_driver.py had the ANCHORED match (python interpreter running the
-    script -- audit #4 2026-07-05) but a non-atomic exists()->write_text(), so
-    two racers could both pass the check and both "hold" the lock.
-One helper, both properties:
-  * create is atomic: the pid is written to a private temp file which is then
-    hard-linked to the lock path (link(2) fails with EEXIST if the lock exists),
-    so a concurrent reader never observes an empty/partial lock file;
-  * a holder is live only if its pid is alive AND /proc/<pid>/cmdline is a python
-    interpreter running `script_basename`; anything else (dead pid, recycled pid,
-    unparseable file) is reclaimed by unlink + retry of the atomic create;
-  * reclaim (re-check liveness + unlink) runs under an exclusive flock on a
-    `<lock>.guard` sidecar, so two simultaneous reclaimers resolve to exactly
-    one holder -- without the guard, a reclaimer that had already passed the
-    liveness check could unlink the fresh lock a faster reclaimer just created
-    and yield two "holders" (caught by test_race_stale_lock_exactly_one_reclaimer,
-    CI 2026-08-30). Creators never take the guard: create is atomic and only
-    succeeds while the lock path is absent, so the file re-checked under the
-    guard is the file unlinked. The sidecar is never deleted (deleting it would
-    reintroduce the race); the flock dies with the process, so it cannot go stale.
+Create is atomic (private temp file hard-linked to the lock path); a holder is
+live only if its pid is alive and running `script_basename` under a python
+interpreter; reclaiming a stale lock runs under an exclusive flock on a
+`<lock>.guard` sidecar so two reclaimers resolve to exactly one holder. The
+sidecar is never deleted.
 """
 from __future__ import annotations
 

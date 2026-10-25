@@ -38,7 +38,8 @@ User-visible changes per version. Seed counts are manifest totals.
 
 ### Removed
 - fplll Kahan and reorder-control patches, `Dockerfile.fplll_patched`, the fplll disclosure doc.
-- Runner worklists, node unit file, roadmap, audit notes, archived scripts, `COOKBOOK.md`, `scripts/README.md`, `paper2/paper2_findings.md`; git history keeps them.
+- Runner worklists, node unit files, roadmap, audit notes, archived scripts, `COOKBOOK.md`, `scripts/README.md`, `paper2/paper2_findings.md`; git history keeps them.
+- Decommissioned cloud path (`sweep_cloud.py`, `submit_jobs.py`, `cloud_watchdog.sh`, `Dockerfile.cloud`, `[cloud]` extra), node tooling (`forever_runner.py`, `node_sync.py`, `node_status.py`, `make node-*`), one-off scripts (`migrate_seeds_to_new_layout.py`, `run_sweep_fill.py`, `overnight_experiments.py`, `find_bugs_via_tags.py`), the top-level `hash_verification.txt` duplicate, `results/runtime_table.html`, the scorecard and dependabot workflows.
 
 ## [2.0.0] — 2026-06-03
 - 4,387 back-compat symlinks across 14 legacy top-level directories removed; `results/seed_path_crosswalk.csv` maps old paths to `results/seeds/<campaign>/`.

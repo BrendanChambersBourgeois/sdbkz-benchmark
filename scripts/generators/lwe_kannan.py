@@ -31,10 +31,7 @@ def build_lwe_kannan(
     ``L`` is a nested-list ``(n+m+1) x (n+m+1)`` integer matrix,
     ``s`` the secret, and ``e`` the error vector.
 
-    Character-identical to the legacy copies in (Phase 3 swap):
-      scripts/sweep_parallel.py, scripts/sweep_cloud.py,
-      scripts/q3329_verify.py, scripts/overnight_experiments.py,
-      scripts/run_3x_extended.py, scripts/run_convergence_test.py
+    Byte-identical to the construction the published seeds were run with.
     """
     rng = np.random.RandomState(seed)
     s = rng.randint(0, 2, n).astype(int)

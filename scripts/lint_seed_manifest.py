@@ -135,7 +135,6 @@ ALLOWLIST_BASENAMES = frozenset({
     "summary_q3329.json",
     # Top-level analysis-rollup JSONs (written by analysis/ scripts).
     "runtime_table.json",
-    "runtime_table.html",
     "q3329_degeneracy_check.json",
     "q3329_get_r_investigation.json",
     "dGSA_summary.json",

@@ -15,12 +15,6 @@ dependencies = [
     "sympy",
 ]
 
-[project.optional-dependencies]
-# boto3 is imported only by the AWS path (scripts/sweep_cloud.py, lazily
-# inside the S3 helpers, and scripts/submit_jobs.py); Dockerfile.cloud
-# installs it explicitly. Nothing on the local runner path needs it.
-cloud = ["boto3"]
-
 [tool.ruff]
 line-length = 100
 target-version = "py312"

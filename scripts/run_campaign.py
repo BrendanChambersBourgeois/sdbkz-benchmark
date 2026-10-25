@@ -118,9 +118,9 @@ def _g6k_container_argv(argv: list, image: str = None,
     --image re-exec of a non-g6k campaign uses "runcamp-fplll"). --user keeps
     bind-mount seed writes owned by the invoking user
     (rootful docker would write root-owned files); nice -n 19 preserves the
-    desktop-starvation fix (the forever-runner Nice=19 drop-in does not reach
+    desktop-starvation fix (a Nice=19 drop-in does not reach
     processes containerd spawns); --init reaps the per-seed subprocesses;
-    docker's default --sig-proxy forwards the forever_runner group SIGTERM to
+    docker's default --sig-proxy forwards the runner group SIGTERM to
     the campaign, so the stop path still works (SIGKILL of the attached CLI
     does NOT stop the container -- the runner's TERM-then-KILL grace window in
     _kill_child_group is what makes the graceful path the normal one)."""
@@ -138,10 +138,8 @@ def _g6k_container_argv(argv: list, image: str = None,
 
 def _ntru_full_failure(total: int, skipped: int, written: int) -> bool:
     """True when every seed this run actually ATTEMPTED failed (errored,
-    wall-cap-killed, or crashed). rc must be nonzero then, so forever_runner
-    records the line in forever_worklist.failed and its consecutive-failure
-    stop-loud counter advances -- 2026-08-28 a 100%-failure run returned rc=0
-    and 12 worklist lines were archived as silently done. All-skip
+    wall-cap-killed, or crashed). rc must be nonzero then, so a driver
+    can record the failure instead of archiving the line as done. All-skip
     (attempted == 0) stays success: that is the filler's steady state, and a
     fully-populated cell re-dispatched is a no-op by design. Partial failure
     also stays success -- the wave semantics let surviving seeds count."""

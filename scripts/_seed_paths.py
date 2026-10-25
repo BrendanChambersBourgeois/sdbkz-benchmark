@@ -1,14 +1,7 @@
-"""Canonical seed-write paths under the v1.3 results/seeds/<campaign>/ tree.
+"""Canonical seed-write paths under results/seeds/<campaign>/.
 
-Single source of truth for runner-side writes; mirrors the logic in
-`migrate_seeds_to_new_layout.new_path_for()` so ongoing writes land in
-exactly the same location a one-shot re-migration would produce.
-
-Design reference: Research/backlog/2026-04-18_seed_consolidation.md
-§Proposed structure. Schema invariants (keys per entry, per-campaign
-layout rules) live in `scripts/build_seed_manifest.py`; this module is
-*path-only* so it can be imported from runners at the hot-path layer
-without dragging in the manifest-walking dependencies.
+Single source of truth for runner-side writes. Path-only so runners can
+import it on the hot path; schema invariants live in build_seed_manifest.py.
 """
 
 from __future__ import annotations

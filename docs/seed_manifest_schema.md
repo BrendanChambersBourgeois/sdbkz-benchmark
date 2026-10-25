@@ -80,7 +80,7 @@ The mapping from pre-v1.3 directory to v1.3 campaign:
 
 \* The cloud-sourced q=3329 seeds (10 AWS-Batch seeds at n=100 β=30 documented in paper §8.2) migrate from `main` to `q3329` per the "campaign = intent" principle. The `build_seed_manifest.py` walker handles this reassignment based on `q` field content, not source directory.
 
-The `ntru` campaign has no pre-v1.3 directory — it is a **post-v1.3 native campaign** (the paper-2 NTRU dense-sublattice-discovery sweep, `forever_runner.py` + `run_campaign.py`) written directly into `results/seeds/ntru/` with no legacy migration. It is now the largest campaign in the manifest (8,728 seeds as of 2026-08-30). Its bases are Ducas–van Woerden NTRU circulants of lattice dimension `2n`; `q` sweeps the overstretched range (184 distinct moduli, 97–7177).
+The `ntru` campaign has no pre-v1.3 directory — it is a **post-v1.3 native campaign** (the paper-2 NTRU dense-sublattice-discovery sweep, `run_campaign.py`) written directly into `results/seeds/ntru/` with no legacy migration. It is the largest campaign in the manifest. Its bases are Ducas–van Woerden NTRU circulants of lattice dimension `2n`; `q` sweeps the overstretched range (184 distinct moduli, 97–7177).
 
 ## New path layout (v1.3)
 
@@ -175,6 +175,6 @@ Purpose: permanent record for paper-era SHA-256 receipts (`hash_verification.txt
 
 ## Not in scope here
 
-- **Paper §3.7 cross-environment verification bytes.** See [`hash_verification.txt`](../hash_verification.txt) for the per-seed SHA-256 table (100 seeds, deterministic fields) matching across a local VM and AWS Batch; AMD 9950X3D and a fresh VM were spot-checked.
+- **Paper §3.7 cross-environment verification bytes.** See [`results/hash_verification.txt`](../results/hash_verification.txt) for the per-seed SHA-256 table (100 seeds, deterministic fields) matching across a local VM and AWS Batch; AMD 9950X3D and a fresh VM were spot-checked.
 - **Fat seed schema.** `*_fat.json` entries carry per-tour Rankin profile + Gram–Schmidt log-norms + RHF for both BKZ and SD-BKZ. See any `results/seeds/q3329/.../seed*_fat.json` for the layout.
 - **Clamp event side-log.** `results/clamp_events.jsonl` is a separate append-only log, not indexed by the manifest and not tracked in git (kept locally; available on request).

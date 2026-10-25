@@ -1,15 +1,8 @@
 """g6k container re-exec + full-failure rc.
 
-All 12 queued beta=50 worklist lines dispatched host-side, every seed died in
-seconds with "ModuleNotFoundError: No module named 'g6k'", run_campaign
-returned rc=0 ("NTRU run OK: 0 seeds written / 20 tasks"), and forever_runner
-archived the whole 7.2-day ladder as done in ~12 minutes. Two guards now:
-
   1. a g6k campaign dispatched where the g6k module is missing re-execs the
-     exact invocation inside G6K_IMAGE (scripts/run_campaign.py owns campaign
-     config, so the wrap lives there, not in forever_runner);
-  2. a run whose every ATTEMPTED seed failed returns rc=1, so the runner's
-     FAILED_LOG + consecutive-failure stop-loud path engage.
+     exact invocation inside G6K_IMAGE;
+  2. a run whose every attempted seed failed returns rc=1.
 """
 import os
 import sys

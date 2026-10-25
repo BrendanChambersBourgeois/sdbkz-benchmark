@@ -1,45 +1,9 @@
 """Canonical numerical helpers for the SD-BKZ benchmark.
 
-v1.2 consolidation target. Holds the pure-math helpers that are
-duplicated across `sweep_parallel.py`, `sweep_cloud.py`, and
-`q3329_verify.py` (per the 2026-04-17 code_complexity audit).
-
-Roadmap (each phase is its own commit on `v1.2-consolidation`):
-
-  Phase 1 (DONE)  — Add canonical `ln_fixed_point` here. Legacy copies
-                    untouched. Parity test in
-                    `scripts/test_math_core_parity.py` proves
-                    bit-identity across a 60-pair (n, β) grid.
-  Phase 2 (DONE)  — Swap three legacy `ln_fixed_point` defs out for
-                    `from _math_core import ln_fixed_point`. Verified
-                    bit-identical n=50 β=20 seed 1 via `verify.sh`.
-  Phase 3 (DONE)  — Add `build_lwe_kannan` here. Swap six legacy
-                    copies (all six were already byte-identical per
-                    SHA-256 check) out for `from _math_core import
-                    build_lwe_kannan`. Same verify.sh gate.
-  Phase 4 (DONE)  — `metrics_from_gso` lives below; the interface
-                    accepts a `log_clamp_fn` callback (binds each
-                    caller's log sink), a `clamp_ctx` tag, a
-                    `warn_on_clamp` opt-in (q=3329 verification path),
-                    and the `n_clamped` counter is folded into the
-                    callback rather than returned. Four legacy callers
-                    now hold 3–7 line wrappers that delegate here:
-                      sweep_parallel.py        → _log_clamp
-                      sweep_cloud.py           → _log_clamp_cloud
-                      q3329_verify.py          → _log_clamp + warn_on_clamp
-                      overnight_experiments.py → _log_clamp
-                    `_bkz_core.py` uses the canonical form directly.
-                    `run_3x_extended.py` and `run_convergence_test.py`
-                    retain inline `_safe_log_r` closures (active-block
-                    rankin only, no full-dict return) for SHA-256
-                    stability of their paper-cited seed JSONs; migrate
-                    opportunistically only if those scripts ever need
-                    a behaviour change.
-
-CLAUDE.md §3 (q=3329 lessons): "check raw values, not derived metrics"
-— if this module's output ever disagrees with a legacy copy, trust the
-legacy copy and flag the bug, because the legacy copies are what
-produced the paper's SHA-256-stable seed JSONs.
+Single source for `ln_fixed_point`, `build_lwe_kannan`, `metrics_from_gso` and
+the defensive-clamp logger `log_clamp`. Every runner imports these; the
+published seed JSONs were produced by byte-identical copies, so any change
+here must be proven against them (verify.sh, parity tests).
 """
 from __future__ import annotations
 
@@ -71,8 +35,7 @@ def log_clamp(
     """Append one defensive-clamp event to a JSONL side log. Never raises.
 
     Canonical implementation of the defensive-clamp logger used by
-    `sweep_parallel.py`, `sweep_cloud.py`, `q3329_verify.py`,
-    `overnight_experiments.py`, `run_3x_extended.py`, and
+    `sweep_parallel.py`, `q3329_verify.py`, `run_3x_extended.py` and
     `run_convergence_test.py`. Each caller keeps a thin wrapper
     `_log_clamp(ctx, position, raw_value)` that supplies its own
     `script_name` + `log_path` (the cloud variant points at a
@@ -192,10 +155,7 @@ def ln_fixed_point(size: int, beta: int) -> list[float]:
     giving the predicted log-norms of Gram-Schmidt vectors at the
     BKZ fixed point, per Li-Nguyen (2020).
 
-    Character-identical to the copies in:
-      scripts/sweep_parallel.py:115
-      scripts/sweep_cloud.py (corresponding line)
-      scripts/q3329_verify.py (corresponding line)
+    Character-identical to the copy in scripts/sweep_parallel.py.
 
     Any edit to the math here MUST preserve equality with the three
     legacy copies until Phase 2 of the v1.2 consolidation removes them.

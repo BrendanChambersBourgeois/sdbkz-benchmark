@@ -41,7 +41,7 @@ _MANIFEST_CACHE: dict = {}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Lattice math (kept in sync with sweep_parallel.py / sweep_cloud.py)
+# Lattice math (kept in sync with sweep_parallel.py)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def ln_fixed_point(size: int, beta: int) -> list[float]:

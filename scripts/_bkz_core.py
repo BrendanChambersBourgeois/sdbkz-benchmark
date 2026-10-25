@@ -1,10 +1,7 @@
 """Canonical BKZ + SD-BKZ per-seed driver.
 
 v1.2 consolidation Phase 5. Factors out the ~150-line `run_single`
-duplicated across `sweep_parallel.py`, `sweep_cloud.py`, and
-`q3329_verify.py` (per the 2026-04-17 code_complexity audit, which
-flagged this as the highest-stakes consolidation target — the q=3329
-silent-clamp incident hid in run_single divergence for 9 days).
+duplicated across `sweep_parallel.py` and `q3329_verify.py`.
 
 The canonical `run_single` here takes every behavioural knob as an
 explicit keyword argument; each legacy script keeps a thin wrapper
@@ -12,7 +9,6 @@ that supplies its own conventions:
 
   caller          q          precision  max_tours              floor    schema-quirk
   sweep_parallel  Q (97)     PRECISION  TOURS_BY_BETA[beta]    plain    store_per_tour key only when True
-  sweep_cloud     q kwarg    p kwarg    TOURS_BY_BETA[beta]    safe     store_per_tour key only when True
   q3329_verify    Q (3329)   PRECISION  MAX_TOURS (import)     safe     store_per_tour key always present
 
 Quirks:
@@ -222,7 +218,7 @@ def run_single(
     """Run BKZ and SD-BKZ on a single (n, beta, seed) lattice.
 
     Returns a result dict matching the schema of the legacy run_single
-    copies. Callers (sweep_parallel, sweep_cloud, q3329_verify)
+    copies. Callers (sweep_parallel, q3329_verify)
     supply their per-script knobs as kwargs.
 
     ``metric_float_type`` gates the MEASUREMENT GSO only (init + per-tour +

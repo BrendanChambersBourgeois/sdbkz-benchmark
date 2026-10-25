@@ -6,7 +6,7 @@
 #
 # Invoke `make help` for the menu.
 
-.PHONY: help reproduce verify bug-hunt manifest manifest-patched lint-manifest xarch-compare vecprobe-membership figs figs-paper2 paper clean node-status node-pull node-push-worklist node-push-config
+.PHONY: help reproduce verify manifest manifest-patched lint-manifest xarch-compare vecprobe-membership figs figs-paper2 paper clean
 
 help:  ## Show this menu
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -20,23 +20,6 @@ verify:  ## Run all CI gates locally (lint_logging, ruff, pytest, verify.sh, lin
 	python3 -m pytest tests/ -v
 	NUM_SEEDS=1 bash scripts/verify.sh
 	python3 scripts/lint_seed_manifest.py
-
-node-status:  ## Live state + recent history from the remote compute node
-	python3 scripts/node_sync.py status
-
-node-pull:  ## Pull new node seeds (never overwrites) + merge its pipeline log
-	python3 scripts/node_sync.py pull
-
-node-push-worklist:  ## Push the steamdeck worklist file (runner re-reads it each loop)
-	python3 scripts/node_sync.py push-worklist
-
-node-push-config:  ## Push config/sweep.toml to the steamdeck (live for the next worklist line)
-	python3 scripts/node_sync.py push-config
-
-bug-hunt:  ## Static tag-driven bug hunt over scripts/ + analysis/ + tests/
-	ctags -R --languages=python --python-kinds=-iv -f .tags \
-	    scripts/ analysis/ tests/
-	python3 scripts/find_bugs_via_tags.py
 
 manifest:  ## Rebuild results/seed_manifest.json from the on-disk tree (byte-stable)
 	python3 scripts/build_seed_manifest.py --deterministic

@@ -1,9 +1,7 @@
-"""Parity tests for scripts/_seed_paths.py.
+"""Path contract for scripts/_seed_paths.py.
 
-Every (campaign, params) combination must produce the same path that
-migrate_seeds_to_new_layout.new_path_for() produces from an equivalent
-manifest entry. That mirrors the one-shot migration, so the two code
-paths stay in lock-step.
+The golden paths below are the layout the published seeds were migrated into;
+a change here moves every reader off the manifest.
 """
 
 import os
@@ -15,101 +13,22 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(HERE), "scripts"))
 
 import _seed_paths as sp  # noqa: E402
-import migrate_seeds_to_new_layout as mig  # noqa: E402
+
+GOLDEN = [
+    ('main', {'n': 100, 'beta': 30, 'seed': 7}, 'results/seeds/main/q97/n100_beta30/seed0007.json'),
+    ('main', {'n': 100, 'beta': 30, 'seed': 7, 'cloud': True}, 'results/seeds/main/q97/n100_beta30/seed0007_cloud.json'),
+    ('q3329', {'n': 100, 'beta': 30, 'seed': 11, 'q': 3329, 'precision': 1000, 'max_tours': 70}, 'results/seeds/q3329/p1000_mt70/n100_beta30/seed0011.json'),
+    ('q3329', {'n': 100, 'beta': 30, 'seed': 56, 'q': 3329, 'precision': 1000, 'max_tours': 70, 'is_fat': True}, 'results/seeds/q3329/p1000_mt70/n100_beta30/seed0056_fat.json'),
+    ('cliff500', {'n': 130, 'beta': 40, 'seed': 1, 'precision': 500, 'max_tours': 100}, 'results/seeds/cliff500/q97/n130_beta40/seed0001.json'),
+    ('fplll_sensitivity', {'n': 100, 'beta': 30, 'seed': 3, 'fplll_version': '5.4.3'}, 'results/seeds/fplll_sensitivity/v5_4_3/q97/n100_beta30/seed0003.json'),
+    ('tours3x', {'n': 60, 'beta': 30, 'seed': 45}, 'results/seeds/tours3x/q97/n060_beta30/seed0045.json'),
+    ('convergence', {'n': 140, 'beta': 30, 'seed': 10, 'max_tours': 500}, 'results/seeds/convergence/q97/n140_beta30_mt500/seed0010.json'),
+]
 
 
-def _entry(**kwargs):
-    """Build a minimal manifest entry for the migrate side."""
-    base = {
-        "campaign": "main",
-        "n": 50, "beta": 20, "seed": 1, "q": 97,
-        "precision": 250, "max_tours": 70,
-        "tags": [],
-    }
-    base.update(kwargs)
-    return base
-
-
-# ---------------- parity vs migrate.new_path_for() ------------------------
-
-
-def test_main_matches_migrate():
-    entry = _entry(n=100, beta=30, seed=7)
-    assert sp.seed_path_for(
-        "main", n=100, beta=30, seed=7,
-    ) == mig.new_path_for(entry)
-
-
-def test_main_cloud_matches_migrate():
-    entry = _entry(n=100, beta=30, seed=7, tags=["cloud"])
-    assert sp.seed_path_for(
-        "main", n=100, beta=30, seed=7, cloud=True,
-    ) == mig.new_path_for(entry)
-
-
-def test_q3329_matches_migrate():
-    entry = _entry(
-        campaign="q3329", n=100, beta=30, seed=11,
-        q=3329, precision=1000, max_tours=70,
-    )
-    assert sp.seed_path_for(
-        "q3329", n=100, beta=30, seed=11,
-        q=3329, precision=1000, max_tours=70,
-    ) == mig.new_path_for(entry)
-
-
-def test_q3329_fat_matches_migrate():
-    entry = _entry(
-        campaign="q3329", n=100, beta=30, seed=56,
-        q=3329, precision=1000, max_tours=70, tags=["fat"],
-    )
-    assert sp.seed_path_for(
-        "q3329", n=100, beta=30, seed=56,
-        q=3329, precision=1000, max_tours=70, is_fat=True,
-    ) == mig.new_path_for(entry)
-
-
-def test_cliff500_matches_migrate():
-    entry = _entry(
-        campaign="cliff500", n=130, beta=40, seed=1,
-        precision=500, max_tours=100,
-    )
-    assert sp.seed_path_for(
-        "cliff500", n=130, beta=40, seed=1,
-        precision=500, max_tours=100,
-    ) == mig.new_path_for(entry)
-
-
-def test_fplll_sensitivity_matches_migrate():
-    entry = _entry(
-        campaign="fplll_sensitivity",
-        n=100, beta=30, seed=3,
-        tags=["v5.4.3"], fplll_version="5.4.3",
-    )
-    assert sp.seed_path_for(
-        "fplll_sensitivity", n=100, beta=30, seed=3,
-        fplll_version="5.4.3",
-    ) == mig.new_path_for(entry)
-
-
-def test_tours3x_matches_migrate():
-    entry = _entry(
-        campaign="tours3x", n=60, beta=30, seed=45,
-        max_tours=None, tags=["3x"],
-    )
-    assert sp.seed_path_for(
-        "tours3x", n=60, beta=30, seed=45,
-    ) == mig.new_path_for(entry)
-
-
-def test_convergence_matches_migrate():
-    entry = _entry(
-        campaign="convergence",
-        n=140, beta=30, seed=10, max_tours=500,
-    )
-    assert sp.seed_path_for(
-        "convergence", n=140, beta=30, seed=10, max_tours=500,
-    ) == mig.new_path_for(entry)
+@pytest.mark.parametrize("campaign, kwargs, expected", GOLDEN)
+def test_golden_paths(campaign, kwargs, expected):
+    assert str(sp.seed_path_for(campaign, **kwargs)) == expected
 
 
 # ---------------- ntru_xarch (cross-architecture regeneration) -----------
