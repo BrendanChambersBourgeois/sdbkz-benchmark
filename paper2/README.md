@@ -22,9 +22,8 @@ SD-BKZ difference while d(LN)/DSD sees it — now cross-engine.
 
 ## Layout
 - `paper2_findings.md` — curated paper-2 results (synthesis + the key
-  numbers). The canonical chronological append-log remains
-  `paper_findings.md` (the §NTRU-tagged entries); this is
-  the organized paper-2 view of it.
+  numbers). Not kept current after 2026-09-27; the
+  manuscript is the current record.
 - `latex/` — the manuscript (`sdbkz_paper2.tex`, bib files, IACR class).
 - `latex/figs/` — paper-2 figures, one module each under `analysis/plots/ntru_*`,
   driven by `analysis/paper2_figures.py`.
@@ -34,5 +33,9 @@ SD-BKZ difference while d(LN)/DSD sees it — now cross-engine.
 - g6k cross-engine cells: `results/seeds/ntru_g6k/`
 - n=127 patched-fplll rerun (inverted-sign patch build; see Appendix B):
   `results/seeds/ntru_patched/`
+- n=127 rerun on `sdbkz-fplll-patched:kahan-v3` (premise withdrawn; see Appendix B):
+  `results/seeds/ntru_patched_kahan_v3/`
+- fplll mirrors of G6K frontier cells (outside the canonical manifest):
+  `results/seeds/ntru_b2/`
 - Cross-engine comparison records: `results/validation/`
 - Metric validity: `docs/ntru_metric_validity.md`. ADRs 005–008 (g6k).

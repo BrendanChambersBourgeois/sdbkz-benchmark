@@ -79,5 +79,6 @@
   },
   "claim_backed": "Paper \u00a78 Section 'Mitigation and Upstream Context': 'A Kahan-compensated subtraction patch ... reduces the degeneracy rate from 38.0% (38/100 unpatched) to 0% (0/55 patched seeds at the same parameters)'. This file evidences the 0/55 half of the claim.",
   "classifier": "degeneracy defined as fplll get_r(i,i) returning a non-positive value at any tour for any i. 0/55 seeds hit this condition; compare to 38/100 (38%) unpatched (q3329_degeneracy_check.json).",
-  "as_of": "2026-04-17"
+  "as_of": "2026-04-17",
+  "withdrawn": "2026-10: the claim this file backed is withdrawn (Paper 2, Appendix A). The probe ran the BKZ leg only (the description above says BKZ/SD-BKZ) and counted get_r <= 0 in a separate 1000-bit MPFR GSO, while the 38/100 baseline was measured in double precision. Measured the same way at 1000 bits, the stock (unpatched) build also gives 0/55 on seeds 1-55, and 21/55 when measured in double. The floors came from the double-precision measurement GSO, not from fplll's reduction, so the patch did not improve on the stock build. The data above is kept unchanged as the record."
 }

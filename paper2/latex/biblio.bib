@@ -1,24 +1,36 @@
 % Paper-2 local references. Shared cryptobib keys (EC:MicWal16 SD-BKZ,
 % EPRINT:LiNgu20 Li-Nguyen, EC:GamNgu08, ...) come from crypto.bib /
 % abbrev3.bib and are NOT redefined here. See reference_lattice_lit memory
-% for the full annotated bibliography; fill DOIs/pages before submission.
+% for the full annotated bibliography.
 
 @inproceedings{DucasWoerden2021,
   author    = {L{\'e}o Ducas and Wessel van Woerden},
   title     = {{NTRU} Fatigue: How Stretched is Overstretched?},
-  booktitle = {ASIACRYPT 2021},
+  booktitle = {Advances in Cryptology -- ASIACRYPT 2021},
+  series    = {LNCS},
+  volume    = {13093},
+  pages     = {3--32},
+  publisher = {Springer},
   year      = {2021},
-  note      = {Defines the circulant NTRU construction and the fatigue point
+  doi       = {10.1007/978-3-030-92068-5_1},
+  note      = {IACR ePrint 2021/999},
+  annote    = {Defines the circulant NTRU construction and the fatigue point
                $q_\mathrm{fat} \approx 0.004\,n^{2.484}$; ZGSA Z-shape profile.}
 }
 
-@article{G6K2019,
-  author  = {Martin R. Albrecht and L{\'e}o Ducas and Gottfried Herold and
-             Elena Kirshanova and Eamonn W. Postlethwaite and Marc Stevens},
-  title   = {The General Sieve Kernel and New Records in Lattice Reduction},
-  journal = {EUROCRYPT 2019; IACR ePrint 2019/089},
-  year    = {2019},
-  note    = {G6K; pump-and-jump BKZ; dual\_mode.}
+@inproceedings{G6K2019,
+  author    = {Martin R. Albrecht and L{\'e}o Ducas and Gottfried Herold and
+               Elena Kirshanova and Eamonn W. Postlethwaite and Marc Stevens},
+  title     = {The General Sieve Kernel and New Records in Lattice Reduction},
+  booktitle = {Advances in Cryptology -- EUROCRYPT 2019, Part II},
+  series    = {LNCS},
+  volume    = {11477},
+  pages     = {717--746},
+  publisher = {Springer},
+  year      = {2019},
+  doi       = {10.1007/978-3-030-17656-3_25},
+  note      = {IACR ePrint 2019/089},
+  annote    = {G6K; pump-and-jump BKZ; dual\_mode.}
 }
 
 @inproceedings{DengJia2023,
@@ -31,7 +43,7 @@
   publisher = {Springer Singapore},
   doi       = {10.1007/978-981-99-9331-4_22},
   year      = {2024},
-  note      = {Conference FCS 2023; proceedings published 2024. Self-dual BKZ
+  annote    = {Conference FCS 2023; proceedings published 2024. Self-dual BKZ
                with a G6K sieve oracle --- closest precedent to the
                cross-engine self-dual construction here.}
 }
@@ -47,8 +59,9 @@
   publisher = {Springer},
   year      = {2021},
   doi       = {10.1007/978-3-030-84245-1_25},
-  note      = {IACR ePrint 2020/1260. Approximate-enumeration oracle reaches
-               the same root Hermite factor (RHF) as exact (RHF-blind, independent).}
+  note      = {IACR ePrint 2020/1260},
+  annote    = {Approximate-enumeration oracle reaches the same root Hermite
+               factor (RHF) as exact (RHF-blind, independent).}
 }
 
 @phdthesis{Rowell2024,
@@ -57,29 +70,33 @@
             Cryptanalysis and {TLS} Attestation},
   school = {Royal Holloway, University of London},
   year   = {2024},
-  note   = {Ch.3: approximate-enum oracles in BKZ; SD-BKZ achieves the same
-            RHF as BKZ under a non-exact oracle (RHF-blind, independent).}
+  annote = {Approximate-enumeration oracles in BKZ; SD-BKZ achieves the same
+            RHF as BKZ under a non-exact oracle.}
 }
 
 @misc{RecursiveReduction2023,
   author = {Divesh Aggarwal and Thomas Espitau and Spencer Peters and
             Noah Stephens-Davidowitz},
-  title  = {Recursive Lattice Reduction},
+  title  = {Recursive Lattice Reduction -- A Framework for Finding Short
+            Lattice Vectors},
   year   = {2023},
-  note   = {arXiv:2311.15064. Abandons RHF for dense-sublattice density;
-            DSP via Rankin --- conceptual cite for the RHF-blind framing.}
+  eprint = {2311.15064},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.DS},
+  annote = {Abandons RHF for dense-sublattice density; DSP via Rankin ---
+            conceptual cite for the RHF-blind framing.}
 }
 
 @misc{Paper1,
   author       = {Brendan Chambers-Bourgeois},
-  title        = {The Root Hermite Factor is Blind: Structural Differences
+  title        = {The Root {Hermite} Factor is Blind: Structural Differences
                   in Lattice Reduction Revealed by the {Li--Nguyen} {Rankin}
                   Profile},
   year         = {2026},
   howpublished = {Zenodo},
   doi          = {10.5281/zenodo.19686927},
   url          = {https://github.com/BrendanChambersBourgeois/sdbkz-benchmark},
-  note         = {Companion paper (paper~1).}
+  annote       = {Companion paper (paper~1).}
 }
 
 @misc{White26,
@@ -88,29 +105,38 @@
   year         = {2026},
   howpublished = {AMSI Summer Research Scholarships 2025--26 student report, Deakin University},
   url          = {https://srs.amsi.org.au/wp-content/uploads/sites/92/2026/03/white_trill_srs-report.pdf},
-  note         = {Student report: reviews the Li--Nguyen dynamic-analysis
+  annote       = {Student report: reviews the Li--Nguyen dynamic-analysis
                   framework and proposes dual-lattice BKZ as a direction for it.}
 }
 
 @inproceedings{DEP2023,
   author    = {L{\'e}o Ducas and Thomas Espitau and Eamonn W. Postlethwaite},
   title     = {Finding Short Integer Solutions When the Modulus is Small},
-  booktitle = {CRYPTO 2023; IACR ePrint 2023/1125},
+  booktitle = {Advances in Cryptology -- CRYPTO 2023, Part III},
+  series    = {LNCS},
+  volume    = {14083},
+  pages     = {150--176},
+  publisher = {Springer},
   year      = {2023},
-  note      = {Z-shape q-ary geometry; Mitaka forgery at $\beta \approx 40$
+  doi       = {10.1007/978-3-031-38548-3_6},
+  note      = {IACR ePrint 2023/1125},
+  annote    = {Z-shape q-ary geometry; the $\beta \approx 40$ regime
                --- matches the $\beta=40$ regime used here.}
 }
 
 @inproceedings{RyanHeninger2023,
   author    = {Keegan Ryan and Nadia Heninger},
   title     = {Fast Practical Lattice Reduction Through Iterated Compression},
-  booktitle = {CRYPTO 2023},
+  booktitle = {Advances in Cryptology -- CRYPTO 2023, Part III},
   series    = {LNCS},
   volume    = {14083},
   pages     = {3--36},
+  publisher = {Springer},
   year      = {2023},
-  note      = {The \textsf{flatter} tool; IACR ePrint 2023/237. Speed-oriented
-               reduction --- cited for scope contrast (structure vs wall-clock).}
+  doi       = {10.1007/978-3-031-38548-3_1},
+  note      = {IACR ePrint 2023/237},
+  annote    = {The \textsf{flatter} tool; speed-oriented reduction --- cited
+               for scope contrast (structure vs wall-clock).}
 }
 
 @misc{Wang2024,
@@ -119,8 +145,28 @@
   howpublished = {Cryptology ePrint Archive, Paper 2024/713},
   year      = {2024},
   url       = {https://eprint.iacr.org/2024/713},
-  note      = {Sandpile-model dynamical analysis of pnj-BKZ; theoretical
+  annote    = {Sandpile-model dynamical analysis of pnj-BKZ; theoretical
                tour-count and Hermite-factor bounds rather than a simulator.
                Cited for the dynamical-systems treatment of the G6K-side
                engine used here.}
+}
+
+@article{DucasLoyer2025,
+  author  = {L{\'e}o Ducas and Johanna Loyer},
+  title   = {Lattice Reduction via Dense Sublattices: A Cryptanalytic No-Go},
+  journal = {IACR Communications in Cryptology},
+  volume  = {2},
+  number  = {3},
+  year    = {2025},
+  doi     = {10.62056/ae0fhsfg}
+}
+
+@inproceedings{KareninKirshanova2024,
+  author    = {Alexander Karenin and Elena Kirshanova},
+  title     = {Finding Dense Submodules with Algebraic Lattice Reduction},
+  booktitle = {Progress in Cryptology -- AFRICACRYPT 2024},
+  series    = {LNCS},
+  publisher = {Springer},
+  year      = {2024},
+  note      = {IACR ePrint 2024/844}
 }

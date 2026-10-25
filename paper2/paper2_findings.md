@@ -1,14 +1,12 @@
 # Paper 2 — curated findings (NTRU SD-BKZ + g6k cross-engine)
 
-Organized paper-2 view of the §NTRU-tagged entries in the canonical
-append-log `paper_findings.md` (which stays the
-append-only chronological source). Numbers below trace to that log + the
-in-repo seed data. Update this file when a paper-2 result lands.
+Curated paper-2 results; numbers trace to the in-repo seed data. Not kept current after 2026-09-27; the manuscript
+`latex/sdbkz_paper2.tex` (including the n≥157 frontier) is the current record.
 
 ---
 
 ## 1. NTRU SD-BKZ advantage has a sharp DIMENSION-ONSET (then a plateau)
-*(paper_findings 2026-06-03; campaign `ntru`, q=97, β=20, 50 tours, 20 seeds/n, full-basis [0,2n) metric)*
+*(campaign `ntru`, q=97, β=20, 50 tours, 20 seeds/n, full-basis [0,2n) metric)*
 
 | n | mean adv | std | seeds>0 | regime |
 |---|----------|-----|---------|--------|
@@ -61,21 +59,36 @@ is threshold-robust. The n-dependent extraction also lands on the 2026-06-04
 curated 146/149, 175/175 (provenance recovered: the "lost" values were the
 n-dependent criterion all along; the discrepancy was the frozen 2.888). All 5 points seed-backed incl. the n=113 endpoint
 (earlier "unreproducible" was an extractor glob bug, p250-only). n=127
-EXCLUDED (fplll §8 cancellation + off-grid crack). DvW crack-vs-fatigue
+EXCLUDED: its 152 seeds carry no exact-recovery field and the cells above
+q=971 hold 3-4 seeds. The flag's ≤25% to q=1811 is a flag artefact, not "no
+crack": b1 has the key's norm on SD 4/4 and BKZ 3/4 legs at q=1811 (SD from
+q=1201). Its 17 floored legs are the −345.388 clamp value of the
+double-precision measurement GSO, not an fplll defect and not cracks
+(CORRECTED 2026-10-11; Paper 2 App. B). DvW crack-vs-fatigue
 formula under-predicts the circulant crack at finite n.
 *(Historical: the 2026-06-04 preliminary table — 146/149, 175/175, 237/281,
 426/514, 732/932 at ~15–20 seeds — is preserved in the canonical append-log.)*
 
 ## 5. §8 Kahan-patch validation #2 — n=127 contamination fixed (new modulus)
-*(2026-06-04; `Dockerfile.fplll_patched`, `results/seeds/ntru_patched/`)*
+*(2026-06-04; `Dockerfile.fplll_patched`, since removed from the tree; `results/seeds/ntru_patched/`)*
 
+> **CORRECTED 2026-10-11.** No fplll fix is shown here or at q=3329: every
+> −345.388 floor is the value written when our double-precision measurement
+> GSO returns r_ii ≤ 0.
+> The 14/100 vs 46/100 q=3329 arms are a measurement effect, so the note below
+> is wrong on "the evidence for the fix" and "a geometric floor remains". The
+> five patched SD-BKZ floors are not cracks: no floored leg anywhere in the
+> corpus has a b1 shorter than squared norm 14,187 (key ≈175) or recovers the
+> key. Stock-vs-patched per-leg differences carry the FMA confound of the
+> -march=x86-64-v3 builds. Paper 2 Appendix B carries this.
+>
 > **CORRECTED 2026-09-27.** This run (like paper 1's 0/55) used the patch whose
 > compensation sign was inverted (inert; see
-> `docs/disclosure/fplll_gso_kahan_findings.md`, 2026-08-13 row), so the
+> Paper 2 Appendix B), so the
 > recoveries below are NOT a validation of Kahan compensation. The evidence for
 > the fix is the paired q=3329 rerun on the corrected build: stored floor 14/100
 > (kahan-v3) vs 46/100 (reorder-only control), McNemar χ²=22.3; a geometric
-> floor remains (paper_findings 2026-09-11). Paper 2 Appendix B carries the
+> floor remains. Paper 2 Appendix B carries the
 > caveat; Appendix A lists all paper-1 corrections. The paragraph below is kept
 > as the original record.
 fplll's §8 catastrophic-cancellation fix (Kahan GSO), first proven on q=3329
@@ -88,7 +101,7 @@ residual contamination: genuine off-grid circulant cracks (resolved
 2026-06-04), collapsed profiles bottom out at the clamp floor. Patch
 validated on 2 modulus families; `make check` 15/15.
 
-## 6. g6k cross-engine extension (Phase 4) — IN PROGRESS
+## 6. g6k cross-engine extension (Phase 4)
 *(2026-06-04/05; ADRs 005–008, `results/seeds/ntru_g6k/`, `results/validation/`)*
 - g6k wired as a second reduction engine (engine seam, self-dual pump-BKZ
   validated vs fplll SD_VARIANT). Both determinism + SD-semantics gates clear.
@@ -96,7 +109,7 @@ validated on 2 modulus families; `make check` 15/15.
   difference, d(LN)/DSD sees it — but **regime-dependent** (breaks only when
   SD finds a short vector). Lines up with Rowell (RHF-equal under a non-exact
   oracle; we measure past it).
-- **g6k self-dual construction validated sound** (INC-41 resolved): at
+- **g6k self-dual construction validated sound**: at
   n=101/113 g6k and fplll agree perfectly; the n=89 short-vector events are
   real-but-sparse, corroborated by fplll (seed 19 exact gs[0]=2.332 match).
 - **Phase 4b RESOLVED (2026-06-06/08, supersedes the b1-only "gap reproduces"
@@ -121,12 +134,13 @@ validated on 2 modulus families; `make check` 15/15.
   fplll-only 1), 0 degenerate profiles.
   (`results/validation/sieve_vs_enum_min_gs_clearing.json`.)
 
-## Open / next
+## Open / next (superseded by the manuscript)
 - Onset-window fill q∈{191,193,197,199} (running on WSL2) → sharpen the
   ~196–211 onset band in the §5 null.
 - n=89 β=40 densify to N=100 across all q + n=101 β=40 onset bracket
   (48h chain, running).
-- n=127 crack is off-grid (uncracked to q≈1811); patched rerun (inverted-sign
+- n=127: flag ≤25% to q≈1811, but b1 = key norm from q=1201 (SD) and
+  q=1637 (BKZ) on 3-4 seed cells (CORRECTED 2026-10-11); patched rerun (inverted-sign
   build, see §5 correction) is a numerical case study, not a validation and not
   re-inclusion in the trend. n=127 is also dropped from the phase-map figure.
 - Cite: Ducas-Espitau-Postlethwaite (β=40 + Z-shape geometry),

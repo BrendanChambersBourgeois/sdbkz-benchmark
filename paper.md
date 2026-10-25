@@ -35,7 +35,7 @@ distance to the Li–Nguyen fixed-point Rankin profile, d(LN)
 [@EPRINT:LiNgu20], as the primary observable. It ships two reduction engines
 behind a common seam — fplll's exact enumeration oracle [@fplll; @fpylll] and
 the G6K sieve kernel [@EC:ADHKPS19] — together with campaign runners,
-SHA-256 seed manifests indexing 13,549 fplll and 3,014 G6K runs, an analysis
+SHA-256 seed manifests indexing 13,693 fplll and 3,034 G6K runs, an analysis
 package that regenerates every figure and table of the accompanying technical
 report [@zenodo], and a CI pipeline that rebuilds the container and checks
 reference outputs on every commit.
@@ -62,9 +62,9 @@ are sensitive to floating-point behaviour at cryptographically relevant moduli.
 3. **Adversarial numerical hygiene.** Defensive clamps must log the raw value
    they replace to an append-only side-log (`results/clamp_events.jsonl`,
    kept locally and available on request), a policy adopted after a silent
-   clamp masked a genuine library bug. This
-   discipline led to the isolation of a catastrophic-cancellation defect in
-   fplll's Gram–Schmidt recurrence (below).
+   clamp hid negative Gram–Schmidt values for nine days. The logged values
+   later traced a published degeneracy to the harness's own double-precision
+   measurement rather than to the reduction library (below).
 
 The target audience is researchers in lattice cryptanalysis and concrete
 security estimation who need trustworthy empirical baselines, and developers
@@ -81,7 +81,7 @@ capture variant-level differences such as BKZ versus SD-BKZ. Published
 experimental comparisons typically report RHF summaries on small seed counts
 and rarely release per-seed artifacts. To our knowledge no existing package
 offers a manifest-gated, CI-checked, multi-engine corpus of full-profile
-reduction trajectories at this scale (16,545 hash-indexed seeds across
+reduction trajectories at this scale (16,727 hash-indexed seeds across
 LWE-Kannan and NTRU families).
 
 # Software design
@@ -119,16 +119,12 @@ The benchmark is the artifact behind a Zenodo-published technical report
 [@zenodo] whose headline methodological finding — that RHF differences below
 $10^{-6}$ coexist with profile-level effect sizes up to Cohen's d = 9.6 across
 4,500+ LWE-Kannan seeds — depends directly on the software's profile-level
-observables. Its numerical-hygiene tooling isolated a previously unreported
-catastrophic-cancellation bug in fplll's squared-form GSO recurrence that
-degrades 38% of bases at q = 3329, n = 100, β = 30 even at 1000-bit MPFR
-precision. The repository ships a Kahan-compensated patch (fplll PR #550,
-closed unmerged) that lowers but does not remove the degeneracy (14/100 versus
-46/100 for a reorder-only control on the same seeds, McNemar χ² = 22.3); the
-unpatched corpus and both arms serve as a regression suite for
-reduction-library developers. An in-progress second report extends the corpus
-to circulant NTRU and cross-engine (enumeration versus sieving) comparisons;
-all of its raw data is already public in this repository. The committed
+observables. Exact trajectory replays with the same tooling are correcting the
+report's q = 3329 finding: the degeneracy it attributed to fplll (38% of bases
+at n = 100, β = 30) comes from measuring the Gram–Schmidt profile in double
+precision (Gram condition number 2^55 to 2^59 at dimension 301). The 1000-bit
+reduction is clean and the same bases measured at 1000 bits have no degenerate
+positions, so no fplll defect was shown. The committed
 corpus, crosswalk of historical paths, and dual-licensed data (MIT code, CC-BY
 4.0 data) are designed for third-party reuse in estimator calibration and
 simulator validation.
