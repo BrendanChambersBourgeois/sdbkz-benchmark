@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """CI lint: every committed entry-point script must emit through
-scripts/log.py to logs/pipeline.jsonl per CLAUDE.md §16.
+scripts/log.py to logs/pipeline.jsonl.
 
 Heuristic: a file under scripts/ or analysis/ is an "entry point" if
 it has either `def main(` or `if __name__ == "__main__"`. Library
@@ -120,7 +120,7 @@ def main():
         for rel in failures:
             print(f"  {rel}")
         print()
-        print("Per CLAUDE.md §16, every committed script must emit through")
+        print("Every committed script must emit through")
         print("scripts/log.py to logs/pipeline.jsonl. Add at the top:")
         print()
         print("    from log import get_logger")

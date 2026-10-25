@@ -7,7 +7,7 @@ file's (n, beta, seed, q, precision, max_tours) tuple, computes the
 SHA-256, validates the schema (required keys present, advantage finite,
 status == "completed"), and writes a single authoritative manifest.
 
-Design reference: Research/backlog/2026-04-18_seed_consolidation.md,
+Layout reference: docs/seed_manifest_schema.md,
 section "Manifest". The manifest is the source of truth for the v1.3+
 analysis loader. Seeds that fail verification are listed in the run
 summary but NEVER land in the manifest — the "verify-gated append"

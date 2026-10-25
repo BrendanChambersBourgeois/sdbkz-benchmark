@@ -2,7 +2,7 @@
   "validation": "ballout_20260607_byte_identity",
   "date": "2026-06-08",
   "status": "PASS -- WSL2-produced ball-out seeds are byte-identical (science fields) to a fresh re-derivation in the gate-pinned image. Certified load-bearing for paper2.",
-  "artifact": "Research/ops/wsl_ballout_seeds_20260607.tar.gz (1858 delta seeds, 57 ntru beta=20 cells n=67/79/89/101/113)",
+  "artifact": "offline archive (1858 delta seeds, 57 ntru beta=20 cells n=67/79/89/101/113)",
   "provenance": {
     "platform": "WSL2 (Ubuntu-24.04 on Win11, i9-13900K). Initial host-side distro teardowns (idle + client-disconnect, see ops/wsl_crash_analysis_20260607.md) were FIXED (vmIdleTimeout=-1 + persistent keepalive client); full 1858-seed pool then ran clean to completion over ~1 day via run_packed.py.",
     "image": "sdbkz-benchmark:ci (gate-pinned base python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c; image id 55f4c5b55ac7)",

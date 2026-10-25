@@ -35,7 +35,7 @@ handoff/
 .pytest_cache/
 .ipynb_checkpoints/
 
-# Claude Code local config + caveman backups — not for the image
+# local editor and assistant config, not for the image
 .claude/
 CLAUDE.md
 *.original.md

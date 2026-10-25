@@ -341,7 +341,7 @@ def _dispatch_fplll_image(campaign: Campaign, *args: Any, **kwargs: Any) -> int:
     return 2
 
 
-# Canonical defensive-clamp side log (CLAUDE.md: log the raw get_r before
+# Canonical defensive-clamp side log (log the raw get_r before
 # the 1e-300 substitution; never mutate the per-seed JSON). Shared with the
 # sweep/verify scripts. A module-level wrapper so it pickles for the pool.
 _CLAMP_LOG_FILE = os.path.join(REPO_ROOT, "results", "clamp_events.jsonl")
@@ -404,8 +404,8 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
     if os.path.exists(out):
         if _resume_skip_valid(out):
             return (n, beta, seed, None, "skip")
-        # Corrupt/unparseable seed JSON: quarantine aside (never delete data --
-        # CLAUDE.md) and fall through to regenerate. Without this an existence-
+        # Corrupt/unparseable seed JSON: quarantine aside (never delete data)
+        # and fall through to regenerate. Without this an existence-
         # only skip wedges the cell forever: the file is never regenerated and
         # every verdict read fails on it.
         # The rename itself can fail (read-only dir, ENOSPC); contain it to

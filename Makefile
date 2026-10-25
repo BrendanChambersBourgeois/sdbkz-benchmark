@@ -1,10 +1,6 @@
 # BKZ Dynamical Systems Benchmark — Makefile
 #
-# Single-command wrappers around the existing scripts. Every target below
-# is a thin shell over a committed script — see CONTRIBUTING.md for the
-# underlying invocations.
-#
-# Invoke `make help` for the menu.
+# Single-command wrappers around the committed scripts. `make help` lists them.
 
 .PHONY: help reproduce verify manifest manifest-patched lint-manifest xarch-compare vecprobe-membership figs figs-paper2 paper clean
 

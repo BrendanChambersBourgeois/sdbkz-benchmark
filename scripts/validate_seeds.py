@@ -353,7 +353,7 @@ class SeedValidator:
         #       swapped), stays bounded ≪ crack region, control clean, and NO
         #       seed persisted-unchanged (the structural-stop signal never fired).
         #       → numerical, mirrors the q=3329 accumulated-cancellation path.
-        #       Incident-logged (id=45), never silenced (CLAUDE.md / q3329 rule:
+        #       Incident-logged (id=45), never silenced (q3329 rule:
         #       log the raw value, don't suppress). CAVEAT: 4a tested the LOW end
         #       (~0.1-0.15); the 1-10 band rides the same verdict by continuity,
         #       and tagging (not threshold-raising) keeps every nonzero Δ visible.

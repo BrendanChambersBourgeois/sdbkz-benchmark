@@ -26,7 +26,7 @@ Allowlist for orphan scan:
   - summary_*.json under any results/ subdir
   - results/3x_tours/n60_beta30_seed{1..10}.json (10 legacy pilot
     seeds with no `q` field — superseded by the 500-seed extended
-    campaign; kept on disk per CLAUDE.md data-preservation rule)
+    campaign; kept on disk per the data-preservation rule)
   - symlinks at pre-v1.3 paths (transition aid through v1.4)
 
 Exit codes:

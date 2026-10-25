@@ -42,7 +42,7 @@ white_trill_srs-report.pdf
 # Example outputs (generated PNGs)
 results/summary.json
 
-# Claude Code local config (not for repo)
+# local assistant config, not for the repo
 CLAUDE.md
 .claude/
 compile_*.sh

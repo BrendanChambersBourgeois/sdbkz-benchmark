@@ -41,7 +41,7 @@ jobs:
       - name: Lint (ruff) — style + dead-import drift
         run: ruff check scripts/ analysis/ tests/
 
-      - name: Lint centralised logging coverage (CLAUDE.md)
+      - name: Lint centralised logging coverage
         run: python3 scripts/lint_logging.py
 
       - name: Guard — no un-allowlisted new top-level dirs

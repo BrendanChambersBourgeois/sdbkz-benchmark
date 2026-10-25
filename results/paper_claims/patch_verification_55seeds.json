@@ -1,6 +1,6 @@
 {
   "description": "Post-Kahan-patch get_r pathology probe. For each seed, runs BKZ/SD-BKZ at (n=100, \u03b2=30, q=3329, MPFR=1000 bits, 40 tours) against fplll+fpylll rebuilt with patches/fplll_gso_kahan.patch applied, and watches whether fplll's MatGSO::get_r ever returns a non-positive value (the signature of the Cholesky-style squared-form GSO cancellation documented in paper \u00a78).",
-  "source_data": "Research/_archives/investigations/q3329_mgs_investigation_2026-04-10/patched_55seed_results.json (2026-04-10)",
+  "source_data": "offline archive (2026-04-10)",
   "config": {
     "n": 100,
     "q": 3329,
