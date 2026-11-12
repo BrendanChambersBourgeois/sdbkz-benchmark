@@ -1,9 +1,10 @@
-"""Figure 13: q=3329 fplll Gram-Schmidt cancellation.
+"""Figure 12: q=3329, n=100, β=30 as first published.
 
-Three panels: q=97 reference distribution at the n=100 β=30 peak, the
-q=3329 distribution showing the bimodal clean/degenerate failure mode
-(100 seeds: 10 cloud + 45 primary + 45 secondary machine), and an
-example per-tour trajectory of one degenerate seed.
+Three panels: the q=97 reference distribution at n=100 β=30, the q=3329
+distribution (100 seeds) split by whether the double-precision
+measurement GSO hit its floor, and the per-tour trajectory of one
+floored seed. The floors are a property of the double measurement, not
+of the reduction; measured at 1000 bits all 100 seeds are clean.
 """
 import os
 
@@ -15,11 +16,11 @@ from .._style import COLORS
 
 
 def fig_q3329_degeneracy(groups, output_dir="."):
-    """Three-panel figure showing the q=3329 fplll cancellation.
+    """Three-panel figure of the q=3329 data as measured in double.
 
-    (a) q=97 distribution at n=100 β=30: 100 seeds, tight cluster
-    (b) q=3329 distribution at n=100 β=30: 100 seeds, bimodal failure
-    (c) Per-tour d(LN) trajectory for one degenerate seed showing the spike
+    (a) q=97 distribution at n=100 β=30
+    (b) q=3329 distribution at n=100 β=30: 100 seeds, by measurement floor
+    (c) Per-tour d(LN) trajectory of one floored seed
 
     Args:
         groups: Output of load_all_seeds() (used for q=97 group only).
@@ -32,28 +33,25 @@ def fig_q3329_degeneracy(groups, output_dir="."):
         return
     q97_advs = np.array([s["advantage"] for s in q97_seeds])
 
-    # q=3329: v1.3 manifest query for the n=100 β=30 p=1000 mt=70
-    # campaign (paper §8 headline 100-seed dataset, 10 AWS-Batch +
-    # 45 Intel 13900K + 45 AMD 9950X3D). Dedup by (n, β, seed) with
-    # non-cloud preference mirrors the legacy raw/cloud-first globber
-    # behaviour; fat companions skipped by default.
+    # q=3329: manifest query for the n=100 β=30 p=1000 mt=70 cell.
+    # Dedup by (n, β, seed) with non-cloud preference; fat companions
+    # skipped by default.
     q3329_groups = load_all_seeds(
         campaign="q3329", n=100, beta=30, q=3329,
         precision=1000, max_tours=70,
     )
-    q3329_seeds = q3329_groups.get((100, 30), [])
+    # The paper's cell is seeds 1-100. The manifest cell also holds
+    # seed 101, a later single-seed probe that is not part of it.
+    q3329_seeds = [s for s in q3329_groups.get((100, 30), [])
+                   if 1 <= s["seed"] <= 100]
     if not q3329_seeds:
         print("  No q=3329 n=100 β=30 data available")
         return
 
-    # Degeneracy detection threshold. A clamp from get_r returning ≤ 0
-    # substitutes 1e-300, giving log(1e-300) ≈ −690 nats. Clean seeds
-    # stay within a few nats of zero across all positions. −100 nats is
-    # well below any legitimate value and well above any clamped one, so
-    # the threshold is not sensitive to the exact magnitude.
-    # A more robust alternative is to read results/clamp_events.jsonl,
-    # the side log emitted by scripts/sweep_parallel.py's _log_clamp
-    # helper whenever get_r returns a non-positive value.
+    # Measurement-floor threshold. When the double-precision measurement
+    # GSO returns r_ii ≤ 0 the stored log-norm is the floor −345.388.
+    # Unfloored log-norms stay within a few nats of zero, so −100 nats
+    # separates the two and is not sensitive to the exact magnitude.
     DEGENERACY_THRESHOLD_LN = -100.0
 
     q3329_data = []
@@ -87,16 +85,15 @@ def fig_q3329_degeneracy(groups, output_dir="."):
     ax_a.set_title(f"(a) q=97, n=100, $\\beta$=30 ({len(q97_advs)} seeds)")
     ax_a.legend(fontsize=9, loc="upper left")
     ax_a.text(0.97, 0.95,
-              "win rate: 100%\n0% degenerate",
+              "win rate: 100%",
               transform=ax_a.transAxes, fontsize=9, ha="right", va="top",
               family="monospace",
               bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85))
 
-    # Panel (b) — q=3329 distribution showing bimodal failure
+    # Panel (b) — q=3329 distribution, split by measurement floor
     clean = [d["advantage"] for d in q3329_data if not d["is_degen"]]
     degen = [d["advantage"] for d in q3329_data if d["is_degen"]]
     n_total = len(q3329_data)
-    n_degen = len(degen)
 
     if degen:
         bins = np.linspace(min(min(degen), -10) - 5, max(max(degen), 10) + 5, 25)
@@ -105,29 +102,18 @@ def fig_q3329_degeneracy(groups, output_dir="."):
 
     ax_b.hist(clean, bins=bins, color=COLORS["sdbkz"], alpha=0.75,
               edgecolor="white", linewidth=0.5,
-              label=f"recovered ({len(clean)})")
+              label=f"no measurement floor ({len(clean)})")
     ax_b.hist(degen, bins=bins, color="#dc2626", alpha=0.75,
               edgecolor="white", linewidth=0.5,
-              label=f"degenerate ({len(degen)})")
+              label=f"measurement floor ({len(degen)})")
     ax_b.axvline(0, color="red", linewidth=1.2, linestyle="--", alpha=0.8)
     ax_b.set_xlabel("SD-BKZ advantage (nats)")
     ax_b.set_ylabel("Count")
     ax_b.set_title(f"(b) q=3329, n=100, $\\beta$=30 ({n_total} seeds, "
-                   f"1000-bit MPFR)")
+                   f"measured in double)")
     ax_b.legend(fontsize=9, loc="upper left")
 
-    if clean:
-        clean_mean = np.mean(clean)
-        clean_win = sum(1 for a in clean if a > 0)
-        ax_b.text(0.97, 0.95,
-                  f"recovered mean: {clean_mean:+.3f}\n"
-                  f"recovered win:  {clean_win}/{len(clean)}\n"
-                  f"degenerate:     {n_degen}/{n_total} ({n_degen/n_total*100:.0f}%)",
-                  transform=ax_b.transAxes, fontsize=9, ha="right", va="top",
-                  family="monospace",
-                  bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85))
-
-    # Panel (c) — per-tour trajectory of one degenerate seed
+    # Panel (c) — per-tour trajectory of one floored seed
     if q3329_data:
         degen_seeds = [d for d in q3329_data if d["is_degen"]]
         if degen_seeds:
@@ -142,14 +128,12 @@ def fig_q3329_degeneracy(groups, output_dir="."):
                          alpha=0.7, label="Spike threshold (20 nats)")
             ax_c.set_xlabel("Tour")
             ax_c.set_ylabel("d(LN) (nats)")
-            ax_c.set_title(f"(c) Per-tour trajectory of a degenerate seed "
-                           f"(seed {best['seed']}): "
-                           f"d(LN) spikes when one Gram-Schmidt vector "
-                           f"collapses to numerical zero")
+            ax_c.set_title(f"(c) Per-tour d(LN) of a floored seed "
+                           f"(seed {best['seed']}), measured in double")
             ax_c.legend(fontsize=9, loc="upper left")
 
-    fig.suptitle("fplll Gram-Schmidt cancellation at q=3329: a numerical "
-                 "instability absent from q=97",
+    fig.suptitle("q=3329, n=100, $\\beta$=30 as first published "
+                 "(double-precision measurement)",
                  fontsize=14, y=0.995)
     path = os.path.join(output_dir, "q3329_degeneracy.png")
     fig.savefig(path, bbox_inches="tight")
