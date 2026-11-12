@@ -42,6 +42,21 @@
    "retired_reason": "The g6k binary compiled AVX2/FMA (labelled v3, then a no-op 'v2' that was still AVX2) and SIGILLed on v2-only GitHub CI runners. Fixed 2026-08-14 by --disable-native so the build is genuinely x86-64-v2. The probe SHAs are ISA-invariant so this value never actually changed; retained for provenance of the label history only."
   }
  },
+ "ntru_golden": {
+  "generator": "ntru",
+  "n": 67,
+  "q": 97,
+  "beta": 40,
+  "seed": 1,
+  "tours": 10,
+  "precision": 250,
+  "threads": 1,
+  "science_sha256_by_isa": {
+   "v2": "cc7e6aaba314c9c413b849b20bc9a4f6f6fb27341dfe82bd5f21c1cd4e2df6b2",
+   "v3": "2b2ab3ab4d43be5d7acc46aba67a9345c328d37efc2feef299f4ab643aa2bcf1"
+  },
+  "note": "Multi-tour NTRU seed run by scripts/g6k_probe.py --ntru-golden; _seed_hash.science_hash of the result. Unlike the one-tour reference probe it differs between the v2 and v3 builds of Dockerfile.g6k (ARG ISA). The v3 run equals results/seeds/ntru_g6k/q97/p250_mt10/n067_beta40/seed0001.json on every field that seed stores."
+ },
  "seeds": [
   {
    "path": "results/seeds/ntru_g6k/q97/p250_mt10/n067_beta40/seed0001.json",
