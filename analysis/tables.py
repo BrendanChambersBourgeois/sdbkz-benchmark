@@ -73,7 +73,7 @@ def table_statistics(groups, min_seeds=10):
         delta = cliffs_delta(advs)
         _, p_t = scipy_stats.ttest_1samp(advs, 0)
         try:
-            _, p_w = scipy_stats.wilcoxon(advs, alternative="greater")
+            _, p_w = scipy_stats.wilcoxon(advs)
         except Exception:
             p_w = None
         raw_rows.append({

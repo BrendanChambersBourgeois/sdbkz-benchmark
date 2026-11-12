@@ -89,7 +89,7 @@ def compute_stats(advantages):
     # (non-parametric, doesn't assume normality)
     if n_seeds >= 10:
         try:
-            w_stat, p_wilcoxon = scipy_stats.wilcoxon(adv, alternative='greater')
+            w_stat, p_wilcoxon = scipy_stats.wilcoxon(adv)
             result['w_stat'] = w_stat
             result['p_wilcoxon'] = p_wilcoxon
         except Exception:
