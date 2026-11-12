@@ -1,6 +1,6 @@
 # Docker images: tag → recipe
 
-Every image tag named in `config/sweep.toml`, the worklists or the scripts,
+Every image tag named in `config/sweep.toml` or the scripts,
 the Dockerfile and build args that produce it, and the `make` target that
 rebuilds it. The targets only build; nothing runs a container.
 
@@ -22,6 +22,9 @@ pushed, so `RepoDigests` is empty and the image ID is the identifier to record.
 | `sdbkz-fplll-patched:reorder-control` | `Dockerfile.fplll_patched` (removed from tree, see note 2) | `GSO_PATCH=patches/fplll_gso_reorder_control.patch` (removed from tree) | none (see note 2) | `Dockerfile.fplll_patched` at `e4c38ba0` |
 | `sdbkz-fplll54` | `Dockerfile.fplll54` | none | `image-fplll54` | HEAD recipe |
 | `sdbkz-fplll-patched:val2` | `Dockerfile.fplll_patched` (removed from tree, see note 2) | default `GSO_PATCH` at the time | none (retired) | see note 2 |
+
+`Dockerfile.fplll_legacy` (fplll 5.4.3–5.4.5 sensitivity recipe) has no tag in
+the config and no make target.
 
 Build args were read back from `docker history` of the local images where
 the image still exists (`dim384-inc63`, `kahan-v3`, `reorder-control`,

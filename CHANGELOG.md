@@ -10,6 +10,14 @@ User-visible changes per version. Seed counts are manifest totals.
 - CONTRIBUTING: `make verify` step list.
 - Paper 1: β=40 peak stated as n=100–110, measured compute premium, RHF table cells, test labels and outlier-seed counts corrected.
 - Paper 2: four sentences reworded to match the per-key counts and the β=50 ladders.
+- Paper 1: peak ordering across block sizes, cliff steepness, dip location, extra-tour gap and q=3329 range reworded to match the stored seeds; rounding and standard-deviation convention aligned with the tables.
+- Paper 2: Figure caption seed counts for the exact-recovery brackets.
+- `analysis/tables.py`, `analysis/stats_analysis.py`: Wilcoxon test is two-sided, as the paper states.
+- 2.1.0 notes: the JOSS draft (`paper.md`, `paper.bib`) and the `[cloud]` extra were added and removed before the release and are not in it; `boto3` is no longer a dependency.
+- 2.1.0 notes: the CI `validate_seeds` list covers every seed tree except `ntru_flatter` (deferred); `tours3x` is checked non-strict.
+- README results table states its seed range (seeds 1–100; the paper's tables use all 122 in four cells).
+- `docs/seed_manifest_schema.md`: example rollup, pinned timestamps, side manifest and crosswalk text match the tree.
+- `docs/images.md`: worklists reference dropped; `Dockerfile.fplll_legacy` listed.
 
 ## [2.1.0] — 2026-11-12
 

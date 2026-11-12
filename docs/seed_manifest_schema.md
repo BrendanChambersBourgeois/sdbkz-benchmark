@@ -1,33 +1,33 @@
 # Seed manifest schema reference
 
-`results/seed_manifest.json` is the single authoritative index over every seed file in the `results/seeds/<campaign>/` tree except the trees listed in `NON_MANIFEST_SEED_TREES` (`scripts/lint_seed_manifest.py`); `ntru_g6k` and the patched-fplll trees have their own manifests. This doc is the schema reference — if you're writing analysis code that queries the manifest, this is the field-by-field contract.
+`results/seed_manifest.json` is the single authoritative index over every seed file in the `results/seeds/<campaign>/` tree except the trees listed in `NON_MANIFEST_SEED_TREES` (`scripts/lint_seed_manifest.py`); `ntru_g6k` and the patched-fplll trees have their own manifests, and the auxiliary trees (reruns, probes, controls) are indexed in `results/side_seed_manifest.json`. This doc is the schema reference — if you're writing analysis code that queries the manifest, this is the field-by-field contract.
 
 ADR-002 ([`docs/design_decisions.md`](design_decisions.md)) covers *why* the manifest exists. This doc covers *what it contains.*
 
 ## Top-level layout
 
-Example (illustrative; `generated_utc` and per-entry timestamps drift on every rebuild and carry no scientific meaning):
+Example (`generated_utc` and per-entry `verified_at_utc` are pinned by `make manifest` and carry no scientific meaning):
 
 ```json
 {
   "schema_version": 1,
-  "generated_utc": "2026-04-18T12:50:44Z",
+  "generated_utc": "1970-01-01T00:00:00Z",
   "results_root": "results",
   "campaigns": {
-    "ntru":              { "total_seeds": 6740, "tags": [],                         "q_values": [97, 113, "...", 5869] },
+    "ntru":              { "total_seeds": 9848, "tags": [],                         "q_values": [97, 113, "...", 7177] },
     "main":              { "total_seeds": 3593, "tags": ["cloud"],                 "q_values": [97] },
-    "q3329":             { "total_seeds":  353, "tags": ["cloud", "degenerate", "fat", "intermediate"], "q_values": [3329] },
+    "q3329":             { "total_seeds":  353, "tags": ["fat"],                   "q_values": [3329] },
     "tours3x":           { "total_seeds":  500, "tags": ["3x"],                    "q_values": [97] },
-    "convergence":       { "total_seeds":  340, "tags": ["test"],                  "q_values": [97] },
+    "convergence":       { "total_seeds":  340, "tags": [],                         "q_values": [97] },
     "cliff500":          { "total_seeds":   20, "tags": [],                         "q_values": [97] },
-    "fplll_sensitivity": { "total_seeds":   15, "tags": ["v5.4.3", "v5.4.4", "v5.4.5"], "q_values": [97] }
+    "fplll_sensitivity": { "total_seeds":   15, "tags": [],                         "q_values": [97] }
   },
   "seeds": [ <entry>, <entry>, ... ]
 }
 ```
 
 - `schema_version` — integer. Bumps only on breaking structural change. v1.3.x uses version 1.
-- `generated_utc` — when `build_seed_manifest.py` last rebuilt. Drifts on every rebuild; not data-meaningful.
+- `generated_utc` — when `build_seed_manifest.py` last rebuilt; pinned to `1970-01-01T00:00:00Z` under `--deterministic` (`make manifest`). Not data-meaningful.
 - `results_root` — relative path from repo root to the seed tree's parent. Always `"results"` in v1.3.x.
 - `campaigns` — per-campaign rollup. `total_seeds` counts every entry in `seeds` for that campaign (lean + fat, cloud + local, across all precision buckets); `tags` is the union of every tag that appears on any entry; `q_values` is the set of distinct `q` values.
 - `seeds` — flat list of entries, sorted by `(campaign, q, n, beta, seed, tags)`.
@@ -154,24 +154,23 @@ Exit codes: 0 clean, 1 violation, 2 manifest missing / parse error / unreadable.
 ## Rebuilding
 
 ```bash
-python3 scripts/build_seed_manifest.py
+make manifest    # python3 scripts/build_seed_manifest.py --deterministic
 ```
 
 - Reads every file under `results/seeds/` (native v1.3 walker) + every file under the legacy `CAMPAIGN_DIRS` list (follows symlinks and dedup via `os.path.realpath`).
 - Writes `results/seed_manifest.json` atomically via `.tmp + rename`.
-- ~2 seconds on 4,400+ seeds with NVMe; ~5 seconds on spinning disk.
 
-Re-running on an unchanged tree produces a byte-identical manifest except for `generated_utc` and each entry's `verified_at_utc`. Data fields (`sha256`, `advantage`, `path`, etc.) are deterministic.
+Re-running `make manifest` on an unchanged tree produces a byte-identical manifest. Without `--deterministic`, `generated_utc` and each entry's `verified_at_utc` take the build time; data fields (`sha256`, `advantage`, `path`, etc.) are deterministic either way.
 
 ## Crosswalk CSV
 
-`results/seed_path_crosswalk.csv` records every old-path → new-path mapping from the v1.3.0 physical migration (commit `ac52379`). 4,387 rows + header, schema:
+`results/seed_path_crosswalk.csv` records every old-path → new-path mapping from the v1.3.0 physical migration. 4,387 rows + header, schema:
 
 ```
 old_path,new_path,sha256,campaign,n,beta,seed,is_fat,size_bytes
 ```
 
-Purpose: permanent record for paper-era SHA-256 receipts (`hash_verification.txt` cites pre-v1.3 `results/raw/...` paths). When the back-compat symlinks drop at v2.0.0, the crosswalk becomes the canonical reconciler between paper-cited paths and the v2 layout.
+Purpose: permanent record for paper-era SHA-256 receipts (`hash_verification.txt` cites pre-v1.3 `results/raw/...` paths). The back-compat symlinks were removed at v2.0.0; the crosswalk is the canonical reconciler between paper-cited paths and the v2 layout.
 
 ## Not in scope here
 

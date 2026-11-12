@@ -36,10 +36,10 @@ Other entry points: `make help` lists the targets; `python3 scripts/run_campaign
 | n=140 | 22% win | 32% win, mean −0.036 | 0% win, mean −1.452 |
 | n=150 | 12% win | 0% win, mean −0.395 | 0% win, mean −1.292 |
 
-Win = SD-BKZ ends closer to the fixed point; d = Cohen's d; mean in nats. The four variance-filled cells carry 122 seeds. Full tables with CIs and p-values are in the paper.
+Win = SD-BKZ ends closer to the fixed point; d = Cohen's d; mean in nats. The table uses seeds 1–100; the four variance-filled cells carry 122 seeds, which the paper's tables use (n=100 β=40: d=9.60, mean +1.169). Full tables with CIs and p-values are in the paper.
 
 - **β=30 inverted U:** peak at n=100 (+1.346), declining to −0.395 at n=150.
-- **β=40 cliff:** 100% win through n=110, 44% at n=120, 0% from n=130. β=40's peak is not resolvable between n=100 and n=110 (122 seeds each, bootstrap CI of the difference [−0.032, +0.043]); Paper 1's "n=110" is superseded.
+- **β=40 cliff:** 100% win through n=110, 44% at n=120, 0% from n=130. β=40's peak is not resolvable between n=100 and n=110 (122 seeds each, bootstrap CI of the difference [−0.032, +0.043]).
 - **β/n ≈ 0.20:** below this ratio the advantage fades and reverses.
 - **Convergence is regime-dependent:** at n=90 β=30 SD-BKZ keeps gaining to tour 500 (+0.92 to +1.33); at n=140 β=30 BKZ wins at full convergence.
 - **3× tours do not close the gap:** BKZ at 210 tours never matches SD-BKZ at 70 (0/400 at β=30, n=50–80).
