@@ -1,32 +1,32 @@
 {
   "by_status": {
-    "DERIVED": 4,
+    "DERIVED": 7,
     "POINTER": 28,
-    "RECOMPUTED": 87
+    "RECOMPUTED": 99
   },
   "description": "Paper-2 \u00a76-\u00a77 claim -> source -> method -> verified-value ledger (deep-audit finding 6). See scripts/build_paper2_claims.py.",
   "generated_utc_epoch": 0.0,
   "guard_invariant": true,
-  "n_match": 119,
-  "n_records": 119,
+  "n_match": 134,
+  "n_records": 134,
   "records": [
     {
       "claim_id": "bootstrap_ci_n101_fplll_rate_gap",
       "match": true,
-      "method": "per-cell nonparametric bootstrap (each q-cell resampled independently, SD/BKZ paired within cell), B=10000, rng_seed=20260710; estimand=SD-BKZ onset percent gap; per resample recompute both 50%-onsets via unrounded _interp_onset over the 14 full-seed q-cells; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
-      "note": "point est +9.098 vs tex +9.00 (percent); CI [+6.059,+11.117] vs tex [+6.10,+11.10]. 40 seeds/cell over q=[127, 149, 181, 211, 241, 271, 307, 331, 337, 367, 397, 409, 431, 463]. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B.",
+      "method": "nonparametric bootstrap over keys (one seed-index resample applied to every q-cell, SD/BKZ paired within seed), B=10000, rng_seed=20260710; estimand=SD-BKZ onset percent gap; per resample recompute both 50%-onsets via unrounded _interp_onset over the 14 full-seed q-cells; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
+      "note": "point est +9.098 vs tex +9.00 (percent); CI [+5.998,+10.968] vs tex [+6.00,+11.00]. 40 seeds/cell over q=[127, 149, 181, 211, 241, 271, 307, 331, 337, 367, 397, 409, 431, 463]. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B.",
       "paper_value": {
         "ci": [
-          6.1,
-          11.1
+          6.0,
+          11.0
         ],
         "point": 9.0
       },
       "recomputed_value": {
         "B": 10000,
         "ci": [
-          6.059,
-          11.117
+          5.998,
+          10.968
         ],
         "point": 9.098,
         "rng_seed": 20260710,
@@ -39,30 +39,30 @@
       },
       "status": "DERIVED",
       "tex_anchors": [
-        "$[6.1\\%,11.1\\%]$"
+        "$[6.0\\%,11.0\\%]$"
       ],
       "tex_lines": [
-        604
+        641
       ],
-      "verbatim": "9% gap, CI [6.1%, 11.1%]"
+      "verbatim": "9% gap, CI [6.0%, 11.0%]"
     },
     {
       "claim_id": "bootstrap_ci_n89_fplll_onset_gap",
       "match": true,
-      "method": "per-cell nonparametric bootstrap (each q-cell resampled independently, SD/BKZ paired within cell), B=10000, rng_seed=20260710; estimand=SD-BKZ onset modulus gap; per resample recompute both 50%-onsets via unrounded _interp_onset over the 15 full-seed q-cells; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
-      "note": "point est +0.161 vs tex +0.16 (modulus); CI [-0.061,+0.487] vs tex [-0.06,+0.49]. 100 seeds/cell over q=[97, 113, 127, 131, 137, 139, 149, 151, 157, 181, 191, 193, 197, 199, 211]. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B.",
+      "method": "nonparametric bootstrap over keys (one seed-index resample applied to every q-cell, SD/BKZ paired within seed), B=10000, rng_seed=20260710; estimand=SD-BKZ onset modulus gap; per resample recompute both 50%-onsets via unrounded _interp_onset over the 15 full-seed q-cells; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
+      "note": "point est +0.161 vs tex +0.16 (modulus); CI [-0.143,+0.500] vs tex [-0.14,+0.50]. 100 seeds/cell over q=[97, 113, 127, 131, 137, 139, 149, 151, 157, 181, 191, 193, 197, 199, 211]. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B.",
       "paper_value": {
         "ci": [
-          -0.06,
-          0.49
+          -0.14,
+          0.5
         ],
         "point": 0.16
       },
       "recomputed_value": {
         "B": 10000,
         "ci": [
-          -0.061,
-          0.487
+          -0.143,
+          0.5
         ],
         "point": 0.161,
         "rng_seed": 20260710,
@@ -75,30 +75,30 @@
       },
       "status": "DERIVED",
       "tex_anchors": [
-        "$[-0.06, +0.49]$"
+        "$[-0.14, +0.50]$"
       ],
       "tex_lines": [
-        543
+        575
       ],
-      "verbatim": "+0.16 units, CI [-0.06, +0.49] (spans 0)"
+      "verbatim": "+0.16 units, CI [-0.14, +0.50] (spans 0)"
     },
     {
       "claim_id": "bootstrap_ci_n89_g6k_onset_gap",
       "match": true,
-      "method": "per-cell nonparametric bootstrap (each q-cell resampled independently, SD/BKZ paired within cell), B=10000, rng_seed=20260710; estimand=SD-BKZ onset modulus gap; per resample recompute both 50%-onsets via unrounded _interp_onset over the 15 full-seed q-cells; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
-      "note": "point est +0.817 vs tex +0.82 (modulus); CI [+0.273,+3.169] vs tex [+0.27,+3.17]. 100 seeds/cell over q=[97, 113, 127, 131, 137, 139, 149, 151, 157, 181, 191, 193, 197, 199, 211]. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B. The upper bound is RNG-stream sensitive: the g6k SD onset sits ~0.14 above the q=193 cell (rate 0.49, one seed short of 0.5), a long right tail the tex states.",
+      "method": "nonparametric bootstrap over keys (one seed-index resample applied to every q-cell, SD/BKZ paired within seed), B=10000, rng_seed=20260710; estimand=SD-BKZ onset modulus gap; per resample recompute both 50%-onsets via unrounded _interp_onset over the 15 full-seed q-cells; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
+      "note": "point est +0.817 vs tex +0.82 (modulus); CI [+0.354,+1.808] vs tex [+0.35,+1.81]. 100 seeds/cell over q=[97, 113, 127, 131, 137, 139, 149, 151, 157, 181, 191, 193, 197, 199, 211]. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B.",
       "paper_value": {
         "ci": [
-          0.27,
-          3.17
+          0.35,
+          1.81
         ],
         "point": 0.82
       },
       "recomputed_value": {
         "B": 10000,
         "ci": [
-          0.273,
-          3.169
+          0.354,
+          1.808
         ],
         "point": 0.817,
         "rng_seed": 20260710,
@@ -111,20 +111,20 @@
       },
       "status": "DERIVED",
       "tex_anchors": [
-        "the G6K gap $+0.82$ ($[+0.27, +3.17]$)"
+        "the G6K gap $+0.82$ ($[+0.35, +1.81]$)"
       ],
       "tex_lines": [
-        544
+        576
       ],
-      "verbatim": "+0.82 units, CI [+0.27, +3.17]"
+      "verbatim": "+0.82 units, CI [+0.35, +1.81]"
     },
     {
       "claim_id": "cost_core_hours",
       "match": true,
-      "method": "GROUND TRUTH: sum of recorded (bkz_time + sdbkz_time)/3600 over every paper-2 coverage seed (trees ntru+ntru_g6k, n in {59..127}, excl. n=127 beta=40) from the manifests -- 8704 seed-pairs, 17 (n,beta,tours) rows; no cost-table extrapolation",
-      "note": "per-(n,beta) core-hour breakdown: n101_b20=284, n101_b40=892, n113_b20=526, n113_b40=2014, n127_b20=148, n59_b20=0, n61_b20=0, n67_b20=8, n67_b40=5, n71_b20=3, n73_b20=2, n79_b20=33, n79_b40=6, n83_b20=3, n89_b20=225, n89_b40=2262. Direct sum of recorded per-seed compute times (0 missing) = 6411 core-h vs tex '~6,430' = 0.997x -> MATCH. RESOLVED 2026-08-12: supersedes the earlier per-tour cost-table proxy (13,999 core-h) which over-priced every cell at the cost table's higher-precision sampling instead of the actual p250 bulk-run times; the recorded times are ground truth and confirm the tex figure. No tex change needed.",
-      "paper_value": 6430.0,
-      "recomputed_value": 6411.0,
+      "method": "GROUND TRUTH: sum of recorded (bkz_time + sdbkz_time)/3600 over every paper-2 coverage seed (trees ntru+ntru_g6k, n<157) from the manifests -- 9424 seed-pairs, 24 (n,beta,tours) rows; no cost-table extrapolation",
+      "note": "per-(n,beta) core-hour breakdown: n101_b20=284, n101_b40=892, n109_b40=52, n113_b20=526, n113_b40=2014, n127_b20=148, n127_b40=183, n131_b40=419, n137_b40=521, n139_b40=566, n149_b40=700, n151_b40=653, n59_b20=0, n61_b20=0, n67_b20=8, n67_b40=5, n71_b20=3, n73_b20=2, n79_b20=33, n79_b40=6, n83_b20=3, n89_b20=225, n89_b40=2262. Direct sum of recorded per-seed compute times (0 missing) = 9506 core-h vs tex '~9,500' = 1.001x -> MATCH.",
+      "paper_value": 9500.0,
+      "recomputed_value": 9505.8,
       "slice": "derived",
       "source": {
         "fields": "bkz_time + sdbkz_time (per seed JSON)",
@@ -136,20 +136,20 @@
       },
       "status": "DERIVED",
       "tex_anchors": [
-        "$\\approx$6{,}430 core-hours"
+        "$\\approx$9{,}500 core-hours"
       ],
       "tex_lines": [
-        272
+        269
       ],
-      "verbatim": "about 6,430 core-hours of reduction across both oracles"
+      "verbatim": "about 9,500 core-hours of reduction across both oracles"
     },
     {
       "claim_id": "coverage_cells",
       "match": true,
       "method": "union of distinct (n,beta,q) cells across both engines (POINTER)",
-      "note": "fplll cells 142 + g6k cells 41, union 147 (g6k cells are a subset overlap of fplll q-grid).",
-      "paper_value": 147,
-      "recomputed_value": 147,
+      "note": "fplll cells 178 + g6k cells 41, union 183 (g6k cells are a subset overlap of fplll q-grid).",
+      "paper_value": 183,
+      "recomputed_value": 183,
       "slice": "pointer",
       "source": {
         "field": "|distinct (n,beta,q) over paper-2 fplll UNION g6k|",
@@ -158,20 +158,20 @@
       },
       "status": "POINTER",
       "tex_anchors": [
-        "Totals: 8{,}704 seed pairs over 147 $(n,\\beta,q)$ cells"
+        "Totals: 9{,}424 seed pairs over 183 $(n,\\beta,q)$ cells"
       ],
       "tex_lines": [
-        271
+        268
       ],
-      "verbatim": "147 (n,beta,q) cells, q in [97,1811]"
+      "verbatim": "183 (n,beta,q) cells, q in [97,2069]"
     },
     {
       "claim_id": "coverage_fplll_total",
       "match": true,
       "method": "filter seed_manifest to tab:coverage scope and count (POINTER)",
-      "note": "excludes 2552 'ntru' rows outside the table (n>=157 frontier ladders, native beta=40 ladders incl. n=127).",
-      "paper_value": 6320,
-      "recomputed_value": 6320,
+      "note": "excludes 2808 'ntru' rows outside the table (n>=157 frontier ladders).",
+      "paper_value": 7040,
+      "recomputed_value": 7040,
       "slice": "pointer",
       "source": {
         "field": "count(seeds where campaign=='ntru' and in_coverage)",
@@ -180,12 +180,12 @@
       },
       "status": "POINTER",
       "tex_anchors": [
-        "\\multicolumn{5}{r}{total} & 6320 & 2384"
+        "\\multicolumn{5}{r}{total} & 7040 & 2384"
       ],
       "tex_lines": [
-        295
+        297
       ],
-      "verbatim": "tab:coverage total N_fplll = 6320"
+      "verbatim": "tab:coverage total N_fplll = 7040"
     },
     {
       "claim_id": "coverage_g6k_total",
@@ -202,10 +202,10 @@
       },
       "status": "POINTER",
       "tex_anchors": [
-        "\\multicolumn{5}{r}{total} & 6320 & 2384"
+        "\\multicolumn{5}{r}{total} & 7040 & 2384"
       ],
       "tex_lines": [
-        295
+        297
       ],
       "verbatim": "tab:coverage total N_G6K = 2384"
     },
@@ -213,23 +213,143 @@
       "claim_id": "coverage_seed_pairs",
       "match": true,
       "method": "paper-2 fplll seed count + g6k seed count (POINTER)",
-      "note": "6320 + 2384 = 8704 (pre-B-ingest prose said 8,144 = 8704-560; fixed 2026-09-27).",
-      "paper_value": 8704,
-      "recomputed_value": 8704,
+      "note": "7040 + 2384 = 9424.",
+      "paper_value": 9424,
+      "recomputed_value": 9424,
       "slice": "pointer",
       "source": {
-        "field": "N_fplll(6320) + N_G6K(2384)",
+        "field": "N_fplll(7040) + N_G6K(2384)",
         "kind": "seed_manifest",
         "path": "results/seed_manifest.json + results/g6k_seed_manifest.json"
       },
       "status": "POINTER",
       "tex_anchors": [
-        "Totals: 8{,}704 seed pairs over 147 $(n,\\beta,q)$ cells"
+        "Totals: 9{,}424 seed pairs over 183 $(n,\\beta,q)$ cells"
       ],
       "tex_lines": [
-        271
+        268
       ],
-      "verbatim": "8,704 seed pairs over 147 (n,beta,q) cells"
+      "verbatim": "9,424 seed pairs over 183 (n,beta,q) cells"
+    },
+    {
+      "claim_id": "frontier_cost_ratio_n157_b40_fplll",
+      "match": true,
+      "method": "secret_exact_match legs over summed leg time (sdbkz_time, bkz_time), pooled over the ladder's q cells; ratio CI by bootstrap over keys, B=10000, rng_seed=20260710, percentile [2.5,97.5]",
+      "note": "100 keys.",
+      "paper_value": {
+        "bkz": 11.7,
+        "ci": [
+          0.56,
+          0.63
+        ],
+        "ratio": 0.6,
+        "sd": 6.96
+      },
+      "recomputed_value": {
+        "bkz": 11.7,
+        "ci": [
+          0.56,
+          0.63
+        ],
+        "keys": 100,
+        "ratio": 0.6,
+        "sd": 6.96
+      },
+      "slice": "derived",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n157_beta40/",
+        "kind": "seeds"
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "$6.96$ against $11.70$ at $n=157$",
+        "$0.60$ ($95\\%$ key-resampling"
+      ],
+      "tex_lines": [
+        825,
+        827
+      ],
+      "verbatim": "n=157: 6.96 against 11.7 per 100 core-hours, ratio 0.6 [0.56,0.63]"
+    },
+    {
+      "claim_id": "frontier_cost_ratio_n163_b40_fplll",
+      "match": true,
+      "method": "secret_exact_match legs over summed leg time (sdbkz_time, bkz_time), pooled over the ladder's q cells, seeds 1-20; ratio CI by bootstrap over keys, B=10000, rng_seed=20260710, percentile [2.5,97.5]",
+      "note": "20 keys.",
+      "paper_value": {
+        "bkz": 8.41,
+        "ci": [
+          0.72,
+          1.03
+        ],
+        "ratio": 0.85,
+        "sd": 7.14
+      },
+      "recomputed_value": {
+        "bkz": 8.41,
+        "ci": [
+          0.72,
+          1.03
+        ],
+        "keys": 20,
+        "ratio": 0.85,
+        "sd": 7.14
+      },
+      "slice": "derived",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n163_beta40/",
+        "kind": "seeds"
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "$7.14$ against $8.41$ at $n=163$",
+        "$0.85$ ($[0.72,1.03]$)"
+      ],
+      "tex_lines": [
+        825,
+        828
+      ],
+      "verbatim": "n=163: 7.14 against 8.41 per 100 core-hours, ratio 0.85 [0.72,1.03]"
+    },
+    {
+      "claim_id": "frontier_cost_ratio_n167_b40_fplll",
+      "match": true,
+      "method": "secret_exact_match legs over summed leg time (sdbkz_time, bkz_time), pooled over the ladder's q cells; ratio CI by bootstrap over keys, B=10000, rng_seed=20260710, percentile [2.5,97.5]",
+      "note": "20 keys.",
+      "paper_value": {
+        "bkz": 3.49,
+        "ci": [
+          0.69,
+          1.21
+        ],
+        "ratio": 0.93,
+        "sd": 3.23
+      },
+      "recomputed_value": {
+        "bkz": 3.49,
+        "ci": [
+          0.69,
+          1.21
+        ],
+        "keys": 20,
+        "ratio": 0.93,
+        "sd": 3.23
+      },
+      "slice": "derived",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n167_beta40/",
+        "kind": "seeds"
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "$3.23$ against $3.49$",
+        "$0.93$ ($[0.69,1.21]$)"
+      ],
+      "tex_lines": [
+        826,
+        828
+      ],
+      "verbatim": "n=167: 3.23 against 3.49 per 100 core-hours, ratio 0.93 [0.69,1.21]"
     },
     {
       "claim_id": "frontier_count_n167_b40_mt50_fplll_bkz",
@@ -248,7 +368,7 @@
         "$116/560$, peak $40\\%$ & $49/560$"
       ],
       "tex_lines": [
-        693
+        757
       ],
       "verbatim": "tab:frontier n=167 beta=40 fplll 50 tours bkz: 49/560"
     },
@@ -269,7 +389,7 @@
         "$116/560$, peak $40\\%$ & $49/560$"
       ],
       "tex_lines": [
-        693
+        757
       ],
       "verbatim": "tab:frontier n=167 beta=40 fplll 50 tours sd: 116/560"
     },
@@ -290,7 +410,7 @@
         "$9/80$ & $2/80$"
       ],
       "tex_lines": [
-        695
+        759
       ],
       "verbatim": "tab:frontier n=167 beta=40 g6k 50 tours bkz: 2/80"
     },
@@ -311,7 +431,7 @@
         "$9/80$ & $2/80$"
       ],
       "tex_lines": [
-        695
+        759
       ],
       "verbatim": "tab:frontier n=167 beta=40 g6k 50 tours sd: 9/80"
     },
@@ -332,7 +452,7 @@
         "$7/8$ (p.) & $6/8$ (p.)"
       ],
       "tex_lines": [
-        694
+        758
       ],
       "verbatim": "tab:frontier n=167 beta=40 fplll 580 tours bkz: 6/8"
     },
@@ -353,7 +473,7 @@
         "$7/8$ (p.) & $6/8$ (p.)"
       ],
       "tex_lines": [
-        694
+        758
       ],
       "verbatim": "tab:frontier n=167 beta=40 fplll 580 tours sd: 7/8"
     },
@@ -374,7 +494,7 @@
         "$7/280$, peak $10\\%$ & $4/280$"
       ],
       "tex_lines": [
-        696
+        760
       ],
       "verbatim": "tab:frontier n=173 beta=40 fplll 50 tours bkz: 4/280"
     },
@@ -395,7 +515,7 @@
         "$7/280$, peak $10\\%$ & $4/280$"
       ],
       "tex_lines": [
-        696
+        760
       ],
       "verbatim": "tab:frontier n=173 beta=40 fplll 50 tours sd: 7/280"
     },
@@ -416,7 +536,7 @@
         "$3/80$ & $1/80$"
       ],
       "tex_lines": [
-        697
+        761
       ],
       "verbatim": "tab:frontier n=173 beta=40 g6k 50 tours bkz: 1/80"
     },
@@ -437,9 +557,55 @@
         "$3/80$ & $1/80$"
       ],
       "tex_lines": [
-        697
+        761
       ],
       "verbatim": "tab:frontier n=173 beta=40 g6k 50 tours sd: 3/80"
+    },
+    {
+      "claim_id": "frontier_count_n179_b40_mt200_g6k_bkz",
+      "match": true,
+      "method": "secret_exact_match legs over completed seeds, pooled over the ladder",
+      "note": "q-cells [4591].",
+      "paper_value": "0/20",
+      "recomputed_value": "0/20",
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt200/n179_beta40/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "G6K$^\\S$ & 2.91 (1) & 20 & $2/20$ & $0/20$",
+        "turn $0/80$ into $2/20$ and $0/20$"
+      ],
+      "tex_lines": [
+        764,
+        800
+      ],
+      "verbatim": "tab:frontier n=179 beta=40 g6k 200 tours bkz: 0/20"
+    },
+    {
+      "claim_id": "frontier_count_n179_b40_mt200_g6k_sd",
+      "match": true,
+      "method": "secret_exact_match legs over completed seeds, pooled over the ladder",
+      "note": "q-cells [4591].",
+      "paper_value": "2/20",
+      "recomputed_value": "2/20",
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt200/n179_beta40/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "G6K$^\\S$ & 2.91 (1) & 20 & $2/20$ & $0/20$",
+        "turn $0/80$ into $2/20$ and $0/20$"
+      ],
+      "tex_lines": [
+        764,
+        800
+      ],
+      "verbatim": "tab:frontier n=179 beta=40 g6k 200 tours sd: 2/20"
     },
     {
       "claim_id": "frontier_count_n179_b40_mt50_fplll_bkz",
@@ -458,7 +624,7 @@
         "$0/100$ & $0/100$"
       ],
       "tex_lines": [
-        698
+        762
       ],
       "verbatim": "tab:frontier n=179 beta=40 fplll 50 tours bkz: 0/100"
     },
@@ -479,7 +645,7 @@
         "$0/100$ & $0/100$"
       ],
       "tex_lines": [
-        698
+        762
       ],
       "verbatim": "tab:frontier n=179 beta=40 fplll 50 tours sd: 0/100"
     },
@@ -498,11 +664,11 @@
       "status": "RECOMPUTED",
       "tex_anchors": [
         "$0/80$ & $0/80$",
-        "$0/80$ into $6/20$ and $1/20$"
+        "turn $0/80$ into $2/20$ and $0/20$"
       ],
       "tex_lines": [
-        699,
-        731
+        763,
+        800
       ],
       "verbatim": "tab:frontier n=179 beta=40 g6k 50 tours bkz: 0/80"
     },
@@ -521,11 +687,11 @@
       "status": "RECOMPUTED",
       "tex_anchors": [
         "$0/80$ & $0/80$",
-        "$0/80$ into $6/20$ and $1/20$"
+        "turn $0/80$ into $2/20$ and $0/20$"
       ],
       "tex_lines": [
-        699,
-        731
+        763,
+        800
       ],
       "verbatim": "tab:frontier n=179 beta=40 g6k 50 tours sd: 0/80"
     },
@@ -544,11 +710,11 @@
       "status": "RECOMPUTED",
       "tex_anchors": [
         "$6/20$ & $1/20$",
-        "$0/80$ into $6/20$ and $1/20$"
+        "then $6/20$ and $1/20$"
       ],
       "tex_lines": [
-        700,
-        731
+        765,
+        800
       ],
       "verbatim": "tab:frontier n=179 beta=40 g6k 580 tours bkz: 1/20"
     },
@@ -567,11 +733,11 @@
       "status": "RECOMPUTED",
       "tex_anchors": [
         "$6/20$ & $1/20$",
-        "$0/80$ into $6/20$ and $1/20$"
+        "then $6/20$ and $1/20$"
       ],
       "tex_lines": [
-        700,
-        731
+        765,
+        800
       ],
       "verbatim": "tab:frontier n=179 beta=40 g6k 580 tours sd: 6/20"
     },
@@ -589,12 +755,54 @@
       },
       "status": "RECOMPUTED",
       "tex_anchors": [
-        "$33/100$ & $17/100$"
+        "179 & 50 & G6K & 2.00--3.22 (5) & 20 & onset $2.54\\times$, $33/100$ & $17/100$"
       ],
       "tex_lines": [
-        703
+        768
       ],
       "verbatim": "tab:frontier n=179 beta=50 g6k 50 tours bkz: 17/100"
+    },
+    {
+      "claim_id": "frontier_count_n179_b50_mt50_g6k_reject_bkz",
+      "match": true,
+      "method": "secret_exact_match legs over completed seeds, pooled over the ladder",
+      "note": "q-cells [3163, 3637, 4111, 4591, 5077].",
+      "paper_value": "17/100",
+      "recomputed_value": "17/100",
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_reject/q*/p*_mt50/n179_beta50/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "179 & 50 & G6K$^\\ddagger$ & 2.00--3.22 (5) & 20 & onset $2.54\\times$, $33/100$ & $17/100$"
+      ],
+      "tex_lines": [
+        769
+      ],
+      "verbatim": "tab:frontier n=179 beta=50 g6k_reject 50 tours bkz: 17/100"
+    },
+    {
+      "claim_id": "frontier_count_n179_b50_mt50_g6k_reject_sd",
+      "match": true,
+      "method": "secret_exact_match legs over completed seeds, pooled over the ladder",
+      "note": "q-cells [3163, 3637, 4111, 4591, 5077].",
+      "paper_value": "33/100",
+      "recomputed_value": "33/100",
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_reject/q*/p*_mt50/n179_beta50/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "179 & 50 & G6K$^\\ddagger$ & 2.00--3.22 (5) & 20 & onset $2.54\\times$, $33/100$ & $17/100$"
+      ],
+      "tex_lines": [
+        769
+      ],
+      "verbatim": "tab:frontier n=179 beta=50 g6k_reject 50 tours sd: 33/100"
     },
     {
       "claim_id": "frontier_count_n179_b50_mt50_g6k_sd",
@@ -610,10 +818,10 @@
       },
       "status": "RECOMPUTED",
       "tex_anchors": [
-        "$33/100$ & $17/100$"
+        "179 & 50 & G6K & 2.00--3.22 (5) & 20 & onset $2.54\\times$, $33/100$ & $17/100$"
       ],
       "tex_lines": [
-        703
+        768
       ],
       "verbatim": "tab:frontier n=179 beta=50 g6k 50 tours sd: 33/100"
     },
@@ -634,8 +842,8 @@
         "$6/6$ (p.) & $6/6$ (p.)"
       ],
       "tex_lines": [
-        708,
-        709
+        777,
+        778
       ],
       "verbatim": "tab:frontier n=179 beta=60 g6k 50 tours bkz: 6/6"
     },
@@ -656,7 +864,7 @@
         "179 & 60 & G6K$^\\ddagger$ & 2.00 (1) & 6 & $6/6$ (p.) & $6/6$ (p.)"
       ],
       "tex_lines": [
-        709
+        778
       ],
       "verbatim": "tab:frontier n=179 beta=60 g6k_reject 50 tours bkz: 6/6"
     },
@@ -677,7 +885,7 @@
         "179 & 60 & G6K$^\\ddagger$ & 2.00 (1) & 6 & $6/6$ (p.) & $6/6$ (p.)"
       ],
       "tex_lines": [
-        709
+        778
       ],
       "verbatim": "tab:frontier n=179 beta=60 g6k_reject 50 tours sd: 6/6"
     },
@@ -698,8 +906,8 @@
         "$6/6$ (p.) & $6/6$ (p.)"
       ],
       "tex_lines": [
-        708,
-        709
+        777,
+        778
       ],
       "verbatim": "tab:frontier n=179 beta=60 g6k 50 tours sd: 6/6"
     },
@@ -720,7 +928,7 @@
         "$0/120$ & $0/120$"
       ],
       "tex_lines": [
-        701
+        766
       ],
       "verbatim": "tab:frontier n=181 beta=40 fplll 50 tours bkz: 0/120"
     },
@@ -741,7 +949,7 @@
         "$0/120$ & $0/120$"
       ],
       "tex_lines": [
-        701
+        766
       ],
       "verbatim": "tab:frontier n=181 beta=40 fplll 50 tours sd: 0/120"
     },
@@ -762,9 +970,51 @@
         "$41/180$, plateau $35$--$50\\%$ & $17/180$"
       ],
       "tex_lines": [
-        704
+        770
       ],
       "verbatim": "tab:frontier n=181 beta=50 g6k 50 tours bkz: 17/180"
+    },
+    {
+      "claim_id": "frontier_count_n181_b50_mt50_g6k_reject_bkz",
+      "match": true,
+      "method": "secret_exact_match legs over completed seeds, pooled over the ladder",
+      "note": "q-cells [2593, 3083, 3407, 3733, 4591, 4871, 5381, 5869, 6491].",
+      "paper_value": "15/180",
+      "recomputed_value": "15/180",
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_reject/q*/p*_mt50/n181_beta50/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "$43/180$, plateau $35$--$55\\%$ & $15/180$"
+      ],
+      "tex_lines": [
+        771
+      ],
+      "verbatim": "tab:frontier n=181 beta=50 g6k_reject 50 tours bkz: 15/180"
+    },
+    {
+      "claim_id": "frontier_count_n181_b50_mt50_g6k_reject_sd",
+      "match": true,
+      "method": "secret_exact_match legs over completed seeds, pooled over the ladder",
+      "note": "q-cells [2593, 3083, 3407, 3733, 4591, 4871, 5381, 5869, 6491].",
+      "paper_value": "43/180",
+      "recomputed_value": "43/180",
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_reject/q*/p*_mt50/n181_beta50/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "$43/180$, plateau $35$--$55\\%$ & $15/180$"
+      ],
+      "tex_lines": [
+        771
+      ],
+      "verbatim": "tab:frontier n=181 beta=50 g6k_reject 50 tours sd: 43/180"
     },
     {
       "claim_id": "frontier_count_n181_b50_mt50_g6k_sd",
@@ -783,7 +1033,7 @@
         "$41/180$, plateau $35$--$50\\%$ & $17/180$"
       ],
       "tex_lines": [
-        704
+        770
       ],
       "verbatim": "tab:frontier n=181 beta=50 g6k 50 tours sd: 41/180"
     },
@@ -805,8 +1055,8 @@
         "$0/4$, $1/20$, $4/4$, $5/5$"
       ],
       "tex_lines": [
-        710,
-        711
+        779,
+        780
       ],
       "verbatim": "tab:frontier n=181 beta=60 g6k 50 tours bkz: 0/4, 1/20, 4/4, 5/5"
     },
@@ -827,7 +1077,7 @@
         "181 & 60 & G6K$^\\ddagger$ & 1.36--2.83 (4) & 4--20 & $0/4$, $3/20$, $4/4$, $5/5$; onset"
       ],
       "tex_lines": [
-        711
+        780
       ],
       "verbatim": "tab:frontier n=181 beta=60 g6k_reject 50 tours bkz: 0/4, 1/20, 4/4, 5/5"
     },
@@ -848,7 +1098,7 @@
         "181 & 60 & G6K$^\\ddagger$ & 1.36--2.83 (4) & 4--20 & $0/4$, $3/20$, $4/4$, $5/5$; onset"
       ],
       "tex_lines": [
-        711
+        780
       ],
       "verbatim": "tab:frontier n=181 beta=60 g6k_reject 50 tours sd: 0/4, 3/20, 4/4, 5/5"
     },
@@ -870,8 +1120,8 @@
         "$0/4$, $1/20$, $4/4$, $5/5$"
       ],
       "tex_lines": [
-        710,
-        711
+        779,
+        780
       ],
       "verbatim": "tab:frontier n=181 beta=60 g6k 50 tours sd: 0/4, 3/20, 4/4, 5/5"
     },
@@ -889,12 +1139,54 @@
       },
       "status": "RECOMPUTED",
       "tex_anchors": [
-        "$1/6$ (p.) & $0/6$ (p.)"
+        "183 & 50 & G6K & 2.75 (1) & 6 & $1/6$ (p.) & $0/6$ (p.)"
       ],
       "tex_lines": [
-        705
+        772
       ],
       "verbatim": "tab:frontier n=183 beta=50 g6k 50 tours bkz: 0/6"
+    },
+    {
+      "claim_id": "frontier_count_n183_b50_mt50_g6k_reject_bkz",
+      "match": true,
+      "method": "secret_exact_match legs over completed seeds, pooled over the ladder",
+      "note": "q-cells [4591].",
+      "paper_value": "0/6",
+      "recomputed_value": "0/6",
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_reject/q*/p*_mt50/n183_beta50/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "183 & 50 & G6K$^\\ddagger$ & 2.75 (1) & 6 & $1/6$ (p.) & $0/6$ (p.)"
+      ],
+      "tex_lines": [
+        773
+      ],
+      "verbatim": "tab:frontier n=183 beta=50 g6k_reject 50 tours bkz: 0/6"
+    },
+    {
+      "claim_id": "frontier_count_n183_b50_mt50_g6k_reject_sd",
+      "match": true,
+      "method": "secret_exact_match legs over completed seeds, pooled over the ladder",
+      "note": "q-cells [4591].",
+      "paper_value": "1/6",
+      "recomputed_value": "1/6",
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_reject/q*/p*_mt50/n183_beta50/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "183 & 50 & G6K$^\\ddagger$ & 2.75 (1) & 6 & $1/6$ (p.) & $0/6$ (p.)"
+      ],
+      "tex_lines": [
+        773
+      ],
+      "verbatim": "tab:frontier n=183 beta=50 g6k_reject 50 tours sd: 1/6"
     },
     {
       "claim_id": "frontier_count_n183_b50_mt50_g6k_sd",
@@ -910,10 +1202,10 @@
       },
       "status": "RECOMPUTED",
       "tex_anchors": [
-        "$1/6$ (p.) & $0/6$ (p.)"
+        "183 & 50 & G6K & 2.75 (1) & 6 & $1/6$ (p.) & $0/6$ (p.)"
       ],
       "tex_lines": [
-        705
+        772
       ],
       "verbatim": "tab:frontier n=183 beta=50 g6k 50 tours sd: 1/6"
     },
@@ -934,9 +1226,51 @@
         "$2/21$ (p., 1 c.) & $1/21$ (p., 1 c.)"
       ],
       "tex_lines": [
-        706
+        774
       ],
       "verbatim": "tab:frontier n=185 beta=50 g6k 50 tours bkz: 1/21"
+    },
+    {
+      "claim_id": "frontier_count_n185_b50_mt50_g6k_reject_bkz",
+      "match": true,
+      "method": "secret_exact_match legs over completed seeds, pooled over the ladder",
+      "note": "q-cells [4591, 5381, 6491].",
+      "paper_value": "0/21",
+      "recomputed_value": "0/21",
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_reject/q*/p*_mt50/n185_beta50/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "$1/21$ (p.) & $0/21$ (p.)"
+      ],
+      "tex_lines": [
+        775
+      ],
+      "verbatim": "tab:frontier n=185 beta=50 g6k_reject 50 tours bkz: 0/21"
+    },
+    {
+      "claim_id": "frontier_count_n185_b50_mt50_g6k_reject_sd",
+      "match": true,
+      "method": "secret_exact_match legs over completed seeds, pooled over the ladder",
+      "note": "q-cells [4591, 5381, 6491].",
+      "paper_value": "1/21",
+      "recomputed_value": "1/21",
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_reject/q*/p*_mt50/n185_beta50/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "$1/21$ (p.) & $0/21$ (p.)"
+      ],
+      "tex_lines": [
+        775
+      ],
+      "verbatim": "tab:frontier n=185 beta=50 g6k_reject 50 tours sd: 1/21"
     },
     {
       "claim_id": "frontier_count_n185_b50_mt50_g6k_sd",
@@ -955,7 +1289,7 @@
         "$2/21$ (p., 1 c.) & $1/21$ (p., 1 c.)"
       ],
       "tex_lines": [
-        706
+        774
       ],
       "verbatim": "tab:frontier n=185 beta=50 g6k 50 tours sd: 2/21"
     },
@@ -977,7 +1311,7 @@
         "$0/4$, $15/18$, $2/2$, --"
       ],
       "tex_lines": [
-        712
+        781
       ],
       "verbatim": "tab:frontier n=185 beta=60 g6k 50 tours bkz: 0/4, 15/18, 2/2"
     },
@@ -999,7 +1333,7 @@
         "$0/4$, $19/20$, $4/4$, $4/4$"
       ],
       "tex_lines": [
-        713
+        782
       ],
       "verbatim": "tab:frontier n=185 beta=60 g6k_reject 50 tours bkz: 0/4, 19/20, 4/4, 4/4"
     },
@@ -1021,7 +1355,7 @@
         "$0/4$, $19/20$, $4/4$, $4/4$"
       ],
       "tex_lines": [
-        713
+        782
       ],
       "verbatim": "tab:frontier n=185 beta=60 g6k_reject 50 tours sd: 0/4, 20/20, 4/4, 4/4"
     },
@@ -1043,7 +1377,7 @@
         "$0/4$, $15/18$, $2/2$, --"
       ],
       "tex_lines": [
-        712
+        781
       ],
       "verbatim": "tab:frontier n=185 beta=60 g6k 50 tours sd: 0/4, 18/18, 2/2"
     },
@@ -1051,14 +1385,14 @@
       "claim_id": "frontier_mcnemar_n157_b40_fplll",
       "match": true,
       "method": "paired legs over the ladder; exact two-sided McNemar (recomputed._sign_p_two_sided)",
-      "note": "324 paired seeds.",
+      "note": "1300 paired seeds.",
       "paper_value": {
-        "counts": "34:1",
-        "p": 2e-09
+        "counts": "160:9",
+        "p": 7e-37
       },
       "recomputed_value": {
-        "counts": "34:1",
-        "p": 2.0954757928848267e-09
+        "counts": "160:9",
+        "p": 7.061256163956471e-37
       },
       "slice": "frontier",
       "source": {
@@ -1067,14 +1401,14 @@
       },
       "status": "RECOMPUTED",
       "tex_anchors": [
-        "$34$:$1$ at $n=157$ (exact",
-        "McNemar $p=2\\times10^{-9}$)"
+        "$160$:$9$ at $n=157$ (exact",
+        "McNemar $p=7\\times10^{-37}$)"
       ],
       "tex_lines": [
-        738,
-        739
+        807,
+        808
       ],
-      "verbatim": "paired SD-only:BKZ-only 34:1 at n=157 beta=40 fplll, p=2e-9"
+      "verbatim": "paired SD-only:BKZ-only 160:9 at n=157 beta=40 fplll, p=7e-37"
     },
     {
       "claim_id": "frontier_mcnemar_n163_b40_fplll",
@@ -1100,7 +1434,7 @@
         "$p=2\\times10^{-17}$"
       ],
       "tex_lines": [
-        739
+        808
       ],
       "verbatim": "paired SD-only:BKZ-only 134:29 at n=163 beta=40 fplll, p=2e-17"
     },
@@ -1127,7 +1461,7 @@
         "$101$:$34$ at $n=167$ ($p=7\\times10^{-9}$)"
       ],
       "tex_lines": [
-        740
+        809
       ],
       "verbatim": "paired SD-only:BKZ-only 101:34 at n=167 beta=40 fplll, p=7e-9"
     },
@@ -1155,8 +1489,8 @@
         "$p=0.065$)"
       ],
       "tex_lines": [
-        743,
-        744
+        812,
+        813
       ],
       "verbatim": "paired SD-only:BKZ-only 9:2 at n=167 beta=40 g6k, p=0.065"
     },
@@ -1183,7 +1517,7 @@
         "$25$:$9$ at $n=179$ ($p=0.009$)"
       ],
       "tex_lines": [
-        741
+        810
       ],
       "verbatim": "paired SD-only:BKZ-only 25:9 at n=179 beta=50 g6k, p=0.009"
     },
@@ -1211,18 +1545,45 @@
         "($p=4\\times10^{-4}$"
       ],
       "tex_lines": [
-        741,
-        742
+        810,
+        811
       ],
       "verbatim": "paired SD-only:BKZ-only 34:10 at n=181 beta=50 g6k, p=4e-4"
+    },
+    {
+      "claim_id": "frontier_mcnemar_n181_b50_g6k_reject",
+      "match": true,
+      "method": "paired legs over the ladder; exact two-sided McNemar (recomputed._sign_p_two_sided)",
+      "note": "180 paired seeds.",
+      "paper_value": {
+        "counts": "37:9",
+        "p": 4e-05
+      },
+      "recomputed_value": {
+        "counts": "37:9",
+        "p": 4.0560361327379724e-05
+      },
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_reject/q*/p*_mt50/n181_beta50/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "become $37$:$9$ ($p=4\\times10^{-5}$)"
+      ],
+      "tex_lines": [
+        874
+      ],
+      "verbatim": "paired SD-only:BKZ-only 37:9 at n=181 beta=50 g6k_reject, p=4e-5"
     },
     {
       "claim_id": "frontier_onset_n157_b40_fplll_bkz",
       "match": true,
       "method": "extract_dsd_onset._interp_onset (50%) over per-q exact-match rates, divided by q_fat(n)=0.004 n^2.484, 2 dp",
-      "note": "onset q=2739.7 (interp [2609,2903]).",
-      "paper_value": 2.4,
-      "recomputed_value": 2.4,
+      "note": "onset q=2618.5 (interp [2609,2903]).",
+      "paper_value": 2.3,
+      "recomputed_value": 2.3,
       "slice": "frontier",
       "source": {
         "glob": "results/seeds/ntru/q*/p*_mt50/n157_beta40/seed*.json",
@@ -1230,20 +1591,20 @@
       },
       "status": "RECOMPUTED",
       "tex_anchors": [
-        "onset $2.40\\times$, to $85\\%$"
+        "onset $2.30\\times$, to $87\\%$"
       ],
       "tex_lines": [
-        691
+        755
       ],
-      "verbatim": "tab:frontier n=157 beta=40 fplll bkz onset 2.4x q_fat"
+      "verbatim": "tab:frontier n=157 beta=40 fplll bkz onset 2.3x q_fat"
     },
     {
       "claim_id": "frontier_onset_n157_b40_fplll_sd",
       "match": true,
       "method": "extract_dsd_onset._interp_onset (50%) over per-q exact-match rates, divided by q_fat(n)=0.004 n^2.484, 2 dp",
-      "note": "onset q=2354.3 (interp [2203,2411]).",
-      "paper_value": 2.07,
-      "recomputed_value": 2.07,
+      "note": "onset q=2345.7 (interp [2203,2411]).",
+      "paper_value": 2.06,
+      "recomputed_value": 2.06,
       "slice": "frontier",
       "source": {
         "glob": "results/seeds/ntru/q*/p*_mt50/n157_beta40/seed*.json",
@@ -1251,12 +1612,12 @@
       },
       "status": "RECOMPUTED",
       "tex_anchors": [
-        "onset $2.07\\times$, to $100\\%$"
+        "onset $2.06\\times$, peak $99\\%$"
       ],
       "tex_lines": [
-        691
+        755
       ],
-      "verbatim": "tab:frontier n=157 beta=40 fplll sdbkz onset 2.07x q_fat"
+      "verbatim": "tab:frontier n=157 beta=40 fplll sdbkz onset 2.06x q_fat"
     },
     {
       "claim_id": "frontier_onset_n163_b40_fplll_bkz",
@@ -1279,7 +1640,7 @@
         "none, peak $40\\%$"
       ],
       "tex_lines": [
-        692
+        756
       ],
       "verbatim": "tab:frontier n=163 beta=40 fplll bkz onset none"
     },
@@ -1300,9 +1661,30 @@
         "onset $2.47\\times$, peak $75\\%$"
       ],
       "tex_lines": [
-        692
+        756
       ],
       "verbatim": "tab:frontier n=163 beta=40 fplll sdbkz onset 2.47x q_fat"
+    },
+    {
+      "claim_id": "frontier_onset_n179_b50_g6k_reject_sd",
+      "match": true,
+      "method": "extract_dsd_onset._interp_onset (50%) over per-q exact-match rates, divided by q_fat(n)=0.004 n^2.484, 2 dp",
+      "note": "onset q=4016.2 (interp [3637,4111]).",
+      "paper_value": 2.54,
+      "recomputed_value": 2.54,
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_reject/q*/p*_mt50/n179_beta50/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "179 & 50 & G6K$^\\ddagger$ & 2.00--3.22 (5) & 20 & onset $2.54\\times$"
+      ],
+      "tex_lines": [
+        769
+      ],
+      "verbatim": "tab:frontier n=179 beta=50 g6k_reject sdbkz onset 2.54x q_fat"
     },
     {
       "claim_id": "frontier_onset_n179_b50_g6k_sd",
@@ -1318,10 +1700,10 @@
       },
       "status": "RECOMPUTED",
       "tex_anchors": [
-        "onset $2.54\\times$, $33/100$"
+        "179 & 50 & G6K & 2.00--3.22 (5) & 20 & onset $2.54\\times$, $33/100$"
       ],
       "tex_lines": [
-        703
+        768
       ],
       "verbatim": "tab:frontier n=179 beta=50 g6k sdbkz onset 2.54x q_fat"
     },
@@ -1342,8 +1724,8 @@
         "onset $1.80\\times$"
       ],
       "tex_lines": [
-        710,
-        711
+        779,
+        780
       ],
       "verbatim": "tab:frontier n=181 beta=60 g6k bkz onset 1.8x q_fat"
     },
@@ -1364,7 +1746,7 @@
         "G6K$^\\ddagger$ & 1.36--2.83 (4) & 4--20 & $0/4$, $3/20$, $4/4$, $5/5$; onset $1.78\\times$ & $0/4$, $1/20$, $4/4$, $5/5$; onset $1.80\\times$"
       ],
       "tex_lines": [
-        711
+        780
       ],
       "verbatim": "tab:frontier n=181 beta=60 g6k_reject bkz onset 1.8x q_fat"
     },
@@ -1385,7 +1767,7 @@
         "181 & 60 & G6K$^\\ddagger$ & 1.36--2.83 (4) & 4--20 & $0/4$, $3/20$, $4/4$, $5/5$; onset $1.78\\times$"
       ],
       "tex_lines": [
-        711
+        780
       ],
       "verbatim": "tab:frontier n=181 beta=60 g6k_reject sdbkz onset 1.78x q_fat"
     },
@@ -1406,8 +1788,8 @@
         "onset $1.78\\times$"
       ],
       "tex_lines": [
-        710,
-        711
+        779,
+        780
       ],
       "verbatim": "tab:frontier n=181 beta=60 g6k sdbkz onset 1.78x q_fat"
     },
@@ -1428,7 +1810,7 @@
         "onset $2.11\\times$"
       ],
       "tex_lines": [
-        712
+        781
       ],
       "verbatim": "tab:frontier n=185 beta=60 g6k bkz onset 2.11x q_fat"
     },
@@ -1449,7 +1831,7 @@
         "onset $2.08\\times$"
       ],
       "tex_lines": [
-        713
+        782
       ],
       "verbatim": "tab:frontier n=185 beta=60 g6k_reject bkz onset 2.08x q_fat"
     },
@@ -1470,7 +1852,7 @@
         "$4/4$, $4/4$; onset $2.06\\times$"
       ],
       "tex_lines": [
-        713
+        782
       ],
       "verbatim": "tab:frontier n=185 beta=60 g6k_reject sdbkz onset 2.06x q_fat"
     },
@@ -1491,8 +1873,9 @@
         "onset $2.06\\times$"
       ],
       "tex_lines": [
-        712,
-        713
+        755,
+        781,
+        782
       ],
       "verbatim": "tab:frontier n=185 beta=60 g6k sdbkz onset 2.06x q_fat"
     },
@@ -1514,8 +1897,8 @@
         "recovers a $9\\%$ SD$<$BKZ DSD-onset"
       ],
       "tex_lines": [
-        602,
-        626
+        639,
+        675
       ],
       "verbatim": "fplll n=101: 9% SD-vs-BKZ onset gap"
     },
@@ -1534,11 +1917,11 @@
       "status": "RECOMPUTED",
       "tex_anchors": [
         "101 & G6K   & 249.9 & 268.3",
-        "$[6.1\\%,11.1\\%]$) and $7\\%$ on G6K"
+        "$[6.0\\%,11.0\\%]$) and $7\\%$ on G6K"
       ],
       "tex_lines": [
-        604,
-        627
+        641,
+        676
       ],
       "verbatim": "g6k n=101: 7% SD-vs-BKZ onset gap"
     },
@@ -1560,8 +1943,8 @@
         "($7\\%$ gap fplll,"
       ],
       "tex_lines": [
-        609,
-        628
+        646,
+        677
       ],
       "verbatim": "fplll n=113: 7% SD-vs-BKZ onset gap"
     },
@@ -1583,8 +1966,8 @@
         "$6\\%$ G6K), and at $q=487$"
       ],
       "tex_lines": [
-        610,
-        629
+        647,
+        678
       ],
       "verbatim": "g6k n=113: 6% SD-vs-BKZ onset gap"
     },
@@ -1605,7 +1988,7 @@
         "& 193.7 & 193.8 & 193.1 & 194.0"
       ],
       "tex_lines": [
-        568
+        603
       ],
       "verbatim": "fplll n=89: 0% SD-vs-BKZ onset gap (null / dense window)"
     },
@@ -1626,7 +2009,7 @@
         "& 193.7 & 193.8 & 193.1 & 194.0"
       ],
       "tex_lines": [
-        568
+        603
       ],
       "verbatim": "g6k n=89: 0% SD-vs-BKZ onset gap (null / dense window)"
     },
@@ -1648,7 +2031,7 @@
         "matches exactly ($2.332$)"
       ],
       "tex_lines": [
-        517
+        550
       ],
       "verbatim": "the jointly-fired n=89 seed matches exactly (2.332)"
     },
@@ -1670,7 +2053,7 @@
         "101 & 0/20 & 0/20 & 1.00"
       ],
       "tex_lines": [
-        523
+        556
       ],
       "verbatim": "Jaccard n=101 = 1.00 (0/0 vacuous)"
     },
@@ -1692,7 +2075,7 @@
         "113 & 0/20 & 0/20 & 1.00"
       ],
       "tex_lines": [
-        524
+        557
       ],
       "verbatim": "Jaccard n=113 = 1.00 (0/0 vacuous)"
     },
@@ -1714,7 +2097,7 @@
         "89  & 2/20 & 1/20 & 0.50"
       ],
       "tex_lines": [
-        522
+        555
       ],
       "verbatim": "Jaccard n=89 = 0.50 (real)"
     },
@@ -1735,7 +2118,7 @@
         "($24{:}1$, $\\chi^2{=}21.2$)"
       ],
       "tex_lines": [
-        626
+        675
       ],
       "verbatim": "fplll n=101 transition (q=271): chi2=21.2"
     },
@@ -1757,8 +2140,8 @@
         "two-sided sign test ($p\\approx1.5\\times10^{-5}$)"
       ],
       "tex_lines": [
-        608,
-        627
+        645,
+        676
       ],
       "verbatim": "g6k n=101 transition (q=271): chi2=17.0"
     },
@@ -1780,8 +2163,8 @@
         "(sign test $p\\approx3.8\\times10^{-6}$ and $1.2\\times10^{-4}$)"
       ],
       "tex_lines": [
-        611,
-        628
+        648,
+        677
       ],
       "verbatim": "fplll n=113 transition (q=487): chi2=19.0"
     },
@@ -1803,8 +2186,8 @@
         "(sign test $p\\approx3.8\\times10^{-6}$ and $1.2\\times10^{-4}$)"
       ],
       "tex_lines": [
-        611,
-        629
+        648,
+        678
       ],
       "verbatim": "g6k n=113 transition (q=487): chi2=14.0"
     },
@@ -1825,7 +2208,7 @@
         "($24{:}1$, $\\chi^2{=}21.2$)"
       ],
       "tex_lines": [
-        626
+        675
       ],
       "verbatim": "fplll n=101 transition (q=271): 24:1 discordant"
     },
@@ -1847,8 +2230,8 @@
         "two-sided sign test ($p\\approx1.5\\times10^{-5}$)"
       ],
       "tex_lines": [
-        608,
-        627
+        645,
+        676
       ],
       "verbatim": "g6k n=101 transition (q=271): 17:0 discordant"
     },
@@ -1870,8 +2253,8 @@
         "(sign test $p\\approx3.8\\times10^{-6}$ and $1.2\\times10^{-4}$)"
       ],
       "tex_lines": [
-        611,
-        628
+        648,
+        677
       ],
       "verbatim": "fplll n=113 transition (q=487): 19:0 discordant"
     },
@@ -1893,8 +2276,8 @@
         "(sign test $p\\approx3.8\\times10^{-6}$ and $1.2\\times10^{-4}$)"
       ],
       "tex_lines": [
-        611,
-        629
+        648,
+        678
       ],
       "verbatim": "g6k n=113 transition (q=487): 14:0 discordant"
     },
@@ -1916,7 +2299,7 @@
         "& 38/100 & 12/100 & 61/100 & 23/100"
       ],
       "tex_lines": [
-        570
+        608
       ],
       "verbatim": "min-GS-clearing @ q=137: 38/100 12/100 61/100 23/100"
     },
@@ -1938,7 +2321,7 @@
         "& 38/100 & 12/100 & 61/100 & 23/100"
       ],
       "tex_lines": [
-        570
+        608
       ],
       "verbatim": "min-GS-clearing @ q=137: 38/100 12/100 61/100 23/100"
     },
@@ -1960,7 +2343,7 @@
         "& 38/100 & 12/100 & 61/100 & 23/100"
       ],
       "tex_lines": [
-        570
+        608
       ],
       "verbatim": "min-GS-clearing @ q=137: 38/100 12/100 61/100 23/100"
     },
@@ -1982,7 +2365,7 @@
         "& 38/100 & 12/100 & 61/100 & 23/100"
       ],
       "tex_lines": [
-        570
+        608
       ],
       "verbatim": "min-GS-clearing @ q=137: 38/100 12/100 61/100 23/100"
     },
@@ -2004,7 +2387,7 @@
         "& 0.255 & 0.104 & \\textbf{1.844} & 0.140"
       ],
       "tex_lines": [
-        571
+        609
       ],
       "verbatim": "median min_i log||b*_i||: 0.255 / 0.104 / 1.844 / 0.140"
     },
@@ -2026,7 +2409,7 @@
         "& 0.255 & 0.104 & \\textbf{1.844} & 0.140"
       ],
       "tex_lines": [
-        571
+        609
       ],
       "verbatim": "median min_i log||b*_i||: 0.255 / 0.104 / 1.844 / 0.140"
     },
@@ -2048,7 +2431,7 @@
         "& 0.255 & 0.104 & \\textbf{1.844} & 0.140"
       ],
       "tex_lines": [
-        571
+        609
       ],
       "verbatim": "median min_i log||b*_i||: 0.255 / 0.104 / 1.844 / 0.140"
     },
@@ -2070,7 +2453,7 @@
         "& 0.255 & 0.104 & \\textbf{1.844} & 0.140"
       ],
       "tex_lines": [
-        571
+        609
       ],
       "verbatim": "median min_i log||b*_i||: 0.255 / 0.104 / 1.844 / 0.140"
     },
@@ -2092,7 +2475,7 @@
         "is $1.59$ nats higher on the sieve"
       ],
       "tex_lines": [
-        649
+        698
       ],
       "verbatim": "median min-GS log-norm 1.59 nats higher on the sieve (1.844 vs 0.255)"
     },
@@ -2114,7 +2497,7 @@
         "${\\approx}4.9\\times$ in norm"
       ],
       "tex_lines": [
-        650
+        699
       ],
       "verbatim": "~4.9x in vector norm"
     },
@@ -2136,8 +2519,8 @@
         "recovers a $9\\%$ SD$<$BKZ DSD-onset"
       ],
       "tex_lines": [
-        602,
-        626
+        639,
+        675
       ],
       "verbatim": "fplll SD 257.3 / BKZ 280.7 (9% gap)"
     },
@@ -2159,8 +2542,8 @@
         "recovers a $9\\%$ SD$<$BKZ DSD-onset"
       ],
       "tex_lines": [
-        602,
-        626
+        639,
+        675
       ],
       "verbatim": "fplll SD 257.3 / BKZ 280.7 (9% gap)"
     },
@@ -2179,11 +2562,11 @@
       "status": "RECOMPUTED",
       "tex_anchors": [
         "101 & G6K   & 249.9 & 268.3",
-        "$[6.1\\%,11.1\\%]$) and $7\\%$ on G6K"
+        "$[6.0\\%,11.0\\%]$) and $7\\%$ on G6K"
       ],
       "tex_lines": [
-        604,
-        627
+        641,
+        676
       ],
       "verbatim": "g6k SD 249.9 / BKZ 268.3 (7% gap)"
     },
@@ -2202,11 +2585,11 @@
       "status": "RECOMPUTED",
       "tex_anchors": [
         "101 & G6K   & 249.9 & 268.3",
-        "$[6.1\\%,11.1\\%]$) and $7\\%$ on G6K"
+        "$[6.0\\%,11.0\\%]$) and $7\\%$ on G6K"
       ],
       "tex_lines": [
-        604,
-        627
+        641,
+        676
       ],
       "verbatim": "g6k SD 249.9 / BKZ 268.3 (7% gap)"
     },
@@ -2228,8 +2611,8 @@
         "($7\\%$ gap fplll,"
       ],
       "tex_lines": [
-        609,
-        628
+        646,
+        677
       ],
       "verbatim": "fplll SD 464.6 / BKZ 499.0 (7% gap)"
     },
@@ -2251,8 +2634,8 @@
         "($7\\%$ gap fplll,"
       ],
       "tex_lines": [
-        609,
-        628
+        646,
+        677
       ],
       "verbatim": "fplll SD 464.6 / BKZ 499.0 (7% gap)"
     },
@@ -2274,8 +2657,8 @@
         "$6\\%$ G6K), and at $q=487$"
       ],
       "tex_lines": [
-        610,
-        629
+        647,
+        678
       ],
       "verbatim": "g6k SD 456.3 / BKZ 482.2 (6% gap)"
     },
@@ -2297,8 +2680,8 @@
         "$6\\%$ G6K), and at $q=487$"
       ],
       "tex_lines": [
-        610,
-        629
+        647,
+        678
       ],
       "verbatim": "g6k SD 456.3 / BKZ 482.2 (6% gap)"
     },
@@ -2319,7 +2702,7 @@
         "& 193.7 & 193.8 & 193.1 & 194.0"
       ],
       "tex_lines": [
-        568
+        603
       ],
       "verbatim": "fplll SD 193.7 / BKZ 193.8 (null window)"
     },
@@ -2340,7 +2723,7 @@
         "& 193.7 & 193.8 & 193.1 & 194.0"
       ],
       "tex_lines": [
-        568
+        603
       ],
       "verbatim": "fplll SD 193.7 / BKZ 193.8 (null window)"
     },
@@ -2361,7 +2744,7 @@
         "& 193.7 & 193.8 & 193.1 & 194.0"
       ],
       "tex_lines": [
-        568
+        603
       ],
       "verbatim": "g6k SD 193.1 / BKZ 194.0 (null window)"
     },
@@ -2382,7 +2765,7 @@
         "& 193.7 & 193.8 & 193.1 & 194.0"
       ],
       "tex_lines": [
-        568
+        603
       ],
       "verbatim": "g6k SD 193.1 / BKZ 194.0 (null window)"
     },
@@ -2405,7 +2788,7 @@
         "($R^2\\approx0.95$)"
       ],
       "tex_lines": [
-        592
+        629
       ],
       "verbatim": "the redistribution is ~95% predicted by slope flattening alone (R^2 ~ 0.95)"
     },
@@ -2428,8 +2811,8 @@
         "$1.8\\times10^{-5}$)"
       ],
       "tex_lines": [
-        498,
-        499
+        532,
+        533
       ],
       "verbatim": "on fplll |dHF| ~1e-6, outliers to 1.8e-5 (n=101/113, q=97)"
     },
@@ -2451,7 +2834,7 @@
         "bit-identical on G6K"
       ],
       "tex_lines": [
-        497
+        531
       ],
       "verbatim": "at n=101/113 the stored Hermite-factor values of the G6K BKZ and SD-BKZ bases are bit-identical seed-for-seed"
     },
@@ -2473,8 +2856,8 @@
         "two-sided sign test ($p\\approx1.5\\times10^{-5}$)"
       ],
       "tex_lines": [
-        608,
-        627
+        645,
+        676
       ],
       "verbatim": "g6k n=101 transition (q=271): sign p~=1.5e-05 (two-sided)"
     },
@@ -2496,8 +2879,8 @@
         "(sign test $p\\approx3.8\\times10^{-6}$ and $1.2\\times10^{-4}$)"
       ],
       "tex_lines": [
-        611,
-        628
+        648,
+        677
       ],
       "verbatim": "fplll n=113 transition (q=487): sign p~=3.8e-06 (two-sided)"
     },
@@ -2519,8 +2902,8 @@
         "(sign test $p\\approx3.8\\times10^{-6}$ and $1.2\\times10^{-4}$)"
       ],
       "tex_lines": [
-        611,
-        629
+        648,
+        678
       ],
       "verbatim": "g6k n=113 transition (q=487): sign p~=1.2e-04 (two-sided)"
     },
@@ -2542,7 +2925,7 @@
         "(fplll $-0.00039$ vs G6K $-0.00040$)"
       ],
       "tex_lines": [
-        223
+        224
       ],
       "verbatim": "per-tour GS-slope-flattening signature (-0.00039 vs G6K -0.00040)"
     },
@@ -2564,7 +2947,7 @@
         "(fplll $-0.00039$ vs G6K $-0.00040$)"
       ],
       "tex_lines": [
-        223
+        224
       ],
       "verbatim": "per-tour GS-slope-flattening signature (-0.00039 vs G6K -0.00040)"
     },
@@ -2586,7 +2969,7 @@
         "101 & 0/20 & 0/20 & 1.00"
       ],
       "tex_lines": [
-        523
+        556
       ],
       "verbatim": "tab:xeng-sound n=101 fplll fired 0/20"
     },
@@ -2608,7 +2991,7 @@
         "101 & 0/20 & 0/20 & 1.00"
       ],
       "tex_lines": [
-        523
+        556
       ],
       "verbatim": "tab:xeng-sound n=101 g6k fired 0/20"
     },
@@ -2630,7 +3013,7 @@
         "113 & 0/20 & 0/20 & 1.00"
       ],
       "tex_lines": [
-        524
+        557
       ],
       "verbatim": "tab:xeng-sound n=113 fplll fired 0/20"
     },
@@ -2652,7 +3035,7 @@
         "113 & 0/20 & 0/20 & 1.00"
       ],
       "tex_lines": [
-        524
+        557
       ],
       "verbatim": "tab:xeng-sound n=113 g6k fired 0/20"
     },
@@ -2674,7 +3057,7 @@
         "89  & 2/20 & 1/20 & 0.50"
       ],
       "tex_lines": [
-        522
+        555
       ],
       "verbatim": "tab:xeng-sound n=89 fplll fired 1/20"
     },
@@ -2696,7 +3079,7 @@
         "89  & 2/20 & 1/20 & 0.50"
       ],
       "tex_lines": [
-        522
+        555
       ],
       "verbatim": "tab:xeng-sound n=89 g6k fired 2/20"
     }

@@ -69,11 +69,10 @@ _archives/
 .coverage.*
 htmlcov/
 
-# paper2 built PDF — regenerated on every audit pass; was causing pack
-# churn (paper1 history alone is 72 versions / 225 MB cumulative). paper1
-# PDF stays tracked (published Zenodo artifact). Active TeX builds via
-# pdflatex into paper2/latex/ on demand.
+# paper2: only the paper PDF is tracked, committed at push time (not per
+# rebuild, to limit pack churn); other pdflatex PDFs stay out.
 paper2/latex/*.pdf
+!paper2/latex/sdbkz_paper2.pdf
 
 # analysis plots from corpus mining (per_position_attribution, bimodal_tail, tail_auc,
 # cross_engine_seed_scatter). Generated locally for paper-2 figure candidates; check in

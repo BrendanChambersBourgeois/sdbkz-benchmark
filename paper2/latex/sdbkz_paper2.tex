@@ -26,26 +26,22 @@
 \begin{abstract}
 The Root Hermite Factor (RHF) is the standard one-number summary of
 lattice-reduction quality; the companion paper found BKZ and self-dual BKZ
-(SD-BKZ) RHF-equal on LWE-Kannan lattices yet different in Rankin profile.
-This report asks whether the variants also differ on \emph{NTRU} near the fatigue point. First, the
-SD-BKZ advantage on circulant NTRU is not smooth in dimension: tied with BKZ
-for $n\!\le\!67$, it spikes at $n\!\approx\!71$--$73$ (mean $d(\mathrm{LN})$
-advantage up to $+9.7$ nats at $q=97$, where the dense-sublattice discovery (DSD) flag cannot fire, $q<q^\ast\approx156$--$160$), then settles to a $+1.5$--$1.7$-nat plateau for $n=79$--$89$. Second,
-in the overstretched $q$-onset regime the defensible observable is
-\emph{reference-free}: there the signed $d(\mathrm{LN})$ is a reference
-artefact. Under this observable, flag-scored at $\beta=20$, BKZ's DSD onset
-sits $19\%$ above SD-BKZ's in $q$ at $n=89$ and $101$ and $28\%$ at
-$n=113$ ($n\!\le\!79$ unscorable). Third, at $\beta=40$ the G6K sieve matches fplll: a gap under
-$0.5\%$ at $n=89$, $6$--$9\%$ at $n=101$--$113$ on both, each engine's SD-BKZ
-firing on a near-superset of BKZ's. The
-engines differ in the sub-fatigue tail: under SD-BKZ at $n=89$, $q=137$ the sieve
-clears it on $61/100$ seeds, enumeration on $38/100$. Fourth, at $n=157$--$185$,
-scored by exact key recovery, the $\beta=40$ wall moves with
-blocksize and tours in preliminary cells, and SD-BKZ leads per seed but not
-per core-hour on fplll. The threat model is an adversary free to pick SD-BKZ
-over BKZ at fixed blocksize and tours; no deployed parameter set is evaluated.
-All experiments are reproducible via a containerised, determinism-gated
-benchmark.
+(SD-BKZ) RHF-equal on LWE-Kannan lattices. This report shows that on
+circulant \emph{NTRU} near the fatigue point they differ, on identical bases,
+in where reduction first finds the dense secret sublattice. At $\beta=20$,
+$n=89$--$113$, BKZ needs a modulus $20$--$29\%$ larger than SD-BKZ to recover
+the exact key ($19$--$28\%$ scored by a reference-free dense-sublattice
+flag). At $\beta=40$ the G6K sieve and fplll enumeration agree: the gap
+narrows to at most $9\%$, and SD-BKZ leads per key at $n=89$ and $113$ on
+both engines, not at $n=101$. Below fatigue the advantage is not smooth in
+dimension: tied for $n\!\le\!67$, it spikes at $n\!\approx\!71$--$73$ and
+settles to a plateau for $n=79$--$89$. At $n=157$--$185$, in preliminary
+cells, the $\beta=40$ recovery wall moves with blocksize and tours, and
+SD-BKZ leads per seed but not per core-hour on fplll. The threat model is an
+adversary free to pick SD-BKZ over BKZ at fixed blocksize and tours; the
+instances are toy-size ($n\le185$, $\beta\le60$) and no deployed parameter
+set is evaluated. All experiments are reproducible via a containerised,
+determinism-gated benchmark.
 \end{abstract}
 
 \paragraph{Key terms.}
@@ -72,17 +68,16 @@ BKZ~\cite{EC:MicWal16} RHF-equal on LWE-Kannan lattices yet different in the
 Li--Nguyen Rankin profile distance $d(\mathrm{LN})$~\cite{EPRINT:LiNgu20}. This report asks two
 questions: \emph{(i) does the SD-BKZ phenomenology generalise from LWE to
 NTRU?} and \emph{(ii) does it reproduce on a sieving oracle (G6K) rather than
-enumeration?} Both answers are yes, with two qualifications: on NTRU only a
-reference-free observable sees the difference, and at $\beta=40$, on both
-engines, only from $n=101$.
+enumeration?} Both answers are yes, with two qualifications: on NTRU, in the overstretched regime, only a reference-free observable is defensible, and at $\beta=40$ it is at
+most $9\%$ in $q$ on both engines.
 
 Contributions:
 \begin{itemize}
+  \item A reference-free, flag-scored \emph{DSD onset} whose SD-vs-BKZ gap is $19$--$28\%$ at $\beta=20$, $n=89$--$113$, and $20$--$29\%$ scored by exact key recovery (Section~\ref{sec:fatigue}).
   \item The SD-BKZ advantage on circulant NTRU~\cite{DucasWoerden2021} has a sharp dimension-onset (Section~\ref{sec:dimonset}).
-  \item A reference-free, flag-scored \emph{DSD onset} whose SD-vs-BKZ gap is $19$--$28\%$ at $\beta=20$, $n=89$--$113$ (Section~\ref{sec:fatigue}).
-  \item G6K as a second engine with a validated self-dual pump-and-jump; RHF-equality holds on both engines where $\mathbf b_1$ stays a $q$-vector, as under approximate oracles~\cite{ABLR21,Rowell2024} (Section~\ref{sec:xengine}).
-  \item Preliminary recovery-scored ladders at $n=157$--$185$: the $\beta=40$, $50$-tour wall moves with blocksize and tours; SD-BKZ leads per seed, not per core-hour on fplll (Section~\ref{sec:frontier}).
-  \item A DSD-criterion audit: the $b_1$-only test over-fires below fatigue and manufactured a cross-engine gap (Section~\ref{sec:xengine}).
+  \item G6K as a second engine with a validated self-dual pump-and-jump; where $\mathbf b_1$ stays a $q$-vector the Hermite factor is equal by construction on both engines and only $d(\mathrm{LN})$ separates the variants (Section~\ref{sec:xengine}).
+  \item Recovery-scored ladders at $n=157$--$185$, preliminary above $n=157$: the $\beta=40$, $50$-tour wall moves with blocksize and tours; SD-BKZ leads per seed, not per core-hour on fplll (Section~\ref{sec:frontier}).
+  \item A DSD-criterion audit: below fatigue the $b_1$-only test fires without profile collapse and manufactured a cross-engine gap; the two-part flag fires only on legs that hold the exact key (Sections~\ref{sec:bg-obs} and~\ref{sec:xengine}).
   \item The companion paper's $-345$ floors traced to our double-precision measurement GSO, not fplll, on LWE and NTRU, and that paper's wrong statements corrected (Appendices~\ref{sec:p1corr} and~\ref{sec:kahan}).
 \end{itemize}
 
@@ -102,7 +97,7 @@ identifies dual-lattice BKZ as a direction for it, pursued empirically here.
 \subsection{Circulant NTRU lattices and fatigue}
 \label{sec:bg-ntru}
 We use the circulant NTRU construction of Ducas and van
-Woerden~\cite{DucasWoerden2021}. For a prime $n$ and modulus $q$, sample
+Woerden~\cite{DucasWoerden2021}. For $n$ (prime except $n=183,185$) and modulus $q$, sample
 ternary secrets $f,g\in\mathbb{Z}_q[x]/(x^n-1)$ (uniform $\{-1,0,1\}$,
 coordinate variance $\sigma^2=2/3$) with $f$ invertible, set $h=g/f \bmod q$,
 and form the $2n\times2n$ basis
@@ -179,13 +174,18 @@ between adjacent $q$-grid cells; the SD-vs-BKZ onset \emph{gap} is the object
 of Sections~\ref{sec:fatigue} and~\ref{sec:xengine}, and
 Section~\ref{sec:xengine} shows why the $b_1$ half alone is not a DSD flag.
 
-\emph{Range of validity.} The scored cells ($n\le113$) predate the
-integer-exact recovery field \texttt{secret\_recovered}, so the two-part flag
-is the sole DSD verdict there, unvalidated against recovery. Where both
-verdicts exist below the frontier---two of the seven auxiliary $\beta=40$
-ladders excluded from the totals of Table~\ref{tab:coverage}, at
+\emph{Range of validity.} Every scored cell ($n\le113$) and the $n=127$
+ladder were rerun recording the integer-exact recovery field below; the
+reruns reproduce every other stored field except timings ($12{,}640$ fplll and $4{,}760$ G6K
+legs). The flag never fires on a leg without the exact key ($0$ of $6{,}800$
+fires), trails recovery by $29$--$76$ in $q$, and at $q\ge q^\ast$ flags
+$84\%$ of SD-BKZ and $69\%$ of BKZ recoveries on fplll over both $\beta$
+($88\%$ and $85\%$ at $\beta=40$; $87\%$ and $82\%$ on G6K): it marks a later event than key recovery, so
+Sections~\ref{sec:fatigue} and~\ref{sec:xengine} report both, the
+recovery-scored onsets as SKR. On two of the seven $\beta=40$ ladders at
+$n\ge109$ (Table~\ref{tab:coverage}), at
 $n=109$ ($q\in[503,929]$) and $n=127$ ($q\in[743,1361]$), 20 seeds per
-cell---the flag agrees with recovery on $317/320$
+cell, the flag agrees with recovery on $317/320$
 legs with no false fire; the three misses are BKZ recoveries at $n=127$, two
 with $b_1\le1.5$ and one with more than $n{+}1$ short vectors; at $q=947$ the
 flag alone would read SD $20$ vs BKZ $18$ where recovery is $20/20$ on both.
@@ -193,7 +193,7 @@ Five further ladders at $n\in\{131,137,139,149,151\}$
 ($1{,}120$ legs, $1.08$--$2.01\times q_\mathrm{fat}$) show that miss mode
 growing with $n$, from $6/121$ to $21/37$ legs, again without a false fire.
 The flag does not transfer to the frontier: over every canonical $50$-tour fplll
-$\beta=40$ cell at $n\in[157,181]$ ($3{,}360$ legs; Section~\ref{sec:frontier})
+$\beta=40$ cell at $n\in[157,181]$ ($3{,}360$ legs, seeds $1$--$20$; Section~\ref{sec:frontier})
 the count half passes on every leg, so the verdict reduces to the $b_1>1.5$
 floor, which only $20$ legs clear (all at $n=157$).
 \texttt{secret\_recovered} marks a reduced-basis row whose exact integer norm
@@ -202,11 +202,12 @@ immune to the measurement floor of Appendix~\ref{sec:kahan}. It over-counts:
 whenever $g(1)=0$ (roughly $4\%$ of keys at these $n$) we have $h(1)\equiv0
 \pmod q$, so the all-ones vector $(0,\mathbf 1)$ of squared norm $n$ lies in
 the key lattice and is shorter than the key ($\approx4n/3$). Every one of the
-$12$ recovered-but-not-exact legs in the corpus ($11$ fplll, $1$ G6K) has
+$21$ recovered-but-not-exact legs ($12$ at the frontier, seeds $1$--$20$,
+and $9$ in the reruns; $18$ fplll, $3$ G6K) has
 $g(1)=0$ and squared norm exactly $n$. Recovery is therefore reported as
 \texttt{secret\_exact\_match}: a row equal to $\pm$ a rotation of the secret.
-Against this verdict the flag is precise ($20/20$) but detects only $20$ of
-$557$ fplll recoveries ($3.6\%$); the $50$-tour G6K $\beta=40$ cells at
+Against this verdict the flag is precise ($20/20$, on $8$ keys) but detects
+only $20$ of $557$ fplll recoveries ($69$ keys; $3.6\%$); the $50$-tour G6K $\beta=40$ cells at
 $n\in\{167,173,179\}$ ($480$ legs) add $15$ undetected recoveries and no fire
 (pooled $20/572$, $3.5\%$).
 
@@ -227,16 +228,14 @@ engines (fplll $-0.00039$ vs G6K $-0.00040$).
 Both engines run in containers built from a digest-pinned base with
 pinned apt snapshots. The G6K image targets \texttt{x86-64-v2} with
 native-ISA detection disabled. The $n\le113$ cells (June 2026) ran an
-earlier build whose configure step appended the host's AVX2/FMA over that
-target; the frontier cells (August--early October) ran the corrected build,
-patched from 2 September. The AVX2 and corrected builds give the same
-SHA-256 for the $n=80$, $\beta=60$ reference-probe basis and $r$-profile.
+earlier build targeting \texttt{x86-64-v3}, to which G6K's configure appended the host's AVX2/FMA; the frontier cells (August--early October) ran the corrected build,
+patched from 2 September. The two builds give the same SHA-256 on the one-tour BKZ reference probe ($n=80$, $\beta=60$) but not the same multi-tour NTRU runs; each cell reproduces on the build that produced it, the recipe builds either, and its gate checks a ten-tour NTRU seed per build.
 Each result is a per-seed JSON
 carrying the full input parameters and output profile, and a SHA-256 seed
 manifest gates byte-identity. A verify script further holds the
 fplll path to numerical reproducibility ($10^{-4}$ tolerance on reference
 seeds) and the G6K path to an exact SHA-256
-match against a captured reference hash, confirmed on a second machine.
+match against a captured reference hash.
 
 G6K's multi-threaded
 sieve has a nondeterministic reduction race, so all sieving runs single-threaded
@@ -260,20 +259,17 @@ cross-engine sweeps (Section~\ref{sec:xengine}) fix $n=89$, $\beta=40$, 50 tours
 and sweep a matched $q$-grid on both engines. The patched-fplll $n=127$ runs
 (Appendix~\ref{sec:kahan}) at $q\in\{971,1087,1201\}$, on two builds, are
 separate campaigns outside the canonical seeds.
-Table~\ref{tab:coverage} summarises the analysed grid over 81 distinct moduli.
+Table~\ref{tab:coverage} summarises the analysed grid over 109 distinct moduli.
 
 \begin{table}[t]
 \caption{Experimental coverage. Circulant NTRU (lattice dimension $2n$), each seed a
 matched BKZ / SD-BKZ reduction, on two oracles: fplll enumeration and G6K sieve.
 Default 50 tours (the $n=67$ G6K entry includes four 10-tour determinism-check
-seeds at $q=97$). fpylll precision is 250 bits, except 500--1000 at $q\ge569$, 500
-in eight other $n=89$ cells and in eight reruns of the $n=89$, $\beta=20$,
-$q=97$ cell. Totals: 8{,}704 seed pairs over 147 $(n,\beta,q)$ cells,
-$\approx$6{,}430 core-hours. The $n=127$ row lists the
-$\beta=20$ cells only and also carries 12 seeds rerun on two patched-fplll
-builds (48 runs, both legs; Appendix~\ref{sec:kahan}). Seven native-fplll $\beta=40$ ladders
-($n\in\{109,127,131,137,139,149,151\}$, $36$ cells) are in the public seed
-manifest, excluded from all totals and used only for Section~\ref{sec:bg-obs}.}
+seeds at $q=97$). fpylll precision is 250 bits, except 500--1000 at $q\ge569$ and on the $\beta=40$ ladders at $n\ge109$, 500 in six other fplll $n=89$ cells and in eight reruns of the $n=89$, $\beta=20$, $q=97$ cell; G6K uses its own floating-point GSO. Totals: 9{,}424 seed pairs over 183 $(n,\beta,q)$ cells,
+$\approx$9{,}500 core-hours. The $n=127$, $\beta=20$ cells also carry 12 seeds
+rerun on two patched-fplll builds (48 runs, both legs; Appendix~\ref{sec:kahan}).
+The $\beta=40$ ladders at $n\ge109$ test the DSD flag against exact recovery
+(Section~\ref{sec:bg-obs}).}
 \label{tab:coverage}
 \centering
 \begin{tabular}{rrcccrr}
@@ -289,10 +285,16 @@ $n$ & $2n$ & $\beta$ & \#$q$ & $q$ range & $N_{\mathrm{fplll}}$ & $N_{\mathrm{G6
 83  & 166 & 20    & 1  & 97        & 20   & --   \\
 89  & 178 & 20,40 & 31 & 97--691   & 2508 & 1580 \\
 101 & 202 & 20,40 & 23 & 97--541   & 1480 & 140  \\
+109 & 218 & 40    & 4  & 503--929  & 80   & --   \\
 113 & 226 & 20,40 & 25 & 97--1279  & 1340 & 620  \\
-127 & 254 & 20    & 16 & 547--1811 & 152  & --   \\
+127 & 254 & 20,40 & 20 & 547--1811 & 232  & --   \\
+131 & 262 & 40    & 6  & 787--1459 & 120  & --   \\
+137 & 274 & 40    & 6  & 883--1627 & 120  & --   \\
+139 & 278 & 40    & 6  & 919--1693 & 120  & --   \\
+149 & 298 & 40    & 5  & 1381--2003 & 100 & --   \\
+151 & 302 & 40    & 5  & 1439--2069 & 100 & --   \\
 \midrule
-\multicolumn{5}{r}{total} & 6320 & 2384 \\
+\multicolumn{5}{r}{total} & 7040 & 2384 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -367,16 +369,18 @@ SD-BKZ DSD-onset falls at \emph{lower} $q$ than BKZ's:
 
 \begin{table}[tbp]
 \centering
-\caption{Reference-free DSD-onset ($\beta=20$, fplll, 50 tours; two-part criterion): SD-BKZ reaches dense-sublattice discovery at lower $q$ than BKZ for $n\ge89$. $^\ast$The $n=67$ and $79$ rows are not transitions: the criterion cannot fire below $q^\ast=(4n/3)\sqrt{e}$ ($147$, $174$), and $\mathbf b_1$ is already secret-length on every seed of both variants at every sampled $q$ at $n=67$, and on all but one from $q=157$ at $n=79$; these onsets measure the criterion and carry no SD-vs-BKZ information. Onsets are $50\%$-rate crossings, linearly interpolated between grid cells; gap\% is computed from these unrounded onsets (denominator: SD onset). Bracketing cells carry $N=100$ seeds at $n\ge89$ and $N=20$ at $n=67/79$; the $n=113$ endpoint comes from the $q$-sweep (precision $250$--$1000$ bits by $q$, Table~\ref{tab:coverage}).\label{tab:dsdgap}}
-\begin{tabular}{rrrr}
+\caption{Reference-free DSD-onset ($\beta=20$, fplll, 50 tours; two-part criterion) and the same ladders scored by exact key recovery (SKR): SD-BKZ reaches both at lower $q$ than BKZ for $n\ge89$. SKR gap $95\%$ CIs (keys resampled): $[7.1,27.2]$, $[16.6,33.4]$, $[21.1,29.0]$; the $n=101$ SKR SD onset rests on one non-monotone cell ($11/20$ at $q=367$, $6/20$ at $379$; an isotonic fit gives $387.5$ and $21\%$). $^\ast$The $n=67$ and $79$ rows are not transitions: the criterion fires only from $0.93\,q^\ast$ ($q^\ast=(4n/3)\sqrt{e}=147$, $174$), both variants already recover the key at the grid's lowest $q=97$ ($n=67$) or by $q=157$ ($n=79$), and $\mathbf b_1$ is already secret-length on every seed of both variants at every sampled $q$ at $n=67$, and on all but one from $q=157$ at $n=79$; these onsets measure the criterion and carry no SD-vs-BKZ information. Onsets are $50\%$-rate crossings, linearly interpolated between grid cells; gap\% is computed from these unrounded onsets (denominator: SD onset). Bracketing cells carry $N=100$ seeds at $n\ge89$ and $N=20$ at $n=67/79$; the $n=113$ endpoint comes from the $q$-sweep (precision $250$--$1000$ bits by $q$, Table~\ref{tab:coverage}).\label{tab:dsdgap}}
+\begin{tabular}{rrrrrrr}
 \toprule
-$n$ & SD onset $q$ & BKZ onset $q$ & gap\% \\
+ & \multicolumn{3}{c}{DSD flag} & \multicolumn{3}{c}{SKR} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+$n$ & SD $q$ & BKZ $q$ & gap\% & SD $q$ & BKZ $q$ & gap\% \\
 \midrule
-67$^\ast$  & 144.6 & 145.4 & -- \\
-79$^\ast$  & 171.2 & 171.0 & -- \\
-89  & 238.0 & 283.3 & 19 \\
-101 & 428.6 & 512.2 & 19 \\
-113 & 729.2 & 930.4 & 28 \\
+67$^\ast$  & 144.6 & 145.4 & -- & $<97$ & $<97$ & -- \\
+79$^\ast$  & 171.2 & 171.0 & -- & \multicolumn{2}{c}{$97$--$157$} & -- \\
+89  & 238.0 & 283.3 & 19 & 187.2 & 224.3 & 20 \\
+101 & 428.6 & 512.2 & 19 & 363.7 & 469.7 & 29 \\
+113 & 729.2 & 930.4 & 28 & 694.3 & 854.5 & 23 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -384,26 +388,68 @@ $n$ & SD onset $q$ & BKZ onset $q$ & gap\% \\
 The extraction evaluates the short-count threshold per $n$
 (Section~\ref{sec:bg-obs}). Because that threshold exceeds the whole
 dense-sublattice step $\log q-\log\|s\|$ whenever
-$q<q^\ast=\|s\|\,e^{\mathrm{thr}(n)}=(4n/3)\sqrt e$, the count half cannot
-pass below $q^\ast$ however reduced the basis is: at $n=67$ the flag goes
-$0/20\to17/20$ between $q=139$ and $149$ and at $n=79$ $1/20\to14/20$
+$q<q^\ast=\|s\|\,e^{\mathrm{thr}(n)}=(4n/3)\sqrt e$ (at the mean key norm),
+the count half almost never passes below $q^\ast$ however reduced the basis
+is (no fplll leg fires below $0.93\,q^\ast$): at $n=67$ the flag goes
+$1/20\to17/20$ between $q=139$ and $149$ and at $n=79$ $1/20\to14/20$
 between $167$ and $173$, straddling $q^\ast$ while $\mathbf b_1$ is
 secret-length throughout. At $n=89$ the onset ($238/283$) sits above
 $q^\ast=196$ and the $\mathbf b_1$ rates separate the variants ($88/100$ vs
-$47/100$ at $q=223$), so the $n\ge89$ rows measure the lattice. Freezing the
+$47/100$ at $q=223$), so the $n\ge89$ rows measure the lattice.
+Scored by exact key recovery instead (SKR), every onset falls $35$--$76$
+lower in $q$ and SD-BKZ still recovers first: per key, SD-BKZ recovers in
+more cells than BKZ for $79$ keys against $3$ at $n=89$ and $99$ against $0$
+at $n=101$ and $113$ (sign test $p<10^{-19}$); Figure~\ref{fig:paired}). Each flag-scored gap lies
+inside its SKR $95\%$ interval. Freezing the
 threshold at its $n=89$ value $2.888$ shifts only the $n\le79$ rows
 ($166.6/167.5$; $181.7/182.5$) and $n=113$ BKZ ($925.0$, gap $27\%$),
 leaving the gap trend unchanged. $n=127$ is excluded from the $\beta=20$ trend and onset figures:
-the integer-exact recovery field was not recorded for its $152$ $\beta=20$
-seeds; $16$ of them carry the $-345$ floor of the double-precision
-measurement GSO (Appendix~\ref{sec:kahan}); and its SD-BKZ DSD rate never reaches $50\%$ on
+its SD-BKZ DSD rate never reaches $50\%$ on
 the sampled ladder (${\le}25\%$ up to $q=1811\approx2.7\,q_\mathrm{fat}$; BKZ
-$0\%$). The $80$ $n=127$ $\beta=40$ manifest seeds, outside Table~\ref{tab:coverage}, do
-carry the verdict: $1/20$ vs $1/20$ at $q=743$, $20/20$ on both legs at
-$q\ge947$; the $80$ $n=109$ $\beta=40$ seeds, likewise outside the totals,
-recover $20/20$ on both legs at every rung $q\in\{503,647,787,929\}$
+$0\%$), exact recovery is $14/152$ vs $4/152$ seeds with $3$--$4$ seeds per
+cell from $q=971$, and $16$ seeds carry the $-345$ floor of the double-precision
+measurement GSO (Appendix~\ref{sec:kahan}). The $80$ $n=127$ $\beta=40$ seeds recover $1/20$ vs $1/20$ at $q=743$, $20/20$ on both legs at
+$q\ge947$; the $80$ $n=109$ $\beta=40$ seeds recover $20/20$ on both legs at every rung $q\in\{503,647,787,929\}$
 ($1.09$--$2.02\times q_\mathrm{fat}$), so that ladder starts above its onset.
+Figure~\ref{fig:profiles} shows the event on one key,
+Figure~\ref{fig:tours} follows that key tour by tour (the first $n$ vectors
+reach the dense-sublattice volume at tour $23$ for SD-BKZ and $44$ for BKZ;
+SD-BKZ fires the flag at tour $29$, BKZ not by tour $50$) and
 Figure~\ref{fig:phase} plots the onsets against the fatigue curve.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{figs/profiles}
+\caption{Final Gram--Schmidt profiles of one key ($n=113$, $\beta=20$, fplll,
+50 tours, seed $1$) at three moduli of the Table~\ref{tab:dsdgap} ladder.
+Below both onsets the variants coincide on one slope. At $q=859$ SD-BKZ has
+collapsed onto the dense sublattice (two flat blocks split at $i=n$, dashed
+vertical) and fires the flag; BKZ holds the exact key as $\mathbf b_1$ and
+has split at $i=n$, but its blocks are not yet flat and it does not fire. At $q=1163$ both have collapsed. Dotted:
+initial profile; dashed horizontal: mean secret log-norm
+$\log\sqrt{4n/3}$. The seed is the lowest with an SD-only flag at
+$q=859$.\label{fig:profiles}}
+\end{figure}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{figs/profile_tours}
+\caption{The $q=859$ key of Figure~\ref{fig:profiles} rerun with the
+Gram--Schmidt profile stored after every tour (colour: $\log\|\mathbf b_i^*\|$;
+dashed: $i=n$). Both variants split into two blocks at $i=n$, SD-BKZ at tour
+$23$ and BKZ at tour $44$; SD-BKZ flattens both blocks by tour $29$ and stops
+at $35$, BKZ is still flattening when its $50$ tours end.\label{fig:tours}}
+\end{figure}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{figs/paired_keys}
+\caption{Per-key paired exact recovery ($\beta=20$, fplll, 50 tours): for each
+of $100$ keys, the number of $q$ cells of its ladder in which SD-BKZ and BKZ
+recover the exact key; marker area counts keys, the diagonal is a tie. Keys
+$1$--$20$ run every cell and keys $21$--$100$ only the densified band, hence
+the two clusters at $n=89$.\label{fig:paired}}
+\end{figure}
 
 \begin{figure}[tbp]
 \centering
@@ -443,7 +489,7 @@ criterion as the onset table, so the two cannot disagree.\label{fig:sigmoids}}
 We track the mean $d(\mathrm{LN})$ each tour at one overstretched
 modulus per $n$: $q=307$, $409$, $719$ at $n=89$, $101$, $113$. The $n=89$ cell lies above both $50\%$
 onsets of Table~\ref{tab:dsdgap} (DSD rate SD $100\%$ / BKZ $90\%$; $68/100$
-BKZ runs stop early on stagnation, median $46$ tours); the other two lie below
+BKZ runs stop early on stagnation, median $42$ tours); the other two lie below
 both (SD $25\%$ / $43\%$, BKZ $0\%$, every BKZ run at the $50$-tour cap).
 Roughly midway through its run SD-BKZ reaches the final $d(\mathrm{LN})$ that
 BKZ attains only at the end. Per seed, the first tour at which SD-BKZ drops
@@ -462,7 +508,9 @@ per-tour $d(\mathrm{LN})$ for BKZ and SD-BKZ at one overstretched $q$ per $n$
 q_\mathrm{fat}$; at $n=101$ and $113$ these sit just below the $50\%$ SD onsets
 of Table~\ref{tab:dsdgap}, $428.6$ and $729.2$); each seed is carried forward
 at its own final value after its run
-stops, so the curves end at the per-seed final means. Dashed: BKZ final value
+stops, so the curves end at the per-seed final means. The $24$ one-tour spikes
+at $n=113$ ($>20$ nats above both neighbours, measurement floors of
+Appendix~\ref{sec:kahan}) are left out of the means. Dashed: BKZ final value
 (mean over seeds). Marked: median per-seed crossover tour, shaded
 interquartile range, and the number of seeds that cross (the rest are
 censored). The median crossover tour is $19$, $27$, $26$ ($q=307$, $409$,
@@ -471,20 +519,6 @@ Table~\ref{tab:dsdgap}. The
 absolute $d(\mathrm{LN})$ heights are reference-dependent; the reported result is
 the crossover \emph{tour} (timing against BKZ's own converged value), not the
 curve heights or their end-of-run gap.\label{fig:crossover}}
-\end{figure}
-
-Figure~\ref{fig:phasemap} summarises the explored $(n,q)$ plane.
-
-\begin{figure}[tbp]
-\centering
-\includegraphics[width=\linewidth]{figs/phase_map}
-\caption{SD-BKZ DSD-rate phase map over the $(n,q)$ plane ($\beta=20$, fplll):
-colour is the SD-BKZ DSD rate (two-part criterion) at each measured cell, with
-$q_\mathrm{fat}(n)$ overlaid. DSD switches on near the fatigue curve
-(below it at $n=89$, above it from $n=101$) and the onset modulus climbs
-with $n$; $n=127$ is not drawn (Section~\ref{sec:fatigue}). The grid is irregular---a full $q$-ladder at
-some $n$, a single $q=97$ point at others---so it is drawn as a scatter; the gaps
-are coverage, not interpolation.\label{fig:phasemap}}
 \end{figure}
 
 \section{Cross-Engine: SD-BKZ on a Sieve Oracle}
@@ -502,8 +536,7 @@ At $n=67$ both variants end on the same short vector ($20/20$ seeds, both
 engines) and $d(\mathrm{LN})$ differs by $<0.08$ nats. At $n=89$ ($q=97$,
 $100$ seeds), $\mathbf b_1$ is displaced (identical on $0/100$ seeds;
 $|\Delta\mathrm{HF}|$ median $0.24$ fplll, $0.45$ G6K), so the Hermite factor
-diverges on every seed, fired or not. The $n=101/113$ pattern is consistent
-with RHF-equality under a non-exact oracle~\cite{ABLR21,Rowell2024}.
+diverges on every seed, fired or not. This equality is forced by the unmoved $q$-vector, not the RHF-equality of~\cite{ABLR21,Rowell2024}.
 
 \paragraph{Cross-engine validation of the construction.}
 A fplll-vs-G6K comparison at $q=97$ ($n=89/101/113$, 20 seeds each,
@@ -530,8 +563,7 @@ $n$ & G6K fired & fplll fired & Jaccard \\
 We run the \emph{same} grid (15 moduli $q\in[97,211]$, dense onset window
 $q\in\{191,193,197,199\}$) on both engines under the two-part DSD criterion of
 Section~\ref{sec:bg-obs}. The G6K sweep adds four $N=20$ saturation cells
-$q\in\{257,307,401,521\}$ ($100\%$ DSD on both legs, 500-bit precision at
-$q\ge401$), counted in Table~\ref{tab:coverage}. The $b_1>1.5$ test alone
+$q\in\{257,307,401,521\}$ ($100\%$ DSD on both legs), counted in Table~\ref{tab:coverage}. The $b_1>1.5$ test alone
 over-fires on uniformly-reduced sub-fatigue bases, where the tail is cleared
 but the profile has not collapsed: read as a DSD flag, it turns the $q=137$
 clearing counts of Table~\ref{tab:g6konset} into a spurious cross-engine DSD
@@ -540,16 +572,19 @@ gap.
 Under the two-part criterion the gap nearly vanishes: at $q=137$ neither
 variant fires DSD on either engine, and the dense window pins the onset
 (Table~\ref{tab:g6konset}). The fplll gap is $+0.16$ modulus units (95\% CI
-$[-0.06, +0.49]$; all CIs here are deterministic per-cell bootstraps,
-$B=10^{4}$) and the G6K gap $+0.82$ ($[+0.27, +3.17]$): $0.08\%$ and
-$0.42\%$ of $q$, though G6K's interval excludes zero. The long G6K right tail
-is a near-crossing effect: the G6K SD onset sits ${\approx}0.14$ above the
+$[-0.14, +0.50]$; all CIs here are deterministic key-resampling bootstraps,
+$B=10^{4}$) and the G6K gap $+0.82$ ($[+0.35, +1.81]$): $0.08\%$ and
+$0.42\%$ of $q$, though G6K's interval excludes zero. The G6K SD onset sits ${\approx}0.14$ above the
 $q=193$ cell, whose rate $0.49$ is one seed short of the crossing, leaving a
 slight SD$<$BKZ tendency on the sieve. The DSD rate rises smoothly through the
 window ($37\%$ at $q=191$ to $85\%$ at $q=199$, $100\%$ at $q=211$,
 near-identical for both variants and engines), and densifying from $N=40$ to
 $N=100$ moved every onset by less than one modulus unit, so the near-zero gap is
-measurement-resolved.
+measurement-resolved. It is a gap in collapse among legs that already hold
+the key: on both engines every leg recovers the key from $q=181$. Scored by
+exact recovery the onset sits about $70$ lower in $q$ and SD-BKZ leads per
+key ($49{:}17$ fplll, $47{:}12$ G6K), by $+1.43$ $[-1.72,+4.73]$ and $+4.98$
+$[+1.52,+8.62]$ modulus units.
 
 \begin{table}[tbp]
 \centering
@@ -557,7 +592,7 @@ measurement-resolved.
 engines reach DSD-onset together (${\approx}q=194$, dense onset window, 100
 seeds/cell) with an SD-vs-BKZ gap under $0.5\%$ of $q$ (G6K's $95\%$ interval excludes zero). The separate min-GS-clearing event ($\min_i\log\|\mathbf{b}_i^\ast\|>1.5$
 alone: aggressive tail reduction, \emph{not} DSD) shows SD$>$BKZ on both engines
-and a sieve-vs-enum structural difference ($q=137$, 100 seeds).\label{tab:g6konset}}
+and a sieve-vs-enum structural difference ($q=137$, 100 seeds). SKR: exact key recovery.\label{tab:g6konset}}
 \begin{tabular}{lcccc}
 \toprule
  & \multicolumn{2}{c}{fplll (enum)} & \multicolumn{2}{c}{G6K (sieve)} \\
@@ -566,6 +601,9 @@ and a sieve-vs-enum structural difference ($q=137$, 100 seeds).\label{tab:g6kons
 \midrule
 two-part DSD @ $q{=}137$            & 0/100 & 0/100 & 0/100 & 0/100 \\
 two-part DSD-onset ($50\%$-rate)    & 193.7 & 193.8 & 193.1 & 194.0 \\
+\midrule
+SKR @ $q{=}137$                     & 96/100 & 84/100 & 95/100 & 86/100 \\
+SKR onset ($50\%$-rate)             & 122.9 & 124.3 & 119.8 & 124.8 \\
 \midrule
 min-GS-clearing @ $q{=}137$         & 38/100 & 12/100 & 61/100 & 23/100 \\
 median $\min_i\log\|\mathbf{b}_i^\ast\|$ & 0.255 & 0.104 & \textbf{1.844} & 0.140 \\
@@ -585,23 +623,22 @@ pattern holds on both engines, the sieve slightly larger in magnitude.
 $\log\|\mathbf{b}_i^\ast\|_{\mathrm{SD}}-\log\|\mathbf{b}_i^\ast\|_{\mathrm{BKZ}}$
 at $n=89$, $\beta=40$ (100 seeds/cell) over a $q$-sweep, for the fplll
 enumeration (left) and G6K sieve (right) engines. Self-dual reduction
-redistributes mass head-down/tail-up in the pre-onset band ($q\in[127,157]$),
+redistributes mass head-down/tail-up in the band below the flag onset ($q\in[127,157]$),
 peaking in the last few GS vectors, and is flat at $q\ge181$; both engines
-agree. (The step at GS position $i=n$ is the $q$-vector-head / reduced-tail
-boundary, not an artefact.) The redistribution is ${\approx}95\%$ predicted by slope flattening
+agree. (The step at GS position $i=n$ is the boundary between the rank-$n$ dense sublattice and the projected quotient, not an artefact.) The redistribution is ${\approx}95\%$ predicted by slope flattening
 alone ($R^2\approx0.95$), so it visualises the flattening rather than a distinct
 mechanism.\label{fig:perpos}}
 \end{figure}
 
-At $\beta=40$, $n=89$ therefore does not reproduce the $\beta=20$ DSD-onset
-gap of Section~\ref{sec:fatigue}.
+At $\beta=40$, $n=89$ therefore does not reproduce the flag-scored $\beta=20$
+gap of Section~\ref{sec:fatigue}; by exact recovery its gap is $1$--$4\%$.
 
 At $n=101$ and $n=113$ the picture changes (Table~\ref{tab:xengdim},
 Figure~\ref{fig:xengonset}). At $n=101$ a coarse $q$-grid ($50$ tours,
-$250$-bit precision; fplll 14 primes $q\in\{127,\dots,463\}$ plus $q=97$,
+fplll at $250$ bits on 14 primes $q\in\{127,\dots,463\}$ plus $q=97$,
 G6K the three bracketing primes $q\in\{241,271,307\}$ plus $q=97$) recovers a $9\%$ SD$<$BKZ DSD-onset
-gap on fplll (per-cell bootstrap over the 14 $N=40$ cells, $95\%$ CI
-$[6.1\%,11.1\%]$) and $7\%$ on G6K, where both onsets interpolate within the
+gap on fplll (key-resampling bootstrap over the 14 $N=40$ cells, $95\%$ CI
+$[6.0\%,11.0\%]$) and $7\%$ on G6K, where both onsets interpolate within the
 single interval $(241,271)$ and no interval is reported. At the transition
 cell $q=271$ each engine's SD-BKZ fire set is a near-superset of its BKZ set
 on byte-identical bases; the G6K zero-cell split is also significant under an
@@ -610,23 +647,35 @@ extended $q$-grid \emph{locates} the onset on both oracles ($7\%$ gap fplll,
 $6\%$ G6K), and at $q=487$ SD-BKZ fires on a strict superset of BKZ's seeds
 on both (sign test $p\approx3.8\times10^{-6}$ and $1.2\times10^{-4}$). All
 four onsets lie below the fatigue estimate $q_{\mathrm{fat}}(113)\approx503$,
-by $1\%$ (fplll BKZ) to $9\%$ (G6K SD).
+by $1\%$ (fplll BKZ) to $9\%$ (G6K SD). These transition-cell leads are
+collapse order among legs that hold the key ($69$ of the $75$ discordant
+pairs): exact recovery is $40/40$ vs $40/40$ (fplll) and $40/40$ vs $39/40$
+(G6K) at $q=271$, $40/40$ vs $37/40$ and $38/40$ vs $38/40$ at $q=487$. By
+exact recovery the $n=113$ gap is $6\%$ on both engines ($95\%$ CIs
+$[0.8,12.9]$ fplll, $[2.2,11.4]$ G6K; per key $21{:}4$ and $19{:}5$), all four
+onsets $13$--$19\%$ below $q_\mathrm{fat}$; at $n=101$ it is $3\%$
+$[-1.3,8.2]$ on fplll and unresolved on G6K.
 
 \begin{table}[tbp]
 \centering
 \caption{Cross-engine DSD-onset beyond $n=89$ ($\beta=40$, $N=40$ seeds/cell
 except $q=97$ at $N=20$; fplll 15-cell and G6K 4-cell $q$-grids at $n=101$,
-two-part criterion). The gap is established on \emph{both} engines at $n=101$ and
-$n=113$ (the extended $q$-grid $\{487,\dots,859\}$ locates the $n=113$ onset). The
+two-part criterion). The flag-scored gap is established on \emph{both} engines at $n=101$ and
+$n=113$ (the extended $q$-grid $\{487,\dots,859\}$ locates the $n=113$ onset). SKR:
+onsets scored by exact key recovery; at $n=101$ the G6K grid goes from $q=97$
+($0/20$ both) to $241$ (SD $33/40$, BKZ $27/40$). The
 $n=89$ matched-$\beta$ result is Table~\ref{tab:g6konset}.\label{tab:xengdim}}
-\begin{tabular}{llccl}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llccccl}
 \toprule
-$n$ & engine & SD onset & BKZ onset & transition cell (SD vs BKZ fire) \\
+ & & \multicolumn{2}{c}{flag onset} & \multicolumn{2}{c}{SKR onset} & \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+$n$ & engine & SD & BKZ & SD & BKZ & transition cell (SD vs BKZ fire) \\
 \midrule
-101 & fplll & 257.3 & 280.7 & $q{=}271$: $36/40$ vs $13/40$ ($24{:}1$, $\chi^2{=}21.2$) \\
-101 & G6K   & 249.9 & 268.3 & $q{=}271$: $39/40$ vs $22/40$ ($17{:}0$, $\chi^2{=}17.0$) \\
-113 & fplll & 464.6 & 499.0 & $q{=}487$: $34/40$ vs $15/40$ ($19{:}0$, $\chi^2{=}19.0$) \\
-113 & G6K   & 456.3 & 482.2 & $q{=}487$: $36/40$ vs $22/40$ ($14{:}0$, $\chi^2{=}14.0$) \\
+101 & fplll & 257.3 & 280.7 & 228.1 & 235.0 & $q{=}271$: $36/40$ vs $13/40$ ($24{:}1$, $\chi^2{=}21.2$) \\
+101 & G6K   & 249.9 & 268.3 & $\le241$ & $\le241$ & $q{=}271$: $39/40$ vs $22/40$ ($17{:}0$, $\chi^2{=}17.0$) \\
+113 & fplll & 464.6 & 499.0 & 410.5 & 436.9 & $q{=}487$: $34/40$ vs $15/40$ ($19{:}0$, $\chi^2{=}19.0$) \\
+113 & G6K   & 456.3 & 482.2 & 409.4 & 435.2 & $q{=}487$: $36/40$ vs $22/40$ ($14{:}0$, $\chi^2{=}14.0$) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -649,7 +698,8 @@ than BKZ on both engines (Table~\ref{tab:g6konset}). Under SD-BKZ the median
 $\min_i\log\|\mathbf{b}_i^\ast\|$ is $1.59$ nats higher on the sieve
 (${\approx}4.9\times$ in norm) because the sieve clears $61/100$ seeds
 against enumeration's $38/100$; paired per seed, the median ratio is
-$1.10\times$. Under plain BKZ the difference is small. Both engines start from the byte-identical
+$1.10\times$. Under plain BKZ the difference is small. Every clearing leg
+holds the key on both engines. Both engines start from the byte-identical
 primal basis ($100/100$ seeds) with the determinant conserved (median drift
 ${\sim}10^{-6}$).
 
@@ -660,21 +710,35 @@ reduced $q$-ary tail is far from the LWE-derived reference.
 \section{The Frontier: \texorpdfstring{$n\ge157$}{n>=157} on the Sieve}
 \label{sec:frontier}
 
-Of the fplll cells here, $25$ ($500$ seeds: every $n=157$ and $n=181$
-cell, three each at $n=167$ and $173$) were measured with the double-precision
+The flag reduces to its $b_1$ floor at these dimensions
+(Section~\ref{sec:bg-obs}), so every result here is scored by
+\texttt{secret\_exact\_match} (Section~\ref{sec:bg-obs}), onset being its
+$50\%$ crossing per variant; the $13$ all-ones legs that
+\texttt{secret\_recovered} would add are excluded.
+Figure~\ref{fig:frontier} shows the recovery curves and
+Table~\ref{tab:frontier} summarises this corpus, separate from
+Table~\ref{tab:coverage}. $\beta\ge50$ exceeds fplll's enumeration reach
+here, so those cells run on G6K~\cite{G6K2019}. Of the fplll cells, $25$ (every $n=157$ and $n=181$
+cell, three each at $n=167$ and $173$; $1{,}540$ seeds) were measured with the double-precision
 GSO and carry $r_{ii}\le0$ floors (Appendix~\ref{sec:p1corr}); the other
 fplll cells were measured in MPFR, and they and the G6K final profiles
-conserve $\log\det$ to $4\times10^{-10}$. The flag reduces to its $b_1$
-floor at these dimensions (Section~\ref{sec:bg-obs}). Every result here is scored by
-\texttt{secret\_exact\_match} (Section~\ref{sec:bg-obs}), onset being its
-$50\%$ crossing per variant; the $12$ all-ones legs that
-\texttt{secret\_recovered} would add are excluded. $\beta\ge50$ exceeds fplll's enumeration reach
-here, so those cells run on G6K~\cite{G6K2019}. Table~\ref{tab:frontier}
-summarises this corpus, separate from Table~\ref{tab:coverage}.
+conserve $\log\det$ to $4\times10^{-10}$.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{figs/frontier_recovery}
+\caption{Frontier exact key recovery, $50$ tours: rate of
+\texttt{secret\_exact\_match} against $q/q_\mathrm{fat}(n)$ on five ladders
+of Table~\ref{tab:frontier} (all completed seeds per cell, $N$ as tabulated),
+and recoveries per $100$ core-hours on the fplll $\beta=40$ ladders with the
+SD-BKZ/BKZ ratio and its $95\%$ key-resampling interval ($n=163$: seeds
+$1$--$20$). The per-seed SD-BKZ lead does not carry to the cost
+panel.\label{fig:frontier}}
+\end{figure}
 
 \begin{table}[tbp]
 \centering
-\caption{Frontier recovery ladders, $50$ tours ($\dagger$: $580$; $\ddagger$:
+\caption{Frontier recovery ladders, $50$ tours ($\dagger$: $580$; $\S$: $200$; $\ddagger$:
 G6K build that rejects an overflowing sieve reduction). The $q$
 range is in units of $q_\mathrm{fat}(n)=0.004\,n^{2.484}$ with the number of
 $q$ cells in parentheses; $N$ is seeds per cell; SD-BKZ and BKZ give
@@ -688,7 +752,7 @@ right-censored at the wall cap, -- a rung with no completed seed.\label{tab:fron
 \toprule
 $n$ & $\beta$ & engine & $q/q_\mathrm{fat}$ & $N$ & SD-BKZ & BKZ \\
 \midrule
-157 & 40 & fplll & 0.97--3.07 (13) & 20 & onset $2.07\times$, to $100\%$ & onset $2.40\times$, to $85\%$ \\
+157 & 40 & fplll & 0.97--3.07 (13) & 100 & onset $2.06\times$, peak $99\%$ & onset $2.30\times$, to $87\%$ \\
 163 & 40 & fplll & 2.00--3.85 (18) & 20--100 & onset $2.47\times$, peak $75\%$ & none, peak $40\%$ \\
 167 & 40 & fplll & 2.00--4.97 (28) & 20 & $116/560$, peak $40\%$ & $49/560$, peak $20\%$ \\
 167 & 40 & fplll$^\dagger$ & 2.30 (1) & 8 & $7/8$ (p.) & $6/8$ (p.) \\
@@ -697,13 +761,18 @@ $n$ & $\beta$ & engine & $q/q_\mathrm{fat}$ & $N$ & SD-BKZ & BKZ \\
 173 & 40 & G6K & 2.81 (1) & 80 & $3/80$ & $1/80$ \\
 179 & 40 & fplll & 2.00--3.22 (5) & 20 & $0/100$ & $0/100$ \\
 179 & 40 & G6K & 2.91 (1) & 80 & $0/80$ & $0/80$ \\
+179 & 40 & G6K$^\S$ & 2.91 (1) & 20 & $2/20$ & $0/20$ \\
 179 & 40 & G6K$^\dagger$ & 2.91 (1) & 20 & $6/20$ & $1/20$ \\
 181 & 40 & fplll & 1.90--3.62 (6) & 20 & $0/120$ & $0/120$ \\
 \midrule
 179 & 50 & G6K & 2.00--3.22 (5) & 20 & onset $2.54\times$, $33/100$ & $17/100$, peak $30\%$ \\
+179 & 50 & G6K$^\ddagger$ & 2.00--3.22 (5) & 20 & onset $2.54\times$, $33/100$ & $17/100$, peak $30\%$ \\
 181 & 50 & G6K & 1.60--4.00 (9) & 20 & $41/180$, plateau $35$--$50\%$ & $17/180$, peak $25\%$ \\
+181 & 50 & G6K$^\ddagger$ & 1.60--4.00 (9) & 20 & $43/180$, plateau $35$--$55\%$ & $15/180$, peak $25\%$ \\
 183 & 50 & G6K & 2.75 (1) & 6 & $1/6$ (p.) & $0/6$ (p.) \\
+183 & 50 & G6K$^\ddagger$ & 2.75 (1) & 6 & $1/6$ (p.) & $0/6$ (p.) \\
 185 & 50 & G6K & 2.68--3.79 (3) & 6--8 & $2/21$ (p., 1 c.) & $1/21$ (p., 1 c.) \\
+185 & 50 & G6K$^\ddagger$ & 2.68--3.79 (3) & 6--8 & $1/21$ (p.) & $0/21$ (p.) \\
 \midrule
 179 & 60 & G6K & 2.00 (1) & 6 & $6/6$ (p.) & $6/6$ (p.) \\
 179 & 60 & G6K$^\ddagger$ & 2.00 (1) & 6 & $6/6$ (p.) & $6/6$ (p.) \\
@@ -716,32 +785,36 @@ $n$ & $\beta$ & engine & $q/q_\mathrm{fat}$ & $N$ & SD-BKZ & BKZ \\
 \end{table}
 
 \paragraph{The clean-onset regime ends between $n=157$ and $163$.}
-At $n=157$ both variants cross $50\%$; SD-BKZ reaches $100\%$ ($90\%$ at the grid edge), BKZ $85\%$ at the grid edge. At $n=163$ SD-BKZ
+At $n=157$ both variants cross $50\%$; SD-BKZ reaches $99\%$ ($97\%$ at the grid edge), BKZ $87\%$ at the grid edge. At $n=163$ SD-BKZ
 crosses (bracket $[3011,3137]$) but neither saturates: above the crossing
 SD-BKZ recovers $147/260$ legs, BKZ $72/260$ (seeds $1$--$20$), and BKZ
 never crosses: its $10/20$ at $q=4049$ is $40/100$ over $100$ seeds. Above $n=163$ neither crosses. The $\beta=40$ SD-BKZ onset thus
 rises from $0.7$--$0.9\times q_\mathrm{fat}$ at $n=101/113$
 (flag-scored, Section~\ref{sec:xengine}) through $1.30$--$1.84\times$ at $n=131$--$151$
-(exact-match onsets of the auxiliary ladders, not tabulated) to $2.07\times$ and $2.47\times$ at $n=157$ and
+(exact-match onsets of the auxiliary ladders, not tabulated) to $2.06\times$ and $2.47\times$ at $n=157$ and
 $163$.
 
 \paragraph{The $\beta=40$, $50$-tour recovery wall is a budget, not a dimension.}
 Both levers of the $(\beta,\text{tours})$ budget move it: at $n=167$,
 $2.30\times$, $580$ tours turn $0/20$ into $7/8$ and $6/8$; at $n=179$ on
-G6K, $2.91\times$, they turn $0/80$ into $6/20$ and $1/20$; at $n=181$,
+G6K, $2.91\times$, $200$ and $580$ tours turn $0/80$ into $2/20$ and $0/20$, then $6/20$ and $1/20$; at $n=181$,
 where $\beta=40$ is $0/120$, $\beta=50$ first recovers at $2.30\times$, and
 $\beta=60$ crosses at $1.8\times$ ($n=181$) and $2.1\times$ ($n=185$) on both variants and both G6K builds. Every ``wall'' in Table~\ref{tab:frontier} is about
 $\beta=40$ at $50$ tours, and the $n=185$ step confounds $+4$ in $n$ with a
 lower $q/q_\mathrm{fat}$ at fixed $q$.
 
 \paragraph{SD-BKZ leads per seed; per core-hour the lead thins or reverses.}
-Paired on fixed instances, SD-only:BKZ-only is $34$:$1$ at $n=157$ (exact
-McNemar $p=2\times10^{-9}$), $134$:$29$ at $n=163$ ($p=2\times10^{-17}$),
+Paired on fixed instances, SD-only:BKZ-only is $160$:$9$ at $n=157$ (exact
+McNemar $p=7\times10^{-37}$), $134$:$29$ at $n=163$ ($p=2\times10^{-17}$),
 $101$:$34$ at $n=167$ ($p=7\times10^{-9}$),
 $25$:$9$ at $n=179$ ($p=0.009$) and $34$:$10$ at $n=181$
 ($p=4\times10^{-4}$, both $\beta=50$); no other cell of
 Table~\ref{tab:frontier} reaches two-sided $p<0.05$ (G6K $n=167$: $9$:$2$,
-$p=0.065$). The lead extends below recovery. A leg is on the floor when
+$p=0.065$). These pairs repeat keys: a seed fixes the key at every $q$ of a
+ladder ($20$ keys per ladder; $100$ at $n=157$, and at $n=163$, where only $q=4049$ holds seeds
+$21$--$100$). Clustered by key the leads are $87$:$0$, $46$:$8$, $16$:$4$,
+$13$:$3$ and $11$:$0$ (exact sign test $p=1\times10^{-26}$, $1\times10^{-7}$,
+$0.012$, $0.021$ and $1\times10^{-3}$). The lead extends below recovery. A leg is on the floor when
 $\mathbf b_1$ is exactly a $q$-vector (Hermite factor $\sqrt q$). Over $282$
 G6K seeds at $50$ tours ($284$ with the reject-build $\beta=60$ cells, same counts; $\beta=40$
 at $n=167$, $173$, $179$; $\beta=60$ at $n=181$, $1.36$--$1.66\times$, and
@@ -749,9 +822,11 @@ $n=185$, $2.28\times$), no seed has BKZ off the floor with SD-BKZ on it,
 against $69$ the other way; with both on the floor SD-BKZ has the lower
 $d(\mathrm{LN})$ in $70/70$ ($p\approx2\times10^{-21}$). SD-BKZ costs
 $1.6$--$2.6\times$ the core-hours per seed. Per $100$ core-hours it
-recovers $7.14$ against $8.41$ at $n=163$ and $3.23$ against $3.49$ at
-$n=167$ (fplll $\beta=40$), so on fplll the per-seed lead is not a compute
-lead. On G6K $\beta=50$ it recovers $3.31$ against $3.52$ at $n=179$ but
+recovers $6.96$ against $11.70$ at $n=157$, $7.14$ against $8.41$ at $n=163$
+(seeds $1$--$20$) and $3.23$ against $3.49$ at $n=167$ (fplll $\beta=40$,
+pooled over each ladder's $q$ cells): ratios $0.60$ ($95\%$ key-resampling
+CI $[0.56,0.63]$), $0.85$ ($[0.72,1.03]$) and $0.93$ ($[0.69,1.21]$), so on
+fplll the per-seed lead is not a compute lead, and at $n=157$ BKZ leads. On G6K $\beta=50$ it recovers $3.31$ against $3.52$ at $n=179$ but
 $2.40$ against $1.95$ at $n=181$, so there it is unsettled. At $\beta=60$
 it recovers $5.09$ against $7.94$ at $n=179$, $1.82$ against $2.71$ at
 $n=181$ and $3.69$ against $5.95$ at $n=185$ on the tolerant build (completed
@@ -773,7 +848,7 @@ the discovery---dense-sublattice discovery without key recovery, which the flag
 of Section~\ref{sec:bg-obs} cannot separate.
 
 \paragraph{Limitations.}
-Every count in Table~\ref{tab:frontier} is preliminary against the
+Every count in Table~\ref{tab:frontier} above $n=157$ is preliminary against the
 $100$-seed standard of Section~\ref{sec:fatigue}. The three $50$-tour G6K
 $\beta=40$ cells have fplll mirrors outside the canonical manifest (seeds
 $1$--$100$: SD-BKZ $6/100$, $2/100$, $0/100$ against BKZ $0/100$; two-sided
@@ -781,16 +856,23 @@ sign test $p=0.008$), not pooled above. Fourteen seeds
 of the $n=181$ $\beta=50$ ladder aborted on a per-seed-deterministic G6K
 sieve assertion and were rerun on a tolerant build, so the
 $2.83$--$4.00\times$ rungs mix two builds. The tolerant build lets a sieve
-reduction wrap a $16$-bit coefficient; the $\beta=60$ ladder was rerun on a
-build that rejects such a reduction ($\ddagger$). On the tolerant build $8$
+reduction wrap a $16$-bit coefficient; the $\beta=50$ and $\beta=60$ ladders were rerun on a
+build that rejects such a reduction ($\ddagger$). G6K's other 16-bit paths
+are unguarded: the triple sieve showed no overflow on the one seed
+instrumented ($n=181$, $\beta=60$, $50$ BKZ tours), the rest are unmeasured,
+and an overflow on the lift path can only lose candidates. On the tolerant build $8$
 seeds at $n=185$ are right-censored at the $48$\,h cap: $q=3907$ seeds $10$
 and $16$ repeat one overflowing swap without progress, and the other $6$
 ($q=4591$, $6491$) complete fewer than $25$ BKZ tours. On the reject build
-all $71$ seeds complete; one, cap-killed at $20$ concurrent seeds, was rerun
-alone and reproduces the $d(\mathrm{LN})$ it had logged at three tours. Of the $63$ seeds completed on both builds,
+all $71$ $\beta=60$ seeds complete; one, cap-killed at $20$ concurrent seeds, was rerun
+alone and reproduces the $d(\mathrm{LN})$ it had logged at three tours. Of the $63$ $\beta=60$ seeds completed on both builds,
 $34$ have no rejected reduction and are identical; the other $29$ first diverge
 in $d(\mathrm{LN})$ between tours $5$ and $49$, and exact recovery changes on $3$
-BKZ legs (all recovered on the reject build) and on no SD-BKZ leg. The table
+BKZ legs (all recovered on the reject build) and on no SD-BKZ leg. Of the $307$
+$\beta=50$ seeds, $266$ are identical in per-tour $d(\mathrm{LN})$ on both builds; the other $41$
+($n=179$ at $3.22\times$, $n=181$ from $2.83\times$, $n=185$) change exact recovery on $5$ SD-BKZ
+and $7$ BKZ legs, and the $n=181$ pairs become $37$:$9$ ($p=4\times10^{-5}$). The $40$
+deep-tour seeds at $n=179$ ($\S$, $\dagger$) and the $48$ short-vector seeds are identical on both. The table
 reports recoveries over completed seeds, with attempted in $N$. On G6K
 $61$ of the $69$ seeds with legs in different floor states have a stored
 $d(\mathrm{LN})$ advantage below $-100$ nats, so no frontier cell is averaged on stored
@@ -798,10 +880,8 @@ $d(\mathrm{LN})$. Twenty concurrent seeds cost $1.8$--$2.2\times$ the
 per-seed wall time of four, so wall times are not compared across cells.
 Where the DSD flag can be checked against exact recovery, its misses fall
 mostly on BKZ legs (SD $10/197$, BKZ $38/169$ at $n=131$--$151$; at $n=127$
-a $2.0\%$ flag gap against $0\%$ exact). The flag-scored $\beta=20$ gaps
-may therefore overstate the SD-BKZ lead, though the flag-independent
-$\mathbf b_1$ rates of Section~\ref{sec:fatigue} ($88/100$ vs $47/100$ at
-$n=89$, $q=223$) also favour SD-BKZ.
+a $2.0\%$ flag gap against $0\%$ exact), yet each flag-scored $\beta=20$
+gap lies inside its recovery-scored $95\%$ interval (Table~\ref{tab:dsdgap}).
 
 \section{Discussion}
 \label{sec:discussion}
@@ -816,10 +896,11 @@ DSD-onset at the same modulus. Against an adversary free to pick SD-BKZ over
 BKZ at fixed blocksize and tours, it thus misses that BKZ's onset sits
 $19$--$28\%$ above SD-BKZ's at $\beta=20$ (Section~\ref{sec:fatigue}) and
 $0$--$9\%$ above at $\beta=40$ (Section~\ref{sec:xengine}) on identical
-bases ($n=89$--$113$, flag-scored). The gap narrows with $\beta$ at these
-matched $n$, and at $\beta=40$ opens only from $n=101$. Every onset here
-lies at ${\ge}0.65\,q_\mathrm{fat}$ (flag-scored; exact recovery from
-$1.09\,q_\mathrm{fat}$), on $n\le185$ uniform-ternary keys, and moves with
+bases ($n=89$--$113$, flag-scored; $20$--$29\%$ and $1$--$6\%$ by exact key
+recovery). The gap narrows with $\beta$ at these matched $n$. Every resolved
+onset here lies at ${\ge}0.43\,q_\mathrm{fat}$ by exact recovery
+(${\ge}0.65$ flag-scored; at $n\le73$, and $n=79$ at $\beta=40$, both
+variants already recover at $q=97$), on $n\le185$ uniform-ternary keys, and moves with
 $n$, $\beta$ and tours ($\beta=60$ crosses at $1.8\times$ at $n=181$, where
 $\beta=40$ at $50$ tours recovers nothing from $1.9$ to $3.6\times$).
 Nothing here is a bit-security estimate, and at the frontier the per-seed lead does not
@@ -856,14 +937,19 @@ recipe (image, campaign, command); the determinism and self-dual-semantics
 decisions are recorded in ADRs~005--008. Each figure has one module under
 \texttt{analysis/plots/}, regenerated by \texttt{analysis/paper2\_figures.py}:
 Figure~\ref{fig:dimonset} from the per-seed \texttt{advantage} field,
-Figure~\ref{fig:perpos} from the GS-log-norm profiles,
-Figures~\ref{fig:phase}, \ref{fig:sigmoids}, \ref{fig:phasemap}
-and~\ref{fig:xengonset} from the two-part DSD criterion
-(\texttt{scripts/extract\_dsd\_onset.py}, so figures and onset tables cannot
-disagree), and Figure~\ref{fig:crossover} from the per-tour
+Figures~\ref{fig:profiles} and~\ref{fig:perpos} from the GS-log-norm profiles,
+Figure~\ref{fig:tours} from the per-tour profiles of one rerun seed (campaign \texttt{ntru\_b2\_probe}),
+Figure~\ref{fig:sigmoids} from the two-part DSD
+criterion (\texttt{scripts/extract\_dsd\_onset.py}),
+Figures~\ref{fig:paired} and~\ref{fig:frontier} from \texttt{secret\_exact\_match} (and the stored run times),
+Figures~\ref{fig:phase} and~\ref{fig:xengonset} from the onsets of
+Tables~\ref{tab:dsdgap} and~\ref{tab:xengdim}, and Figure~\ref{fig:crossover} from the per-tour
 \texttt{*\_dln\_per\_tour} arrays. The NTRU generator and G6K engine were
 added without altering the seed JSON schema, so the companion paper's SHA
-baselines are preserved. Every cell of Tables~\ref{tab:coverage}
+baselines are preserved. The October reruns of the $n\le113$ G6K cells
+ran on several hosts, one of them a Valve Steam Machine (SteamOS, AMD Zen~4,
+rootless podman), on the build that produced them; all $2{,}380$ seeds match
+the stored ones in every field but timings. Every cell of Tables~\ref{tab:coverage}
 and~\ref{tab:frontier} regenerates from its named campaign. Code, per-seed
 JSON, SHA-256 manifests and \texttt{config/sweep.toml} are in the companion
 repository
@@ -876,9 +962,11 @@ archived under Zenodo concept DOI
 BKZ and self-dual BKZ, RHF-equal on LWE-Kannan lattices, also differ on
 NTRU: at $\beta=20$ BKZ's dense-sublattice-discovery onset sits $19\%$
 above SD-BKZ's in $q$ at $n=89$ and $101$ and $28\%$ at $n=113$
-(flag-scored). At matched $\beta=40$ enumeration and
-sieving agree on the onset at $n=89$, differ in the sub-fatigue tail, and both
-reopen the gap from $n=101$ (Section~\ref{sec:xengine}). At $n\ge157$, in
+(flag-scored; $20$--$29\%$ by exact key recovery). At matched $\beta=40$
+enumeration and sieving agree on the flag-scored onset at $n=89$, differ in
+the sub-fatigue tail, and both reopen the flag-scored gap from $n=101$; by
+exact recovery SD-BKZ leads per key at $n=89$ and $113$ on both engines, not
+at $n=101$ (Section~\ref{sec:xengine}). At $n\ge157$, in
 preliminary cells, the $\beta=40$, $50$-tour wall moves with blocksize and
 tours, and SD-BKZ leads per seed but not per core-hour on fplll
 (Section~\ref{sec:frontier}). The threat model is an adversary free to pick
@@ -914,15 +1002,25 @@ with compensation, $46/100$ with it zeroed) shows the same effect: the patch
 also changes the double-precision measurement.
 The counts were also scored differently: $38$ counts a floor in the
 \emph{final} profile, $0/55$ any tour; under the any-tour criterion $100$ of
-$101$ unpatched seeds show an excursion.
+$101$ unpatched seeds show an excursion. Scored as the $0/55$ was (BKZ leg,
+$40$ tours, seeds $1$--$55$), the unpatched data give $51/55$.
 The $n=110$ statement (both algorithms affected in all $22$ seeds) is
 also any-tour: $12$ of the $22$ end on the floor, $4$ on both legs.
+The dimension onset ($0/20$ at $n=80$, $1/20$ at $n=90$) is final-profile
+too; any-tour it is $1/20$ and $16/20$. SD-BKZ's earlier first excursion
+(median tour $5$ vs $7$ at $n=110$) does not come from more GSO updates per
+tour: both legs are measured once per tour. The statement that BKZ
+trajectories on identical input diverge from run to run is withdrawn: stored
+trajectories replay bit for bit, so $38/100$ is not a hit probability. The
+$21/55$ credited to the Intel 13900K covers seeds $1$--$55$, which include the
+$10$ AWS seeds; by host the split is AWS $5/10$, 13900K $16/45$, 9950X3D
+$17/45$.
 The median advantage at $n=100$, $+0.57$ to $+0.60$ nats in every arm, is
 double-measured; on unfloored tours the double $d(\mathrm{LN})$
 error at $n=100$ has median $0.16$ and reaches $1.8$ nats, and the stored
 profiles' volume error reaches $2.6$ nats. Measured at $1000$ bits, the
-median advantage is $+0.535$ at $n=100$ (100 seeds), $+0.560$ at $n=90$
-(30) and $+0.546$ at $n=80$ (50).
+median advantage is $+0.535$, $+0.562$ and $+0.536$ at $n=100$, $90$ and
+$80$ ($100$ seeds each).
 
 \paragraph{The $\beta=40$ peak dimension.} The companion paper states that the
 $\beta=40$ advantage peaks at $n=110$ ($1.16$ nats, ``confirmed at 122 seeds'').
@@ -936,7 +1034,7 @@ this sample size.
 is below $0.04$ nats in every group where BKZ wins any seed is false: of the
 $17$ such groups, $11$ exceed $0.04$ nats, reaching $1.452$ nats at $n=140$,
 $\beta=40$, where BKZ wins every seed. The sentence holds only in the
-coin-flip regime. The quoted SD-BKZ win margin ($0.106$--$1.349$ nats) is
+coin-flip regime. The quoted SD-BKZ win margin ($0.106$--$1.349$ nats, $122$ seeds per group) is
 the group mean advantage at $(n,\beta)=(50,40)$ and $(100,30)$; over the
 $13$ such groups with SD-BKZ wins it spans $0.061$--$0.417$ nats.
 
@@ -970,7 +1068,7 @@ matches no sidedness (two-sided $0.0070$). The Wilcoxon column mixes two-sided a
 one-sided values; its $n=140$, $\beta=30$ entry ($1.5\times10^{-4}$)
 reproduces under neither (two-sided $5.8\times10^{-5}$). Of the $24$ groups
 at $n=50$--$120$, $23$ are significant for SD-BKZ and $n=120$, $\beta=40$
-for BKZ. Shapiro--Wilk is below $0.05$ in two groups ($n=100$, $\beta=20$:
+for BKZ. At $122$ seeds per group, Shapiro--Wilk is below $0.05$ in two groups ($n=100$, $\beta=20$:
 $0.033$; $n=110$, $\beta=40$: $0.049$).
 
 \paragraph{GSO tail hook~\cite[\S5.4, \S8.4]{Paper1}.} At $\beta=30$ the BKZ hook
@@ -983,8 +1081,7 @@ the last five BKZ values lie $0.46$--$0.54$ ($n=130$) and $0.75$--$0.83$
 ($n=150$) nats above the plotted Li--Nguyen line.
 
 \paragraph{Precision robustness~\cite[\S7.4]{Paper1}.} The $500$-bit rerun at $n=130$,
-$\beta=40$ (seeds $1$--$20$) is bit-identical to the $250$-bit main-sweep
-seeds $1$--$20$ (mean $-1.282$ in both). The quoted shift from $-1.370$
+$\beta=40$ (seeds $1$--$20$) gives the same final profiles, $d(\mathrm{LN})$ and advantage as the $250$-bit main-sweep seeds $1$--$20$ (mean $-1.282$ in both; per-tour $d(\mathrm{LN})$ within $1.3\times10^{-6}$). The quoted shift from $-1.370$
 compared it with seeds $76$--$100$; the $6.4\%$ softening is withdrawn.
 
 \paragraph{Figure captions.} The absolute-$d(\mathrm{LN})$ figure caption quotes
@@ -1010,8 +1107,8 @@ measurement GSO returns $r_{ii}\le0$. It is not a reduction outcome:
 $\sum_i\log\|\mathbf b_i^\ast\|=\log\det L$ for every basis, yet each floor
 lowers the stored log-determinant by $343.6$--$348.3$ nats. Nor is it a crack:
 no floored leg has a $\mathbf b_1$ shorter than squared norm $14{,}187$,
-against the key's $175$, and of the $599$ floored legs in the NTRU corpus
-that record \texttt{secret\_exact\_match}, none recovers the key.
+against the key's $175$, and none of the $712$ floored legs in the NTRU corpus, each scored by
+\texttt{secret\_exact\_match} ($19$ through their reruns), recovers the key.
 
 We reran three of these cells ($q\in\{971,1087,1201\}$, four seeds each;
 five floored stock legs, four BKZ and one SD-BKZ) on two patched builds,

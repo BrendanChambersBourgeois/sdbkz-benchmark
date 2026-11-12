@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/Code-MIT-blue.svg)](LICENSE)
 [![License: CC-BY-4.0](https://img.shields.io/badge/Paper%20%26%20data-CC--BY--4.0-brightgreen.svg)](https://creativecommons.org/licenses/by/4.0/)
 
-Empirical comparison of self-dual BKZ (SD-BKZ) against BKZ, measured by the distance d(LN) of the reduced basis profile from the Li–Nguyen fixed point. Two engines: fplll 5.5.0 enumeration (13,693 seeds under `results/seed_manifest.json`) and G6K sieving (3,034 seeds under `results/g6k_seed_manifest.json`). Paper 1 (LWE-Kannan, published on Zenodo) lives in `paper1/`; Paper 2 (NTRU dense-sublattice onset and the cross-engine study, in progress) in `paper2/`.
+Empirical comparison of self-dual BKZ (SD-BKZ) against BKZ, measured by the distance d(LN) of the reduced basis profile from the Li–Nguyen fixed point. Two engines: fplll 5.5.0 enumeration (14,669 seeds under `results/seed_manifest.json`) and G6K sieving (3,034 seeds under `results/g6k_seed_manifest.json`). Paper 1 (LWE-Kannan, published on Zenodo) lives in `paper1/`; Paper 2 (NTRU dense-sublattice onset and the cross-engine study, in progress) in `paper2/`.
 
 ## Quickstart
 
@@ -51,7 +51,7 @@ Win = SD-BKZ ends closer to the fixed point; d = Cohen's d; mean in nats. The fo
 
 Each seed is one JSON under `results/seeds/<tree>/q<q>/p<precision>_mt<tours>/n<n>_beta<β>/seedNNNN.json`: inputs, final d(LN) for both algorithms, termination reason, wall time. A `_fat` companion holds per-tour trajectories when the campaign stored them. Field contract: `docs/seed_manifest_schema.md`. Every writer routes through `scripts/_seed_paths.py`; every reader goes through `analysis/_data.py::load_all_seeds`, which queries the manifest and checks SHA-256 on read.
 
-Trees are separate per engine and per build (`ntru` vs `ntru_g6k`, `ntru_g6k_reject` for the reject-on-overflow G6K build, `*_exact`, `*_mpfr`); the two engine manifests are never merged. Trees outside the manifests are listed in `NON_MANIFEST_SEED_TREES` in `scripts/lint_seed_manifest.py`. Pre-v2 paths resolve through `results/seed_path_crosswalk.csv`.
+Trees are separate per engine and per build (`ntru` vs `ntru_g6k`, `ntru_g6k_reject` for the reject-on-overflow G6K build, `*_exact`, `*_mpfr`); the two engine manifests are never merged. The auxiliary trees (reruns, probes, controls) have their own SHA set, `results/side_seed_manifest.json` (`make manifest-side`); the Kahan-patched trees have `results/patched_seed_manifest.json`. Pre-v2 paths resolve through `results/seed_path_crosswalk.csv`.
 
 Supplementary: `results/paper_claims/` (one JSON per paper claim with its source seeds), `results/profile_decomposition.json`, `results/hash_verification.txt` (100 seeds bit-identical across two environments).
 
@@ -63,7 +63,7 @@ Hosts: Intel 13900K (Ubuntu 24.04, MPFR 4.2.1), AWS Batch (Debian bookworm, MPFR
 
 ## Papers
 
-`paper1/latex/sdbkz_paper_latex.tex` is canonical; `paper1/latex/sdbkz_paper_latex.pdf` and `paper1/sdbkz_paper.html` are built from it (`make paper`). `paper2/latex/` follows the same flow. `patches/` holds the two G6K `gauss_sieve` patches the sieve images apply.
+`paper1/latex/sdbkz_paper_latex.tex` is canonical; `paper1/latex/sdbkz_paper_latex.pdf` is built from it (`make paper`). `paper2/latex/` follows the same flow. `patches/` holds the two G6K `gauss_sieve` patches the sieve images apply.
 
 ## License and citation
 

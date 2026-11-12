@@ -16,6 +16,7 @@ pushed, so `RepoDigests` is empty and the image ID is the identifier to record.
 | `sdbkz-g6k:dim256` | `Dockerfile.g6k` | `G6K_MAX_SIEVING_DIM=256` | `image-g6k-dim256` | see note 1 |
 | `sdbkz-g6k:dim384` | `Dockerfile.g6k` | `G6K_MAX_SIEVING_DIM=384 APPLY_INC63=0` | `image-g6k-dim384` | `Dockerfile.g6k` at `f65c5415` (unpatched kernel) |
 | `sdbkz-g6k:dim384-inc63` | `Dockerfile.g6k` | `G6K_MAX_SIEVING_DIM=384 APPLY_INC63=1` | `image-g6k-dim384-inc63` | `Dockerfile.g6k` at `ff108a7c` |
+| `sdbkz-g6k:dim384-inc63-fma` | `Dockerfile.g6k` | `G6K_MAX_SIEVING_DIM=384 APPLY_INC63=1 ISA=v3` | `image-g6k-dim384-inc63-fma` | image `c5d9d25d9cc7`, see `ISA` |
 | `sdbkz-g6k:dim384-reject` | `Dockerfile.g6k` | `G6K_MAX_SIEVING_DIM=384 APPLY_INC63=1 REJECT_OVERFLOW=1` | `image-g6k-dim384-reject` | `Dockerfile.g6k` at `596db8e0` |
 | `sdbkz-fplll-patched:kahan-v3` | `Dockerfile.fplll_patched` (removed from tree, see note 2) | `GSO_PATCH=patches/fplll_gso_kahan.patch` (removed from tree) | none (see note 2) | `Dockerfile.fplll_patched` at `e4c38ba0` |
 | `sdbkz-fplll-patched:reorder-control` | `Dockerfile.fplll_patched` (removed from tree, see note 2) | `GSO_PATCH=patches/fplll_gso_reorder_control.patch` (removed from tree) | none (see note 2) | `Dockerfile.fplll_patched` at `e4c38ba0` |
@@ -38,6 +39,25 @@ REJECT_OVERFLOW=0` the build runs the old commands, so `image-g6k-dim384`
 rebuilds the same kernel as the original `dim384`. The patch
 file is still copied into `/tmp` with `APPLY_INC63=0`; the build does not use it.
 
+## `ISA`
+
+`ISA=v2` (the default) compiles at `-march=x86-64-v2` with g6k configured
+`--disable-native`; every tag above except `dim384-inc63-fma` is this build.
+`ISA=v3` compiles at `-march=x86-64-v3` and leaves g6k's native detection on,
+which is the recipe the `ntru_g6k` cells run before 2026-08-14 were built with
+(42 cells, 2,384 seeds, all at n <= 113) and the build the `ntru_g6k_exact`
+reruns of those cells used. FMA changes rounding in the sieve, so the two
+builds give different per-seed results on multi-tour NTRU runs while agreeing
+on the one-tour reference probe. Each stored seed reproduces on its own build;
+any other value of `ISA` fails the build.
+
+g6k's native detection reads the build host, so build `ISA=v3` on an AVX2/FMA
+host without AVX-512 (the existing image was built on a 13900K). The gate
+`scripts/verify_g6k.sh` runs a ten-tour NTRU seed (`ntru_golden` in
+`results/g6k_seed_manifest.json`) and compares its science hash with the entry
+for the image's `G6K_ISA`, so it fails on an image whose build is not the one
+its label names.
+
 ## `REJECT_OVERFLOW`
 
 With `REJECT_OVERFLOW=1` (needs `APPLY_INC63=1`) the build also applies
@@ -52,8 +72,9 @@ the build.
 
 1. `ref` and `dim256` were first built before the x86-64-v2 target and
    `--disable-native` (`d6d05669`, `f65c5415`) and before the tolerant gauss_sieve patch.
-   The make targets rebuild the HEAD recipe. For the original binary, build
-   `Dockerfile.g6k` from `f3cda9c8` with the same args.
+   The make targets rebuild the HEAD recipe. For a binary that reduces as the
+   original did, add `ISA=v3`; the original recipe is `Dockerfile.g6k` at
+   `f3cda9c8`.
 2. The patched fplll images (`kahan-v3`, `reorder-control`, `val2`) were built
    against q=3329 floors that came from our double-precision measurement GSO,
    not from fplll (Paper 2, Appendix A). `Dockerfile.fplll_patched`, the
