@@ -76,6 +76,13 @@ def check_contract(manifest: dict) -> list[str]:
     ref = manifest.get("reference", {})
     if ref.get("threads") != 1:
         errors.append(f"reference.threads = {ref.get('threads')!r} (must be 1)")
+    gold = manifest.get("ntru_golden", {})
+    if gold.get("threads") != 1:
+        errors.append(f"ntru_golden.threads = {gold.get('threads')!r} (must be 1)")
+    for isa in ("v2", "v3"):
+        sha = gold.get("science_sha256_by_isa", {}).get(isa, "")
+        if len(sha) != 64 or set(sha) - set("0123456789abcdef"):
+            errors.append(f"ntru_golden.science_sha256_by_isa[{isa!r}] is not a SHA-256")
     for i, entry in enumerate(manifest.get("seeds", [])):
         if entry.get("threads") != 1:
             errors.append(

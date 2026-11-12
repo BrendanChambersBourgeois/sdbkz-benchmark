@@ -488,6 +488,7 @@ seed_tag = "ntru_b2_probe"
 q = 4591
 n_grid = [179]
 store_per_tour = true
+tours_by_beta = { "20" = 50, "40" = 50 }
 
 [campaigns.ntru_g6k_vecprobe]
 inherits = "ntru_wall_beta_bump"

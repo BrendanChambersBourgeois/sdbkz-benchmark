@@ -26,7 +26,7 @@ Behaviour:
 
 Allowlist policy:
 - New entries are paper-grade governance decisions; do not add lightly.
-- Hidden directories (``.github/``, ``.claude/``, etc.) are listed
+- Hidden directories (``.github/``) are listed
   explicitly because the heuristic would otherwise flag them on first
   introduction.
 - Generated/runtime caches (``logs/``, ``.pytest_cache/``,
@@ -53,9 +53,8 @@ ALLOWED_TOP_LEVEL = frozenset({
     "results",
     "scripts",
     "tests",
-    # Tooling / CI / local-config conventions (hidden, deliberate).
+    # Tooling / CI (hidden, deliberate).
     ".github",
-    ".claude",
     # Runtime caches — gitignored; allowlisted defensively so a stale
     # tree state does not produce a noisy false positive.
     "logs",

@@ -5,14 +5,19 @@
 # reject threads>1.
 FROM python:3.12.3-bookworm@sha256:25dee7f137aa44c4962d21346385737eb81954b6f06f519fcc348b67f6483d3c
 
-# -march=x86-64-v2, not native: a native build bakes the host ISA into the
-# binary and breaks cross-machine bit-identity (AVX2 builds SIGILL on v2-only
-# CI runners). g6k's ./configure defaults to --enable-native and appends AVX2
-# flags on top of CXXFLAGS, so the configure call below must pass
-# --disable-native. Any change to the effective target changes the
-# determinism reference SHA in results/g6k_seed_manifest.json.
-ENV CFLAGS="-O3 -march=x86-64-v2 -Wp,-U_FORTIFY_SOURCE" \
-    CXXFLAGS="-O3 -march=x86-64-v2 -Wp,-U_FORTIFY_SOURCE"
+# ISA=v2 (default): -march=x86-64-v2 and g6k configured --disable-native, so
+# one binary runs and reduces identically on every x86-64-v2 machine. g6k's
+# ./configure otherwise defaults to --enable-native and appends the build
+# host's AVX2/FMA flags on top of CXXFLAGS.
+# ISA=v3: -march=x86-64-v3 with g6k's native detection left on, the recipe the
+# G6K seeds from before the v2 switch were built with. FMA changes rounding in
+# the sieve, so a multi-tour reduction differs per seed between the two; build
+# v3 on an AVX2/FMA host without AVX-512 to reproduce those seeds
+# (docs/images.md). verify_g6k.sh checks the NTRU golden for the baked G6K_ISA.
+ARG ISA=v2
+ENV G6K_ISA=${ISA} \
+    CFLAGS="-O3 -march=x86-64-${ISA} -Wp,-U_FORTIFY_SOURCE" \
+    CXXFLAGS="-O3 -march=x86-64-${ISA} -Wp,-U_FORTIFY_SOURCE"
 
 # make -j parallelism; default all cores.
 ARG BUILD_JOBS=
@@ -75,6 +80,7 @@ RUN git clone https://github.com/fplll/fpylll.git /tmp/fpylll \
 #   sdbkz-g6k:dim384        G6K_MAX_SIEVING_DIM=384 APPLY_INC63=0
 #   sdbkz-g6k:dim384-inc63  G6K_MAX_SIEVING_DIM=384 APPLY_INC63=1
 #   sdbkz-g6k:dim384-reject G6K_MAX_SIEVING_DIM=384 APPLY_INC63=1 REJECT_OVERFLOW=1
+#   sdbkz-g6k:dim384-inc63-fma  G6K_MAX_SIEVING_DIM=384 APPLY_INC63=1 ISA=v3
 ARG G6K_COMMIT=c71e084
 ARG G6K_MAX_SIEVING_DIM=128
 ARG APPLY_INC63=1
@@ -95,8 +101,13 @@ RUN git clone https://github.com/fplll/g6k.git /tmp/g6k \
          0) ;; \
          *) echo "REJECT_OVERFLOW must be 0 or 1, got '${REJECT_OVERFLOW}'" >&2; exit 1 ;; \
        esac \
+    && case "${ISA}" in \
+         v2) NATIVE=--disable-native ;; \
+         v3) NATIVE= ;; \
+         *) echo "ISA must be v2 or v3, got '${ISA}'" >&2; exit 1 ;; \
+       esac \
     && autoreconf -i \
-    && ./configure --disable-native --with-max-sieving-dim=${G6K_MAX_SIEVING_DIM} \
+    && ./configure ${NATIVE} --with-max-sieving-dim=${G6K_MAX_SIEVING_DIM} \
     && pip install --no-cache-dir --no-build-isolation . \
     && rm -rf /tmp/g6k
 

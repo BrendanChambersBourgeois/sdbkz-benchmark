@@ -35,7 +35,6 @@ def test_allowlisted_dirs_pass():
         "docs/adr.md",
         "results/seeds/main/q97/seed.json",
         ".github/workflows/x.yml",
-        ".claude/agent.md",
     ]
     assert _top_level_violations(paths) == []
 
@@ -93,7 +92,7 @@ def test_allowlist_contains_expected_baseline():
     expected = {
         "scripts", "tests", "analysis", "docs", "examples",
         "paper1", "paper2", "patches", "results",
-        ".github", ".claude",
+        ".github",
         "logs", ".pytest_cache", ".ruff_cache",
     }
     missing = expected - ALLOWED_TOP_LEVEL

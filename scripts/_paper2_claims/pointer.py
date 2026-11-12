@@ -11,7 +11,7 @@ Sources (all under the repo root):
   results/validation/sieve_vs_enum_min_gs_clearing.json   (min-GS medians/counts/nats)
   results/validation/g6k_sd_xengine_n{89,101,113}_mt50.json (RHF/gs0/Jaccard/fired)
   results/validation/adr008_sd_cross_engine.json          (slope signature)
-  results/seed_manifest.json + results/g6k_seed_manifest.json (coverage 8704 / 147 cells)
+  results/seed_manifest.json + results/g6k_seed_manifest.json (coverage 9424 / 183 cells)
 
 The pointer slice does NOT re-score raw seeds, so it does not need
 extract_dsd_onset's scoring primitives (onset_for / _seed_fires / _cell_rate) --
@@ -286,20 +286,16 @@ def _xengine_records() -> list[dict]:
 
 
 # --------------------------------------------------------------------------- #
-#  (3) coverage: 8704 seed pairs over 147 (n,beta,q) cells                     #
+#  (3) coverage: 9424 seed pairs over 183 (n,beta,q) cells                     #
 # --------------------------------------------------------------------------- #
-# tab:coverage scope (frozen Paper 2 data: fplll 6,320 + G6K
-# 2,384). The 'ntru' campaign and the g6k manifest also hold rows outside the
-# table: the n>=157 frontier ladders (both engines) and the native beta=40
-# ladders at n in {109,127,131,137,139,149,151}. The table's n=127 row is
-# beta=20 only, so (127, 40) is excluded by (n, beta).
-P2_FPLLL_N = {59, 61, 67, 71, 73, 79, 83, 89, 101, 113, 127}
-P2_EXCLUDE = {(127, 40)}
+# tab:coverage scope (fplll 7,040 + G6K 2,384): every n below the n>=157
+# frontier ladders (both engines), which have their own table.
+P2_FPLLL_N = {59, 61, 67, 71, 73, 79, 83, 89, 101, 109, 113, 127, 131, 137, 139, 149, 151}
 
 
 def in_coverage(s: dict) -> bool:
     """True iff manifest row s is counted in tab:coverage (either engine)."""
-    return s["n"] in P2_FPLLL_N and (s["n"], s["beta"]) not in P2_EXCLUDE
+    return s["n"] in P2_FPLLL_N
 
 
 def _coverage_records() -> list[dict]:
@@ -310,8 +306,8 @@ def _coverage_records() -> list[dict]:
     fp = [s for s in ntru if in_coverage(s)]
     g6 = [s for s in g6man["seeds"] if in_coverage(s)]
 
-    n_fplll = len(fp)     # 6320  (== tab:coverage N_fplll total)
-    n_g6k = len(g6)       # 2384  (== tab:coverage N_G6K total)
+    n_fplll = len(fp)
+    n_g6k = len(g6)
     total = n_fplll + n_g6k
 
     fp_cells = {(s["n"], s["beta"], s["q"]) for s in fp}
@@ -321,21 +317,21 @@ def _coverage_records() -> list[dict]:
     recs = [
         {
             "claim_id": "coverage_fplll_total",
-            "tex_anchors": [r"\multicolumn{5}{r}{total} & 6320 & 2384"],
-            "verbatim": "tab:coverage total N_fplll = 6320",
-            "paper_value": 6320,
+            "tex_anchors": [r"\multicolumn{5}{r}{total} & 7040 & 2384"],
+            "verbatim": "tab:coverage total N_fplll = 7040",
+            "paper_value": 7040,
             "source": {"kind": "seed_manifest", "path": "results/seed_manifest.json",
                        "field": "count(seeds where campaign=='ntru' and in_coverage)"},
             "method": "filter seed_manifest to tab:coverage scope and count (POINTER)",
             "recomputed_value": n_fplll,
-            "match": n_fplll == 6320,
+            "match": n_fplll == 7040,
             "status": "POINTER",
             "note": f"excludes {len(ntru) - n_fplll} 'ntru' rows outside the table "
-                    "(n>=157 frontier ladders, native beta=40 ladders incl. n=127).",
+                    "(n>=157 frontier ladders).",
         },
         {
             "claim_id": "coverage_g6k_total",
-            "tex_anchors": [r"\multicolumn{5}{r}{total} & 6320 & 2384"],
+            "tex_anchors": [r"\multicolumn{5}{r}{total} & 7040 & 2384"],
             "verbatim": "tab:coverage total N_G6K = 2384",
             "paper_value": 2384,
             "source": {"kind": "seed_manifest", "path": "results/g6k_seed_manifest.json",
@@ -349,29 +345,29 @@ def _coverage_records() -> list[dict]:
         },
         {
             "claim_id": "coverage_seed_pairs",
-            "tex_anchors": [r"Totals: 8{,}704 seed pairs over 147 $(n,\beta,q)$ cells"],
-            "verbatim": "8,704 seed pairs over 147 (n,beta,q) cells",
-            "paper_value": 8704,
+            "tex_anchors": [r"Totals: 9{,}424 seed pairs over 183 $(n,\beta,q)$ cells"],
+            "verbatim": "9,424 seed pairs over 183 (n,beta,q) cells",
+            "paper_value": 9424,
             "source": {"kind": "seed_manifest",
                        "path": "results/seed_manifest.json + results/g6k_seed_manifest.json",
-                       "field": "N_fplll(6320) + N_G6K(2384)"},
+                       "field": "N_fplll(7040) + N_G6K(2384)"},
             "method": "paper-2 fplll seed count + g6k seed count (POINTER)",
             "recomputed_value": total,
-            "match": total == 8704,
+            "match": total == 9424,
             "status": "POINTER",
-            "note": "6320 + 2384 = 8704 (pre-B-ingest prose said 8,144 = 8704-560; fixed 2026-09-27).",
+            "note": "7040 + 2384 = 9424.",
         },
         {
             "claim_id": "coverage_cells",
-            "tex_anchors": [r"Totals: 8{,}704 seed pairs over 147 $(n,\beta,q)$ cells"],
-            "verbatim": "147 (n,beta,q) cells, q in [97,1811]",
-            "paper_value": 147,
+            "tex_anchors": [r"Totals: 9{,}424 seed pairs over 183 $(n,\beta,q)$ cells"],
+            "verbatim": "183 (n,beta,q) cells, q in [97,2069]",
+            "paper_value": 183,
             "source": {"kind": "seed_manifest",
                        "path": "results/seed_manifest.json + results/g6k_seed_manifest.json",
                        "field": "|distinct (n,beta,q) over paper-2 fplll UNION g6k|"},
             "method": "union of distinct (n,beta,q) cells across both engines (POINTER)",
             "recomputed_value": n_cells,
-            "match": n_cells == 147,
+            "match": n_cells == 183,
             "status": "POINTER",
             "note": f"fplll cells {len(fp_cells)} + g6k cells {len(g6_cells)}, "
                     f"union {n_cells} (g6k cells are a subset overlap of fplll q-grid).",

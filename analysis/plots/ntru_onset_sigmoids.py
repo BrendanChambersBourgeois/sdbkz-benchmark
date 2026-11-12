@@ -74,7 +74,7 @@ def fig_ntru_onset_sigmoids(output_dir=".", fname="onset_sigmoids.png"):
     for i in (0, 3):
         axes[i].set_ylabel("DSD rate (two-part criterion)")
     fig.suptitle("NTRU DSD-onset sigmoids ($\\beta=20$, fplll): the SD-BKZ rate "
-                 "crosses 50% at lower $q$ than BKZ", y=0.99)
+                 "crosses 50% at lower $q$ than BKZ for $n\\geq89$", y=0.99)
 
     os.makedirs(output_dir, exist_ok=True)
     out = os.path.join(output_dir, fname)

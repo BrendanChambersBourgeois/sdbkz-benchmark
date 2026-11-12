@@ -66,7 +66,9 @@ NON_SEED_DIRS = frozenset({
 })
 
 # Seed trees under results/seeds/<campaign> that are DELIBERATELY not in
-# the fplll seed_manifest: skipped on the orphan walk.
+# the fplll seed_manifest: skipped on the orphan walk. Every tree below
+# ntru_g6k and the four patched trees has its SHA set in
+# results/side_seed_manifest.json (test_patched_manifest.py gates both).
 NON_MANIFEST_SEED_TREES = frozenset({
     # G6K engine seeds — byte-identity owned by the SEPARATE
     # results/g6k_seed_manifest.json (ADR-005; the two manifests must
@@ -86,7 +88,7 @@ NON_MANIFEST_SEED_TREES = frozenset({
     "q3329_control",
     # q=3329 re-measure with the measurement GSO in mpfr:
     # stock wheel, same cells as canonical q3329/, own tree;
-    # seeds carry metric_float_type and per-tour arrays, so no manifest.
+    # seeds carry metric_float_type and per-tour arrays.
     "q3329_mpfr",
     # forever-runner idle-filler tree — extra statistical power written to a
     # separate tree so it never re-opens a published cell's N (B2 review).
@@ -96,18 +98,18 @@ NON_MANIFEST_SEED_TREES = frozenset({
     # per-tour arrays, so they are not canonical-manifest members.
     "ntru_b2_probe",
     # g6k short-vector probe (2026-09-02, store_short_vectors=true reruns of
-    # band-bearing ntru_g6k seeds): own tree, extra keys, no manifest.
+    # band-bearing ntru_g6k seeds): own tree, extra keys.
     "ntru_g6k_vecprobe",
-    # Instrumented rerun: own tree, per-tour arrays, no manifest.
+    # Instrumented rerun: own tree, per-tour arrays.
     "ntru_g6k_diag",
     # Exact-field reruns of the flag-scored NTRU cells:
-    # own trees, extra keys, no manifest; the canonical cells stay put.
+    # own trees, extra keys; the canonical cells stay put.
     "ntru_exact",
     "ntru_g6k_exact",
     # beta=60 reruns on the reject-on-overflow G6K build:
-    # own tree, no manifest; the tolerant-build ntru_g6k cells stay put.
+    # own tree; the tolerant-build ntru_g6k cells stay put.
     "ntru_g6k_reject",
-    # vecprobe reruns on the reject build: own tree, extra keys, no manifest.
+    # vecprobe reruns on the reject build: own tree, extra keys.
     "ntru_g6k_vecprobe_reject",
     # flatter-preprocessing A/B probe: paired baseline/flatter
     # cells at n=130/140/150 (+ a partial n=157 cell) testing flatter as a
@@ -129,6 +131,8 @@ ALLOWLIST_BASENAMES = frozenset({
     # by build_patched_manifest.py and gated by test_patched_manifest.py;
     # mirrors the g6k split, not an fplll canonical seed.
     "patched_seed_manifest.json",
+    # Side manifest of the auxiliary trees (build_patched_manifest.py --set side).
+    "side_seed_manifest.json",
     "seed_path_crosswalk.csv",
     "summary_convergence.json",
     "summary_q3329.json",

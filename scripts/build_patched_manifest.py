@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Build results/patched_seed_manifest.json — the SHA set for the patched
 fplll engines (results/seeds/ntru_patched/, ntru_patched_kahan_v3/,
-q3329_kahan/, q3329_control/).
+q3329_kahan/, q3329_control/) — and, with --set side,
+results/side_seed_manifest.json for the auxiliary trees outside the canonical
+manifests (SIDE_TREES; each entry carries its engine).
 
 The patched seeds are produced by the Kahan-compensated GSO build
 (Dockerfile.fplll_patched, since removed from the tree, docs/images.md
@@ -28,6 +30,7 @@ Behaviour mirrors build_g6k_manifest:
 Usage:
     python3 scripts/build_patched_manifest.py
     python3 scripts/build_patched_manifest.py --dry-run
+    python3 scripts/build_patched_manifest.py --set side
 """
 from __future__ import annotations
 
@@ -56,6 +59,20 @@ PATCHED_TREES: dict[str, str] = {
     "q3329_kahan": "fplll-kahan-v3",
     "q3329_control": "fplll-reorder-control",
 }
+# Auxiliary trees: reruns, probes and controls kept out of the canonical
+# manifests so they never reopen a published cell. Same SHA gate.
+SIDE_TREES: dict[str, str] = {
+    "ntru_b2": "fplll",
+    "ntru_b2_probe": "fplll",
+    "ntru_exact": "fplll",
+    "q3329_mpfr": "fplll",
+    "ntru_flatter": "flatter+fplll",
+    "ntru_g6k_vecprobe": "g6k",
+    "ntru_g6k_diag": "g6k",
+    "ntru_g6k_exact": "g6k",
+    "ntru_g6k_reject": "g6k-reject",
+    "ntru_g6k_vecprobe_reject": "g6k-reject",
+}
 _UTC_FMT = "%Y-%m-%dT%H:%M:%SZ"
 
 # v1.3 layout: <tree>/q<q>/p<prec>_mt<mt>/n<n>_beta<beta>/seed<seed>.json.
@@ -77,6 +94,20 @@ _SCAFFOLD = {
     "seeds": [],
 }
 
+_SIDE_SCAFFOLD = {
+    "manifest_version": 1,
+    "note": ("Auxiliary seed trees (reruns, probes, controls) outside the "
+             "canonical manifests; each entry names its engine. Separate SHA "
+             "set: never merged into seed_manifest or g6k_seed_manifest."),
+    "seeds": [],
+}
+
+SETS = {
+    "patched": (DEFAULT_MANIFEST, PATCHED_TREES, _SCAFFOLD),
+    "side": (os.path.join("results", "side_seed_manifest.json"), SIDE_TREES,
+             _SIDE_SCAFFOLD),
+}
+
 
 def _det_utc() -> str:
     epoch = int(os.environ.get("SOURCE_DATE_EPOCH", "0"))
@@ -91,16 +122,16 @@ def _sha256(path: str, chunk: int = 1 << 16) -> str:
     return h.hexdigest()
 
 
-def collect(repo_root: str) -> tuple[list[dict], list[tuple[str, str]]]:
-    """Walk the patched trees -> (entries, rejects). Verify-gated."""
+def collect(repo_root: str, trees: dict[str, str] = PATCHED_TREES
+            ) -> tuple[list[dict], list[tuple[str, str]]]:
+    """Walk the trees -> (entries, rejects). Verify-gated."""
     entries: list[dict] = []
     rejects: list[tuple[str, str]] = []
     paths: list[tuple[str, str, str]] = []
-    for tree, engine in PATCHED_TREES.items():
+    for tree, engine in trees.items():
         base = os.path.join(repo_root, "results", "seeds", tree)
-        pattern = os.path.join(base, "q*", "p*_mt*", "n*_beta*", "seed*.json")
-        found = glob.glob(pattern) or glob.glob(
-            os.path.join(base, "p*_mt*", "n*_beta*", "seed*.json"))
+        # any depth: ntru_flatter has an arm level above q<q>/
+        found = glob.glob(os.path.join(base, "**", "seed*.json"), recursive=True)
         paths += [(p, tree, engine) for p in sorted(found)]
     for path, tree, engine in paths:
         rel = os.path.relpath(path, repo_root).replace(os.sep, "/")
@@ -144,16 +175,20 @@ def collect(repo_root: str) -> tuple[list[dict], list[tuple[str, str]]]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--manifest", default=DEFAULT_MANIFEST)
+    ap.add_argument("--set", choices=sorted(SETS), default="patched")
+    ap.add_argument("--manifest", default=None,
+                    help="output path (default: the set's manifest)")
     ap.add_argument("--dry-run", action="store_true",
                     help="report what would be written; touch nothing")
     args = ap.parse_args()
+    default_path, trees, scaffold = SETS[args.set]
+    args.manifest = args.manifest or default_path
 
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     manifest_path = args.manifest if os.path.isabs(args.manifest) \
         else os.path.join(repo_root, args.manifest)
 
-    PIPELINE.info("patched manifest build start", cat="manifest",
+    PIPELINE.info("manifest build start", cat="manifest", set=args.set,
                   manifest=args.manifest, dry_run=args.dry_run)
     t0 = time.time()
 
@@ -161,9 +196,9 @@ def main() -> int:
         with open(manifest_path) as f:
             manifest = json.load(f)
     else:
-        manifest = dict(_SCAFFOLD)
+        manifest = dict(scaffold)
 
-    entries, rejects = collect(repo_root)
+    entries, rejects = collect(repo_root, trees)
     for rel, reason in rejects:
         print(f"REJECT: {rel}: {reason}", file=sys.stderr)
 
@@ -182,7 +217,7 @@ def main() -> int:
     os.replace(tmp, manifest_path)
 
     elapsed = time.time() - t0
-    PIPELINE.info("patched manifest build done", cat="manifest",
+    PIPELINE.info("manifest build done", cat="manifest", set=args.set,
                   seeds=len(entries), rejects=len(rejects),
                   elapsed_s=round(elapsed, 2))
     print(f"Wrote {args.manifest}: {len(entries)} seed entries, "

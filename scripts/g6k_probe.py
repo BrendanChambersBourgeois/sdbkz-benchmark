@@ -131,8 +131,35 @@ def probe(n: int, beta: int, seed: int, threads: int = 1,
     return rec
 
 
+def ntru_golden(n: int, q: int, beta: int, seed: int, tours: int,
+                precision: int) -> dict:
+    """Run one NTRU seed (both legs, `tours` tours) on the g6k backend exactly
+    as the campaign runner does and return its science hash. Unlike the
+    one-tour probe above, a multi-tour NTRU reduction changes with the build's
+    instruction set, so this is the check that tells the builds apart."""
+    from _bkz_core import run_single
+    from _seed_hash import science_hash
+    from generators import build_ntru, get_metric_span
+
+    L, f, g = build_ntru(n, q, seed=seed)
+    m_start, m_end = get_metric_span("ntru")(n, len(L))
+    r = run_single(L=L, n=n, active_block_start=m_start, active_block_end=m_end,
+                   beta=beta, seed=seed, q=q, precision=precision,
+                   max_tours=tours, log_clamp_fn=None, backend="g6k",
+                   secret_f=f, secret_g=g)
+    rec = {"engine": "g6k", "generator": "ntru", "n": n, "q": q, "beta": beta,
+           "seed": seed, "tours": tours, "precision": precision,
+           "science_sha256": science_hash(r)}
+    PIPELINE.info("ntru golden done", cat="integrity", n=n, q=q, beta=beta,
+                  seed=seed, tours=tours, science_sha=rec["science_sha256"][:12])
+    return rec
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--ntru-golden", action="store_true",
+                    help="run the multi-tour NTRU golden named in "
+                         "results/g6k_seed_manifest.json and print its record")
     ap.add_argument("--n", type=int, default=80, help="lattice dimension")
     ap.add_argument("--beta", type=int, default=60, help="BKZ blocksize")
     ap.add_argument("--seed", type=int, default=42)
@@ -145,6 +172,15 @@ def main() -> int:
     ap.add_argument("--json", action="store_true",
                     help="print only the JSON record to stdout")
     args = ap.parse_args()
+
+    if args.ntru_golden:
+        manifest = os.path.join(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))), "results", "g6k_seed_manifest.json")
+        with open(manifest) as fh:
+            gold = json.load(fh)["ntru_golden"]
+        print(json.dumps(ntru_golden(gold["n"], gold["q"], gold["beta"], gold["seed"],
+                                     gold["tours"], gold["precision"])))
+        return 0
 
     rec = probe(args.n, args.beta, args.seed, args.threads,
                 tours=args.tours, reseed=args.reseed)

@@ -34,11 +34,19 @@ per-seed JSONs. No RNG.
 import glob
 import json
 import os
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from .._style import COLORS
+
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if os.path.join(_REPO, "scripts") not in sys.path:
+    sys.path.insert(0, os.path.join(_REPO, "scripts"))
+from log import get_logger  # noqa: E402
+
+PIPELINE = get_logger("paper2_figures")
 
 # n -> representative overstretched q (β=20, fplll, well-populated cell)
 CELLS = {89: 307, 101: 409, 113: 719}
@@ -50,6 +58,20 @@ _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 def _carry_forward(traj, length):
     """Pad a per-tour trajectory to `length` with its own final value."""
     return list(traj) + [traj[-1]] * (length - len(traj))
+
+
+SPIKE_NATS = 20.0  # one-tour jump above both neighbours = a measurement floor
+
+
+def _mask_spikes(traj):
+    """NaN where a tour sits SPIKE_NATS above both neighbours (a one-tour
+    -345 floor of the double measurement GSO); returns (values, n_masked)."""
+    t = np.asarray(traj, dtype=float).copy()
+    hit = np.zeros(len(t), dtype=bool)
+    if len(t) > 2:
+        hit[1:-1] = (t[1:-1] - np.maximum(t[:-2], t[2:])) > SPIKE_NATS
+    t[hit] = np.nan
+    return t, int(hit.sum())
 
 
 def _cell(n, q):
@@ -77,10 +99,18 @@ def _cell(n, q):
     if not bkz:
         return None
     length = max(max(len(x) for x in bkz), max(len(x) for x in sd))
-    bm = np.mean([_carry_forward(x, length) for x in bkz], axis=0)
-    sm = np.mean([_carry_forward(x, length) for x in sd], axis=0)
-    return {"bkz_mean": bm, "sd_mean": sm, "bkz_final": float(np.mean(finals)),
-            "xover": np.array(xover), "n_seeds": len(bkz)}
+    masked = 0
+    curves = {}
+    for name, runs in (("bkz", bkz), ("sd", sd)):
+        rows = []
+        for x in runs:
+            vals, k = _mask_spikes(_carry_forward(x, length))
+            rows.append(vals)
+            masked += k
+        curves[name] = np.nanmean(rows, axis=0)
+    return {"bkz_mean": curves["bkz"], "sd_mean": curves["sd"],
+            "bkz_final": float(np.mean(finals)), "xover": np.array(xover),
+            "n_seeds": len(bkz), "n_masked": masked}
 
 
 def crossover_summary(xover):
@@ -111,6 +141,9 @@ def fig_ntru_crossover_dynamics(output_dir=".", fname="crossover_dynamics.png"):
         if res is None:
             ax.axis("off")
             continue
+        if res["n_masked"]:
+            PIPELINE.info("crossover spikes masked", cat="analysis", n=n,
+                          q=CELLS[n], masked=res["n_masked"])
         bm, sm = res["bkz_mean"], res["sd_mean"]
         tours = np.arange(1, len(bm) + 1)
         bkz_final = res["bkz_final"]
@@ -120,11 +153,8 @@ def fig_ntru_crossover_dynamics(output_dir=".", fname="crossover_dynamics.png"):
                 label="BKZ", zorder=3)
         ax.plot(tours, sm, color=sd_c, lw=1.8, marker="o", markersize=3,
                 label="SD-BKZ", zorder=3)
-        ax.axhline(bkz_final, color=bkz_c, lw=1.0, ls="--", alpha=0.55, zorder=1)
-        # label at the left end: the curves are far above the line there
-        ax.annotate("BKZ final (mean over seeds)", xy=(tours[0], bkz_final),
-                    xytext=(tours[0], bkz_final + (bm[0] - bkz_final) * 0.03),
-                    fontsize=7.5, color=bkz_c, ha="left", va="bottom")
+        ax.axhline(bkz_final, color=bkz_c, lw=1.0, ls="--", alpha=0.55, zorder=1,
+                   label="BKZ final (mean)")
         if summ["median"] is not None:
             med = summ["median"]
             if summ["q75"] is not None:
@@ -135,11 +165,11 @@ def fig_ntru_crossover_dynamics(output_dir=".", fname="crossover_dynamics.png"):
                     markersize=6, zorder=4)
             iqr = (f"IQR {summ['q25']:.0f}–{summ['q75']:.0f}"
                    if summ["q75"] is not None else "IQR open")
-            ax.annotate(f"per-seed crossover\nmedian tour {med:.0f} ({iqr})\n"
-                        f"crossed {summ['n_crossed']}/{summ['n_total']}",
+            ax.annotate(f"crossover tour {med:.0f}\n({iqr})\n"
+                        f"{summ['n_crossed']}/{summ['n_total']} seeds",
                         xy=(med, bkz_final),
                         xytext=(med + len(bm) * 0.04,
-                                bm[0] - (bm[0] - bkz_final) * 0.18),
+                                bm[0] - (bm[0] - bkz_final) * 0.38),
                         fontsize=8, color="#334155", va="top")
         ax.set_title(f"$n={n}$, $q={CELLS[n]}$ ($N={res['n_seeds']}$)")
         ax.set_xlabel("tour")

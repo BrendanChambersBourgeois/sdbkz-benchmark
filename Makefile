@@ -2,7 +2,7 @@
 #
 # Single-command wrappers around the committed scripts. `make help` lists them.
 
-.PHONY: help reproduce verify manifest manifest-patched lint-manifest xarch-compare vecprobe-membership figs figs-paper2 paper clean
+.PHONY: help reproduce verify manifest manifest-patched manifest-side lint-manifest xarch-compare vecprobe-membership figs decomposition figs-paper2 paper clean
 
 help:  ## Show this menu
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -23,6 +23,9 @@ manifest:  ## Rebuild results/seed_manifest.json from the on-disk tree (byte-sta
 manifest-patched:  ## Rebuild results/patched_seed_manifest.json (Kahan engine, byte-stable)
 	python3 scripts/build_patched_manifest.py
 
+manifest-side:  ## Rebuild results/side_seed_manifest.json (auxiliary trees, byte-stable)
+	python3 scripts/build_patched_manifest.py --set side
+
 xarch-compare:  ## Cross-arch verdict: science-field compare ntru_xarch vs canonical ntru
 	python3 scripts/compare_seed_trees.py
 
@@ -37,6 +40,9 @@ lint-manifest-sha:  ## Full --sha-check lint (recomputes SHA-256 of every seed; 
 
 figs:  ## Regenerate paper-1 figures into analysis/figures/
 	python3 analysis/paper_figures.py
+
+decomposition:  ## Rebuild results/profile_decomposition.json (Paper 1 Table 5 supplement)
+	python3 analysis/profile_decomposition.py
 
 figs-paper2:  ## Regenerate paper-2 figures into paper2/latex/figs/
 	python3 analysis/paper2_figures.py
@@ -62,14 +68,14 @@ HOST_GID ?= $(shell id -g)
 IMG_COMMON = --build-arg HOST_UID=$(HOST_UID) --build-arg HOST_GID=$(HOST_GID)
 IMG_JOBS = --build-arg BUILD_JOBS=$(BUILD_JOBS)
 
-.PHONY: images image-digests image-benchmark-ci image-g6k-ref image-g6k-ci image-g6k-dim256 image-g6k-dim384 image-g6k-dim384-inc63 image-g6k-dim384-reject image-fplll54
+.PHONY: images image-digests image-benchmark-ci image-g6k-ref image-g6k-ci image-g6k-dim256 image-g6k-dim384 image-g6k-dim384-inc63 image-g6k-dim384-inc63-fma image-g6k-dim384-reject image-fplll54
 
 images:  ## List the image-* rebuild targets (builds nothing)
 	@grep -E '^image-[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
 
 image-digests:  ## Print image ID + RepoDigests for every tag in use (read-only)
 	@for t in sdbkz-benchmark:ci sdbkz-g6k:ref sdbkz-g6k:ci sdbkz-g6k:dim256 \
-	          sdbkz-g6k:dim384 sdbkz-g6k:dim384-inc63 sdbkz-g6k:dim384-reject \
+	          sdbkz-g6k:dim384 sdbkz-g6k:dim384-inc63 sdbkz-g6k:dim384-inc63-fma sdbkz-g6k:dim384-reject \
 	          sdbkz-fplll54; do \
 	    out=$$($(DOCKER) image inspect --format '{{.Id}} {{.RepoDigests}} {{.Created}}' "$$t" 2>&1) || out="ABSENT ($$(printf '%s' "$$out" | tr -s '\n' ' '))"; \
 	    printf '%s %s\n' "$$t" "$$out"; \
@@ -97,6 +103,11 @@ image-g6k-dim384-inc63:  ## Build sdbkz-g6k:dim384-inc63 (dim 384, gauss_sieve p
 	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) \
 	    --build-arg G6K_MAX_SIEVING_DIM=384 --build-arg APPLY_INC63=1 \
 	    -t sdbkz-g6k:dim384-inc63 .
+
+image-g6k-dim384-inc63-fma:  ## Build sdbkz-g6k:dim384-inc63-fma (dim 384, gauss_sieve patch, ISA=v3; build on an AVX2/FMA host without AVX-512)
+	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) \
+	    --build-arg G6K_MAX_SIEVING_DIM=384 --build-arg APPLY_INC63=1 \
+	    --build-arg ISA=v3 -t sdbkz-g6k:dim384-inc63-fma .
 
 image-g6k-dim384-reject:  ## Build sdbkz-g6k:dim384-reject (dim 384, gauss_sieve patch + reject-on-overflow guard)
 	$(DOCKER) build -f Dockerfile.g6k $(IMG_COMMON) $(IMG_JOBS) \

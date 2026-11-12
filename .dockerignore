@@ -22,7 +22,6 @@ figures/*.png
 
 # Runtime / local caches / VCS
 logs/
-_archives/
 # Local-only cross-arch handoff staging (multi-hundred-MB image tarball + runbook);
 # never part of the image, and shipping it as build context bloats every build.
 handoff/
@@ -35,9 +34,7 @@ handoff/
 .pytest_cache/
 .ipynb_checkpoints/
 
-# local editor and assistant config, not for the image
-.claude/
-CLAUDE.md
+# local editor files, not for the image
 *.original.md
 .tags
 tags

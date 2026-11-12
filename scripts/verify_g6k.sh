@@ -9,6 +9,8 @@ set -euo pipefail
 # Regenerates ONE reference probe (fixed n, beta, seed, threads=1) inside
 # the pinned image and compares its basis + r-profile SHA-256 against the
 # reference recorded in results/g6k_seed_manifest.json. Any drift exits 1.
+# Then runs the multi-tour NTRU golden (manifest block ntru_golden) and
+# compares its science hash against the entry for the image's G6K_ISA.
 #
 # Determinism contract (non-negotiable, Phase 0 verdict 2026-06-04):
 #   threads=1 + FPLLL.set_random_seed(S) before basis AND again before the
@@ -85,6 +87,25 @@ if [ "$GOT_RPROF" = "$REF_RPROF" ]; then
     echo "  PASS  rprof  sha256 ${GOT_RPROF:0:16}…"
 else
     echo "  FAIL  rprof  got ${GOT_RPROF:0:16}… ref ${REF_RPROF:0:16}…"
+    fail=1
+fi
+
+# Multi-tour NTRU golden. The one-tour probe above gives the same SHA on a v2
+# and a v3 build; this seed does not, so it is the check that the image is the
+# build its G6K_ISA label says (v2 unless Dockerfile.g6k was built ISA=v3).
+ISA="${G6K_ISA:-v2}"
+REF_GOLD="$(python3 -c "
+import json
+print(json.load(open('$MANIFEST'))['ntru_golden']['science_sha256_by_isa'].get('$ISA', ''))
+")"
+echo ""
+echo "Running NTRU golden (ISA=$ISA, about 2 min) ..."
+GOLD_JSON="$(python3 "$SCRIPT_DIR/g6k_probe.py" --ntru-golden)"
+GOT_GOLD="$(python3 -c "import json,sys; print(json.loads(sys.argv[1])['science_sha256'])" "$GOLD_JSON")"
+if [ -n "$REF_GOLD" ] && [ "$GOT_GOLD" = "$REF_GOLD" ]; then
+    echo "  PASS  ntru golden sha256 ${GOT_GOLD:0:16}…"
+else
+    echo "  FAIL  ntru golden got ${GOT_GOLD:0:16}… ref ${REF_GOLD:0:16}… (ISA=$ISA)"
     fail=1
 fi
 

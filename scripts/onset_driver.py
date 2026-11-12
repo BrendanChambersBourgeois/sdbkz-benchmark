@@ -53,6 +53,8 @@ PIPELINE = get_logger("onset_driver")
 # --- fixed reduction under study (the b40/mt50/p500 spec) --------------------
 BETA, P, MT, SEEDS, WORKERS = 40, 500, 50, 20, 20
 CAMPAIGN = "ntru_onset_boundary"
+GENERATOR, TREE, METRIC_FLOAT = "ntru", "ntru", "mpfr"
+EXIT_ALL_ABANDONED = 3   # every traced n abandoned; the unit must not restart on it
 
 # --- search shape (x q_fat) --------------------------------------------------
 START_MULT = 2.0     # first probe: intermediate-n onset sits near n=157's ~1.9x
@@ -159,7 +161,7 @@ def prevprime(x):
 
 
 def cell_dir(n, q):
-    return REPO / f"results/seeds/ntru/q{q}/p{P}_mt{MT}/n{n}_beta{BETA}"
+    return REPO / f"results/seeds/{TREE}/q{q}/p{P}_mt{MT}/n{n}_beta{BETA}"
 
 
 def _cell_seeds(n, q):
@@ -435,7 +437,7 @@ def _densify(n, deadline, dry):
             log(f"n={n}: densify hit QCAP at q={nq} -- stopping", n=n)
             return
         if not run_cell(n, nq, deadline, dry):
-            return
+            return time.time() >= deadline   # False = abandoned, as in trace_n
         q = nq
     rates = _variant_rates(n, q)
     log(f"n={n}: densify budget spent at q={q} "
@@ -445,6 +447,7 @@ def _densify(n, deadline, dry):
 
 
 def trace_n(n, deadline, dry, push_wall=False):
+    """Trace one n. Returns False only when a cell abandoned it before the deadline."""
     qf = qfat(n)
     tol = TOL_MULT * qf
     tried = set()
@@ -479,28 +482,26 @@ def trace_n(n, deadline, dry, push_wall=False):
                     log(f"n={n}: q*({n}) BRACKETED ({hn} null, {lc} crack] "
                         f"~ {lc/qf:.2f}x q_fat -- densifying for the 50% "
                         f"crossing", n=n, q_star_mult=round(lc / qf, 3))
-                    _densify(n, deadline, dry)
-                    return
+                    return _densify(n, deadline, dry)
                 nq = nextprime((hn + lc) // 2)
                 if nq <= hn or nq >= lc:
                     log(f"n={n}: bisect converged at prime gap ({hn},{lc}) "
                         f"~ {lc/qf:.2f}x -- densifying for the 50% crossing",
                         n=n, q_star_mult=round(lc / qf, 3))
-                    _densify(n, deadline, dry)
-                    return
+                    return _densify(n, deadline, dry)
             else:
                 nq = prevprime(int(lc - STEP_MULT * qf))
                 if nq <= qf:
                     log(f"n={n}: crack down to ~q_fat -- onset ~ {lc/qf:.2f}x; "
                         f"densifying for the 50% crossing", n=n)
-                    _densify(n, deadline, dry)
-                    return
+                    return _densify(n, deadline, dry)
         if nq in tried:
             log(f"n={n}: next q={nq} already attempted this run -- stop", n=n)
             return
         tried.add(nq)
         if not run_cell(n, nq, deadline, dry):
-            return
+            return time.time() >= deadline
+    return True
 
 
 def _acquire_lock():
@@ -537,6 +538,12 @@ def _check_campaign():
         mismatch.append(f"num_seeds {c.num_seeds} != {SEEDS}")
     if BETA not in c.beta_grid:
         mismatch.append(f"beta {BETA} not in beta_grid {c.beta_grid}")
+    if c.generator != GENERATOR:
+        mismatch.append(f"generator {c.generator!r} != {GENERATOR!r}")
+    if c.seed_tag not in (None, TREE):
+        mismatch.append(f"seed_tag {c.seed_tag!r} != {TREE!r}")
+    if c.metric_float_type != METRIC_FLOAT:
+        mismatch.append(f"metric_float_type {c.metric_float_type!r} != {METRIC_FLOAT!r}")
     if c.tours_by_beta.get(BETA) != MT:
         mismatch.append(f"tours_by_beta[{BETA}] {c.tours_by_beta.get(BETA)} != {MT}")
     if mismatch:
@@ -587,6 +594,7 @@ def main(argv=None):
 
     if not args.dry_run and not _acquire_lock():
         return 0
+    traced = abandoned = 0
     try:
         new_run_id()
         deadline = time.time() + args.budget_h * 3600
@@ -598,11 +606,18 @@ def main(argv=None):
                 log("DEADLINE -- stopping before next n")
                 break
             log(f"---- tracing n={n} (q_fat~{qfat(n):.0f}) ----", n=n)
-            trace_n(n, deadline, args.dry_run, push_wall=(n in args.push_walls))
+            traced += 1
+            if trace_n(n, deadline, args.dry_run,
+                       push_wall=(n in args.push_walls)) is False:
+                abandoned += 1
         log("==== onset_driver complete or deadline ====")
     finally:
         if not args.dry_run:
             release_pidlock(LOCK)
+    if traced and abandoned == traced:
+        log(f"every traced n abandoned ({abandoned}/{traced}) -- exit "
+            f"{EXIT_ALL_ABANDONED}", event="all_abandoned")
+        return EXIT_ALL_ABANDONED
     return 0
 
 

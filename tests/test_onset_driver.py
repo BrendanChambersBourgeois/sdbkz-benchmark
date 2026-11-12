@@ -5,6 +5,7 @@ ratio-plateau wall test are the two behaviours that gate a month-long unattended
 run, so they are pinned here. All I/O is against a tmp seed tree (REPO monkeypatched);
 no real results/ cell is read or written.
 """
+import dataclasses
 import importlib
 import json
 
@@ -265,3 +266,29 @@ def test_lock_reclaims_recycled_pid_running_related_tool(repo, monkeypatch,
         lambda self: b"python3\0-m\0pytest\0tests/test_onset_driver.py\0",
     )
     assert od._acquire_lock() is True           # test file basename != driver
+
+
+def test_check_campaign_rejects_drifted_tree_or_measurement(monkeypatch):
+    c = od.load_campaign(od.CAMPAIGN)
+    assert od._check_campaign()
+    for field, bad in (("seed_tag", "ntru_b2"), ("generator", "lwe_kannan"),
+                       ("metric_float_type", "double")):
+        monkeypatch.setattr(od, "load_campaign",
+                            lambda _n, f=field, b=bad: dataclasses.replace(c, **{f: b}))
+        assert not od._check_campaign(), field
+
+
+def test_main_exit_code_when_every_n_abandoned(repo, monkeypatch):
+    monkeypatch.setenv("PIPELINE_LOG_TAG", "dryrun")   # main sets it; restore after
+    monkeypatch.setattr(od, "trace_n", lambda *a, **k: False)
+    assert od.main(["--ladder", "157", "163", "--dry-run"]) == od.EXIT_ALL_ABANDONED
+    monkeypatch.setattr(od, "trace_n", lambda n, *a, **k: n != 157)
+    assert od.main(["--ladder", "157", "163", "--dry-run"]) == 0
+
+
+def test_densify_abandon_counts_as_abandoned(repo, monkeypatch):
+    monkeypatch.setattr(od, "known", lambda n: {1201: "CRACK"})
+    monkeypatch.setattr(od, "_variant_rates", lambda n, q: None)
+    monkeypatch.setattr(od, "run_cell", lambda *a, **k: False)
+    assert od._densify(157, od.time.time() + 3600, True) is False
+    assert od._densify(157, od.time.time() - 1, True) is True   # deadline, not abandon

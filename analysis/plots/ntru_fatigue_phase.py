@@ -72,7 +72,7 @@ def fig_ntru_fatigue_phase(output_dir=".", fname="fatigue_phase.png"):
     ax.set_xlim(n_lo, n_hi)
     ax.set_ylim(0, y_top)
     ax.set_title(r"NTRU fatigue phase diagram ($\beta=20$): SD-BKZ enters DSD "
-                 r"below BKZ, gap grows with $n$")
+                 r"below BKZ for $n\geq89$")
     ax.legend(loc="lower right", framealpha=0.9, fontsize=9)
 
     os.makedirs(output_dir, exist_ok=True)

@@ -4,6 +4,7 @@ table_main_results — Table 2: per-group means, std, win rate, β/n
 table_statistics   — Table 3: 95% CIs, Cohen's d, Cliff's δ, t-test /
                      Wilcoxon p-values + Holm-Bonferroni adjusted p-values
 table_spatial      — Table 4: head/mid/tail Rankin profile decomposition
+spatial_decomposition — every group's decomposition (supplementary JSON)
 
 Each function takes the output of analysis._data.load_all_seeds() and
 returns a list of dicts (one per row) in addition to printing to stdout.
@@ -115,6 +116,37 @@ def table_statistics(groups, min_seeds=10):
     return raw_rows
 
 
+def spatial_decomposition(groups, min_seeds=10):
+    """Head/mid/tail decomposition for every group (results/profile_decomposition.json).
+
+    Means are signed nats (positive = SD-BKZ closer to the fixed point). The
+    pct_* shares are |region| / (|head| + |mid| + |tail|), so they stay
+    meaningful in groups where BKZ wins; largest_region is the region with
+    the largest |mean|. Win rates are the share of seeds where the region's
+    mean improvement is positive.
+    """
+    out = []
+    for (n, beta), seeds in sorted(groups.items()):
+        if len(seeds) < min_seeds:
+            continue
+        rows = [d for d in (_decompose_seed(s) for s in seeds) if d is not None]
+        if not rows:
+            continue
+        a = np.array(rows)
+        means = np.array([np.mean([r[i] for r in rows]) for i in range(3)])
+        mag = np.abs(means)
+        rec = {"n": n, "beta": beta, "num_seeds": len(rows)}
+        for i, region in enumerate(("head", "mid", "tail")):
+            rec[f"mean_{region}_improvement"] = float(means[i])
+        for i, region in enumerate(("head", "mid", "tail")):
+            rec[f"pct_{region}"] = float(mag[i] / mag.sum() * 100)
+        for i, region in enumerate(("head", "mid", "tail")):
+            rec[f"{region}_win_rate"] = float((a[:, i] > 0).mean() * 100)
+        rec["largest_region"] = ("HEAD", "MID", "TAIL")[int(mag.argmax())]
+        out.append(rec)
+    return out
+
+
 def table_spatial(groups, min_seeds=10):
     """Print Table 4 from the paper: profile decomposition percentages.
 
@@ -126,49 +158,24 @@ def table_spatial(groups, min_seeds=10):
           f"{'Tail%':>6} {'Mid WR':>7}")
     print("-" * 45)
 
-    for (n, beta), seeds in sorted(groups.items()):
-        if len(seeds) < min_seeds:
-            continue
-
-        heads, mids, tails = [], [], []
-        mid_wins = 0
-        total_decomposed = 0
-        for s in seeds:
-            decomp = _decompose_seed(s)
-            if decomp is None:
-                continue
-            heads.append(decomp[0])
-            mids.append(decomp[1])
-            tails.append(decomp[2])
-            if decomp[1] > 0:
-                mid_wins += 1
-            total_decomposed += 1
-
-        if not heads:
-            continue
-
-        h, m, t = np.mean(heads), np.mean(mids), np.mean(tails)
+    for g in spatial_decomposition(groups, min_seeds=min_seeds):
+        h = g["mean_head_improvement"]
+        m = g["mean_mid_improvement"]
+        t = g["mean_tail_improvement"]
         total = h + m + t
-        # Skip groups where the percentage representation is meaningless:
-        # - total is non-positive (BKZ wins overall)
-        # - any component magnitude exceeds the total (sign-flip groups
-        #   produce >100% / negative percentages that don't reflect a
-        #   sensible "share" of improvement).
+        # Skip groups where a signed share is meaningless: BKZ wins overall,
+        # or one region outweighs the total (shares above 100% or negative).
         if total <= 0 or max(abs(h), abs(m), abs(t)) > total:
             continue
 
-        h_pct = np.mean(heads) / total * 100
-        m_pct = np.mean(mids) / total * 100
-        t_pct = np.mean(tails) / total * 100
-        m_wr = mid_wins / total_decomposed * 100
-
+        n, beta = g["n"], g["beta"]
         row = {
-            "n": n, "beta": beta, "seeds": total_decomposed,
-            "head_pct": float(h_pct), "mid_pct": float(m_pct),
-            "tail_pct": float(t_pct), "mid_win_rate": float(m_wr),
+            "n": n, "beta": beta, "seeds": g["num_seeds"],
+            "head_pct": float(h / total * 100), "mid_pct": float(m / total * 100),
+            "tail_pct": float(t / total * 100), "mid_win_rate": g["mid_win_rate"],
         }
         rows.append(row)
-        print(f"{n:>4} {beta:>3} {total_decomposed:>5} {h_pct:>5.0f}% "
-              f"{m_pct:>5.0f}% {t_pct:>5.0f}% {m_wr:>6.0f}%")
+        print(f"{n:>4} {beta:>3} {row['seeds']:>5} {row['head_pct']:>5.0f}% "
+              f"{row['mid_pct']:>5.0f}% {row['tail_pct']:>5.0f}% {row['mid_win_rate']:>6.0f}%")
 
     return rows

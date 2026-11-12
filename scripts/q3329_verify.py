@@ -95,7 +95,7 @@ def parse_args():
                         help="store per-tour rankin / gs_lognorms / rhf")
     parser.add_argument("--store-bases", action="store_true",
                         help="save every tour's integer basis per seed to "
-                             "$BKZ_BASES_DIR (default ~/lattice-bases), outside git")
+                             "$BKZ_BASES_DIR (default ~/lattice-runs/bases), outside git")
     return parser.parse_args()
 
 _args = parse_args()
@@ -119,7 +119,7 @@ STORE_BASES = _args.store_bases
 # Per-seed .npz of every tour's basis, mirroring the seed tree.
 # Outside git (GBs per campaign) and regenerable by replay; never the seed JSON.
 BASES_ROOT = (os.environ.get("BKZ_BASES_DIR")
-              or os.path.expanduser("~/lattice-bases"))
+              or os.path.expanduser("~/lattice-runs/bases"))
 # Trees this runner writes are double-measured, except *_mpfr trees; mpfr
 # seeds go only to a tree named *_mpfr, never mixed into a double cell.
 if METRIC_FLOAT_TYPE != "double" and not TAG.endswith("_mpfr"):

@@ -118,7 +118,7 @@ jobs:
             results/seeds/ntru_patched_kahan_v3/ \
             results/seeds/ntru_b2/ results/seeds/ntru_b2_probe/ \
             results/seeds/ntru_exact/ results/seeds/ntru_g6k_exact/ \
-            results/seeds/ntru_g6k_reject/ \
+            results/seeds/ntru_g6k_reject/ results/seeds/ntru_g6k_vecprobe_reject/ \
             results/seeds/q3329_kahan/ results/seeds/q3329_control/ \
             results/seeds/q3329_mpfr/
           # tours3x is non-strict: pilot and extended seeds share (n, beta, seed).
