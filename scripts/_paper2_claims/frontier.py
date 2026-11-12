@@ -116,8 +116,10 @@ def _ladder(engine, n, beta, tours):
         with open(f) as fh:
             d = json.load(fh)
         q = int(re.search(r"/q(\d+)/", f).group(1))
-        cells[q].append((bool(d["secret_exact_match_sdbkz"]),
-                         bool(d["secret_exact_match_bkz"])))
+        sd, bk = d["secret_exact_match_sdbkz"], d["secret_exact_match_bkz"]
+        if sd is None or bk is None:  # a null is a missing readout, not a failed recovery
+            raise ValueError(f"{f}: secret_exact_match field is null")
+        cells[q].append((bool(sd), bool(bk)))
     return sorted(cells.items())
 
 

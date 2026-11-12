@@ -22,6 +22,7 @@ User-visible changes per version. Seed counts are manifest totals.
 - `results/paper_claims/full_stats_33groups.txt` regenerated from the committed seeds with the two-sided Wilcoxon test.
 - `analysis/stats_analysis.py`: a test statistic or p-value of zero is printed, not shown as N/A.
 - Paper 2 claims ledger: the two-sided sign-test p-value is capped at 1 when the counts tie.
+- Paper 2 claims ledger: a frontier seed with a null exact-match field stops the build instead of counting as a failed recovery.
 - Paper 1: the position-93 comparison and the β=40 and β=30 peak values match the plotted data (all seeds).
 - Paper 2: the tour-budget figure text gives tour 30, where SD-BKZ flattens its second block and the flag fires.
 - q=3329 MPFR n=90 summary named per cell, like its siblings.
