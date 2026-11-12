@@ -8,6 +8,8 @@ User-visible changes per version. Seed counts are manifest totals.
 - Paper 1 Figure 12 re-rendered: title and labels describe the double-precision measurement, 100 seeds; caption spike range.
 - Paper 2: floored-leg and all-ones-leg counts updated to the current seed set.
 - CONTRIBUTING: `make verify` step list.
+- Paper 1: β=40 peak stated as n=100–110, measured compute premium, RHF table cells, test labels and outlier-seed counts corrected.
+- Paper 2: four sentences reworded to match the per-key counts and the β=50 ladders.
 
 ## [2.1.0] — 2026-11-12
 

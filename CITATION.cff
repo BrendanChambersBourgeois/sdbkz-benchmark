@@ -6,7 +6,7 @@ abstract: >-
   lattice basis reduction, is structurally blind to meaningful
   differences between reduced bases. Comparing BKZ against self-dual
   BKZ (SD-BKZ) across more than 4,500 seeds on LWE-Kannan embedding
-  lattices, RHF differences are below 1e-6 in all groups without
+  lattices, RHF differences are below 3e-6 in all groups without
   outlier seeds, while the Li-Nguyen Rankin profile distance d(LN)
   reveals statistically significant gaps (Cohen's d up to 9.6). This
   repository ships the containerised benchmark, seed manifest,

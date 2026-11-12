@@ -33,7 +33,7 @@ $n=89$--$113$, BKZ needs a modulus $20$--$29\%$ larger than SD-BKZ to recover
 the exact key ($19$--$28\%$ scored by a reference-free dense-sublattice
 flag). At $\beta=40$ the G6K sieve and fplll enumeration agree: the gap
 narrows to at most $9\%$, and SD-BKZ leads per key at $n=89$ and $113$ on
-both engines, not at $n=101$. Below fatigue the advantage is not smooth in
+both engines, unresolved at $n=101$. Below fatigue the advantage is not smooth in
 dimension: tied for $n\!\le\!67$, it spikes at $n\!\approx\!71$--$73$ and
 settles to a plateau for $n=79$--$89$. At $n=157$--$185$, in preliminary
 cells, the $\beta=40$ recovery wall moves with blocksize and tours, and
@@ -369,7 +369,7 @@ SD-BKZ DSD-onset falls at \emph{lower} $q$ than BKZ's:
 
 \begin{table}[tbp]
 \centering
-\caption{Reference-free DSD-onset ($\beta=20$, fplll, 50 tours; two-part criterion) and the same ladders scored by exact key recovery (SKR): SD-BKZ reaches both at lower $q$ than BKZ for $n\ge89$. SKR gap $95\%$ CIs (keys resampled): $[7.1,27.2]$, $[16.6,33.4]$, $[21.1,29.0]$; the $n=101$ SKR SD onset rests on one non-monotone cell ($11/20$ at $q=367$, $6/20$ at $379$; an isotonic fit gives $387.5$ and $21\%$). $^\ast$The $n=67$ and $79$ rows are not transitions: the criterion fires only from $0.93\,q^\ast$ ($q^\ast=(4n/3)\sqrt{e}=147$, $174$), both variants already recover the key at the grid's lowest $q=97$ ($n=67$) or by $q=157$ ($n=79$), and $\mathbf b_1$ is already secret-length on every seed of both variants at every sampled $q$ at $n=67$, and on all but one from $q=157$ at $n=79$; these onsets measure the criterion and carry no SD-vs-BKZ information. Onsets are $50\%$-rate crossings, linearly interpolated between grid cells; gap\% is computed from these unrounded onsets (denominator: SD onset). Bracketing cells carry $N=100$ seeds at $n\ge89$ and $N=20$ at $n=67/79$; the $n=113$ endpoint comes from the $q$-sweep (precision $250$--$1000$ bits by $q$, Table~\ref{tab:coverage}).\label{tab:dsdgap}}
+\caption{Reference-free DSD-onset ($\beta=20$, fplll, 50 tours; two-part criterion) and the same ladders scored by exact key recovery (SKR): SD-BKZ reaches both at lower $q$ than BKZ for $n\ge89$. SKR gap $95\%$ CIs (keys resampled): $[7.1,27.2]$, $[16.6,33.4]$, $[21.1,29.0]$; the $n=101$ SKR SD onset rests on one non-monotone cell ($11/20$ at $q=367$, $6/20$ at $379$; an isotonic fit gives $387.5$ and $21\%$). $^\ast$The $n=67$ and $79$ rows are not transitions: the criterion fires only from $0.93\,q^\ast$ ($q^\ast=(4n/3)\sqrt{e}=147$, $174$), both variants already recover the key at the grid's lowest $q=97$ ($n=67$) or by $q=157$ ($n=79$), and $\mathbf b_1$ is already secret-length on every seed of both variants at every sampled $q$ at $n=67$, and on all but one from $q=157$ at $n=79$; these onsets measure the criterion and carry no SD-vs-BKZ information. Onsets are $50\%$-rate crossings, linearly interpolated between grid cells; gap\% is computed from these unrounded onsets (denominator: SD onset). Flag brackets carry $N=100$ seeds at $n\ge89$ (SKR SD: $N=20$) and $N=20$ at $n=67/79$; the $n=113$ endpoint comes from the $q$-sweep (precision $250$--$1000$ bits by $q$, Table~\ref{tab:coverage}).\label{tab:dsdgap}}
 \begin{tabular}{rrrrrrr}
 \toprule
  & \multicolumn{3}{c}{DSD flag} & \multicolumn{3}{c}{SKR} \\
@@ -794,7 +794,7 @@ rises from $0.7$--$0.9\times q_\mathrm{fat}$ at $n=101/113$
 (exact-match onsets of the auxiliary ladders, not tabulated) to $2.06\times$ and $2.47\times$ at $n=157$ and
 $163$.
 
-\paragraph{The $\beta=40$, $50$-tour recovery wall is a budget, not a dimension.}
+\paragraph{The $\beta=40$, $50$-tour recovery wall moves with the budget.}
 Both levers of the $(\beta,\text{tours})$ budget move it: at $n=167$,
 $2.30\times$, $580$ tours turn $0/20$ into $7/8$ and $6/8$; at $n=179$ on
 G6K, $2.91\times$, $200$ and $580$ tours turn $0/80$ into $2/20$ and $0/20$, then $6/20$ and $1/20$; at $n=181$,
@@ -843,7 +843,7 @@ one seed at the $2.30\times$ edge (${\approx}0.995\,q^2$): at $2.00\times$
 all $48$ rows are $q$-vectors; at $2.91\times$, $\beta=50$ holds
 $16$ exact rotations and no $q$-vector, $\beta=40$ $51$ $q$-vectors and no
 rotation. The band is the dense sublattice of the key's rotations, found but
-not descended: at $\beta=50$ the variants differ in the descent, not
+not descended: from $2.6\times$ the $\beta=50$ variants differ in the descent, not
 the discovery---dense-sublattice discovery without key recovery, which the flag
 of Section~\ref{sec:bg-obs} cannot separate.
 
@@ -965,7 +965,7 @@ above SD-BKZ's in $q$ at $n=89$ and $101$ and $28\%$ at $n=113$
 (flag-scored; $20$--$29\%$ by exact key recovery). At matched $\beta=40$
 enumeration and sieving agree on the flag-scored onset at $n=89$, differ in
 the sub-fatigue tail, and both reopen the flag-scored gap from $n=101$; by
-exact recovery SD-BKZ leads per key at $n=89$ and $113$ on both engines, not
+exact recovery SD-BKZ leads per key at $n=89$ and $113$ on both engines, unresolved
 at $n=101$ (Section~\ref{sec:xengine}). At $n\ge157$, in
 preliminary cells, the $\beta=40$, $50$-tour wall moves with blocksize and
 tours, and SD-BKZ leads per seed but not per core-hour on fplll
