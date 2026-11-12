@@ -2,6 +2,13 @@
 
 User-visible changes per version. Seed counts are manifest totals.
 
+## Unreleased
+
+### Fixed
+- Paper 1 Figure 12 re-rendered: title and labels describe the double-precision measurement, 100 seeds; caption spike range.
+- Paper 2: floored-leg and all-ones-leg counts updated to the current seed set.
+- CONTRIBUTING: `make verify` step list.
+
 ## [2.1.0] — 2026-11-12
 
 ### Added

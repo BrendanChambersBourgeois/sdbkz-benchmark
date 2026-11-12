@@ -17,7 +17,7 @@ One seed runs through `scripts/run_campaign.py` (reads `config/sweep.toml`) → 
 
 ```bash
 bash scripts/install_git_hooks.sh      # once per clone: pre-commit, commit-msg, pre-push
-make verify                            # ruff, mypy, pytest, lint_logging, lint_seed_manifest, verify.sh
+make verify                            # ruff, pytest, lint_logging, lint_seed_manifest, verify.sh (CI adds mypy)
 ```
 
 Commits: one subject line under 72 characters with a conventional prefix (`feat:`, `fix:`, `docs:`, `data:`, `config:`, `ci:`, `paper2:`), no body. Seed data and docs land as one `data:` and one `docs:` commit per push.

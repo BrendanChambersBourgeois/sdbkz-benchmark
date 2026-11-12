@@ -713,7 +713,7 @@ reduced $q$-ary tail is far from the LWE-derived reference.
 The flag reduces to its $b_1$ floor at these dimensions
 (Section~\ref{sec:bg-obs}), so every result here is scored by
 \texttt{secret\_exact\_match} (Section~\ref{sec:bg-obs}), onset being its
-$50\%$ crossing per variant; the $13$ all-ones legs that
+$50\%$ crossing per variant; the $14$ all-ones legs ($13$ fplll, $1$ G6K) that
 \texttt{secret\_recovered} would add are excluded.
 Figure~\ref{fig:frontier} shows the recovery curves and
 Table~\ref{tab:frontier} summarises this corpus, separate from
@@ -1107,7 +1107,7 @@ measurement GSO returns $r_{ii}\le0$. It is not a reduction outcome:
 $\sum_i\log\|\mathbf b_i^\ast\|=\log\det L$ for every basis, yet each floor
 lowers the stored log-determinant by $343.6$--$348.3$ nats. Nor is it a crack:
 no floored leg has a $\mathbf b_1$ shorter than squared norm $14{,}187$,
-against the key's $175$, and none of the $712$ floored legs in the NTRU corpus, each scored by
+against the key's $175$, and none of the $1{,}742$ floored legs in the NTRU corpus, each scored by
 \texttt{secret\_exact\_match} ($19$ through their reruns), recovers the key.
 
 We reran three of these cells ($q\in\{971,1087,1201\}$, four seeds each;
