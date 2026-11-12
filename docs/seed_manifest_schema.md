@@ -51,7 +51,7 @@ Every entry has these fields. None are optional unless marked.
 | `sha256`           | string         | 64-hex SHA-256 of the file at `path`.                                                       |
 | `size_bytes`       | int            | Byte length.                                                                                |
 | `mtime_utc`        | string         | ISO-8601 UTC mtime of the file.                                                             |
-| `tags`             | list[string]   | Zero or more of: `cloud`, `fat`, `3x`, `intermediate`, `degenerate`, `test`, `v5.4.3/4/5`.  |
+| `tags`             | list[string]   | Zero or more of: `cloud`, `fat`, `3x`, `intermediate`, `degenerate`, `test`, `extended`, `v5.4.3/4/5`. |
 | `verified`         | bool           | `true` once `build_seed_manifest.py` has validated schema + advantage-finite + q-match.     |
 | `verified_at_utc`  | string         | Timestamp of last verification pass.                                                        |
 | `verified_by`      | string         | Tool that set `verified=true`. Always `"build_seed_manifest.py"` in v1.3.x.                 |
