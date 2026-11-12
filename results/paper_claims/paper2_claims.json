@@ -1,14 +1,14 @@
 {
   "by_status": {
-    "DERIVED": 7,
+    "DERIVED": 10,
     "POINTER": 28,
-    "RECOMPUTED": 99
+    "RECOMPUTED": 132
   },
   "description": "Paper-2 \u00a76-\u00a77 claim -> source -> method -> verified-value ledger (deep-audit finding 6). See scripts/build_paper2_claims.py.",
   "generated_utc_epoch": 0.0,
   "guard_invariant": true,
-  "n_match": 134,
-  "n_records": 134,
+  "n_match": 170,
+  "n_records": 170,
   "records": [
     {
       "claim_id": "bootstrap_ci_n101_fplll_rate_gap",
@@ -230,6 +230,722 @@
         268
       ],
       "verbatim": "9,424 seed pairs over 183 (n,beta,q) cells"
+    },
+    {
+      "claim_id": "dimonset_mean_n59",
+      "match": true,
+      "method": "mean of the per-seed advantage field; 1-dp mean within [0.0, 0.0]",
+      "note": "20 seeds.",
+      "paper_value": "~0",
+      "recomputed_value": -0.013,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q97/p*_mt50/n059_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "59--67 & $\\sim 0$",
+        "tied for $n\\!\\le\\!67$, it spikes at"
+      ],
+      "tex_lines": [
+        37,
+        316
+      ],
+      "verbatim": "tab:dimonset n=59: mean advantage ~0"
+    },
+    {
+      "claim_id": "dimonset_mean_n61",
+      "match": true,
+      "method": "mean of the per-seed advantage field; 1-dp mean within [0.0, 0.0]",
+      "note": "20 seeds.",
+      "paper_value": "~0",
+      "recomputed_value": 0.003,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q97/p*_mt50/n061_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "59--67 & $\\sim 0$",
+        "tied for $n\\!\\le\\!67$, it spikes at"
+      ],
+      "tex_lines": [
+        37,
+        316
+      ],
+      "verbatim": "tab:dimonset n=61: mean advantage ~0"
+    },
+    {
+      "claim_id": "dimonset_mean_n67",
+      "match": true,
+      "method": "mean of the per-seed advantage field; 1-dp mean within [0.0, 0.0]",
+      "note": "20 seeds.",
+      "paper_value": "~0",
+      "recomputed_value": -0.01,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q97/p*_mt50/n067_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "59--67 & $\\sim 0$",
+        "tied for $n\\!\\le\\!67$, it spikes at"
+      ],
+      "tex_lines": [
+        37,
+        316
+      ],
+      "verbatim": "tab:dimonset n=67: mean advantage ~0"
+    },
+    {
+      "claim_id": "dimonset_mean_n71",
+      "match": true,
+      "method": "mean of the per-seed advantage field",
+      "note": "40 seeds.",
+      "paper_value": 4.33,
+      "recomputed_value": 4.334,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q97/p*_mt50/n071_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "71     & $+4.33$",
+        "it spikes at $n\\!\\approx\\!71$--$73$"
+      ],
+      "tex_lines": [
+        37,
+        317
+      ],
+      "verbatim": "tab:dimonset n=71: mean advantage 4.33"
+    },
+    {
+      "claim_id": "dimonset_mean_n73",
+      "match": true,
+      "method": "mean of the per-seed advantage field",
+      "note": "20 seeds.",
+      "paper_value": 9.68,
+      "recomputed_value": 9.678,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q97/p*_mt50/n073_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "73     & $+9.68$",
+        "it spikes at $n\\!\\approx\\!71$--$73$"
+      ],
+      "tex_lines": [
+        37,
+        318
+      ],
+      "verbatim": "tab:dimonset n=73: mean advantage 9.68"
+    },
+    {
+      "claim_id": "dimonset_mean_n79",
+      "match": true,
+      "method": "mean of the per-seed advantage field; 1-dp mean within [1.5, 1.7]",
+      "note": "20 seeds.",
+      "paper_value": "1.5--1.7",
+      "recomputed_value": 1.651,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q97/p*_mt50/n079_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "79--89 & $+1.5$--$1.7$",
+        "settles to a plateau for $n=79$--$89$"
+      ],
+      "tex_lines": [
+        38,
+        319
+      ],
+      "verbatim": "tab:dimonset n=79: mean advantage 1.5--1.7"
+    },
+    {
+      "claim_id": "dimonset_mean_n83",
+      "match": true,
+      "method": "mean of the per-seed advantage field; 1-dp mean within [1.5, 1.7]",
+      "note": "20 seeds.",
+      "paper_value": "1.5--1.7",
+      "recomputed_value": 1.537,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q97/p*_mt50/n083_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "79--89 & $+1.5$--$1.7$",
+        "settles to a plateau for $n=79$--$89$"
+      ],
+      "tex_lines": [
+        38,
+        319
+      ],
+      "verbatim": "tab:dimonset n=83: mean advantage 1.5--1.7"
+    },
+    {
+      "claim_id": "dimonset_mean_n89",
+      "match": true,
+      "method": "mean of the per-seed advantage field; 1-dp mean within [1.5, 1.7]",
+      "note": "28 seeds.",
+      "paper_value": "1.5--1.7",
+      "recomputed_value": 1.565,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q97/p*_mt50/n089_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "79--89 & $+1.5$--$1.7$",
+        "settles to a plateau for $n=79$--$89$"
+      ],
+      "tex_lines": [
+        38,
+        319
+      ],
+      "verbatim": "tab:dimonset n=89: mean advantage 1.5--1.7"
+    },
+    {
+      "claim_id": "dsdgap_flag_gap_n101",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(...)['gap_pct']: round(100*(bkz-sd)/sd) on the unrounded onsets",
+      "note": "gap% from the unrounded onsets, as the caption states.",
+      "paper_value": 19,
+      "recomputed_value": 19,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n101_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "101 & 428.6 & 512.2 & 19 &",
+        "above SD-BKZ's in $q$ at $n=89$ and $101$"
+      ],
+      "tex_lines": [
+        382,
+        964
+      ],
+      "verbatim": "tab:dsdgap n=101 flag: 19% SD-vs-BKZ onset gap"
+    },
+    {
+      "claim_id": "dsdgap_flag_gap_n113",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(...)['gap_pct']: round(100*(bkz-sd)/sd) on the unrounded onsets",
+      "note": "gap% from the unrounded onsets, as the caption states.",
+      "paper_value": 28,
+      "recomputed_value": 28,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n113_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "113 & 729.2 & 930.4 & 28 &",
+        "($19$--$28\\%$ scored by a reference-free",
+        "$28\\%$ at $n=113$"
+      ],
+      "tex_lines": [
+        33,
+        383,
+        462,
+        964
+      ],
+      "verbatim": "tab:dsdgap n=113 flag: 28% SD-vs-BKZ onset gap"
+    },
+    {
+      "claim_id": "dsdgap_flag_gap_n89",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(...)['gap_pct']: round(100*(bkz-sd)/sd) on the unrounded onsets",
+      "note": "gap% from the unrounded onsets, as the caption states.",
+      "paper_value": 19,
+      "recomputed_value": 19,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n089_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "89  & 238.0 & 283.3 & 19 &",
+        "($19$--$28\\%$ scored by a reference-free",
+        "above SD-BKZ's in $q$ at $n=89$ and $101$"
+      ],
+      "tex_lines": [
+        33,
+        381,
+        964
+      ],
+      "verbatim": "tab:dsdgap n=89 flag: 19% SD-vs-BKZ onset gap"
+    },
+    {
+      "claim_id": "dsdgap_flag_n101_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru', n=101, beta=20, rate=0.5)['bkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [503,541]).",
+      "paper_value": 512.2,
+      "recomputed_value": 512.2,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n101_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "101 & 428.6 & 512.2 & 19 &"
+      ],
+      "tex_lines": [
+        382
+      ],
+      "verbatim": "tab:dsdgap n=101 flag: SD 428.6 / BKZ 512.2"
+    },
+    {
+      "claim_id": "dsdgap_flag_n101_sd",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru', n=101, beta=20, rate=0.5)['sdbkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [409,431]).",
+      "paper_value": 428.6,
+      "recomputed_value": 428.6,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n101_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "101 & 428.6 & 512.2 & 19 &"
+      ],
+      "tex_lines": [
+        382
+      ],
+      "verbatim": "tab:dsdgap n=101 flag: SD 428.6 / BKZ 512.2"
+    },
+    {
+      "claim_id": "dsdgap_flag_n113_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru', n=113, beta=20, rate=0.5)['bkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [859,947]).",
+      "paper_value": 930.4,
+      "recomputed_value": 930.4,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n113_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "113 & 729.2 & 930.4 & 28 &"
+      ],
+      "tex_lines": [
+        383
+      ],
+      "verbatim": "tab:dsdgap n=113 flag: SD 729.2 / BKZ 930.4"
+    },
+    {
+      "claim_id": "dsdgap_flag_n113_sd",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru', n=113, beta=20, rate=0.5)['sdbkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [719,773]).",
+      "paper_value": 729.2,
+      "recomputed_value": 729.2,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n113_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "113 & 729.2 & 930.4 & 28 &"
+      ],
+      "tex_lines": [
+        383
+      ],
+      "verbatim": "tab:dsdgap n=113 flag: SD 729.2 / BKZ 930.4"
+    },
+    {
+      "claim_id": "dsdgap_flag_n67_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru', n=67, beta=20, rate=0.5)['bkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [139,149]).",
+      "paper_value": 145.4,
+      "recomputed_value": 145.4,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n067_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "67$^\\ast$  & 144.6 & 145.4 & --"
+      ],
+      "tex_lines": [
+        379
+      ],
+      "verbatim": "tab:dsdgap n=67 flag: SD 144.6 / BKZ 145.4"
+    },
+    {
+      "claim_id": "dsdgap_flag_n67_sd",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru', n=67, beta=20, rate=0.5)['sdbkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [139,149]).",
+      "paper_value": 144.6,
+      "recomputed_value": 144.6,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n067_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "67$^\\ast$  & 144.6 & 145.4 & --"
+      ],
+      "tex_lines": [
+        379
+      ],
+      "verbatim": "tab:dsdgap n=67 flag: SD 144.6 / BKZ 145.4"
+    },
+    {
+      "claim_id": "dsdgap_flag_n79_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru', n=79, beta=20, rate=0.5)['bkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [167,173]).",
+      "paper_value": 171.0,
+      "recomputed_value": 171.0,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n079_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "79$^\\ast$  & 171.2 & 171.0 & --"
+      ],
+      "tex_lines": [
+        380
+      ],
+      "verbatim": "tab:dsdgap n=79 flag: SD 171.2 / BKZ 171.0"
+    },
+    {
+      "claim_id": "dsdgap_flag_n79_sd",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru', n=79, beta=20, rate=0.5)['sdbkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [167,173]).",
+      "paper_value": 171.2,
+      "recomputed_value": 171.2,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n079_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "79$^\\ast$  & 171.2 & 171.0 & --"
+      ],
+      "tex_lines": [
+        380
+      ],
+      "verbatim": "tab:dsdgap n=79 flag: SD 171.2 / BKZ 171.0"
+    },
+    {
+      "claim_id": "dsdgap_flag_n89_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru', n=89, beta=20, rate=0.5)['bkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [271,293]).",
+      "paper_value": 283.3,
+      "recomputed_value": 283.3,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n089_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "89  & 238.0 & 283.3 & 19 &"
+      ],
+      "tex_lines": [
+        381
+      ],
+      "verbatim": "tab:dsdgap n=89 flag: SD 238.0 / BKZ 283.3"
+    },
+    {
+      "claim_id": "dsdgap_flag_n89_sd",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru', n=89, beta=20, rate=0.5)['sdbkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [227,251]).",
+      "paper_value": 238.0,
+      "recomputed_value": 238.0,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt50/n089_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "89  & 238.0 & 283.3 & 19 &"
+      ],
+      "tex_lines": [
+        381
+      ],
+      "verbatim": "tab:dsdgap n=89 flag: SD 238.0 / BKZ 283.3"
+    },
+    {
+      "claim_id": "dsdgap_skr_gap_n101",
+      "match": true,
+      "method": "nonparametric bootstrap over keys (one seed-index resample applied to every q-cell, SD/BKZ paired within seed), B=10000, rng_seed=20260710; estimand=SD-BKZ onset percent gap; per resample recompute both 50%-onsets via unrounded _interp_onset over every one of the 13 q-cells, each weighting its own seeds by the draw; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
+      "note": "point est +29.148 vs tex +29.00 (percent); CI [+16.560,+33.405] vs tex [+16.60,+33.40]. 100 keys, cells of [20, 100] seeds, 10000/10000 replicates define a gap. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B.",
+      "paper_value": {
+        "ci": [
+          16.6,
+          33.4
+        ],
+        "point": 29.0
+      },
+      "recomputed_value": {
+        "B": 10000,
+        "ci": [
+          16.56,
+          33.405
+        ],
+        "point": 29.148,
+        "rng_seed": 20260710,
+        "seed_universe": 100
+      },
+      "slice": "derived",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n101_beta20/",
+        "kind": "seeds"
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "& 363.7 & 469.7 & 29 \\\\",
+        "modulus $20$--$29\\%$ larger than SD-BKZ",
+        "$20$--$29\\%$ by exact key recovery",
+        "$[16.6,33.4]$"
+      ],
+      "tex_lines": [
+        32,
+        372,
+        382,
+        965
+      ],
+      "verbatim": "tab:dsdgap n=101 SKR gap 29%, CI [16.6,33.4]"
+    },
+    {
+      "claim_id": "dsdgap_skr_gap_n113",
+      "match": true,
+      "method": "nonparametric bootstrap over keys (one seed-index resample applied to every q-cell, SD/BKZ paired within seed), B=10000, rng_seed=20260710; estimand=SD-BKZ onset percent gap; per resample recompute both 50%-onsets via unrounded _interp_onset over every one of the 16 q-cells, each weighting its own seeds by the draw; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
+      "note": "point est +23.064 vs tex +23.00 (percent); CI [+21.053,+29.035] vs tex [+21.10,+29.00]. 100 keys, cells of [20, 100] seeds, 10000/10000 replicates define a gap. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B.",
+      "paper_value": {
+        "ci": [
+          21.1,
+          29.0
+        ],
+        "point": 23.0
+      },
+      "recomputed_value": {
+        "B": 10000,
+        "ci": [
+          21.053,
+          29.035
+        ],
+        "point": 23.064,
+        "rng_seed": 20260710,
+        "seed_universe": 100
+      },
+      "slice": "derived",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n113_beta20/",
+        "kind": "seeds"
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "& 694.3 & 854.5 & 23 \\\\",
+        "$[21.1,29.0]$"
+      ],
+      "tex_lines": [
+        372,
+        383
+      ],
+      "verbatim": "tab:dsdgap n=113 SKR gap 23%, CI [21.1,29.0]"
+    },
+    {
+      "claim_id": "dsdgap_skr_gap_n89",
+      "match": true,
+      "method": "nonparametric bootstrap over keys (one seed-index resample applied to every q-cell, SD/BKZ paired within seed), B=10000, rng_seed=20260710; estimand=SD-BKZ onset percent gap; per resample recompute both 50%-onsets via unrounded _interp_onset over every one of the 18 q-cells, each weighting its own seeds by the draw; percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires",
+      "note": "point est +19.866 vs tex +20.00 (percent); CI [+7.074,+27.200] vs tex [+7.10,+27.20]. 100 keys, cells of [20, 28, 100] seeds, 10000/10000 replicates define a gap. Point est is exact (deterministic full-sample gap); CI bounds depend on rng_seed (pinned) and B.",
+      "paper_value": {
+        "ci": [
+          7.1,
+          27.2
+        ],
+        "point": 20.0
+      },
+      "recomputed_value": {
+        "B": 10000,
+        "ci": [
+          7.074,
+          27.2
+        ],
+        "point": 19.866,
+        "rng_seed": 20260710,
+        "seed_universe": 100
+      },
+      "slice": "derived",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n089_beta20/",
+        "kind": "seeds"
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "& 187.2 & 224.3 & 20 \\\\",
+        "modulus $20$--$29\\%$ larger than SD-BKZ",
+        "$20$--$29\\%$ by exact key recovery",
+        "$[7.1,27.2]$"
+      ],
+      "tex_lines": [
+        32,
+        372,
+        381,
+        965
+      ],
+      "verbatim": "tab:dsdgap n=89 SKR gap 20%, CI [7.1,27.2]"
+    },
+    {
+      "claim_id": "dsdgap_skr_n101_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru_exact', n=101, beta=20, rate=0.5)['bkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [467,503]).",
+      "paper_value": 469.7,
+      "recomputed_value": 469.7,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n101_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "& 363.7 & 469.7 & 29 \\\\"
+      ],
+      "tex_lines": [
+        382
+      ],
+      "verbatim": "tab:dsdgap n=101 skr: SD 363.7 / BKZ 469.7"
+    },
+    {
+      "claim_id": "dsdgap_skr_n101_sd",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru_exact', n=101, beta=20, rate=0.5)['sdbkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [347,367]).",
+      "paper_value": 363.7,
+      "recomputed_value": 363.7,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n101_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "& 363.7 & 469.7 & 29 \\\\"
+      ],
+      "tex_lines": [
+        382
+      ],
+      "verbatim": "tab:dsdgap n=101 skr: SD 363.7 / BKZ 469.7"
+    },
+    {
+      "claim_id": "dsdgap_skr_n113_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru_exact', n=113, beta=20, rate=0.5)['bkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [773,859]).",
+      "paper_value": 854.5,
+      "recomputed_value": 854.5,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n113_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "& 694.3 & 854.5 & 23 \\\\"
+      ],
+      "tex_lines": [
+        383
+      ],
+      "verbatim": "tab:dsdgap n=113 skr: SD 694.3 / BKZ 854.5"
+    },
+    {
+      "claim_id": "dsdgap_skr_n113_sd",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru_exact', n=113, beta=20, rate=0.5)['sdbkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [661,701]).",
+      "paper_value": 694.3,
+      "recomputed_value": 694.3,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n113_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "& 694.3 & 854.5 & 23 \\\\"
+      ],
+      "tex_lines": [
+        383
+      ],
+      "verbatim": "tab:dsdgap n=113 skr: SD 694.3 / BKZ 854.5"
+    },
+    {
+      "claim_id": "dsdgap_skr_n89_bkz",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru_exact', n=89, beta=20, rate=0.5)['bkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [223,227]).",
+      "paper_value": 224.3,
+      "recomputed_value": 224.3,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n089_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "& 187.2 & 224.3 & 20 \\\\"
+      ],
+      "tex_lines": [
+        381
+      ],
+      "verbatim": "tab:dsdgap n=89 skr: SD 187.2 / BKZ 224.3"
+    },
+    {
+      "claim_id": "dsdgap_skr_n89_sd",
+      "match": true,
+      "method": "extract_dsd_onset.report_cell(tree='ntru_exact', n=89, beta=20, rate=0.5)['sdbkz']['onset']",
+      "note": "50%-rate crossing, 1 dp (interp [149,211]).",
+      "paper_value": 187.2,
+      "recomputed_value": 187.2,
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n089_beta20/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "& 187.2 & 224.3 & 20 \\\\"
+      ],
+      "tex_lines": [
+        381
+      ],
+      "verbatim": "tab:dsdgap n=89 skr: SD 187.2 / BKZ 224.3"
     },
     {
       "claim_id": "frontier_cost_ratio_n157_b40_fplll",
@@ -2768,6 +3484,156 @@
         603
       ],
       "verbatim": "g6k SD 193.1 / BKZ 194.0 (null window)"
+    },
+    {
+      "claim_id": "per_key_n101_fplll",
+      "match": true,
+      "method": "per key (seed id), q-cells recovered (_seed_fires) by each variant over the ladder; keys with more under SD-BKZ : under BKZ",
+      "note": "40 keys, 19 ties; exact two-sided sign test p=0.19.",
+      "paper_value": "unresolved",
+      "recomputed_value": {
+        "counts": "14:7",
+        "p": 0.18924713134765625
+      },
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "unresolved at $n=101$",
+        "on both engines, unresolved"
+      ],
+      "tex_lines": [
+        36,
+        968
+      ],
+      "verbatim": "fplll n=101 beta=40 per key (SD-BKZ ahead : BKZ ahead): unresolved"
+    },
+    {
+      "claim_id": "per_key_n101_g6k",
+      "match": true,
+      "method": "per key (seed id), q-cells recovered (_seed_fires) by each variant over the ladder; keys with more under SD-BKZ : under BKZ",
+      "note": "40 keys, 27 ties; exact two-sided sign test p=0.092.",
+      "paper_value": "unresolved",
+      "recomputed_value": {
+        "counts": "10:3",
+        "p": 0.09228515625
+      },
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_exact/q*/p*_mt50/n101_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "unresolved at $n=101$",
+        "on both engines, unresolved",
+        "unresolved on G6K"
+      ],
+      "tex_lines": [
+        36,
+        657,
+        968
+      ],
+      "verbatim": "g6k n=101 beta=40 per key (SD-BKZ ahead : BKZ ahead): unresolved"
+    },
+    {
+      "claim_id": "per_key_n113_fplll",
+      "match": true,
+      "method": "per key (seed id), q-cells recovered (_seed_fires) by each variant over the ladder; keys with more under SD-BKZ : under BKZ",
+      "note": "40 keys, 15 ties; exact two-sided sign test p=0.00091.",
+      "paper_value": "21:4",
+      "recomputed_value": "21:4",
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "per key $21{:}4$ and $19{:}5$)",
+        "SD-BKZ leads per key at $n=89$ and $113$ on"
+      ],
+      "tex_lines": [
+        35,
+        655,
+        968
+      ],
+      "verbatim": "fplll n=113 beta=40 per key (SD-BKZ ahead : BKZ ahead): 21:4"
+    },
+    {
+      "claim_id": "per_key_n113_g6k",
+      "match": true,
+      "method": "per key (seed id), q-cells recovered (_seed_fires) by each variant over the ladder; keys with more under SD-BKZ : under BKZ",
+      "note": "40 keys, 16 ties; exact two-sided sign test p=0.0066.",
+      "paper_value": "19:5",
+      "recomputed_value": "19:5",
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_exact/q*/p*_mt50/n113_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "per key $21{:}4$ and $19{:}5$)",
+        "SD-BKZ leads per key at $n=89$ and $113$ on"
+      ],
+      "tex_lines": [
+        35,
+        655,
+        968
+      ],
+      "verbatim": "g6k n=113 beta=40 per key (SD-BKZ ahead : BKZ ahead): 19:5"
+    },
+    {
+      "claim_id": "per_key_n89_fplll",
+      "match": true,
+      "method": "per key (seed id), q-cells recovered (_seed_fires) by each variant over the ladder; keys with more under SD-BKZ : under BKZ",
+      "note": "100 keys, 34 ties; exact two-sided sign test p=0.0001.",
+      "paper_value": "49:17",
+      "recomputed_value": "49:17",
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_exact/q*/p*_mt50/n089_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "($49{:}17$ fplll, $47{:}12$ G6K)",
+        "SD-BKZ leads per key at $n=89$ and $113$ on"
+      ],
+      "tex_lines": [
+        35,
+        586,
+        968
+      ],
+      "verbatim": "fplll n=89 beta=40 per key (SD-BKZ ahead : BKZ ahead): 49:17"
+    },
+    {
+      "claim_id": "per_key_n89_g6k",
+      "match": true,
+      "method": "per key (seed id), q-cells recovered (_seed_fires) by each variant over the ladder; keys with more under SD-BKZ : under BKZ",
+      "note": "100 keys, 41 ties; exact two-sided sign test p=5.1e-06.",
+      "paper_value": "47:12",
+      "recomputed_value": "47:12",
+      "slice": "recomputed",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_exact/q*/p*_mt50/n089_beta40/",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "($49{:}17$ fplll, $47{:}12$ G6K)",
+        "SD-BKZ leads per key at $n=89$ and $113$ on"
+      ],
+      "tex_lines": [
+        35,
+        586,
+        968
+      ],
+      "verbatim": "g6k n=89 beta=40 per key (SD-BKZ ahead : BKZ ahead): 47:12"
     },
     {
       "claim_id": "per_position_slope_flatten_r2",

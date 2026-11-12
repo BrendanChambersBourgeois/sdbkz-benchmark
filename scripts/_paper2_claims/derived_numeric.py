@@ -8,6 +8,7 @@ Two families of number that have NO committed provenance in the repo:
         [-0.14, +0.50]  n=89 fplll onset-modulus gap   (point +0.16)
         [+0.35, +1.81]  n=89 G6K   onset-modulus gap   (point +0.82, 0.42% of q)
         [ 6.0%, 11.0%]  n=101 fplll DSD onset-% gap     (point 9%)
+      and the three tab:dsdgap exact-recovery gaps (beta=20) with their intervals
   4d. fplll beta=40 frontier recoveries per 100 core-hours, SD-BKZ over BKZ,
       with a key-resampling CI on the ratio (sec:frontier)
 
@@ -25,7 +26,6 @@ from __future__ import annotations
 
 import glob
 import json
-import math
 import os
 import re
 import sys
@@ -45,6 +45,7 @@ from extract_dsd_onset import (  # noqa: E402  (existing primitives)
 )
 
 from _paper2_claims.pointer import in_coverage  # noqa: E402  (tab:coverage scope)
+from _paper2_claims.recomputed import _key_cells  # noqa: E402
 
 DEFAULT_RATE = 0.5
 TOURS_DEFAULT = DEFAULT_TOURS  # single source: extract_dsd_onset
@@ -203,6 +204,40 @@ def _bootstrap_gap(tree, n, beta, estimand, rng_seed=RNG_SEED, b=B):
     return float(point), float(lo), float(hi), meta
 
 
+def _bootstrap_gap_all_cells(tree, n, beta, rng_seed=RNG_SEED, b=B):
+    """Percent onset gap with a key-resampling CI over every q-cell of a ladder
+    whose cells hold different seed sets: one draw of keys per replicate, each
+    cell weighting its own seeds by the draw. Returns (point, lo, hi, meta)."""
+    cells = _key_cells(tree, n, beta)
+    qs = list(cells)
+    sid = {q: np.array([r[0] for r in cells[q]]) for q in qs}
+    val = {q: np.array([r[1:] for r in cells[q]], dtype=float) for q in qs}
+    keys = np.array(sorted({s for q in qs for s in sid[q]}))
+
+    def gap(rates):
+        sd = _interp_onset_unrounded([(q, r[0]) for q, r in rates])
+        bkz = _interp_onset_unrounded([(q, r[1]) for q, r in rates])
+        return np.nan if sd is None or bkz is None else 100.0 * (bkz - sd) / sd
+
+    point = gap([(q, val[q].mean(axis=0)) for q in qs])
+    rng = np.random.default_rng(rng_seed)
+    gaps = np.empty(b)
+    for i in range(b):
+        w = np.bincount(rng.choice(keys, len(keys)), minlength=keys.max() + 1)
+        rates = []
+        for q in qs:
+            wq = w[sid[q]].astype(float)
+            if wq.sum():                      # a cell with no drawn key drops out
+                rates.append((q, (val[q] * wq[:, None]).sum(axis=0) / wq.sum()))
+        gaps[i] = gap(rates)
+    ok = gaps[~np.isnan(gaps)]
+    lo, hi = np.percentile(ok, [2.5, 97.5])
+    meta = {"n_q_cells": len(qs), "seed_universe": len(keys),
+            "defined": int(ok.size),
+            "cell_sizes": sorted({len(cells[q]) for q in qs})}
+    return float(point), float(lo), float(hi), meta
+
+
 # =============================================================================
 # 4d. frontier recoveries per core-hour
 # =============================================================================
@@ -239,13 +274,6 @@ def _cost_ratio(n, seed_max=None, rng_seed=RNG_SEED, b=B):
 # =============================================================================
 # ledger records
 # =============================================================================
-def _sig2(x):
-    """Round to 2 significant figures for the match test."""
-    if x == 0:
-        return 0.0
-    return round(x, -int(math.floor(math.log10(abs(x)))) + 1)
-
-
 def build_records() -> list[dict]:
     records = []
 
@@ -282,25 +310,56 @@ def build_records() -> list[dict]:
         {"claim_id": "bootstrap_ci_n89_fplll_onset_gap", "tree": "ntru",
          "n": 89, "estimand": "abs", "tex_anchors": [r"$[-0.14, +0.50]$"],
          "verbatim": "+0.16 units, CI [-0.14, +0.50] (spans 0)",
-         "paper_point": 0.16, "paper_lo": -0.14, "paper_hi": 0.50, "unit": "modulus"},
+         "paper_point": 0.16, "paper_lo": -0.14, "paper_hi": 0.50, "unit": "modulus",
+         "point_dp": 2, "ci_dp": 2},
         {"claim_id": "bootstrap_ci_n89_g6k_onset_gap", "tree": "ntru_g6k",
          "n": 89, "estimand": "abs",
          "tex_anchors": [r"the G6K gap $+0.82$ ($[+0.35, +1.81]$)"],
          "verbatim": "+0.82 units, CI [+0.35, +1.81]",
-         "paper_point": 0.82, "paper_lo": 0.35, "paper_hi": 1.81, "unit": "modulus"},
+         "paper_point": 0.82, "paper_lo": 0.35, "paper_hi": 1.81, "unit": "modulus",
+         "point_dp": 2, "ci_dp": 2},
         {"claim_id": "bootstrap_ci_n101_fplll_rate_gap", "tree": "ntru",
          "n": 101, "estimand": "pct", "tex_anchors": [r"$[6.0\%,11.0\%]$"],
          "verbatim": "9% gap, CI [6.0%, 11.0%]",
-         "paper_point": 9.0, "paper_lo": 6.0, "paper_hi": 11.0, "unit": "percent"},
+         "paper_point": 9.0, "paper_lo": 6.0, "paper_hi": 11.0, "unit": "percent",
+         "point_dp": 0, "ci_dp": 1},
     ]
+    # tab:dsdgap SKR gaps (beta=20, exact recovery): cells hold different seed
+    # sets, so the interval resamples keys over every cell.
+    for n, p_pt, p_lo, p_hi, anchors in (
+            (89, 20.0, 7.1, 27.2, [r"& 187.2 & 224.3 & 20 \\",
+                                   r"modulus $20$--$29\%$ larger than SD-BKZ",
+                                   r"$20$--$29\%$ by exact key recovery"]),
+            (101, 29.0, 16.6, 33.4, [r"& 363.7 & 469.7 & 29 \\",
+                                     r"modulus $20$--$29\%$ larger than SD-BKZ",
+                                     r"$20$--$29\%$ by exact key recovery"]),
+            (113, 23.0, 21.1, 29.0, [r"& 694.3 & 854.5 & 23 \\"])):
+        ci = f"[{p_lo},{p_hi}]"
+        ci_specs.append({
+            "claim_id": f"dsdgap_skr_gap_n{n}", "tree": "ntru_exact", "n": n,
+            "beta": 20, "estimand": "pct", "all_cells": True,
+            "tex_anchors": anchors + [f"${ci}$"],
+            "verbatim": f"tab:dsdgap n={n} SKR gap {p_pt:.0f}%, CI {ci}",
+            "paper_point": p_pt, "paper_lo": p_lo, "paper_hi": p_hi,
+            "unit": "percent", "point_dp": 0, "ci_dp": 1})
     for spec in ci_specs:
-        point, lo, hi, meta = _bootstrap_gap(spec["tree"], spec["n"], 40,
-                                             spec["estimand"])
-        # match: point est to 2 sig figs, both CI bounds to 2 sig figs
-        point_ok = abs(point - spec["paper_point"]) <= 0.02 * max(1, abs(spec["paper_point"])) \
-            or _sig2(point) == _sig2(spec["paper_point"])
-        lo_ok = abs(lo - spec["paper_lo"]) <= max(0.05, 0.05 * abs(spec["paper_lo"]))
-        hi_ok = abs(hi - spec["paper_hi"]) <= max(0.05, 0.05 * abs(spec["paper_hi"]))
+        beta = spec.get("beta", 40)
+        if spec.get("all_cells"):
+            point, lo, hi, meta = _bootstrap_gap_all_cells(spec["tree"], spec["n"], beta)
+            cells_txt = (f"every one of the {meta['n_q_cells']} q-cells, each "
+                         f"weighting its own seeds by the draw")
+            grid_txt = (f"{meta['seed_universe']} keys, cells of "
+                        f"{meta['cell_sizes']} seeds, {meta['defined']}/{B} "
+                        f"replicates define a gap")
+        else:
+            point, lo, hi, meta = _bootstrap_gap(spec["tree"], spec["n"], beta,
+                                                 spec["estimand"])
+            cells_txt = f"the {meta['n_q_cells']} full-seed q-cells"
+            grid_txt = f"{meta['seed_universe']} seeds/cell over q={meta['q_grid']}"
+        # match: point and both CI bounds equal the tex at its printed decimals
+        point_ok = round(point, spec["point_dp"]) == spec["paper_point"]
+        lo_ok = round(lo, spec["ci_dp"]) == spec["paper_lo"]
+        hi_ok = round(hi, spec["ci_dp"]) == spec["paper_hi"]
         match = bool(point_ok and lo_ok and hi_ok)
         records.append({
             "claim_id": spec["claim_id"],
@@ -310,14 +369,14 @@ def build_records() -> list[dict]:
                             "ci": [spec["paper_lo"], spec["paper_hi"]]},
             "source": {"kind": "seeds",
                        "glob": f"results/seeds/{spec['tree']}/q*/p*_mt{TOURS_DEFAULT}/"
-                               f"n{spec['n']:03d}_beta40/"},
+                               f"n{spec['n']:03d}_beta{beta:02d}/"},
             "method": (f"nonparametric bootstrap over keys (one seed-index resample "
                        f"applied to every q-cell, SD/BKZ paired within seed), B={B}, "
                        f"rng_seed={RNG_SEED}; "
                        f"estimand=SD-BKZ onset "
                        f"{'modulus gap' if spec['estimand']=='abs' else 'percent gap'}; "
                        f"per resample recompute both 50%-onsets via unrounded "
-                       f"_interp_onset over the {meta['n_q_cells']} full-seed q-cells; "
+                       f"_interp_onset over {cells_txt}; "
                        f"percentile [2.5,97.5]; fires via extract_dsd_onset._seed_fires"),
             "recomputed_value": {"point": round(point, 3),
                                  "ci": [round(lo, 3), round(hi, 3)],
@@ -328,7 +387,7 @@ def build_records() -> list[dict]:
             "note": (f"point est {point:+.3f} vs tex {spec['paper_point']:+.2f} "
                      f"({spec['unit']}); CI [{lo:+.3f},{hi:+.3f}] vs tex "
                      f"[{spec['paper_lo']:+.2f},{spec['paper_hi']:+.2f}]. "
-                     f"{meta['seed_universe']} seeds/cell over q={meta['q_grid']}. "
+                     f"{grid_txt}. "
                      f"Point est is exact (deterministic full-sample gap); CI bounds "
                      f"depend on rng_seed (pinned) and B." + spec.get("extra", ""))
         })

@@ -5,6 +5,7 @@ User-visible changes per version. Seed counts are manifest totals.
 ## Unreleased
 
 ### Fixed
+- `analysis/_data.py`: a seed file a loader cannot read, or a convergence file without per-tour keys, is logged (path and error) and counted before it is skipped.
 - Paper 1 Figure 12 re-rendered: title and labels describe the double-precision measurement, 100 seeds; caption spike range.
 - Paper 2: floored-leg and all-ones-leg counts updated to the current seed set.
 - CONTRIBUTING: `make verify` step list.
@@ -18,6 +19,19 @@ User-visible changes per version. Seed counts are manifest totals.
 - README results table states its seed range (seeds 1–100; the paper's tables use all 122 in four cells).
 - `docs/seed_manifest_schema.md`: example rollup, pinned timestamps, side manifest and crosswalk text match the tree.
 - `docs/images.md`: worklists reference dropped; `Dockerfile.fplll_legacy` listed.
+- `results/paper_claims/full_stats_33groups.txt` regenerated from the committed seeds with the two-sided Wilcoxon test.
+- `analysis/stats_analysis.py`: a test statistic or p-value of zero is printed, not shown as N/A.
+- Paper 2 claims ledger: the two-sided sign-test p-value is capped at 1 when the counts tie.
+- Paper 1: the position-93 comparison and the β=40 and β=30 peak values match the plotted data (all seeds).
+- Paper 2: the tour-budget figure text gives tour 30, where SD-BKZ flattens its second block and the flag fires.
+- q=3329 MPFR n=90 summary named per cell, like its siblings.
+- `analysis/runtime_table.py` no longer writes the dropped `runtime_table.html`.
+- q=3329 degeneracy figure computes its win-rate label from the data.
+- `docs/seed_manifest_schema.md` tag list includes `extended`.
+- Paper 2 paired-keys figure counts one cell per (q, seed) when a seed was rerun at a higher precision; no plotted count changes.
+- Paper 1: standard-deviation cells of the main and peak tables use the sample standard deviation throughout.
+- `analysis/runtime_table.py`: averages seeds 1–100, as the paper's runtime table does; captions state the per-β tour budget.
+- Paper 2 claims ledger: records added for the β=20 onset table, its exact-recovery gap intervals, the per-key counts and the dimension-onset means; interval records match at the printed precision.
 
 ## [2.1.0] — 2026-11-12
 

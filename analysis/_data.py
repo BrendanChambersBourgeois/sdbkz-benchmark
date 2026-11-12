@@ -23,11 +23,27 @@ import json
 import math
 import os
 import re
+import sys
 import warnings
-from collections import defaultdict
+from collections import Counter, defaultdict
 from typing import Any
 
 import numpy as np
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+from log import get_logger  # noqa: E402
+
+PIPELINE = get_logger("analysis_data")
+_SKIPPED: Counter = Counter()   # loader name -> seed files skipped this process
+
+
+def _log_skip(loader: str, path: str, exc: Exception) -> None:
+    """Record a seed file a loader is about to skip: raw path and error."""
+    _SKIPPED[loader] += 1
+    PIPELINE.warning(f"{loader}: skipped seed file {path}: {exc!r}", cat="integrity",
+                     loader=loader, path=path, error=repr(exc),
+                     skipped=_SKIPPED[loader])
+
 
 SeedDict = dict[str, Any]
 GroupKey = tuple[int, int]
@@ -188,6 +204,7 @@ def _manifest_load_groups(
     repo_root = os.path.dirname(
         os.path.dirname(os.path.abspath(__file__))
     )
+    n_skipped = 0
     for entry in by_key.values():
         if not load_json:
             groups[(entry["n"], entry["beta"])].append(dict(entry))
@@ -199,7 +216,9 @@ def _manifest_load_groups(
         try:
             with open(abs_path) as f:
                 data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (FileNotFoundError, json.JSONDecodeError) as exc:
+            _log_skip("manifest", abs_path, exc)
+            n_skipped += 1
             continue
         # Inject manifest-side fields that callers sometimes need
         # (provenance tags, canonical relative path). Prefixed with
@@ -221,7 +240,8 @@ def _manifest_load_groups(
           f"(campaign={campaign}, q={q}"
           + (f", n={n}" if n is not None else "")
           + (f", β={beta}" if beta is not None else "")
-          + ")")
+          + ")"
+          + (f" (skipped: {n_skipped} unreadable)" if n_skipped else ""))
     return filtered
 
 
@@ -302,10 +322,12 @@ def _legacy_load_all_seeds(*dirs: str, min_seeds: int = 1) -> Groups:
                     n_non_q97 += 1
                     continue
                 groups[(data["n"], data["beta"])].append(data)
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as exc:
+                _log_skip("legacy", fp, exc)
                 n_json_errors += 1
                 continue
-            except KeyError:
+            except KeyError as exc:
+                _log_skip("legacy", fp, exc)
                 n_key_errors += 1
                 continue
 
@@ -358,7 +380,8 @@ def load_3x_tour_data(
                 try:
                     with open(abs_path) as f:
                         seeds.append(json.load(f))
-                except (json.JSONDecodeError, KeyError, OSError):
+                except (json.JSONDecodeError, KeyError, OSError) as exc:
+                    _log_skip("tours3x", abs_path, exc)
                     continue
             print(f"Loaded {len(seeds)} seeds from 3x tour experiment "
                   f"(manifest campaign=tours3x)")
@@ -372,7 +395,8 @@ def load_3x_tour_data(
         try:
             with open(fp) as f:
                 seeds.append(json.load(f))
-        except (json.JSONDecodeError, KeyError):
+        except (json.JSONDecodeError, KeyError) as exc:
+            _log_skip("tours3x", fp, exc)
             continue
     print(f"Loaded {len(seeds)} seeds from 3x tour experiment")
     return seeds
@@ -444,13 +468,16 @@ def _load_convergence_files(
             try:
                 with open(abs_path) as _fh:
                     d = json.load(_fh)
-            except (FileNotFoundError, json.JSONDecodeError, KeyError, OSError):
+            except (FileNotFoundError, json.JSONDecodeError, KeyError, OSError) as exc:
+                _log_skip("convergence", abs_path, exc)
                 continue
             try:
-                bkz_trajs.append(d["bkz_dln_per_tour"])
-                sd_trajs.append(d["sdbkz_dln_per_tour"])
-            except KeyError:
+                bkz, sd = d["bkz_dln_per_tour"], d["sdbkz_dln_per_tour"]
+            except KeyError as exc:
+                _log_skip("convergence", abs_path, exc)
                 continue
+            bkz_trajs.append(bkz)
+            sd_trajs.append(sd)
             if n_val is None:
                 n_val, beta_val = d["n"], d["beta"]
         if bkz_trajs:
@@ -469,13 +496,16 @@ def _load_convergence_files(
         try:
             with open(f) as _fh:
                 d = json.load(_fh)
-        except (FileNotFoundError, json.JSONDecodeError, OSError):
+        except (FileNotFoundError, json.JSONDecodeError, OSError) as exc:
+            _log_skip("convergence", f, exc)
             continue
         try:
-            bkz_trajs.append(d["bkz_dln_per_tour"])
-            sd_trajs.append(d["sdbkz_dln_per_tour"])
-        except KeyError:
+            bkz, sd = d["bkz_dln_per_tour"], d["sdbkz_dln_per_tour"]
+        except KeyError as exc:
+            _log_skip("convergence", f, exc)
             continue
+        bkz_trajs.append(bkz)
+        sd_trajs.append(sd)
         if n_val is None:
             n_val, beta_val = d["n"], d["beta"]
 

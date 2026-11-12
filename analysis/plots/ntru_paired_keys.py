@@ -25,11 +25,19 @@ def per_key(n):
     out = defaultdict(lambda: [0, 0])
     pat = os.path.join(_REPO, "results", "seeds", "ntru_exact", "q*", "p*_mt50",
                        f"n{n:03d}_beta{BETA:02d}", "seed*.json")
-    for f in sorted(glob.glob(pat)):
+    # One cell per (q, seed): a seed rerun at a higher precision replaces the lower one.
+    best = {}
+    for f in glob.glob(pat):
+        q_dir, p_dir = f.split(os.sep)[-4:-2]
+        prec = int(p_dir[1:].split("_")[0])
         with open(f) as fh:
             d = json.load(fh)
-        out[d["seed"]][0] += bool(d["secret_exact_match_sdbkz"])
-        out[d["seed"]][1] += bool(d["secret_exact_match_bkz"])
+        key = (q_dir, d["seed"])
+        if key not in best or prec > best[key][0]:
+            best[key] = (prec, d)
+    for (_, seed), (_, d) in best.items():
+        out[seed][0] += bool(d["secret_exact_match_sdbkz"])
+        out[seed][1] += bool(d["secret_exact_match_bkz"])
     return out
 
 

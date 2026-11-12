@@ -237,9 +237,9 @@ def main():
                     'medium' if cd_mag >= 0.33 else
                     'small' if cd_mag >= 0.147 else 'negligible')
         out(f"  Cliff's δ:          {s['cliffs_delta']:+.3f}  ({cd_label})")
-        out(f"  Paired t-test:      t={s['t_stat']:.2f}, p={format_p(s['p_ttest'])}, Holm p={format_p(s['p_ttest_holm'])}" if s['t_stat'] else "  Paired t-test:      N/A")
-        out(f"  Wilcoxon signed-rank: W={s['w_stat']:.0f}, p={format_p(s['p_wilcoxon'])}, Holm p={format_p(s['p_wilcoxon_holm'])}" if s['w_stat'] else "  Wilcoxon signed-rank: N/A (need ≥10 seeds)")
-        out(f"  Shapiro-Wilk normality: p={format_p(s['p_shapiro'])}" if s['p_shapiro'] else "  Shapiro-Wilk: N/A")
+        out(f"  Paired t-test:      t={s['t_stat']:.2f}, p={format_p(s['p_ttest'])}, Holm p={format_p(s['p_ttest_holm'])}" if s['t_stat'] is not None else "  Paired t-test:      N/A")
+        out(f"  Wilcoxon signed-rank: W={s['w_stat']:.0f}, p={format_p(s['p_wilcoxon'])}, Holm p={format_p(s['p_wilcoxon_holm'])}" if s['w_stat'] is not None else "  Wilcoxon signed-rank: N/A (need ≥10 seeds)")
+        out(f"  Shapiro-Wilk normality: p={format_p(s['p_shapiro'])}" if s['p_shapiro'] is not None else "  Shapiro-Wilk: N/A")
 
         # Percentiles
         adv = np.array(advantages)

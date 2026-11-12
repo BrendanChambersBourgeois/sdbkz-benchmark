@@ -85,7 +85,7 @@ def fig_q3329_degeneracy(groups, output_dir="."):
     ax_a.set_title(f"(a) q=97, n=100, $\\beta$=30 ({len(q97_advs)} seeds)")
     ax_a.legend(fontsize=9, loc="upper left")
     ax_a.text(0.97, 0.95,
-              "win rate: 100%",
+              f"win rate: {100 * np.mean(q97_advs > 0):.0f}%",
               transform=ax_a.transAxes, fontsize=9, ha="right", va="top",
               family="monospace",
               bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85))

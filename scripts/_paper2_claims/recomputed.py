@@ -10,6 +10,9 @@ figure/table path rather than a reimplementation:
       {fplll,g6k}, variant in {sdbkz,bkz}   -> onset_for(...)
   (2) McNemar discordant counts (b:c) + chi2 and the exact sign-test p at the
       two transition cells (n=101 q=271, n=113 q=487, both engines).
+  (3) tab:dsdgap onsets (beta=20; flag and exact recovery) + flag gap%.
+  (4) Per-key exact-recovery counts at beta=40 (n=89, 101, 113, both engines).
+  (5) tab:dimonset mean advantage per n.
 
 Pure-python (exact binomial via math.comb) — no scipy dependency, so the
 eventual builder inherits none. Read-only on results/seeds/.
@@ -29,7 +32,12 @@ from math import comb
 # --- locate the repo and import the committed scoring primitives ------------
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # repo root (scripts/_paper2_claims/ -> up 3)
 sys.path.insert(0, os.path.join(REPO, "scripts"))
-from extract_dsd_onset import DEFAULT_TOURS, _seed_fires, onset_for  # noqa: E402
+from extract_dsd_onset import (  # noqa: E402
+    DEFAULT_TOURS,
+    _seed_fires,
+    onset_for,
+    report_cell,
+)
 
 ENGINE_TREE = {"fplll": "ntru", "g6k": "ntru_g6k"}
 BETA = 40
@@ -68,6 +76,60 @@ TRANSITION_PAPER = {
                      [r"($14{:}0$, $\chi^2{=}14.0$)", _P113]),
 }
 
+# tab:dsdgap (beta=20, fplll): (n, scoring) -> (sd, bkz, gap_pct or None, tex_anchors).
+# flag = ntru tree (two-part criterion), skr = ntru_exact tree (exact recovery).
+# The SKR gaps carry intervals and live in derived_numeric.
+DSDGAP_BETA = 20
+DSDGAP_TREE = {"flag": "ntru", "skr": "ntru_exact"}
+DSDGAP_PAPER = {
+    (67, "flag"): (144.6, 145.4, None, [r"67$^\ast$  & 144.6 & 145.4 & --"]),
+    (79, "flag"): (171.2, 171.0, None, [r"79$^\ast$  & 171.2 & 171.0 & --"]),
+    (89, "flag"): (238.0, 283.3, 19, [r"89  & 238.0 & 283.3 & 19 &",
+                                      r"($19$--$28\%$ scored by a reference-free",
+                                      r"above SD-BKZ's in $q$ at $n=89$ and $101$"]),
+    (101, "flag"): (428.6, 512.2, 19, [r"101 & 428.6 & 512.2 & 19 &",
+                                       r"above SD-BKZ's in $q$ at $n=89$ and $101$"]),
+    (113, "flag"): (729.2, 930.4, 28, [r"113 & 729.2 & 930.4 & 28 &",
+                                       r"($19$--$28\%$ scored by a reference-free",
+                                       r"$28\%$ at $n=113$"]),
+    (89, "skr"): (187.2, 224.3, None, [r"& 187.2 & 224.3 & 20 \\"]),
+    (101, "skr"): (363.7, 469.7, None, [r"& 363.7 & 469.7 & 29 \\"]),
+    (113, "skr"): (694.3, 854.5, None, [r"& 694.3 & 854.5 & 23 \\"]),
+}
+
+# Per-key exact recovery at beta=40: keys recovering in more q-cells under
+# SD-BKZ : under BKZ. "unresolved" is the tex reading where no count is printed.
+_LEADS = r"SD-BKZ leads per key at $n=89$ and $113$ on"
+PER_KEY_TREE = {"fplll": "ntru_exact", "g6k": "ntru_g6k_exact"}
+PER_KEY_PAPER = {
+    (89, "fplll"): ("49:17", [r"($49{:}17$ fplll, $47{:}12$ G6K)", _LEADS]),
+    (89, "g6k"): ("47:12", [r"($49{:}17$ fplll, $47{:}12$ G6K)", _LEADS]),
+    (113, "fplll"): ("21:4", [r"per key $21{:}4$ and $19{:}5$)", _LEADS]),
+    (113, "g6k"): ("19:5", [r"per key $21{:}4$ and $19{:}5$)", _LEADS]),
+    (101, "fplll"): ("unresolved", [r"unresolved at $n=101$",
+                                    r"on both engines, unresolved"]),
+    (101, "g6k"): ("unresolved", [r"unresolved at $n=101$",
+                                  r"on both engines, unresolved",
+                                  r"unresolved on G6K"]),
+}
+
+# tab:dimonset (ntru, q=97, beta=20): n -> (printed mean, lo, hi, tex_anchors);
+# a row printed as a range or "~0" matches when the 1-dp mean lies in [lo, hi].
+DIMONSET_Q = 97
+_TIED = [r"59--67 & $\sim 0$", r"tied for $n\!\le\!67$, it spikes at"]
+_SPIKE = r"it spikes at $n\!\approx\!71$--$73$"
+_PLATEAU = [r"79--89 & $+1.5$--$1.7$", r"settles to a plateau for $n=79$--$89$"]
+DIMONSET_PAPER = {
+    59: ("~0", 0.0, 0.0, _TIED),
+    61: ("~0", 0.0, 0.0, _TIED),
+    67: ("~0", 0.0, 0.0, _TIED),
+    71: (4.33, None, None, [r"71     & $+4.33$", _SPIKE]),
+    73: (9.68, None, None, [r"73     & $+9.68$", _SPIKE]),
+    79: ("1.5--1.7", 1.5, 1.7, _PLATEAU),
+    83: ("1.5--1.7", 1.5, 1.7, _PLATEAU),
+    89: ("1.5--1.7", 1.5, 1.7, _PLATEAU),
+}
+
 
 # ---------------------------------------------------------------------------
 # recompute helpers
@@ -103,6 +165,44 @@ def _discordant(tree: str, n: int, q: int):
     return b, c, N
 
 
+def _key_cells(tree: str, n: int, beta: int):
+    """{q: [(seed_id, sd_fires, bkz_fires) per seed file]} over one ladder.
+    A seed id fixes the key along the ladder; precisions pool, as in _cell_rate."""
+    cells: dict[int, list] = {}
+    pat = os.path.join(REPO, "results", "seeds", tree, "q*", f"p*_mt{DEFAULT_TOURS}",
+                       f"n{n:03d}_beta{beta:02d}", "seed*.json")
+    for f in sorted(glob.glob(pat)):
+        with open(f) as fh:
+            s = json.load(fh)
+        q = int(os.path.relpath(f, REPO).split(os.sep)[3][1:])
+        cells.setdefault(q, []).append(
+            (s["seed"], _seed_fires(s, "sdbkz", n), _seed_fires(s, "bkz", n)))
+    return dict(sorted(cells.items()))
+
+
+def _per_key(tree: str, n: int, beta: int):
+    """(keys SD-BKZ recovers in more cells, keys BKZ does, n_keys)."""
+    tot: dict[int, list[int]] = {}
+    for rows in _key_cells(tree, n, beta).values():
+        for sid, sd, bk in rows:
+            t = tot.setdefault(sid, [0, 0])
+            t[0] += sd
+            t[1] += bk
+    return (sum(s > b for s, b in tot.values()),
+            sum(s < b for s, b in tot.values()), len(tot))
+
+
+def _dimonset_advantages(n: int) -> list[float]:
+    pat = os.path.join(REPO, "results", "seeds", "ntru", f"q{DIMONSET_Q}",
+                       f"p*_mt{DEFAULT_TOURS}", f"n{n:03d}_beta{DSDGAP_BETA:02d}",
+                       "seed*.json")
+    out = []
+    for f in sorted(glob.glob(pat)):
+        with open(f) as fh:
+            out.append(json.load(fh)["advantage"])
+    return out
+
+
 def _chi2(b: int, c: int) -> float:
     return (b - c) ** 2 / (b + c) if (b + c) else 0.0
 
@@ -110,7 +210,8 @@ def _chi2(b: int, c: int) -> float:
 def _sign_p_two_sided(b: int, c: int) -> float:
     """Exact two-sided sign-test p (task-specified formula, pure python)."""
     k, m = b + c, min(b, c)
-    return 2 * sum(comb(k, i) for i in range(m + 1)) / 2 ** k
+    # Doubling the shared middle term when b == c would exceed 1.
+    return min(1.0, 2 * sum(comb(k, i) for i in range(m + 1)) / 2 ** k)
 
 
 def _sign_p_one_sided(b: int, c: int) -> float:
@@ -234,6 +335,96 @@ def build_records() -> list[dict]:
                 "status": "RECOMPUTED" if pmatch else "DERIVED-UNRESOLVED",
                 "note": note,
             })
+
+    # (3) tab:dsdgap onsets + flag gap% -------------------------------------
+    for (n, scoring), (sd_p, bkz_p, gap_p, tex) in sorted(DSDGAP_PAPER.items()):
+        tree = DSDGAP_TREE[scoring]
+        cell = report_cell(tree, n, DSDGAP_BETA, RATE)
+        src = {"kind": "seeds",
+               "glob": f"results/seeds/{tree}/q*/p*_mt{DEFAULT_TOURS}/"
+                       f"n{n:03d}_beta{DSDGAP_BETA:02d}/"}
+        for variant, paper in (("sdbkz", sd_p), ("bkz", bkz_p)):
+            recomputed = cell[variant]["onset"]
+            match = recomputed == paper
+            records.append({
+                "claim_id": f"dsdgap_{scoring}_n{n}_{'sd' if variant == 'sdbkz' else 'bkz'}",
+                "tex_anchors": tex[:1],
+                "verbatim": f"tab:dsdgap n={n} {scoring}: SD {sd_p} / BKZ {bkz_p}",
+                "paper_value": paper,
+                "source": src,
+                "method": f"extract_dsd_onset.report_cell(tree='{tree}', n={n}, "
+                          f"beta={DSDGAP_BETA}, rate={RATE})['{variant}']['onset']",
+                "recomputed_value": recomputed,
+                "match": match,
+                "status": "RECOMPUTED" if match else "DERIVED-UNRESOLVED",
+                "note": f"50%-rate crossing, 1 dp ({cell[variant]['note']}).",
+            })
+        if gap_p is not None:
+            gmatch = cell["gap_pct"] == gap_p
+            records.append({
+                "claim_id": f"dsdgap_{scoring}_gap_n{n}",
+                "tex_anchors": tex,
+                "verbatim": f"tab:dsdgap n={n} {scoring}: {gap_p}% SD-vs-BKZ onset gap",
+                "paper_value": gap_p,
+                "source": src,
+                "method": "extract_dsd_onset.report_cell(...)['gap_pct']: "
+                          "round(100*(bkz-sd)/sd) on the unrounded onsets",
+                "recomputed_value": cell["gap_pct"],
+                "match": gmatch,
+                "status": "RECOMPUTED" if gmatch else "DERIVED-UNRESOLVED",
+                "note": "gap% from the unrounded onsets, as the caption states.",
+            })
+
+    # (4) per-key exact-recovery counts, beta=40 ----------------------------
+    for (n, engine), (paper, tex) in sorted(PER_KEY_PAPER.items()):
+        tree = PER_KEY_TREE[engine]
+        up, down, nkeys = _per_key(tree, n, BETA)
+        p = _sign_p_two_sided(up, down)
+        counts = f"{up}:{down}"
+        # "unresolved" = the two-sided sign test does not reach 5%
+        match = p >= 0.05 if paper == "unresolved" else counts == paper
+        records.append({
+            "claim_id": f"per_key_n{n}_{engine}",
+            "tex_anchors": tex,
+            "verbatim": f"{engine} n={n} beta={BETA} per key (SD-BKZ ahead : BKZ ahead): {paper}",
+            "paper_value": paper,
+            "source": {"kind": "seeds",
+                       "glob": f"results/seeds/{tree}/q*/p*_mt{DEFAULT_TOURS}/"
+                               f"n{n:03d}_beta{BETA:02d}/"},
+            "method": "per key (seed id), q-cells recovered (_seed_fires) by each "
+                      "variant over the ladder; keys with more under SD-BKZ : under BKZ",
+            "recomputed_value": counts if paper != "unresolved" else {"counts": counts, "p": p},
+            "match": match,
+            "status": "RECOMPUTED" if match else "DERIVED-UNRESOLVED",
+            "note": f"{nkeys} keys, {nkeys - up - down} ties; "
+                    f"exact two-sided sign test p={p:.2g}.",
+        })
+
+    # (5) tab:dimonset mean advantage ---------------------------------------
+    for n, (paper, lo, hi, tex) in sorted(DIMONSET_PAPER.items()):
+        advs = _dimonset_advantages(n)
+        mean = sum(advs) / len(advs) if advs else None
+        if mean is None:
+            match = False
+        elif lo is None:
+            match = round(mean, 2) == paper
+        else:
+            match = lo <= round(mean, 1) <= hi
+        records.append({
+            "claim_id": f"dimonset_mean_n{n}",
+            "tex_anchors": tex,
+            "verbatim": f"tab:dimonset n={n}: mean advantage {paper}",
+            "paper_value": paper,
+            "source": {"kind": "seeds",
+                       "glob": f"results/seeds/ntru/q{DIMONSET_Q}/p*_mt{DEFAULT_TOURS}/"
+                               f"n{n:03d}_beta{DSDGAP_BETA:02d}/"},
+            "method": "mean of the per-seed advantage field"
+                      + ("" if lo is None else f"; 1-dp mean within [{lo}, {hi}]"),
+            "recomputed_value": None if mean is None else round(mean, 3),
+            "match": match,
+            "status": "RECOMPUTED" if match else "DERIVED-UNRESOLVED",
+            "note": f"{len(advs)} seeds.",
+        })
 
     return records
 

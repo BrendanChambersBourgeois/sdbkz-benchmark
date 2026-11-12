@@ -1,6 +1,6 @@
 {
-  "description": "Mean wall-clock runtime per seed per (n, \u03b2) group. Single-core fpylll on q=97 LWE-Kannan instances, 70 tours. Includes only complete groups (\u2265 min_seeds seeds with both bkz_time and sdbkz_time populated).",
-  "generated_at": "2026-04-14T11:25:09",
+  "description": "Mean wall-clock runtime per seed per (n, \u03b2) group. Single-core fpylll on q=97 LWE-Kannan instances, 50/70/100 tours for \u03b2=20/30/40, seeds 1-100. Includes only complete groups (\u2265 min_seeds seeds with both bkz_time and sdbkz_time populated).",
+  "generated_at": "2026-11-13T00:38:05",
   "min_seeds": 100,
   "n_groups": 33,
   "groups": [

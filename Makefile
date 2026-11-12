@@ -55,7 +55,7 @@ paper:  ## Rebuild the LaTeX PDF in paper1/latex/
 
 # ---------------------------------------------------------------------------
 # Image rebuild targets. One target per image tag named in config/sweep.toml,
-# the worklists or the scripts; tag -> Dockerfile + build args is documented in
+# or the scripts; tag -> Dockerfile + build args is documented in
 # docs/images.md. These BUILD only (never `docker run`), and no other target
 # depends on them. Each rebuilds the recipe as committed at HEAD; docs/images.md
 # lists the commit each existing tag was built from where that differs.

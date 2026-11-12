@@ -69,3 +69,12 @@ def test_committed_ledger_matches_builder():
     sys.path.insert(0, os.path.join(REPO, "scripts"))
     from build_paper2_claims import build
     assert build() == _ledger(), "stale ledger: run `make paper2-claims`"
+
+
+def test_sign_p_two_sided_bounded():
+    import sys
+    sys.path.insert(0, os.path.join(REPO, "scripts"))
+    from _paper2_claims.recomputed import _sign_p_two_sided
+    assert _sign_p_two_sided(0, 0) == 1.0
+    assert _sign_p_two_sided(3, 3) == 1.0
+    assert abs(_sign_p_two_sided(10, 3) - 0.0923) < 1e-4

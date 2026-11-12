@@ -1,4 +1,3 @@
-09:38:25  INF [analysis] stats_analysis start
 ================================================================================
 SDBKZ vs BKZ — Statistical Analysis
 Reading from manifest: campaign=main, q=97
@@ -37,18 +36,18 @@ n=100 β=40     122   1.169     [1.147, 1.190]   1.177     9.60   +1.000     < 1
 n=110 β=20     100   0.235     [0.203, 0.267]   0.225     1.47   +0.840      < 1e-20      < 1e-20      < 1e-10      < 1e-10  92.0%
 n=110 β=30     100   1.112     [1.072, 1.151]   1.125     5.64   +1.000      < 1e-50      < 1e-50      < 1e-10      < 1e-10 100.0%
 n=110 β=40     122   1.163     [1.133, 1.194]   1.149     6.82   +1.000     < 1e-100     < 1e-100      < 1e-20      < 1e-10 100.0%
-n=120 β=20     100   0.094     [0.063, 0.125]   0.092     0.60   +0.420     3.32e-08     1.33e-07     6.91e-08     6.91e-07  71.0%
+n=120 β=20     100   0.094     [0.063, 0.125]   0.092     0.60   +0.420     3.32e-08     1.33e-07     1.38e-07     5.53e-07  71.0%
 n=120 β=30     100   0.741     [0.711, 0.771]   0.722     4.97   +1.000      < 1e-50      < 1e-50      < 1e-10      < 1e-10 100.0%
-n=120 β=40     100  -0.028   [-0.048, -0.008]  -0.017    -0.28   -0.120     0.007018     0.014036     0.991878     1.000000  44.0%
-n=130 β=20     100   0.003    [-0.029, 0.035]   0.014     0.02   +0.080     0.850644     0.850644     0.371970     1.000000  54.0%
+n=120 β=40     100  -0.028   [-0.048, -0.008]  -0.017    -0.28   -0.120     0.007018     0.014036     0.016244     0.032488  44.0%
+n=130 β=20     100   0.003    [-0.029, 0.035]   0.014     0.02   +0.080     0.850644     0.850644     0.743940     0.743940  54.0%
 n=130 β=30     100   0.352     [0.330, 0.374]   0.355     3.19   +1.000      < 1e-50      < 1e-50      < 1e-10      < 1e-10 100.0%
-n=130 β=40     122  -1.325   [-1.352, -1.298]  -1.317    -8.81   -1.000     < 1e-100     < 1e-100     1.000000     1.000000   0.0%
-n=140 β=20     100  -0.108   [-0.136, -0.080]  -0.120    -0.76   -0.560      < 1e-10      < 1e-10     1.000000     1.000000  22.0%
-n=140 β=30     100  -0.036   [-0.053, -0.019]  -0.036    -0.42   -0.360     6.73e-05     0.000202     0.999971     1.000000  32.0%
-n=140 β=40     100  -1.452   [-1.496, -1.409]  -1.450    -6.59   -1.000      < 1e-50      < 1e-50     1.000000     1.000000   0.0%
-n=150 β=20     100  -0.173   [-0.201, -0.145]  -0.192    -1.21   -0.760      < 1e-20      < 1e-10     1.000000     1.000000  12.0%
-n=150 β=30     100  -0.395   [-0.415, -0.374]  -0.406    -3.88   -1.000      < 1e-50      < 1e-50     1.000000     1.000000   0.0%
-n=150 β=40     100  -1.292   [-1.333, -1.252]  -1.303    -6.30   -1.000      < 1e-50      < 1e-50     1.000000     1.000000   0.0%
+n=130 β=40     122  -1.325   [-1.352, -1.298]  -1.317    -8.81   -1.000     < 1e-100     < 1e-100      < 1e-20      < 1e-10   0.0%
+n=140 β=20     100  -0.108   [-0.136, -0.080]  -0.120    -0.76   -0.560      < 1e-10      < 1e-10     6.19e-10     3.09e-09  22.0%
+n=140 β=30     100  -0.036   [-0.053, -0.019]  -0.036    -0.42   -0.360     6.73e-05     0.000202     5.83e-05     0.000175  32.0%
+n=140 β=40     100  -1.452   [-1.496, -1.409]  -1.450    -6.59   -1.000      < 1e-50      < 1e-50      < 1e-10      < 1e-10   0.0%
+n=150 β=20     100  -0.173   [-0.201, -0.145]  -0.192    -1.21   -0.760      < 1e-20      < 1e-10      < 1e-10      < 1e-10  12.0%
+n=150 β=30     100  -0.395   [-0.415, -0.374]  -0.406    -3.88   -1.000      < 1e-50      < 1e-50      < 1e-10      < 1e-10   0.0%
+n=150 β=40     100  -1.292   [-1.333, -1.252]  -1.303    -6.30   -1.000      < 1e-50      < 1e-50      < 1e-10      < 1e-10   0.0%
 ----------------------------------------------------------------------------------------------------------------------------------
 
 ====================================================================================================
@@ -66,7 +65,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          2.02  (large)
   Cliff's δ:          +0.960  (large)
   Paired t-test:      t=20.25, p=< 1e-20, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=5042, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=8, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.357169
   Percentiles:        5th=0.054  25th=0.199  75th=0.386  95th=0.511
   BKZ wins:           2 seeds, mean loss margin: -0.0325 nats
@@ -82,7 +81,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          2.82  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=28.16, p=< 1e-20, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.806663
   Percentiles:        5th=0.169  25th=0.330  75th=0.506  95th=0.657
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -98,7 +97,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          1.31  (large)
   Cliff's δ:          +0.800  (large)
   Paired t-test:      t=13.11, p=< 1e-20, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=4871, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=179, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.716895
   Percentiles:        5th=-0.033  25th=0.052  75th=0.165  95th=0.218
   BKZ wins:           10 seeds, mean loss margin: -0.0387 nats
@@ -114,7 +113,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          1.74  (large)
   Cliff's δ:          +0.960  (large)
   Paired t-test:      t=17.40, p=< 1e-20, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=5041, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=9, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.263759
   Percentiles:        5th=0.030  25th=0.194  75th=0.437  95th=0.595
   BKZ wins:           2 seeds, mean loss margin: -0.0212 nats
@@ -130,7 +129,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          2.85  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=28.52, p=< 1e-20, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.787258
   Percentiles:        5th=0.216  25th=0.362  75th=0.605  95th=0.750
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -146,7 +145,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          2.06  (large)
   Cliff's δ:          +0.940  (large)
   Paired t-test:      t=20.57, p=< 1e-20, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=5037, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=13, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.517319
   Percentiles:        5th=0.024  25th=0.170  75th=0.300  95th=0.395
   BKZ wins:           3 seeds, mean loss margin: -0.0251 nats
@@ -162,7 +161,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          2.49  (large)
   Cliff's δ:          +0.980  (large)
   Paired t-test:      t=24.90, p=< 1e-20, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=5049, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=1, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.510614
   Percentiles:        5th=0.163  25th=0.287  75th=0.539  95th=0.660
   BKZ wins:           1 seeds, mean loss margin: -0.0011 nats
@@ -178,7 +177,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          2.97  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=29.73, p=< 1e-50, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.523108
   Percentiles:        5th=0.278  25th=0.409  75th=0.638  95th=0.783
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -194,7 +193,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          3.55  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=35.46, p=< 1e-50, Holm p=< 1e-50
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.408235
   Percentiles:        5th=0.164  25th=0.279  75th=0.391  95th=0.504
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -210,7 +209,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          2.74  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=27.35, p=< 1e-20, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.711272
   Percentiles:        5th=0.173  25th=0.350  75th=0.607  95th=0.739
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -226,7 +225,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          3.01  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=30.06, p=< 1e-50, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.654898
   Percentiles:        5th=0.253  25th=0.469  75th=0.704  95th=0.891
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -242,7 +241,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          3.13  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=31.33, p=< 1e-50, Holm p=< 1e-50
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.074591
   Percentiles:        5th=0.215  25th=0.314  75th=0.478  95th=0.662
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -258,7 +257,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          2.43  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=24.34, p=< 1e-20, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.152011
   Percentiles:        5th=0.187  25th=0.344  75th=0.606  95th=0.843
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -274,7 +273,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          4.60  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=46.01, p=< 1e-50, Holm p=< 1e-50
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.836144
   Percentiles:        5th=0.581  25th=0.812  75th=1.072  95th=1.220
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -290,7 +289,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          3.04  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=30.44, p=< 1e-50, Holm p=< 1e-50
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.896297
   Percentiles:        5th=0.218  25th=0.382  75th=0.593  95th=0.730
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -306,7 +305,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          2.12  (large)
   Cliff's δ:          +0.980  (large)
   Paired t-test:      t=21.18, p=< 1e-20, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=5048, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=2, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.032642
   Percentiles:        5th=0.073  25th=0.244  75th=0.488  95th=0.601
   BKZ wins:           1 seeds, mean loss margin: -0.0143 nats
@@ -322,7 +321,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          6.24  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=68.92, p=< 1e-50, Holm p=< 1e-50
-  Wilcoxon signed-rank: W=7503, p=< 1e-20, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-20, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.436623
   Percentiles:        5th=1.025  25th=1.182  75th=1.509  95th=1.674
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -338,7 +337,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          9.60  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=106.04, p=< 1e-100, Holm p=< 1e-100
-  Wilcoxon signed-rank: W=7503, p=< 1e-20, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-20, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.558615
   Percentiles:        5th=0.994  25th=1.074  75th=1.246  95th=1.350
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -354,7 +353,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          1.47  (large)
   Cliff's δ:          +0.840  (large)
   Paired t-test:      t=14.73, p=< 1e-20, Holm p=< 1e-20
-  Wilcoxon signed-rank: W=4966, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=84, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.154884
   Percentiles:        5th=-0.041  25th=0.156  75th=0.315  95th=0.505
   BKZ wins:           8 seeds, mean loss margin: -0.0633 nats
@@ -370,7 +369,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          5.64  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=56.36, p=< 1e-50, Holm p=< 1e-50
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.050567
   Percentiles:        5th=0.729  25th=1.001  75th=1.232  95th=1.426
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -386,7 +385,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          6.82  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=75.29, p=< 1e-100, Holm p=< 1e-100
-  Wilcoxon signed-rank: W=7503, p=< 1e-20, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-20, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.049212
   Percentiles:        5th=0.930  25th=1.027  75th=1.294  95th=1.419
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -402,7 +401,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          0.60  (medium)
   Cliff's δ:          +0.420  (medium)
   Paired t-test:      t=5.99, p=3.32e-08, Holm p=1.33e-07
-  Wilcoxon signed-rank: W=4057, p=6.91e-08, Holm p=6.91e-07
+  Wilcoxon signed-rank: W=993, p=1.38e-07, Holm p=5.53e-07
   Shapiro-Wilk normality: p=0.538836
   Percentiles:        5th=-0.135  25th=-0.013  75th=0.217  95th=0.353
   BKZ wins:           29 seeds, mean loss margin: -0.0891 nats
@@ -418,7 +417,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          4.97  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=49.68, p=< 1e-50, Holm p=< 1e-50
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.310588
   Percentiles:        5th=0.511  25th=0.645  75th=0.829  95th=1.019
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -434,7 +433,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          -0.28  (small)
   Cliff's δ:          -0.120  (negligible)
   Paired t-test:      t=-2.75, p=0.007018, Holm p=0.014036
-  Wilcoxon signed-rank: W=1826, p=0.991878, Holm p=1.000000
+  Wilcoxon signed-rank: W=1826, p=0.016244, Holm p=0.032488
   Shapiro-Wilk normality: p=0.361662
   Percentiles:        5th=-0.197  25th=-0.101  75th=0.047  95th=0.126
   BKZ wins:           56 seeds, mean loss margin: -0.1030 nats
@@ -443,15 +442,14 @@ DETAILED PER-GROUP ANALYSIS
   Mean advantage:     0.0030 nats
   Std deviation:      0.1590
   Median advantage:   0.0143 nats
-  Min / Max:          -0.3587 / 0.418109:38:27  INF [analysis] stats_analysis complete
-
+  Min / Max:          -0.3587 / 0.4181
   Skewness:           0.067
   95% CI:             [-0.0286, 0.0346]
   Win rate:           54.0%
   Cohen's d:          0.02  (small)
   Cliff's δ:          +0.080  (negligible)
   Paired t-test:      t=0.19, p=0.850644, Holm p=0.850644
-  Wilcoxon signed-rank: W=2620, p=0.371970, Holm p=1.000000
+  Wilcoxon signed-rank: W=2430, p=0.743940, Holm p=0.743940
   Shapiro-Wilk normality: p=0.466997
   Percentiles:        5th=-0.230  25th=-0.129  75th=0.101  95th=0.249
   BKZ wins:           46 seeds, mean loss margin: -0.1342 nats
@@ -467,7 +465,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          3.19  (large)
   Cliff's δ:          +1.000  (large)
   Paired t-test:      t=31.87, p=< 1e-50, Holm p=< 1e-50
-  Wilcoxon signed-rank: W=5050, p=< 1e-10, Holm p=< 1e-10
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.612778
   Percentiles:        5th=0.167  25th=0.284  75th=0.410  95th=0.530
   BKZ wins:           0 (SD-BKZ wins every seed)
@@ -483,7 +481,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          -8.81  (large)
   Cliff's δ:          -1.000  (large)
   Paired t-test:      t=-97.26, p=< 1e-100, Holm p=< 1e-100
-  Wilcoxon signed-rank: N/A (need ≥10 seeds)
+  Wilcoxon signed-rank: W=0, p=< 1e-20, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.639928
   Percentiles:        5th=-1.559  25th=-1.427  75th=-1.241  95th=-1.108
   BKZ wins:           122 seeds, mean loss margin: -1.3247 nats
@@ -499,7 +497,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          -0.76  (medium)
   Cliff's δ:          -0.560  (large)
   Paired t-test:      t=-7.60, p=< 1e-10, Holm p=< 1e-10
-  Wilcoxon signed-rank: W=726, p=1.000000, Holm p=1.000000
+  Wilcoxon signed-rank: W=726, p=6.19e-10, Holm p=3.09e-09
   Shapiro-Wilk normality: p=0.717322
   Percentiles:        5th=-0.339  25th=-0.194  75th=-0.012  95th=0.139
   BKZ wins:           78 seeds, mean loss margin: -0.1624 nats
@@ -515,7 +513,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          -0.42  (small)
   Cliff's δ:          -0.360  (medium)
   Paired t-test:      t=-4.16, p=6.73e-05, Holm p=0.000202
-  Wilcoxon signed-rank: W=1356, p=0.999971, Holm p=1.000000
+  Wilcoxon signed-rank: W=1356, p=5.83e-05, Holm p=0.000175
   Shapiro-Wilk normality: p=0.414577
   Percentiles:        5th=-0.176  25th=-0.104  75th=0.017  95th=0.109
   BKZ wins:           68 seeds, mean loss margin: -0.0818 nats
@@ -531,7 +529,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          -6.59  (large)
   Cliff's δ:          -1.000  (large)
   Paired t-test:      t=-65.90, p=< 1e-50, Holm p=< 1e-50
-  Wilcoxon signed-rank: N/A (need ≥10 seeds)
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.330385
   Percentiles:        5th=-1.853  25th=-1.577  75th=-1.311  95th=-1.089
   BKZ wins:           100 seeds, mean loss margin: -1.4522 nats
@@ -547,7 +545,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          -1.21  (large)
   Cliff's δ:          -0.760  (large)
   Paired t-test:      t=-12.13, p=< 1e-20, Holm p=< 1e-10
-  Wilcoxon signed-rank: W=235, p=1.000000, Holm p=1.000000
+  Wilcoxon signed-rank: W=235, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.736730
   Percentiles:        5th=-0.382  25th=-0.263  75th=-0.069  95th=0.058
   BKZ wins:           88 seeds, mean loss margin: -0.2065 nats
@@ -563,7 +561,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          -3.88  (large)
   Cliff's δ:          -1.000  (large)
   Paired t-test:      t=-38.77, p=< 1e-50, Holm p=< 1e-50
-  Wilcoxon signed-rank: N/A (need ≥10 seeds)
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.608676
   Percentiles:        5th=-0.544  25th=-0.464  75th=-0.330  95th=-0.220
   BKZ wins:           100 seeds, mean loss margin: -0.3946 nats
@@ -579,7 +577,7 @@ DETAILED PER-GROUP ANALYSIS
   Cohen's d:          -6.30  (large)
   Cliff's δ:          -1.000  (large)
   Paired t-test:      t=-62.97, p=< 1e-50, Holm p=< 1e-50
-  Wilcoxon signed-rank: N/A (need ≥10 seeds)
+  Wilcoxon signed-rank: W=0, p=< 1e-10, Holm p=< 1e-10
   Shapiro-Wilk normality: p=0.872384
   Percentiles:        5th=-1.603  25th=-1.439  75th=-1.136  95th=-0.997
   BKZ wins:           100 seeds, mean loss margin: -1.2925 nats
@@ -595,5 +593,3 @@ SUGGESTED PARAGRAPH FOR SECTION 4 OF PAPER
   in all groups, ranging from [MIN d] to [MAX d]. The 95% confidence intervals
   exclude zero in every group. These statistics confirm that the d(LN) advantage
   is not a statistical artifact but a consistent structural phenomenon.
-
-Output saved to: logs/stats_output.txt

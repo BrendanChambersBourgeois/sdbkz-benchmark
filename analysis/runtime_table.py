@@ -10,7 +10,6 @@ Usage:
 
 Outputs:
     results/runtime_table.json   — full data + provenance
-    results/runtime_table.html   — standalone <table> with inline styles
 """
 import datetime
 import json
@@ -51,6 +50,8 @@ def compute_runtime_table(groups, min_seeds=MIN_SEEDS):
     """
     rows = []
     for (n, beta), seeds in sorted(groups.items()):
+        # Seeds 1-100 only: the set the paper's runtime table reports.
+        seeds = [s for s in seeds if s["seed"] <= 100]
         bkz_times = [s["bkz_time"] for s in seeds
                      if s.get("bkz_time") is not None]
         sd_times = [s["sdbkz_time"] for s in seeds
@@ -78,81 +79,12 @@ def compute_runtime_table(groups, min_seeds=MIN_SEEDS):
     return rows
 
 
-def render_html(rows):
-    """Render the runtime table as a standalone HTML <table> element.
-
-    Uses inline styles so the paste is self-contained — no external CSS,
-    no class dependencies. Drops cleanly into a paper draft, blog post,
-    or any HTML container.
-    """
-    parts = []
-    parts.append(
-        '<table cellspacing="0" cellpadding="6" '
-        'style="border-collapse: collapse; font-family: serif; '
-        'border-top: 2px solid #333; border-bottom: 2px solid #333;">'
-    )
-    parts.append(
-        '  <caption style="text-align: left; padding: 6px 0; '
-        'font-style: italic; caption-side: top;">'
-        'Mean wall-clock runtime per seed by lattice dimension and block '
-        'size, for BKZ and SD-BKZ on q=97 LWE-Kannan instances at 70 '
-        'tours, single-core fpylll. Complete 100-seed groups only.'
-        '</caption>'
-    )
-    parts.append('  <thead>')
-    parts.append(
-        '    <tr style="border-bottom: 1px solid #333;">'
-    )
-    headers = [
-        "n", "β", "seeds", "BKZ mean (s)", "SD-BKZ mean (s)", "SD-BKZ / BKZ"
-    ]
-    for h in headers:
-        parts.append(
-            f'      <th style="text-align: right; padding: 6px 14px; '
-            f'font-weight: bold;">{h}</th>'
-        )
-    parts.append('    </tr>')
-    parts.append('  </thead>')
-    parts.append('  <tbody>')
-
-    for row in rows:
-        parts.append('    <tr>')
-        cells = [
-            str(row["n"]),
-            str(row["beta"]),
-            str(row["seeds"]),
-            f'{row["bkz_mean_s"]:.2f}',
-            f'{row["sdbkz_mean_s"]:.2f}',
-            f'{row["ratio"]:.2f}×',
-        ]
-        for c in cells:
-            parts.append(
-                f'      <td style="text-align: right; padding: 4px 14px;">'
-                f'{c}</td>'
-            )
-        parts.append('    </tr>')
-
-    parts.append('  </tbody>')
-    parts.append('</table>')
-    return "\n".join(parts)
-
-
 def main():
     PIPELINE.info("runtime_table start", cat="analysis")
     # v1.3+ manifest mode. Legacy dir globber still reachable by passing
     # positional dirs to load_all_seeds explicitly; keeping that path
     # available guards against the manifest being stale / absent.
     print(f"Loading seeds via manifest (campaign={DEFAULT_CAMPAIGN!r}).")
-    # NOTE (C1 / variance-fill): wall-clock runtime is machine-dependent.
-    # Four groups (n=100 b=30/40, n=110 b=40, n=130 b=40) carry 122 seeds
-    # after the variance-fill, and two of those 122-sets mix AWS-cloud and
-    # local-machine seeds (n=110 b=40, n=130 b=40). Averaging cloud+local
-    # wall-clocks is meaningless, so the paper's Table 2 is deliberately
-    # frozen at the single-machine 100-seed baseline. A naive re-run here
-    # would silently produce mixed-machine 122-seed runtimes that do NOT
-    # match Table 2 — scope to single-machine (or the first-100 baseline)
-    # before regenerating runtime figures. d(LN) is machine-invariant and
-    # IS reported at 122 (see paper variance-fill note); runtime is not.
     groups = load_all_seeds(campaign=DEFAULT_CAMPAIGN)
     if not groups:
         print("ERROR: no seed files loaded.")
@@ -170,7 +102,8 @@ def main():
     payload = {
         "description": (
             "Mean wall-clock runtime per seed per (n, β) group. "
-            "Single-core fpylll on q=97 LWE-Kannan instances, 70 tours. "
+            "Single-core fpylll on q=97 LWE-Kannan instances, "
+            "50/70/100 tours for β=20/30/40, seeds 1-100. "
             "Includes only complete groups (≥ min_seeds seeds with both "
             "bkz_time and sdbkz_time populated)."
         ),
@@ -184,10 +117,6 @@ def main():
     print(f"Saved JSON: {json_path}")
 
     # HTML output (paste-able into paper)
-    html_path = os.path.join(OUT_DIR, "runtime_table.html")
-    with open(html_path, "w") as f:
-        f.write(render_html(rows) + "\n")
-    print(f"Saved HTML: {html_path}")
 
     # Stdout summary
     print()
