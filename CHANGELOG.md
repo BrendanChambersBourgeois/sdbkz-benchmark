@@ -2,7 +2,7 @@
 
 User-visible changes per version. Seed counts are manifest totals.
 
-## Unreleased
+## [2.1.0] — 2026-11-12
 
 ### Added
 - Paper 2 figures: raw Gram-Schmidt profiles and frontier recovery curves and a per-tour profile heatmap added; phase map dropped; abstract leads with the onset gap.
