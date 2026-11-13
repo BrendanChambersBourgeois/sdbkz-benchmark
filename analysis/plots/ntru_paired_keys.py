@@ -27,7 +27,7 @@ def per_key(n):
                        f"n{n:03d}_beta{BETA:02d}", "seed*.json")
     # One cell per (q, seed): a seed rerun at a higher precision replaces the lower one.
     best = {}
-    for f in glob.glob(pat):
+    for f in sorted(glob.glob(pat)):  # fixed order: bubble draw order follows it
         q_dir, p_dir = f.split(os.sep)[-4:-2]
         prec = int(p_dir[1:].split("_")[0])
         with open(f) as fh:

@@ -62,7 +62,7 @@ def fig_ntru_profiles(output_dir=".", fname="profiles.png"):
         ax.plot(d["gs_lognorms_bkz"], color=bkz_c, lw=1.6, label="BKZ", zorder=3)
         ax.plot(d["gs_lognorms_sdbkz"], color=sd_c, lw=1.6, label="SD-BKZ", zorder=4)
         ax.axhline(secret, color=COLORS["zero"], lw=1.0, ls="--", alpha=0.7,
-                   zorder=1, label=r"secret $\log\|(f,g)\|$")
+                   zorder=1, label=r"mean secret $\log\sqrt{4n/3}$")
         ax.axvline(N, color="#475569", lw=0.8, ls="--", alpha=0.6, zorder=1)
         ax.set_title(f"$q={q}$: {lbl}")
         ax.set_xlabel("GS position $i$")

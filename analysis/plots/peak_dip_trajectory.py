@@ -33,10 +33,10 @@ def fig_peak_dip_trajectory(groups, output_dir=".", min_seeds=10):
                for b in BETAS}
 
     for (n, beta), seeds in sorted(groups.items()):
-        if beta not in BETAS or len(seeds) < min_seeds:
+        if beta not in BETAS:
             continue
         means, _, n_used = _per_position_group_stats(seeds)
-        if means is None:
+        if means is None or n_used < min_seeds:
             continue
         d = by_beta[beta]
         d["ns"].append(n)

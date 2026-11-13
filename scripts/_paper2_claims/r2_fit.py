@@ -105,9 +105,10 @@ def _band_average(tags, qs):
     for t in tags:
         for q in qs:
             m, b, ns = _per_position_mean(t, q)
-            if m is not None:
-                diffs.append(m)
-                bkzs.append(b)
+            if m is None:  # an empty cell would silently change the average
+                raise ValueError(f"no usable seeds for {t} q={q}")
+            diffs.append(m)
+            bkzs.append(b)
     return np.mean(np.vstack(diffs), axis=0), np.mean(np.vstack(bkzs), axis=0)
 
 

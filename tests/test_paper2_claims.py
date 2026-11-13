@@ -78,3 +78,20 @@ def test_sign_p_two_sided_bounded():
     assert _sign_p_two_sided(0, 0) == 1.0
     assert _sign_p_two_sided(3, 3) == 1.0
     assert abs(_sign_p_two_sided(10, 3) - 0.0923) < 1e-4
+
+
+def test_figure_onset_constants_match_claims_tables():
+    """Hard-coded figure onsets equal the claims tables recomputed from seeds."""
+    import sys
+    sys.path.insert(0, REPO)
+    sys.path.insert(0, os.path.join(REPO, "scripts"))
+    from _paper2_claims.recomputed import DSDGAP_PAPER, ONSET_PAPER
+    from analysis.plots.ntru_dsd_onset_trend import ONSET_TREND
+    from analysis.plots.ntru_xengine_onset import PINNED
+
+    for n, sd, bkz, _ in ONSET_TREND:
+        assert DSDGAP_PAPER[(n, "flag")][:2] == (sd, bkz)
+    for label, rows in PINNED.items():
+        engine = "fplll" if label.startswith("fplll") else "g6k"
+        for n, sd, bkz, _ in rows:
+            assert ONSET_PAPER[(n, engine)][:2] == (sd, bkz)
