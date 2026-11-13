@@ -147,8 +147,8 @@ block.
 \subsection{The reference-free DSD observable}
 \label{sec:bg-obs}
 The companion paper's metric is $d(\mathrm{LN})=\frac1m\sum_i|r_i-\rho_i|$,
-where $r_i$ is the slope-removed Gram--Schmidt log-norm profile and $\rho_i$ is
-the Li--Nguyen BKZ fixed point~\cite{EPRINT:LiNgu20}---a GSA line valid for a
+where $r_i$ is the cumulative volume-normalised Gram--Schmidt log-norm (Rankin) profile and $\rho_i$ is
+the Li--Nguyen BKZ fixed point~\cite{EPRINT:LiNgu20}---valid for a
 \emph{random $q$-ary} lattice. NTRU is not (Section~\ref{sec:bg-ntru}): its
 Z-shaped profile has no closed-form Li--Nguyen fixed point, so the
 \emph{signed} advantage
@@ -662,7 +662,7 @@ $[-1.3,8.2]$ on fplll and unresolved on G6K.
 except $q=97$ at $N=20$; fplll 15-cell and G6K 4-cell $q$-grids at $n=101$,
 two-part criterion). The flag-scored gap is established on \emph{both} engines at $n=101$ and
 $n=113$ (the extended $q$-grid $\{487,\dots,859\}$ locates the $n=113$ onset). SKR:
-onsets scored by exact key recovery; at $n=101$ the G6K grid goes from $q=97$
+onsets scored by exact key recovery; $\chi^2=(b-c)^2/(b+c)$ is the uncorrected McNemar statistic on the discordant pairs $b{:}c$; at $n=101$ the G6K grid goes from $q=97$
 ($0/20$ both) to $241$ (SD $33/40$, BKZ $27/40$). The
 $n=89$ matched-$\beta$ result is Table~\ref{tab:g6konset}.\label{tab:xengdim}}
 \setlength{\tabcolsep}{4pt}
