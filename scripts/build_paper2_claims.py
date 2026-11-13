@@ -64,11 +64,11 @@ _SLICES = (
 )
 
 
-def _resolve_tex_lines(records: list[dict]) -> None:
+def _resolve_tex_lines(records: list[dict], tex: str = TEX) -> None:
     """Set tex_lines from tex_anchors against the current tex, so they track tex
     edits. An anchor on no line means the printed claim changed: fail loud and
     update the anchor and paper_value together."""
-    with open(TEX) as f:
+    with open(tex) as f:
         lines = f.read().splitlines()
     missing = []
     for r in records:
@@ -80,7 +80,7 @@ def _resolve_tex_lines(records: list[dict]) -> None:
             hits |= found
         r["tex_lines"] = sorted(hits)
     if missing:
-        raise SystemExit("tex anchors not found in paper2/latex/sdbkz_paper2.tex:\n  "
+        raise SystemExit(f"tex anchors not found in {os.path.relpath(tex, BASE)}:\n  "
                          + "\n  ".join(missing))
 
 

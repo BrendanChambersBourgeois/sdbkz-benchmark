@@ -1,0 +1,576 @@
+{
+  "description": "Paper-1 claim -> source -> method -> recomputed-value ledger. See scripts/build_paper1_claims.py.",
+  "n_match": 17,
+  "n_records": 17,
+  "records": [
+    {
+      "claim_id": "adv_prose_beta20",
+      "match": true,
+      "method": "group mean advantage against the trajectory sentence",
+      "note": "",
+      "paper_value": [
+        0.291,
+        0.314,
+        0.413,
+        0.473,
+        0.484,
+        0.362,
+        0.235,
+        0.094,
+        0.003,
+        -0.108,
+        -0.173
+      ],
+      "recomputed_value": [
+        0.29091959977802373,
+        0.31409359269961995,
+        0.4131416178349649,
+        0.4730500306962751,
+        0.4839004689385637,
+        0.3624227685238391,
+        0.2348777162664751,
+        0.09420354858583353,
+        0.003002495976152293,
+        -0.10761607977099516,
+        -0.17282322705816003
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "$0.291 \\to 0.314 \\to 0.413 \\to 0.473 \\to 0.484 \\to 0.362 \\to 0.235 \\to 0.094 \\to 0.003 \\to -0.108 \\to -0.173$"
+      ],
+      "tex_lines": [
+        446
+      ],
+      "verbatim": "$0.291 \\to 0.314 \\to 0.413 \\to 0.473 \\to 0.484 \\to 0.362 \\to 0.235 \\to 0.094 \\to 0.003 \\to -0.108 \\to -0.173$"
+    },
+    {
+      "claim_id": "adv_prose_beta30",
+      "match": true,
+      "method": "group mean advantage against the trajectory sentence",
+      "note": "",
+      "paper_value": [
+        0.405,
+        0.49,
+        0.524,
+        0.58,
+        0.922,
+        1.349,
+        1.112,
+        0.741,
+        0.352,
+        -0.036,
+        -0.395
+      ],
+      "recomputed_value": [
+        0.40486170521136633,
+        0.48965155638809427,
+        0.5240636575870363,
+        0.5800114203890545,
+        0.9222454916990176,
+        1.348670394444629,
+        1.1115467173622067,
+        0.7410003194724909,
+        0.35205466315271583,
+        -0.036226691102530115,
+        -0.3945843039145471
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "$0.405 \\to 0.490 \\to 0.524 \\to 0.580 \\to 0.922 \\to 1.349 \\to 1.112 \\to 0.741 \\to 0.352 \\to -0.036 \\to -0.395$"
+      ],
+      "tex_lines": [
+        446
+      ],
+      "verbatim": "$0.405 \\to 0.490 \\to 0.524 \\to 0.580 \\to 0.922 \\to 1.349 \\to 1.112 \\to 0.741 \\to 0.352 \\to -0.036 \\to -0.395$"
+    },
+    {
+      "claim_id": "adv_prose_beta40",
+      "match": true,
+      "method": "group mean advantage against the trajectory sentence",
+      "note": "",
+      "paper_value": [
+        -0.028,
+        -1.325,
+        -1.452,
+        -1.292
+      ],
+      "recomputed_value": [
+        -0.028172131798952286,
+        -1.324704473481277,
+        -1.45224972419772,
+        -1.2924742946090297
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "$-0.028$ at $n=120$, $-1.325$ at $n=130$, $-1.452$ at $n=140$, $-1.292$ at $n=150$"
+      ],
+      "tex_lines": [
+        446
+      ],
+      "verbatim": "$-0.028$ at $n=120$, $-1.325$ at $n=130$, $-1.452$ at $n=140$, $-1.292$ at $n=150$"
+    },
+    {
+      "claim_id": "adv_table_beta20",
+      "match": true,
+      "method": "group mean advantage, n=50..150, against the table row",
+      "note": "",
+      "paper_value": [
+        0.291,
+        0.314,
+        0.413,
+        0.473,
+        0.484,
+        0.362,
+        0.235,
+        0.094,
+        0.003,
+        -0.108,
+        -0.173
+      ],
+      "recomputed_value": [
+        0.29091959977802373,
+        0.31409359269961995,
+        0.4131416178349649,
+        0.4730500306962751,
+        0.4839004689385637,
+        0.3624227685238391,
+        0.2348777162664751,
+        0.09420354858583353,
+        0.003002495976152293,
+        -0.10761607977099516,
+        -0.17282322705816003
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "20 & 0.291 & 0.314 & 0.413 & 0.473 & $\\mathbf{0.484}$ & 0.362 & 0.235 & 0.094 & 0.003 & $-0.108$ & $-0.173$ \\\\"
+      ],
+      "tex_lines": [
+        411
+      ],
+      "verbatim": "20 & 0.291 & 0.314 & 0.413 & 0.473 & $\\mathbf{0.484}$ & 0.362 & 0.235 & 0.094 & 0.003 & $-0.108$ & $-0.173$ \\\\"
+    },
+    {
+      "claim_id": "adv_table_beta30",
+      "match": true,
+      "method": "group mean advantage, n=50..150, against the table row",
+      "note": "",
+      "paper_value": [
+        0.405,
+        0.49,
+        0.524,
+        0.58,
+        0.922,
+        1.349,
+        1.112,
+        0.741,
+        0.352,
+        -0.036,
+        -0.395
+      ],
+      "recomputed_value": [
+        0.40486170521136633,
+        0.48965155638809427,
+        0.5240636575870363,
+        0.5800114203890545,
+        0.9222454916990176,
+        1.348670394444629,
+        1.1115467173622067,
+        0.7410003194724909,
+        0.35205466315271583,
+        -0.036226691102530115,
+        -0.3945843039145471
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "30 & 0.405 & 0.490 & 0.524 & 0.580 & 0.922 & $\\mathbf{1.349}$ & 1.112 & 0.741 & 0.352 & $-0.036$ & $-0.395$ \\\\"
+      ],
+      "tex_lines": [
+        412
+      ],
+      "verbatim": "30 & 0.405 & 0.490 & 0.524 & 0.580 & 0.922 & $\\mathbf{1.349}$ & 1.112 & 0.741 & 0.352 & $-0.036$ & $-0.395$ \\\\"
+    },
+    {
+      "claim_id": "adv_table_beta40",
+      "match": true,
+      "method": "group mean advantage, n=50..150, against the table row",
+      "note": "",
+      "paper_value": [
+        0.106,
+        0.23,
+        0.339,
+        0.408,
+        0.483,
+        1.169,
+        1.163,
+        -0.028,
+        -1.325,
+        -1.452,
+        -1.292
+      ],
+      "recomputed_value": [
+        0.10550923168118102,
+        0.22979320627118258,
+        0.33937446561909657,
+        0.4076763535132851,
+        0.48256279335963387,
+        1.1686421646344158,
+        1.163125010199777,
+        -0.028172131798952286,
+        -1.324704473481277,
+        -1.45224972419772,
+        -1.2924742946090297
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "40 & 0.106 & 0.230 & 0.339 & 0.408 & 0.483 & $\\mathbf{1.169}$ & $\\mathbf{1.163}$ & $-0.028$ & $-1.325$ & $-1.452$ & $-1.292$ \\\\"
+      ],
+      "tex_lines": [
+        413
+      ],
+      "verbatim": "40 & 0.106 & 0.230 & 0.339 & 0.408 & 0.483 & $\\mathbf{1.169}$ & $\\mathbf{1.163}$ & $-0.028$ & $-1.325$ & $-1.452$ & $-1.292$ \\\\"
+    },
+    {
+      "claim_id": "fig8_sd_flatter",
+      "match": true,
+      "method": "panels where the SD-BKZ slope is below the BKZ slope",
+      "note": "",
+      "paper_value": 4,
+      "recomputed_value": 4,
+      "source": {
+        "campaign": "main",
+        "cells": "n070..n150_beta30",
+        "field": "gs_lognorms_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "SD-BKZ is slightly flatter than BKZ in all four"
+      ],
+      "tex_lines": [
+        392
+      ],
+      "verbatim": "SD-BKZ is slightly flatter than BKZ in all four"
+    },
+    {
+      "claim_id": "fig8_slopes",
+      "match": true,
+      "method": "least-squares slope of the mean active-block profile, first 75 positions; reference slopes from the closed forms",
+      "note": "",
+      "paper_value": [
+        0.0266,
+        0.0279,
+        0.0247,
+        0.0194
+      ],
+      "recomputed_value": [
+        0.02660245579509785,
+        0.027913509576928966,
+        0.02465004221275386,
+        0.01942483845699345
+      ],
+      "source": {
+        "campaign": "main",
+        "cells": "n070..n150_beta30",
+        "field": "gs_lognorms_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "fitted slope $0.0266$--$0.0279$ per position, against $0.0247$ for the GSA and $0.0194$ for the fixed point"
+      ],
+      "tex_lines": [
+        392
+      ],
+      "verbatim": "fitted slope $0.0266$--$0.0279$ per position, against $0.0247$ for the GSA and $0.0194$ for the fixed point"
+    },
+    {
+      "claim_id": "n110_beta40_vs_beta30_paired",
+      "match": true,
+      "method": "per-seed advantage difference on shared seeds; mean and t-interval",
+      "note": "100 shared seeds",
+      "paper_value": [
+        0.046,
+        -0.006,
+        0.098
+      ],
+      "recomputed_value": [
+        0.04598266308841879,
+        -0.006321453756728608,
+        0.09828677993356619
+      ],
+      "source": {
+        "campaign": "main",
+        "cells": [
+          "n110_beta40",
+          "n110_beta30"
+        ],
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "paired on the 100 shared seeds $+0.046$, 95\\% CI $[-0.006, 0.098]$"
+      ],
+      "tex_lines": [
+        400
+      ],
+      "verbatim": "paired on the 100 shared seeds $+0.046$, 95\\% CI $[-0.006, 0.098]$"
+    },
+    {
+      "claim_id": "rhf_mean_diff_bound",
+      "match": true,
+      "method": "largest |group mean rhf_advantage| over groups with no outlier seed",
+      "note": "",
+      "paper_value": 3e-06,
+      "recomputed_value": 2.1898221408900296e-06,
+      "source": {
+        "campaign": "main",
+        "field": "rhf_advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "mean RHF differences are below $3\\times 10^{-6}$ in all groups without outlier seeds"
+      ],
+      "tex_lines": [
+        22
+      ],
+      "verbatim": "mean RHF differences are below $3\\times 10^{-6}$ in all groups without outlier seeds"
+    },
+    {
+      "claim_id": "rhf_outlier_seed_range",
+      "match": true,
+      "method": "outlier seeds per group (|rhf_advantage| > 0.001), fewest and most",
+      "note": "",
+      "paper_value": [
+        1,
+        47
+      ],
+      "recomputed_value": [
+        1,
+        47
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rhf_advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "differs by more than $10^{-3}$ in 1 to 47 seeds"
+      ],
+      "tex_lines": [
+        173
+      ],
+      "verbatim": "differs by more than $10^{-3}$ in 1 to 47 seeds"
+    },
+    {
+      "claim_id": "tours3x_equal_time_tours",
+      "match": true,
+      "method": "70 SD-BKZ tours in BKZ tours at the measured cost ratio",
+      "note": "",
+      "paper_value": [
+        189,
+        197
+      ],
+      "recomputed_value": [
+        188.83795512172952,
+        197.17252553362567
+      ],
+      "source": {
+        "campaign": "tours3x",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "as BKZ at 189--197 tours"
+      ],
+      "tex_lines": [
+        319
+      ],
+      "verbatim": "as BKZ at 189--197 tours"
+    },
+    {
+      "claim_id": "tours3x_extra_compute_pct",
+      "match": true,
+      "method": "BKZ@210 over SD-BKZ@70 mean wall time, n=50 and summed over n=50..80",
+      "note": "",
+      "paper_value": [
+        6.5,
+        8.4
+      ],
+      "recomputed_value": [
+        6.50571089032721,
+        8.360181523574894
+      ],
+      "source": {
+        "campaign": "tours3x",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "BKZ received 6.5\\% more compute (8.4\\% over the four dimensions)"
+      ],
+      "tex_lines": [
+        319
+      ],
+      "verbatim": "BKZ received 6.5\\% more compute (8.4\\% over the four dimensions)"
+    },
+    {
+      "claim_id": "tours3x_gap_at_3x",
+      "match": true,
+      "method": "mean advantage_3x per dimension, beta=30",
+      "note": "",
+      "paper_value": [
+        0.38,
+        0.5,
+        0.55,
+        0.56
+      ],
+      "recomputed_value": [
+        0.38179154082774214,
+        0.4992751717446552,
+        0.5493330440417175,
+        0.564796874848361
+      ],
+      "source": {
+        "campaign": "tours3x",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "$+0.38$ nats at $n=50$, $+0.50$ at $n=60$, $+0.55$ at $n=70$, $+0.56$ at $n=80$"
+      ],
+      "tex_lines": [
+        319
+      ],
+      "verbatim": "$+0.38$ nats at $n=50$, $+0.50$ at $n=60$, $+0.55$ at $n=70$, $+0.56$ at $n=80$"
+    },
+    {
+      "claim_id": "tours3x_gaps_closed",
+      "match": true,
+      "method": "gap_closed count over beta=30 seeds",
+      "note": "",
+      "paper_value": [
+        0,
+        400
+      ],
+      "recomputed_value": [
+        0,
+        400
+      ],
+      "source": {
+        "campaign": "tours3x",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "(0/400 gaps closed)"
+      ],
+      "tex_lines": [
+        319
+      ],
+      "verbatim": "(0/400 gaps closed)"
+    },
+    {
+      "claim_id": "tours3x_n50_seconds",
+      "match": true,
+      "method": "mean wall time per seed, n=50 beta=30",
+      "note": "",
+      "paper_value": [
+        921,
+        981
+      ],
+      "recomputed_value": [
+        921.146049246788,
+        981.0731480884552
+      ],
+      "source": {
+        "campaign": "tours3x",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "SD-BKZ@70 took 921 seconds and BKZ@210 took 981"
+      ],
+      "tex_lines": [
+        319
+      ],
+      "verbatim": "SD-BKZ@70 took 921 seconds and BKZ@210 took 981"
+    },
+    {
+      "claim_id": "tours3x_tour_cost_ratio",
+      "match": true,
+      "method": "mean SD-BKZ time per tour over mean BKZ time per tour, beta=30, range over n",
+      "note": "",
+      "paper_value": [
+        2.7,
+        2.82
+      ],
+      "recomputed_value": [
+        2.697685073167565,
+        2.816750364766081
+      ],
+      "source": {
+        "campaign": "tours3x",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "costing $2.70$--$2.82\\times$ a single BKZ tour in these runs"
+      ],
+      "tex_lines": [
+        319
+      ],
+      "verbatim": "costing $2.70$--$2.82\\times$ a single BKZ tour in these runs"
+    }
+  ],
+  "schema_version": 1
+}

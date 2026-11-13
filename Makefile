@@ -47,6 +47,9 @@ decomposition:  ## Rebuild results/profile_decomposition.json (Paper 1 Table 5 s
 figs-paper2:  ## Regenerate paper-2 figures into paper2/latex/figs/
 	python3 analysis/paper2_figures.py
 
+paper1-claims:  ## Rebuild results/paper_claims/paper1_claims.json (claim provenance ledger)
+	python3 scripts/build_paper1_claims.py
+
 paper2-claims:  ## Rebuild results/paper_claims/paper2_claims.json (claim provenance ledger)
 	python3 scripts/build_paper2_claims.py
 
