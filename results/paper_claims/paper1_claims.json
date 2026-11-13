@@ -1,7 +1,7 @@
 {
   "description": "Paper-1 claim -> source -> method -> recomputed-value ledger. See scripts/build_paper1_claims.py.",
-  "n_match": 17,
-  "n_records": 17,
+  "n_match": 182,
+  "n_records": 182,
   "records": [
     {
       "claim_id": "adv_prose_beta20",
@@ -266,6 +266,387 @@
       "verbatim": "40 & 0.106 & 0.230 & 0.339 & 0.408 & 0.483 & $\\mathbf{1.169}$ & $\\mathbf{1.163}$ & $-0.028$ & $-1.325$ & $-1.452$ & $-1.292$ \\\\"
     },
     {
+      "claim_id": "beta30_jump_n80_n90",
+      "match": true,
+      "method": "beta=30 mean advantage at n=80 and n=90 and the percent change",
+      "note": "",
+      "paper_value": [
+        0.58,
+        0.922,
+        59
+      ],
+      "recomputed_value": [
+        0.5800114203890545,
+        0.9222454916990176,
+        59.00471254176385
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "jumps from 0.580 to 0.922 nats ($+59\\%$)"
+      ],
+      "tex_lines": [
+        424
+      ],
+      "verbatim": "jumps from 0.580 to 0.922 nats ($+59\\%$)"
+    },
+    {
+      "claim_id": "beta30_over_beta40_ratio",
+      "match": true,
+      "method": "beta=30 over beta=40 group mean advantage at n=50, 70, 80",
+      "note": "",
+      "paper_value": [
+        3.8,
+        1.5,
+        1.4
+      ],
+      "recomputed_value": [
+        3.83721593608741,
+        1.5442047374749435,
+        1.4227251970604018
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "$3.8{:}1$. At $n=70$, this ratio has narrowed to $1.5{:}1$, and at $n=80$ it is $1.4{:}1$"
+      ],
+      "tex_lines": [
+        424
+      ],
+      "verbatim": "$3.8{:}1$. At $n=70$, this ratio has narrowed to $1.5{:}1$, and at $n=80$ it is $1.4{:}1$"
+    },
+    {
+      "claim_id": "beta40_cliff_steepness",
+      "match": true,
+      "method": "mean advantage drop n=110 to 130 at beta=40; per-step ratio to the beta=30 drop n=100 to 150 and the beta=20 drop n=90 to 150",
+      "note": "",
+      "paper_value": [
+        2.5,
+        3.6,
+        1.74,
+        11,
+        0.66
+      ],
+      "recomputed_value": [
+        2.487829483681054,
+        3.567794032080772,
+        1.7432546983591761,
+        11.364731463992118,
+        0.6567236959967238
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "swing of 2.5 nats in two dimension steps ($n=110$ to $n=130$), $3.6\\times$ steeper per step than the $\\beta=30$ decline (1.74 nats over five steps) and $11\\times$ the $\\beta=20$ decline (0.66 nats over six steps)"
+      ],
+      "tex_lines": [
+        455
+      ],
+      "verbatim": "swing of 2.5 nats in two dimension steps ($n=110$ to $n=130$), $3.6\\times$ steeper per step than the $\\beta=30$ decline (1.74 nats over five steps) and $11\\times$ the $\\beta=20$ decline (0.66 nats over six steps)"
+    },
+    {
+      "claim_id": "beta40_growth_n50_n80",
+      "match": true,
+      "method": "beta=40 mean advantage growth n=50 to 70, value at n=80, growth n=70 to 80",
+      "note": "",
+      "paper_value": [
+        222,
+        0.408,
+        20
+      ],
+      "recomputed_value": [
+        221.6538119096442,
+        0.4076763535132851,
+        20.125818178332942
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "($+222\\%$) and continued growing to 0.408 at $n=80$ ($+20\\%$)"
+      ],
+      "tex_lines": [
+        424
+      ],
+      "verbatim": "($+222\\%$) and continued growing to 0.408 at $n=80$ ($+20\\%$)"
+    },
+    {
+      "claim_id": "cliff_n130_beta40_d",
+      "match": true,
+      "method": "Cohen's d, SD-BKZ wins and seed count, n=130 beta=40",
+      "note": "",
+      "paper_value": [
+        -9,
+        0,
+        122
+      ],
+      "recomputed_value": [
+        -8.80564593012485,
+        0,
+        122
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "giving Cohen's $d\\approx -9$: BKZ wins every seed (0/122)"
+      ],
+      "tex_lines": [
+        448
+      ],
+      "verbatim": "giving Cohen's $d\\approx -9$: BKZ wins every seed (0/122)"
+    },
+    {
+      "claim_id": "conv_n090_advantage",
+      "match": true,
+      "method": "mean BKZ minus SD-BKZ d(LN) at tours 70 and 500",
+      "note": "",
+      "paper_value": [
+        0.925,
+        1.331
+      ],
+      "recomputed_value": [
+        0.9247788595710897,
+        1.330564744385796
+      ],
+      "source": {
+        "campaign": "convergence",
+        "cells": [
+          "n90_beta30"
+        ],
+        "kind": "seeds",
+        "max_tours": 500,
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "from $+0.925$ nats at tour 70 (the standard limit) to $+1.331$ nats at tour 500"
+      ],
+      "tex_lines": [
+        331
+      ],
+      "verbatim": "from $+0.925$ nats at tour 70 (the standard limit) to $+1.331$ nats at tour 500"
+    },
+    {
+      "claim_id": "conv_n090_gain_past_70",
+      "match": true,
+      "method": "mean d(LN) at tour 70 minus tour 500, BKZ then SD-BKZ",
+      "note": "",
+      "paper_value": [
+        0.042,
+        0.448
+      ],
+      "recomputed_value": [
+        0.04204180680256595,
+        0.4478276916172721
+      ],
+      "source": {
+        "campaign": "convergence",
+        "cells": [
+          "n90_beta30"
+        ],
+        "kind": "seeds",
+        "max_tours": 500,
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "improving by only $+0.042$ nats over 430 additional tours. SD-BKZ continues descending throughout, gaining $+0.448$ nats"
+      ],
+      "tex_lines": [
+        331
+      ],
+      "verbatim": "improving by only $+0.042$ nats over 430 additional tours. SD-BKZ continues descending throughout, gaining $+0.448$ nats"
+    },
+    {
+      "claim_id": "conv_n140_1000",
+      "match": true,
+      "method": "mean advantage at tour 1000, t-interval, SD-BKZ wins and seed count",
+      "note": "",
+      "paper_value": [
+        0.029,
+        -0.021,
+        0.079,
+        12,
+        20
+      ],
+      "recomputed_value": [
+        0.029096372683775896,
+        -0.020765287362554657,
+        0.07895803273010644,
+        12,
+        20
+      ],
+      "source": {
+        "campaign": "convergence",
+        "cells": [
+          "n140_beta30"
+        ],
+        "kind": "seeds",
+        "max_tours": 1000,
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "(mean $+0.029$ nats, 95\\% CI $[-0.021, +0.079]$, $12/20$"
+      ],
+      "tex_lines": [
+        333,
+        536
+      ],
+      "verbatim": "(mean $+0.029$ nats, 95\\% CI $[-0.021, +0.079]$, $12/20$"
+    },
+    {
+      "claim_id": "conv_n140_500",
+      "match": true,
+      "method": "gain past tour 70 (BKZ, SD-BKZ); mean advantage at tours 70 and 500; paired t-test p and SD-BKZ win % at tour 500",
+      "note": "",
+      "paper_value": [
+        0.122,
+        0.099,
+        -0.052,
+        -0.075,
+        0.002,
+        20
+      ],
+      "recomputed_value": [
+        0.12168286198700073,
+        0.09859653292904773,
+        -0.05156832919398195,
+        -0.07465465825193496,
+        0.0021695353135778293,
+        20.0
+      ],
+      "source": {
+        "campaign": "convergence",
+        "cells": [
+          "n140_beta30"
+        ],
+        "kind": "seeds",
+        "max_tours": 500,
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "($+0.122$ vs $+0.099$ nats), widening the gap from $-0.052$ at tour 70 to $-0.075$ at tour 500 ($p=0.002$, 20\\% SD-BKZ win rate)"
+      ],
+      "tex_lines": [
+        333
+      ],
+      "verbatim": "($+0.122$ vs $+0.099$ nats), widening the gap from $-0.052$ at tour 70 to $-0.075$ at tour 500 ($p=0.002$, 20\\% SD-BKZ win rate)"
+    },
+    {
+      "claim_id": "crossover_tour_beta20_growth",
+      "match": true,
+      "method": "group median crossover tour at n=50 and n=80, beta=20",
+      "note": "",
+      "paper_value": [
+        16,
+        23
+      ],
+      "recomputed_value": [
+        16.0,
+        23.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "crossover_tour",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "median 16$\\to$23 at $\\beta=20$ from $n=50$ to $n=80$"
+      ],
+      "tex_lines": [
+        304
+      ],
+      "verbatim": "median 16$\\to$23 at $\\beta=20$ from $n=50$ to $n=80$"
+    },
+    {
+      "claim_id": "crossover_tour_by_beta",
+      "match": true,
+      "method": "group median crossover tour range over n=50..80, beta=40 then beta=20",
+      "note": "n=50..80 only, the range the sentence discusses",
+      "paper_value": [
+        3,
+        6,
+        16,
+        23
+      ],
+      "recomputed_value": [
+        3.0,
+        6.0,
+        16.0,
+        23.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "crossover_tour",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "fastest at $\\beta=40$ (tour 3--6) and slowest at $\\beta=20$ (tour 16--23)"
+      ],
+      "tex_lines": [
+        304
+      ],
+      "verbatim": "fastest at $\\beta=40$ (tour 3--6) and slowest at $\\beta=20$ (tour 16--23)"
+    },
+    {
+      "claim_id": "crossover_tour_range",
+      "match": true,
+      "method": "group median crossover tour, smallest and largest over n=50..80",
+      "note": "n=50..80 only, the range the sentence discusses",
+      "paper_value": [
+        3,
+        23
+      ],
+      "recomputed_value": [
+        3.0,
+        23.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "crossover_tour",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "crossover at tour 3--23 depending on parameters"
+      ],
+      "tex_lines": [
+        304
+      ],
+      "verbatim": "crossover at tour 3--23 depending on parameters"
+    },
+    {
       "claim_id": "fig8_sd_flatter",
       "match": true,
       "method": "panels where the SD-BKZ slope is below the BKZ slope",
@@ -322,6 +703,1230 @@
       "verbatim": "fitted slope $0.0266$--$0.0279$ per position, against $0.0247$ for the GSA and $0.0194$ for the fixed point"
     },
     {
+      "claim_id": "growth_beta20",
+      "match": true,
+      "method": "percent change of the group mean advantage between adjacent n, n=50..110",
+      "note": "",
+      "paper_value": [
+        8.0,
+        32.0,
+        15.0,
+        2.0,
+        -25.0,
+        -35.0
+      ],
+      "recomputed_value": [
+        7.965772309352248,
+        31.534557672454145,
+        14.50069668005256,
+        2.2937189595608087,
+        -25.103860858243454,
+        -35.19233981266121
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "20 & $+8\\%$   & $+32\\%$ & $+15\\%$ & $+2\\%$   & $-25\\%$  & $-35\\%$ & Peak $n{=}90$, collapsing \\\\"
+      ],
+      "tex_lines": [
+        439
+      ],
+      "verbatim": "20 & $+8\\%$   & $+32\\%$ & $+15\\%$ & $+2\\%$   & $-25\\%$  & $-35\\%$ & Peak $n{=}90$, collapsing \\\\"
+    },
+    {
+      "claim_id": "growth_beta30",
+      "match": true,
+      "method": "percent change of the group mean advantage between adjacent n, n=50..110",
+      "note": "",
+      "paper_value": [
+        21.0,
+        7.0,
+        11.0,
+        59.0,
+        46.0,
+        -18.0
+      ],
+      "recomputed_value": [
+        20.942917071512525,
+        7.027875384034776,
+        10.675757036773037,
+        59.00471254176385,
+        46.237678208654096,
+        -17.582033242456376
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "30 & $+21\\%$  & $+7\\%$  & $+11\\%$ & $+59\\%$  & $+46\\%$  & $-18\\%$ & Peak $n{=}100$, declining \\\\"
+      ],
+      "tex_lines": [
+        440
+      ],
+      "verbatim": "30 & $+21\\%$  & $+7\\%$  & $+11\\%$ & $+59\\%$  & $+46\\%$  & $-18\\%$ & Peak $n{=}100$, declining \\\\"
+    },
+    {
+      "claim_id": "growth_beta40",
+      "match": true,
+      "method": "percent change of the group mean advantage between adjacent n, n=50..110",
+      "note": "",
+      "paper_value": [
+        118.0,
+        48.0,
+        20.0,
+        18.0,
+        142.0,
+        -0.5
+      ],
+      "recomputed_value": [
+        117.7944077590789,
+        47.68690124746136,
+        20.125818178332942,
+        18.36909087343186,
+        142.17411303060734,
+        -0.4720995529341132
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "40 & $+118\\%$ & $+48\\%$ & $+20\\%$ & $+18\\%$  & $+142\\%$ & $-0.5\\%$ & Peak $n{=}100$--$110$, cliff \\\\"
+      ],
+      "tex_lines": [
+        441
+      ],
+      "verbatim": "40 & $+118\\%$ & $+48\\%$ & $+20\\%$ & $+18\\%$  & $+142\\%$ & $-0.5\\%$ & Peak $n{=}100$--$110$, cliff \\\\"
+    },
+    {
+      "claim_id": "headroom_floor_ratio",
+      "match": true,
+      "method": "SD-BKZ over BKZ mean absolute per-tour d(LN) change in the last five steps, n=50..110",
+      "note": "",
+      "paper_value": [
+        1.0,
+        1.4
+      ],
+      "recomputed_value": [
+        1.003949904288947,
+        1.4155514236580233
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "{bkz,sdbkz}_dln_per_tour",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "ranges from 1.0 to 1.4 across favourable groups"
+      ],
+      "tex_lines": [
+        323
+      ],
+      "verbatim": "ranges from 1.0 to 1.4 across favourable groups"
+    },
+    {
+      "claim_id": "headroom_trend",
+      "match": true,
+      "method": "mean d(LN) at the last tour minus four tours earlier; BKZ then SD-BKZ",
+      "note": "",
+      "paper_value": [
+        0.042,
+        0.027,
+        0.009,
+        -0.008
+      ],
+      "recomputed_value": [
+        0.041988546488859115,
+        0.02743965626313283,
+        0.008642718804087452,
+        -0.007541304675035097
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "{bkz,sdbkz}_dln_per_tour",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "$+0.042$ at $n=100$, $\\beta=30$; $+0.027$ at $n=110$, $\\beta=20$), while SD-BKZ's trend is smaller ($+0.009$ and $-0.008$ respectively)"
+      ],
+      "tex_lines": [
+        323
+      ],
+      "verbatim": "$+0.042$ at $n=100$, $\\beta=30$; $+0.027$ at $n=110$, $\\beta=20$), while SD-BKZ's trend is smaller ($+0.009$ and $-0.008$ respectively)"
+    },
+    {
+      "claim_id": "main_n050_beta20",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.291,
+        0.144,
+        98.0
+      ],
+      "recomputed_value": [
+        100,
+        0.2909195997780238,
+        0.1436867871227519,
+        98.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50  & 20 & 100 & $-7.4\\times 10^{-11}$ & $0.291$  & $0.144$ & 98\\% \\\\"
+      ],
+      "tex_lines": [
+        179
+      ],
+      "verbatim": "50  & 20 & 100 & $-7.4\\times 10^{-11}$ & $0.291$  & $0.144$ & 98\\% \\\\"
+    },
+    {
+      "claim_id": "main_n050_beta30",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.405,
+        0.144,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.40486170521136633,
+        0.14376561911248112,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50  & 30 & 100 & $-1.5\\times 10^{-10}$ & $0.405$  & $0.144$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        180
+      ],
+      "verbatim": "50  & 30 & 100 & $-1.5\\times 10^{-10}$ & $0.405$  & $0.144$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n050_beta40",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.106,
+        0.08,
+        90.0
+      ],
+      "recomputed_value": [
+        100,
+        0.105509231681181,
+        0.08047276040373162,
+        90.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50  & 40 & 100 & $-8.7\\times 10^{-11}$ & $0.106$  & $0.080$ & 90\\% \\\\"
+      ],
+      "tex_lines": [
+        181
+      ],
+      "verbatim": "50  & 40 & 100 & $-8.7\\times 10^{-11}$ & $0.106$  & $0.080$ & 90\\% \\\\"
+    },
+    {
+      "claim_id": "main_n060_beta20",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.314,
+        0.181,
+        98.0
+      ],
+      "recomputed_value": [
+        100,
+        0.31409359269962,
+        0.18053110758111462,
+        98.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60  & 20 & 100 & $-4.2\\times 10^{-2}\\,\\ast$ & $0.314$ & $0.181$ & 98\\% \\\\"
+      ],
+      "tex_lines": [
+        182
+      ],
+      "verbatim": "60  & 20 & 100 & $-4.2\\times 10^{-2}\\,\\ast$ & $0.314$ & $0.181$ & 98\\% \\\\"
+    },
+    {
+      "claim_id": "main_n060_beta30",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.49,
+        0.172,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.48965155638809427,
+        0.17171160904136026,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60  & 30 & 100 & $-1.7\\times 10^{-9}$  & $0.490$  & $0.172$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        183
+      ],
+      "verbatim": "60  & 30 & 100 & $-1.7\\times 10^{-9}$  & $0.490$  & $0.172$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n060_beta40",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.23,
+        0.112,
+        97.0
+      ],
+      "recomputed_value": [
+        100,
+        0.2297932062711826,
+        0.11168689856296757,
+        97.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60  & 40 & 100 & $3.3\\times 10^{-10}$  & $0.230$  & $0.112$ & 97\\% \\\\"
+      ],
+      "tex_lines": [
+        184
+      ],
+      "verbatim": "60  & 40 & 100 & $3.3\\times 10^{-10}$  & $0.230$  & $0.112$ & 97\\% \\\\"
+    },
+    {
+      "claim_id": "main_n070_beta20",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.413,
+        0.166,
+        99.0
+      ],
+      "recomputed_value": [
+        100,
+        0.4131416178349649,
+        0.16592125326439927,
+        99.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70  & 20 & 100 & $7.0\\times 10^{-1}\\,\\ast$ & $0.413$  & $0.166$ & 99\\% \\\\"
+      ],
+      "tex_lines": [
+        185
+      ],
+      "verbatim": "70  & 20 & 100 & $7.0\\times 10^{-1}\\,\\ast$ & $0.413$  & $0.166$ & 99\\% \\\\"
+    },
+    {
+      "claim_id": "main_n070_beta30",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.524,
+        0.176,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.5240636575870363,
+        0.1762996129250492,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70  & 30 & 100 & $-4.1\\times 10^{-1}\\,\\ast$ & $0.524$  & $0.176$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        186
+      ],
+      "verbatim": "70  & 30 & 100 & $-4.1\\times 10^{-1}\\,\\ast$ & $0.524$  & $0.176$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n070_beta40",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.339,
+        0.096,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.3393744656190966,
+        0.09571528506884106,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70  & 40 & 100 & $-2.3\\times 10^{-9}$  & $0.339$  & $0.096$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        187
+      ],
+      "verbatim": "70  & 40 & 100 & $-2.3\\times 10^{-9}$  & $0.339$  & $0.096$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n080_beta20",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.473,
+        0.173,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.47305003069627505,
+        0.1729524413537985,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "80  & 20 & 100 & $-2.6\\times 10^{-8}$  & $0.473$  & $0.173$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        188
+      ],
+      "verbatim": "80  & 20 & 100 & $-2.6\\times 10^{-8}$  & $0.473$  & $0.173$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n080_beta30",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.58,
+        0.193,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.5800114203890545,
+        0.19298212287269886,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "80  & 30 & 100 & $2.0\\times 10^{-1}\\,\\ast$  & $0.580$  & $0.193$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        189
+      ],
+      "verbatim": "80  & 30 & 100 & $2.0\\times 10^{-1}\\,\\ast$  & $0.580$  & $0.193$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n080_beta40",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.408,
+        0.13,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.4076763535132851,
+        0.1301261172440616,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "80  & 40 & 100 & $2.9\\times 10^{-1}\\,\\ast$  & $0.408$  & $0.130$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        190
+      ],
+      "verbatim": "80  & 40 & 100 & $2.9\\times 10^{-1}\\,\\ast$  & $0.408$  & $0.130$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n090_beta20",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.484,
+        0.199,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.4839004689385637,
+        0.19877841323376108,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 20 & 100 & $<10^{-6}$ & $0.484$  & $0.199$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        191
+      ],
+      "verbatim": "90  & 20 & 100 & $<10^{-6}$ & $0.484$  & $0.199$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n090_beta30",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.922,
+        0.2,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.9222454916990176,
+        0.20044639216201432,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 30 & 100 & $<10^{-6}$ & $0.922$  & $0.200$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        192
+      ],
+      "verbatim": "90  & 30 & 100 & $<10^{-6}$ & $0.922$  & $0.200$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n090_beta40",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.483,
+        0.159,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.48256279335963376,
+        0.15851034665489078,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 40 & 100 & $<10^{-6}$ & $0.483$  & $0.159$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        193
+      ],
+      "verbatim": "90  & 40 & 100 & $<10^{-6}$ & $0.483$  & $0.159$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n100_beta20",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.362,
+        0.171,
+        99.0
+      ],
+      "recomputed_value": [
+        100,
+        0.3624227685238391,
+        0.17109660099971807,
+        99.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 20 & 100 & $2.5\\times 10^{-8}$   & $0.362$  & $0.171$ & 99\\% \\\\"
+      ],
+      "tex_lines": [
+        194
+      ],
+      "verbatim": "100 & 20 & 100 & $2.5\\times 10^{-8}$   & $0.362$  & $0.171$ & 99\\% \\\\"
+    },
+    {
+      "claim_id": "main_n100_beta30",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        122,
+        1.349,
+        0.216,
+        100.0
+      ],
+      "recomputed_value": [
+        122,
+        1.348670394444629,
+        0.2161580726561432,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 30 & 122 & $<10^{-6}$ & $1.349$  & $0.216$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        195
+      ],
+      "verbatim": "100 & 30 & 122 & $<10^{-6}$ & $1.349$  & $0.216$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n100_beta40",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        122,
+        1.169,
+        0.122,
+        100.0
+      ],
+      "recomputed_value": [
+        122,
+        1.1686421646344156,
+        0.12172339411385698,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 40 & 122 & $<10^{-6}$ & $1.169$  & $0.122$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        196
+      ],
+      "verbatim": "100 & 40 & 122 & $<10^{-6}$ & $1.169$  & $0.122$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n110_beta20",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.235,
+        0.159,
+        92.0
+      ],
+      "recomputed_value": [
+        100,
+        0.23487771626647508,
+        0.15947730986371308,
+        92.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 20 & 100 & $<10^{-6}$ & $0.235$  & $0.159$ & 92\\% \\\\"
+      ],
+      "tex_lines": [
+        197
+      ],
+      "verbatim": "110 & 20 & 100 & $<10^{-6}$ & $0.235$  & $0.159$ & 92\\% \\\\"
+    },
+    {
+      "claim_id": "main_n110_beta30",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        1.112,
+        0.197,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        1.111546717362207,
+        0.1972325956341319,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 30 & 100 & $<10^{-6}$ & $1.112$  & $0.197$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        198
+      ],
+      "verbatim": "110 & 30 & 100 & $<10^{-6}$ & $1.112$  & $0.197$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n110_beta40",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        122,
+        1.163,
+        0.171,
+        100.0
+      ],
+      "recomputed_value": [
+        122,
+        1.163125010199777,
+        0.17063773625792703,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 40 & 122 & $<10^{-6}$ & $1.163$  & $0.171$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        199
+      ],
+      "verbatim": "110 & 40 & 122 & $<10^{-6}$ & $1.163$  & $0.171$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n120_beta20",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.094,
+        0.157,
+        71.0
+      ],
+      "recomputed_value": [
+        100,
+        0.09420354858583353,
+        0.15714311455466437,
+        71.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 20 & 100 & $-3.7\\times 10^{-8}$  & $0.094$  & $0.157$ & 71\\% \\\\"
+      ],
+      "tex_lines": [
+        200
+      ],
+      "verbatim": "120 & 20 & 100 & $-3.7\\times 10^{-8}$  & $0.094$  & $0.157$ & 71\\% \\\\"
+    },
+    {
+      "claim_id": "main_n120_beta30",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.741,
+        0.149,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.7410003194724909,
+        0.14916459088475117,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 30 & 100 & $-2.4\\times 10^{-7}$  & $0.741$  & $0.149$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        201
+      ],
+      "verbatim": "120 & 30 & 100 & $-2.4\\times 10^{-7}$  & $0.741$  & $0.149$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n120_beta40",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        -0.028,
+        0.102,
+        44.0
+      ],
+      "recomputed_value": [
+        100,
+        -0.028172131798952286,
+        0.10231762721003854,
+        44.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 40 & 100 & $<10^{-6}$ & $-0.028$ & $0.102$ & 44\\% \\\\"
+      ],
+      "tex_lines": [
+        202
+      ],
+      "verbatim": "120 & 40 & 100 & $<10^{-6}$ & $-0.028$ & $0.102$ & 44\\% \\\\"
+    },
+    {
+      "claim_id": "main_n130_beta20",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.003,
+        0.159,
+        54.0
+      ],
+      "recomputed_value": [
+        100,
+        0.003002495976152293,
+        0.15903890414282412,
+        54.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 20 & 100 & $1.8\\times 10^{-7}$   & $0.003$  & $0.159$ & 54\\% \\\\"
+      ],
+      "tex_lines": [
+        203
+      ],
+      "verbatim": "130 & 20 & 100 & $1.8\\times 10^{-7}$   & $0.003$  & $0.159$ & 54\\% \\\\"
+    },
+    {
+      "claim_id": "main_n130_beta30",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.352,
+        0.11,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.35205466315271594,
+        0.11045394013694793,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 30 & 100 & $<10^{-6}$ & $0.352$  & $0.110$ & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        204
+      ],
+      "verbatim": "130 & 30 & 100 & $<10^{-6}$ & $0.352$  & $0.110$ & 100\\% \\\\"
+    },
+    {
+      "claim_id": "main_n130_beta40",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        122,
+        -1.325,
+        0.15,
+        0.0
+      ],
+      "recomputed_value": [
+        122,
+        -1.3247044734812772,
+        0.15043808074877876,
+        0.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 40 & 122 & $1.5\\times 10^{-6}$   & $-1.325$ & $0.150$ & 0\\% \\\\"
+      ],
+      "tex_lines": [
+        205
+      ],
+      "verbatim": "130 & 40 & 122 & $1.5\\times 10^{-6}$   & $-1.325$ & $0.150$ & 0\\% \\\\"
+    },
+    {
+      "claim_id": "main_n140_beta20",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        -0.108,
+        0.142,
+        22.0
+      ],
+      "recomputed_value": [
+        100,
+        -0.10761607977099516,
+        0.14155776978624474,
+        22.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 20 & 100 & $-1.6\\times 10^{-7}$  & $-0.108$ & $0.142$ & 22\\% \\\\"
+      ],
+      "tex_lines": [
+        206
+      ],
+      "verbatim": "140 & 20 & 100 & $-1.6\\times 10^{-7}$  & $-0.108$ & $0.142$ & 22\\% \\\\"
+    },
+    {
+      "claim_id": "main_n140_beta30",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        -0.036,
+        0.087,
+        32.0
+      ],
+      "recomputed_value": [
+        100,
+        -0.036226691102530115,
+        0.08703484285025141,
+        32.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 30 & 100 & $<10^{-6}$ & $-0.036$ & $0.087$ & 32\\% \\\\"
+      ],
+      "tex_lines": [
+        207
+      ],
+      "verbatim": "140 & 30 & 100 & $<10^{-6}$ & $-0.036$ & $0.087$ & 32\\% \\\\"
+    },
+    {
+      "claim_id": "main_n140_beta40",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        -1.452,
+        0.22,
+        0.0
+      ],
+      "recomputed_value": [
+        100,
+        -1.4522497241977197,
+        0.22037087845855988,
+        0.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 40 & 100 & $<10^{-6}$ & $-1.452$ & $0.220$ & 0\\% \\\\"
+      ],
+      "tex_lines": [
+        208
+      ],
+      "verbatim": "140 & 40 & 100 & $<10^{-6}$ & $-1.452$ & $0.220$ & 0\\% \\\\"
+    },
+    {
+      "claim_id": "main_n150_beta20",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        -0.173,
+        0.142,
+        12.0
+      ],
+      "recomputed_value": [
+        100,
+        -0.17282322705816008,
+        0.14244543314292826,
+        12.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 20 & 100 & $<10^{-6}$ & $-0.173$ & $0.142$ & 12\\% \\\\"
+      ],
+      "tex_lines": [
+        209
+      ],
+      "verbatim": "150 & 20 & 100 & $<10^{-6}$ & $-0.173$ & $0.142$ & 12\\% \\\\"
+    },
+    {
+      "claim_id": "main_n150_beta30",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        -0.395,
+        0.102,
+        0.0
+      ],
+      "recomputed_value": [
+        100,
+        -0.39458430391454713,
+        0.10178108859262032,
+        0.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 30 & 100 & $<10^{-6}$ & $-0.395$ & $0.102$ & 0\\% \\\\"
+      ],
+      "tex_lines": [
+        210
+      ],
+      "verbatim": "150 & 30 & 100 & $<10^{-6}$ & $-0.395$ & $0.102$ & 0\\% \\\\"
+    },
+    {
+      "claim_id": "main_n150_beta40",
+      "match": true,
+      "method": "seed count, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        -1.292,
+        0.205,
+        0.0
+      ],
+      "recomputed_value": [
+        100,
+        -1.2924742946090297,
+        0.20525865249296849,
+        0.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 40 & 100 & $-2.2\\times 10^{-6}$  & $-1.292$ & $0.205$ & 0\\% \\\\"
+      ],
+      "tex_lines": [
+        211
+      ],
+      "verbatim": "150 & 40 & 100 & $-2.2\\times 10^{-6}$  & $-1.292$ & $0.205$ & 0\\% \\\\"
+    },
+    {
       "claim_id": "n110_beta40_vs_beta30_paired",
       "match": true,
       "method": "per-seed advantage difference on shared seeds; mean and t-interval",
@@ -354,6 +1959,890 @@
         400
       ],
       "verbatim": "paired on the 100 shared seeds $+0.046$, 95\\% CI $[-0.006, 0.098]$"
+    },
+    {
+      "claim_id": "peak_n090_beta20",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.22,
+        0.484,
+        0.199,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.2222222222222222,
+        0.4839004689385637,
+        0.19877841323376108,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 20 & 100 & 0.22 & 0.484   & 0.199 & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        471
+      ],
+      "verbatim": "90  & 20 & 100 & 0.22 & 0.484   & 0.199 & 100\\% \\\\"
+    },
+    {
+      "claim_id": "peak_n090_beta30",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.33,
+        0.922,
+        0.2,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.3333333333333333,
+        0.9222454916990176,
+        0.20044639216201432,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 30 & 100 & 0.33 & 0.922   & 0.200 & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        472
+      ],
+      "verbatim": "90  & 30 & 100 & 0.33 & 0.922   & 0.200 & 100\\% \\\\"
+    },
+    {
+      "claim_id": "peak_n090_beta40",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.44,
+        0.483,
+        0.159,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.4444444444444444,
+        0.48256279335963376,
+        0.15851034665489078,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 40 & 100 & 0.44 & 0.483   & 0.159 & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        473
+      ],
+      "verbatim": "90  & 40 & 100 & 0.44 & 0.483   & 0.159 & 100\\% \\\\"
+    },
+    {
+      "claim_id": "peak_n100_beta20",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.2,
+        0.362,
+        0.171,
+        99.0
+      ],
+      "recomputed_value": [
+        100,
+        0.2,
+        0.3624227685238391,
+        0.17109660099971807,
+        99.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 20 & 100 & 0.20 & 0.362   & 0.171 & 99\\%  \\\\"
+      ],
+      "tex_lines": [
+        474
+      ],
+      "verbatim": "100 & 20 & 100 & 0.20 & 0.362   & 0.171 & 99\\%  \\\\"
+    },
+    {
+      "claim_id": "peak_n100_beta30",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        122,
+        0.3,
+        1.349,
+        0.216,
+        100.0
+      ],
+      "recomputed_value": [
+        122,
+        0.3,
+        1.348670394444629,
+        0.2161580726561432,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 30 & 122 & 0.30 & 1.349   & 0.216 & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        475
+      ],
+      "verbatim": "100 & 30 & 122 & 0.30 & 1.349   & 0.216 & 100\\% \\\\"
+    },
+    {
+      "claim_id": "peak_n100_beta40",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        122,
+        0.4,
+        1.169,
+        0.122,
+        100.0
+      ],
+      "recomputed_value": [
+        122,
+        0.4,
+        1.1686421646344156,
+        0.12172339411385698,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 40 & 122 & 0.40 & 1.169   & 0.122 & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        476
+      ],
+      "verbatim": "100 & 40 & 122 & 0.40 & 1.169   & 0.122 & 100\\% \\\\"
+    },
+    {
+      "claim_id": "peak_n110_beta20",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.18,
+        0.235,
+        0.159,
+        92.0
+      ],
+      "recomputed_value": [
+        100,
+        0.18181818181818182,
+        0.23487771626647508,
+        0.15947730986371308,
+        92.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 20 & 100 & 0.18 & 0.235   & 0.159 & 92\\%  \\\\"
+      ],
+      "tex_lines": [
+        477
+      ],
+      "verbatim": "110 & 20 & 100 & 0.18 & 0.235   & 0.159 & 92\\%  \\\\"
+    },
+    {
+      "claim_id": "peak_n110_beta30",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.27,
+        1.112,
+        0.197,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.2727272727272727,
+        1.111546717362207,
+        0.1972325956341319,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 30 & 100 & 0.27 & 1.112   & 0.197 & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        478
+      ],
+      "verbatim": "110 & 30 & 100 & 0.27 & 1.112   & 0.197 & 100\\% \\\\"
+    },
+    {
+      "claim_id": "peak_n110_beta40",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        122,
+        0.36,
+        1.163,
+        0.171,
+        100.0
+      ],
+      "recomputed_value": [
+        122,
+        0.36363636363636365,
+        1.163125010199777,
+        0.17063773625792703,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 40 & 122 & 0.36 & 1.163   & 0.171 & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        479
+      ],
+      "verbatim": "110 & 40 & 122 & 0.36 & 1.163   & 0.171 & 100\\% \\\\"
+    },
+    {
+      "claim_id": "peak_n120_beta20",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.17,
+        0.094,
+        0.157,
+        71.0
+      ],
+      "recomputed_value": [
+        100,
+        0.16666666666666666,
+        0.09420354858583353,
+        0.15714311455466437,
+        71.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 20 & 100 & 0.17 & 0.094   & 0.157 & 71\\%  \\\\"
+      ],
+      "tex_lines": [
+        480
+      ],
+      "verbatim": "120 & 20 & 100 & 0.17 & 0.094   & 0.157 & 71\\%  \\\\"
+    },
+    {
+      "claim_id": "peak_n120_beta30",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.25,
+        0.741,
+        0.149,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.25,
+        0.7410003194724909,
+        0.14916459088475117,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 30 & 100 & 0.25 & 0.741   & 0.149 & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        481
+      ],
+      "verbatim": "120 & 30 & 100 & 0.25 & 0.741   & 0.149 & 100\\% \\\\"
+    },
+    {
+      "claim_id": "peak_n120_beta40",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.33,
+        -0.028,
+        0.102,
+        44.0
+      ],
+      "recomputed_value": [
+        100,
+        0.3333333333333333,
+        -0.028172131798952286,
+        0.10231762721003854,
+        44.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 40 & 100 & 0.33 & $-0.028$ & 0.102 & 44\\%  \\\\"
+      ],
+      "tex_lines": [
+        482
+      ],
+      "verbatim": "120 & 40 & 100 & 0.33 & $-0.028$ & 0.102 & 44\\%  \\\\"
+    },
+    {
+      "claim_id": "peak_n130_beta20",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.15,
+        0.003,
+        0.159,
+        54.0
+      ],
+      "recomputed_value": [
+        100,
+        0.15384615384615385,
+        0.003002495976152293,
+        0.15903890414282412,
+        54.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 20 & 100 & 0.15 & 0.003   & 0.159 & 54\\%  \\\\"
+      ],
+      "tex_lines": [
+        483
+      ],
+      "verbatim": "130 & 20 & 100 & 0.15 & 0.003   & 0.159 & 54\\%  \\\\"
+    },
+    {
+      "claim_id": "peak_n130_beta30",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.23,
+        0.352,
+        0.11,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.23076923076923078,
+        0.35205466315271594,
+        0.11045394013694793,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 30 & 100 & 0.23 & 0.352   & 0.110 & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        484
+      ],
+      "verbatim": "130 & 30 & 100 & 0.23 & 0.352   & 0.110 & 100\\% \\\\"
+    },
+    {
+      "claim_id": "peak_n130_beta40",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        122,
+        0.31,
+        -1.325,
+        0.15,
+        0.0
+      ],
+      "recomputed_value": [
+        122,
+        0.3076923076923077,
+        -1.3247044734812772,
+        0.15043808074877876,
+        0.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 40 & 122 & 0.31 & $-1.325$ & 0.150 & 0\\%   \\\\"
+      ],
+      "tex_lines": [
+        485
+      ],
+      "verbatim": "130 & 40 & 122 & 0.31 & $-1.325$ & 0.150 & 0\\%   \\\\"
+    },
+    {
+      "claim_id": "peak_n140_beta20",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.14,
+        -0.108,
+        0.142,
+        22.0
+      ],
+      "recomputed_value": [
+        100,
+        0.14285714285714285,
+        -0.10761607977099516,
+        0.14155776978624474,
+        22.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 20 & 100 & 0.14 & $-0.108$ & 0.142 & 22\\%  \\\\"
+      ],
+      "tex_lines": [
+        486
+      ],
+      "verbatim": "140 & 20 & 100 & 0.14 & $-0.108$ & 0.142 & 22\\%  \\\\"
+    },
+    {
+      "claim_id": "peak_n140_beta30",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.21,
+        -0.036,
+        0.087,
+        32.0
+      ],
+      "recomputed_value": [
+        100,
+        0.21428571428571427,
+        -0.036226691102530115,
+        0.08703484285025141,
+        32.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 30 & 100 & 0.21 & $-0.036$ & 0.087 & 32\\%  \\\\"
+      ],
+      "tex_lines": [
+        487
+      ],
+      "verbatim": "140 & 30 & 100 & 0.21 & $-0.036$ & 0.087 & 32\\%  \\\\"
+    },
+    {
+      "claim_id": "peak_n140_beta40",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.29,
+        -1.452,
+        0.22,
+        0.0
+      ],
+      "recomputed_value": [
+        100,
+        0.2857142857142857,
+        -1.4522497241977197,
+        0.22037087845855988,
+        0.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 40 & 100 & 0.29 & $-1.452$ & 0.220 & 0\\%   \\\\"
+      ],
+      "tex_lines": [
+        488
+      ],
+      "verbatim": "140 & 40 & 100 & 0.29 & $-1.452$ & 0.220 & 0\\%   \\\\"
+    },
+    {
+      "claim_id": "peak_n150_beta20",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.13,
+        -0.173,
+        0.142,
+        12.0
+      ],
+      "recomputed_value": [
+        100,
+        0.13333333333333333,
+        -0.17282322705816008,
+        0.14244543314292826,
+        12.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 20 & 100 & 0.13 & $-0.173$ & 0.142 & 12\\%  \\\\"
+      ],
+      "tex_lines": [
+        489
+      ],
+      "verbatim": "150 & 20 & 100 & 0.13 & $-0.173$ & 0.142 & 12\\%  \\\\"
+    },
+    {
+      "claim_id": "peak_n150_beta30",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.2,
+        -0.395,
+        0.102,
+        0.0
+      ],
+      "recomputed_value": [
+        100,
+        0.2,
+        -0.39458430391454713,
+        0.10178108859262032,
+        0.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 30 & 100 & 0.20 & $-0.395$ & 0.102 & 0\\%   \\\\"
+      ],
+      "tex_lines": [
+        490
+      ],
+      "verbatim": "150 & 30 & 100 & 0.20 & $-0.395$ & 0.102 & 0\\%   \\\\"
+    },
+    {
+      "claim_id": "peak_n150_beta40",
+      "match": true,
+      "method": "seed count, beta/n, mean, sample std and SD-BKZ win % of the advantage",
+      "note": "",
+      "paper_value": [
+        100,
+        0.27,
+        -1.292,
+        0.205,
+        0.0
+      ],
+      "recomputed_value": [
+        100,
+        0.26666666666666666,
+        -1.2924742946090297,
+        0.20525865249296849,
+        0.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 40 & 100 & 0.27 & $-1.292$ & 0.205 & 0\\%   \\\\"
+      ],
+      "tex_lines": [
+        491
+      ],
+      "verbatim": "150 & 40 & 100 & 0.27 & $-1.292$ & 0.205 & 0\\%   \\\\"
+    },
+    {
+      "claim_id": "q3329_ahead_total",
+      "match": true,
+      "method": "seeds with a positive advantage over the three cells",
+      "note": "",
+      "paper_value": [
+        299,
+        300
+      ],
+      "recomputed_value": [
+        299,
+        300
+      ],
+      "source": {
+        "campaign": "q3329_mpfr",
+        "field": "advantage",
+        "kind": "seeds",
+        "manifest": "results/side_seed_manifest.json",
+        "q": 3329
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "positive on $299$ of $300$ seeds"
+      ],
+      "tex_lines": [
+        567
+      ],
+      "verbatim": "positive on $299$ of $300$ seeds"
+    },
+    {
+      "claim_id": "q3329_n080",
+      "match": true,
+      "method": "seed count, mean advantage, t-interval, seeds with SD-BKZ ahead",
+      "note": "",
+      "paper_value": [
+        100.0,
+        0.557,
+        0.522,
+        0.593,
+        100.0,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.5571177805366705,
+        0.521655718351232,
+        0.592579842722109,
+        100,
+        100
+      ],
+      "source": {
+        "campaign": "q3329_mpfr",
+        "field": "advantage",
+        "kind": "seeds",
+        "manifest": "results/side_seed_manifest.json",
+        "q": 3329
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "80  & 100 & $+0.557$ & $[+0.522, +0.593]$ & 100/100 \\\\"
+      ],
+      "tex_lines": [
+        560
+      ],
+      "verbatim": "80  & 100 & $+0.557$ & $[+0.522, +0.593]$ & 100/100 \\\\"
+    },
+    {
+      "claim_id": "q3329_n090",
+      "match": true,
+      "method": "seed count, mean advantage, t-interval, seeds with SD-BKZ ahead",
+      "note": "",
+      "paper_value": [
+        100.0,
+        0.553,
+        0.516,
+        0.589,
+        99.0,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.5526412616396348,
+        0.516405591228273,
+        0.5888769320509966,
+        99,
+        100
+      ],
+      "source": {
+        "campaign": "q3329_mpfr",
+        "field": "advantage",
+        "kind": "seeds",
+        "manifest": "results/side_seed_manifest.json",
+        "q": 3329
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 100 & $+0.553$ & $[+0.516, +0.589]$ & 99/100 \\\\"
+      ],
+      "tex_lines": [
+        561
+      ],
+      "verbatim": "90  & 100 & $+0.553$ & $[+0.516, +0.589]$ & 99/100 \\\\"
+    },
+    {
+      "claim_id": "q3329_n100",
+      "match": true,
+      "method": "seed count, mean advantage, t-interval, seeds with SD-BKZ ahead",
+      "note": "",
+      "paper_value": [
+        100.0,
+        0.535,
+        0.5,
+        0.57,
+        100.0,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        0.5353106242290743,
+        0.5002685353872474,
+        0.5703527130709012,
+        100,
+        100
+      ],
+      "source": {
+        "campaign": "q3329_mpfr",
+        "field": "advantage",
+        "kind": "seeds",
+        "manifest": "results/side_seed_manifest.json",
+        "q": 3329
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 100 & $+0.535$ & $[+0.500, +0.570]$ & 100/100 \\\\"
+      ],
+      "tex_lines": [
+        562
+      ],
+      "verbatim": "100 & 100 & $+0.535$ & $[+0.500, +0.570]$ & 100/100 \\\\"
+    },
+    {
+      "claim_id": "q3329_q97_comparison",
+      "match": true,
+      "method": "q=97 group mean advantage at n=80, 90, 100, beta=30",
+      "note": "",
+      "paper_value": [
+        0.58,
+        0.92,
+        1.35
+      ],
+      "recomputed_value": [
+        0.5800114203890545,
+        0.9222454916990176,
+        1.348670394444629
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "($+0.58$, $+0.92$ and $+1.35$ nats at $n=80$, $90$ and $100$, $\\beta=30$)"
+      ],
+      "tex_lines": [
+        567
+      ],
+      "verbatim": "($+0.58$, $+0.92$ and $+1.35$ nats at $n=80$, $90$ and $100$, $\\beta=30$)"
     },
     {
       "claim_id": "rhf_mean_diff_bound",
@@ -404,6 +2893,2581 @@
         173
       ],
       "verbatim": "differs by more than $10^{-3}$ in 1 to 47 seeds"
+    },
+    {
+      "claim_id": "spatial_mid_dominates",
+      "match": true,
+      "method": "groups at n=50..110 whose middle third holds the largest share",
+      "note": "",
+      "paper_value": [
+        21,
+        21
+      ],
+      "recomputed_value": [
+        21,
+        21
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "favourable regime (21/21 groups)"
+      ],
+      "tex_lines": [
+        348
+      ],
+      "verbatim": "favourable regime (21/21 groups)"
+    },
+    {
+      "claim_id": "spatial_mid_share_range",
+      "match": true,
+      "method": "smallest and largest middle-third share over n=50..70",
+      "note": "",
+      "paper_value": [
+        44,
+        82
+      ],
+      "recomputed_value": [
+        43.902201019848754,
+        82.35008490533332
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "accounts for 44--82\\% of the total"
+      ],
+      "tex_lines": [
+        367
+      ],
+      "verbatim": "accounts for 44--82\\% of the total"
+    },
+    {
+      "claim_id": "spatial_mid_win_range",
+      "match": true,
+      "method": "smallest and largest middle-third win rate over n=50..110",
+      "note": "",
+      "paper_value": [
+        91,
+        100
+      ],
+      "recomputed_value": [
+        91.0,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "The middle-region win rate is 91--100\\% across all favourable groups"
+      ],
+      "tex_lines": [
+        367
+      ],
+      "verbatim": "The middle-region win rate is 91--100\\% across all favourable groups"
+    },
+    {
+      "claim_id": "spatial_n050_beta20",
+      "match": true,
+      "method": "seed count; head, middle, tail share of the summed absolute mean improvement by profile third; % of seeds with a positive middle third",
+      "note": "",
+      "paper_value": [
+        100.0,
+        21.0,
+        44.0,
+        35.0,
+        97.0
+      ],
+      "recomputed_value": [
+        100,
+        20.848478153804027,
+        43.902201019848754,
+        35.24932082634722,
+        97.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50 & 20 & 100 & 21\\% & 44\\% & 35\\% & 97\\% \\\\"
+      ],
+      "tex_lines": [
+        354
+      ],
+      "verbatim": "50 & 20 & 100 & 21\\% & 44\\% & 35\\% & 97\\% \\\\"
+    },
+    {
+      "claim_id": "spatial_n050_beta30",
+      "match": true,
+      "method": "seed count; head, middle, tail share of the summed absolute mean improvement by profile third; % of seeds with a positive middle third",
+      "note": "",
+      "paper_value": [
+        100.0,
+        21.0,
+        46.0,
+        33.0,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        20.808927758050007,
+        46.39808168631964,
+        32.79299055563035,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50 & 30 & 100 & 21\\% & 46\\% & 33\\% & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        355
+      ],
+      "verbatim": "50 & 30 & 100 & 21\\% & 46\\% & 33\\% & 100\\% \\\\"
+    },
+    {
+      "claim_id": "spatial_n050_beta40",
+      "match": true,
+      "method": "seed count; head, middle, tail share of the summed absolute mean improvement by profile third; % of seeds with a positive middle third",
+      "note": "",
+      "paper_value": [
+        100.0,
+        7.0,
+        82.0,
+        11.0,
+        91.0
+      ],
+      "recomputed_value": [
+        100,
+        7.0201056976687575,
+        82.35008490533332,
+        10.629809396997917,
+        91.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50 & 40 & 100 & 7\\%  & 82\\% & 11\\% & 91\\% \\\\"
+      ],
+      "tex_lines": [
+        356
+      ],
+      "verbatim": "50 & 40 & 100 & 7\\%  & 82\\% & 11\\% & 91\\% \\\\"
+    },
+    {
+      "claim_id": "spatial_n060_beta20",
+      "match": true,
+      "method": "seed count; head, middle, tail share of the summed absolute mean improvement by profile third; % of seeds with a positive middle third",
+      "note": "",
+      "paper_value": [
+        100.0,
+        22.0,
+        44.0,
+        34.0,
+        94.0
+      ],
+      "recomputed_value": [
+        100,
+        21.80040950922121,
+        44.13694313528672,
+        34.06264735549205,
+        94.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60 & 20 & 100 & 22\\% & 44\\% & 34\\% & 94\\% \\\\"
+      ],
+      "tex_lines": [
+        357
+      ],
+      "verbatim": "60 & 20 & 100 & 22\\% & 44\\% & 34\\% & 94\\% \\\\"
+    },
+    {
+      "claim_id": "spatial_n060_beta30",
+      "match": true,
+      "method": "seed count; head, middle, tail share of the summed absolute mean improvement by profile third; % of seeds with a positive middle third",
+      "note": "",
+      "paper_value": [
+        100.0,
+        19.0,
+        45.0,
+        36.0,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        18.965650424149498,
+        45.29657757312416,
+        35.73777200272634,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60 & 30 & 100 & 19\\% & 45\\% & 36\\% & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        358
+      ],
+      "verbatim": "60 & 30 & 100 & 19\\% & 45\\% & 36\\% & 100\\% \\\\"
+    },
+    {
+      "claim_id": "spatial_n060_beta40",
+      "match": true,
+      "method": "seed count; head, middle, tail share of the summed absolute mean improvement by profile third; % of seeds with a positive middle third",
+      "note": "",
+      "paper_value": [
+        100.0,
+        25.0,
+        55.0,
+        20.0,
+        96.0
+      ],
+      "recomputed_value": [
+        100,
+        25.41745585758043,
+        54.908481386104256,
+        19.67406275631531,
+        96.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60 & 40 & 100 & 25\\% & 55\\% & 20\\% & 96\\% \\\\"
+      ],
+      "tex_lines": [
+        359
+      ],
+      "verbatim": "60 & 40 & 100 & 25\\% & 55\\% & 20\\% & 96\\% \\\\"
+    },
+    {
+      "claim_id": "spatial_n070_beta20",
+      "match": true,
+      "method": "seed count; head, middle, tail share of the summed absolute mean improvement by profile third; % of seeds with a positive middle third",
+      "note": "",
+      "paper_value": [
+        100.0,
+        20.0,
+        45.0,
+        35.0,
+        98.0
+      ],
+      "recomputed_value": [
+        100,
+        20.37401301421577,
+        44.52762940270351,
+        35.09835758308073,
+        98.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70 & 20 & 100 & 20\\% & 45\\% & 35\\% & 98\\% \\\\"
+      ],
+      "tex_lines": [
+        360
+      ],
+      "verbatim": "70 & 20 & 100 & 20\\% & 45\\% & 35\\% & 98\\% \\\\"
+    },
+    {
+      "claim_id": "spatial_n070_beta30",
+      "match": true,
+      "method": "seed count; head, middle, tail share of the summed absolute mean improvement by profile third; % of seeds with a positive middle third",
+      "note": "",
+      "paper_value": [
+        100.0,
+        18.0,
+        45.0,
+        37.0,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        18.10231808638361,
+        44.69020124292706,
+        37.20748067068932,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70 & 30 & 100 & 18\\% & 45\\% & 37\\% & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        361
+      ],
+      "verbatim": "70 & 30 & 100 & 18\\% & 45\\% & 37\\% & 100\\% \\\\"
+    },
+    {
+      "claim_id": "spatial_n070_beta40",
+      "match": true,
+      "method": "seed count; head, middle, tail share of the summed absolute mean improvement by profile third; % of seeds with a positive middle third",
+      "note": "",
+      "paper_value": [
+        100.0,
+        25.0,
+        53.0,
+        22.0,
+        100.0
+      ],
+      "recomputed_value": [
+        100,
+        24.519219937752194,
+        53.165515954525574,
+        22.315264107722218,
+        100.0
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "rankin_profile_{bkz,sdbkz}",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70 & 40 & 100 & 25\\% & 53\\% & 22\\% & 100\\% \\\\"
+      ],
+      "tex_lines": [
+        362
+      ],
+      "verbatim": "70 & 40 & 100 & 25\\% & 53\\% & 22\\% & 100\\% \\\\"
+    },
+    {
+      "claim_id": "stats_bkz_margin_low_n",
+      "match": true,
+      "method": "groups at n<=100 with a BKZ-won seed, and the largest mean BKZ margin among them",
+      "note": "",
+      "paper_value": [
+        6,
+        0.04
+      ],
+      "recomputed_value": [
+        6,
+        0.038745238756233244
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "in the six groups at $n\\leq 100$ where BKZ wins any seeds, its mean margin is below 0.04 nats"
+      ],
+      "tex_lines": [
+        227
+      ],
+      "verbatim": "in the six groups at $n\\leq 100$ where BKZ wins any seeds, its mean margin is below 0.04 nats"
+    },
+    {
+      "claim_id": "stats_bkz_margin_n140_beta40",
+      "match": true,
+      "method": "mean BKZ margin over BKZ-won seeds, n=140 beta=40",
+      "note": "",
+      "paper_value": 1.45,
+      "recomputed_value": 1.4522497241977197,
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "to 1.45 nats at $n=140$, $\\beta=40$"
+      ],
+      "tex_lines": [
+        227
+      ],
+      "verbatim": "to 1.45 nats at $n=140$, $\\beta=40$"
+    },
+    {
+      "claim_id": "stats_ci_excludes_zero",
+      "match": true,
+      "method": "groups whose 95% t-interval excludes zero",
+      "note": "",
+      "paper_value": [
+        32,
+        33
+      ],
+      "recomputed_value": [
+        32,
+        33
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "exclude zero in 32 of 33 groups"
+      ],
+      "tex_lines": [
+        227
+      ],
+      "verbatim": "exclude zero in 32 of 33 groups"
+    },
+    {
+      "claim_id": "stats_cohen_d_range",
+      "match": true,
+      "method": "smallest and largest Cohen's d over n=50..110, and the groups they sit in",
+      "note": "",
+      "paper_value": [
+        1.31,
+        9.6
+      ],
+      "recomputed_value": [
+        1.3111173414686095,
+        9.600801663000764
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "Cohen's $d=1.31$ ($n=50$, $\\beta=40$) to $9.60$ ($n=100$, $\\beta=40$)"
+      ],
+      "tex_lines": [
+        227
+      ],
+      "verbatim": "Cohen's $d=1.31$ ($n=50$, $\\beta=40$) to $9.60$ ($n=100$, $\\beta=40$)"
+    },
+    {
+      "claim_id": "stats_n050_beta20_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.262,
+        0.319,
+        2.02
+      ],
+      "recomputed_value": [
+        0.26240902390522847,
+        0.3194301756508191,
+        2.024678856027942
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50  & 20 & $[0.262, 0.319]$ & $2.02$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        237
+      ],
+      "verbatim": "50  & 20 & $[0.262, 0.319]$ & $2.02$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n050_beta20_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        5.6654242759379864e-37,
+        4.9610417082651575e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50  & 20 & $[0.262, 0.319]$ & $2.02$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        237
+      ],
+      "verbatim": "50  & 20 & $[0.262, 0.319]$ & $2.02$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n050_beta30_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.376,
+        0.433,
+        2.82
+      ],
+      "recomputed_value": [
+        0.3763354873615362,
+        0.43338792306119645,
+        2.816123268627986
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50  & 30 & $[0.376, 0.433]$ & $2.82$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        238
+      ],
+      "verbatim": "50  & 30 & $[0.376, 0.433]$ & $2.82$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n050_beta30_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        4.651472904512054e-49,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50  & 30 & $[0.376, 0.433]$ & $2.82$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        238
+      ],
+      "verbatim": "50  & 30 & $[0.376, 0.433]$ & $2.82$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n050_beta40_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.09,
+        0.121,
+        1.31
+      ],
+      "recomputed_value": [
+        0.08954169014777735,
+        0.12147677321458464,
+        1.3111173414686095
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50  & 40 & $[0.090, 0.121]$ & $1.31$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        239
+      ],
+      "verbatim": "50  & 40 & $[0.090, 0.121]$ & $1.31$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n050_beta40_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        2.285688285843549e-23,
+        7.245464848115237e-16
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "50  & 40 & $[0.090, 0.121]$ & $1.31$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        239
+      ],
+      "verbatim": "50  & 40 & $[0.090, 0.121]$ & $1.31$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n060_beta20_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.278,
+        0.35,
+        1.74
+      ],
+      "recomputed_value": [
+        0.2782723043045081,
+        0.3499148810947319,
+        1.7398308629912675
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60  & 20 & $[0.278, 0.350]$ & $1.74$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        240
+      ],
+      "verbatim": "60  & 20 & $[0.278, 0.350]$ & $1.74$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n060_beta20_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        7.141923581389945e-32,
+        5.112831740936498e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60  & 20 & $[0.278, 0.350]$ & $1.74$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        240
+      ],
+      "verbatim": "60  & 20 & $[0.278, 0.350]$ & $1.74$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n060_beta30_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.456,
+        0.524,
+        2.85
+      ],
+      "recomputed_value": [
+        0.4555802478436896,
+        0.523722864932499,
+        2.851592615791933
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60  & 30 & $[0.456, 0.524]$ & $2.85$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        241
+      ],
+      "verbatim": "60  & 30 & $[0.456, 0.524]$ & $2.85$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n060_beta30_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        1.5414303780308718e-49,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60  & 30 & $[0.456, 0.524]$ & $2.85$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        241
+      ],
+      "verbatim": "60  & 30 & $[0.456, 0.524]$ & $2.85$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n060_beta40_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.208,
+        0.252,
+        2.06
+      ],
+      "recomputed_value": [
+        0.20763210253130732,
+        0.2519543100110579,
+        2.0574768323576316
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60  & 40 & $[0.208, 0.252]$ & $2.06$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        242
+      ],
+      "verbatim": "60  & 40 & $[0.208, 0.252]$ & $2.06$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n060_beta40_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        1.5620408201785625e-37,
+        5.767203615817138e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "60  & 40 & $[0.208, 0.252]$ & $2.06$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        242
+      ],
+      "verbatim": "60  & 40 & $[0.208, 0.252]$ & $2.06$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n070_beta20_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.38,
+        0.446,
+        2.49
+      ],
+      "recomputed_value": [
+        0.38021924149939645,
+        0.44606399417053333,
+        2.489986121166855
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70  & 20 & $[0.380, 0.446]$ & $2.49$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        243
+      ],
+      "verbatim": "70  & 20 & $[0.380, 0.446]$ & $2.49$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n070_beta20_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        2.043054633664711e-44,
+        4.0161556854627e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70  & 20 & $[0.380, 0.446]$ & $2.49$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        243
+      ],
+      "verbatim": "70  & 20 & $[0.380, 0.446]$ & $2.49$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n070_beta30_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.489,
+        0.559,
+        2.97
+      ],
+      "recomputed_value": [
+        0.48908198953463566,
+        0.559045325639437,
+        2.972574068043094
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70  & 30 & $[0.489, 0.559]$ & $2.97$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        244
+      ],
+      "verbatim": "70  & 30 & $[0.489, 0.559]$ & $2.97$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n070_beta30_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        3.8589377883259375e-51,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70  & 30 & $[0.489, 0.559]$ & $2.97$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        244
+      ],
+      "verbatim": "70  & 30 & $[0.489, 0.559]$ & $2.97$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n070_beta40_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.32,
+        0.358,
+        3.55
+      ],
+      "recomputed_value": [
+        0.32038247650314455,
+        0.3583664547350487,
+        3.545666351774528
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70  & 40 & $[0.320, 0.358]$ & $3.55$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        245
+      ],
+      "verbatim": "70  & 40 & $[0.320, 0.358]$ & $3.55$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n070_beta40_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        4.5025784641359166e-58,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "70  & 40 & $[0.320, 0.358]$ & $3.55$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        245
+      ],
+      "verbatim": "70  & 40 & $[0.320, 0.358]$ & $3.55$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n080_beta20_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.439,
+        0.507,
+        2.74
+      ],
+      "recomputed_value": [
+        0.43873251410102876,
+        0.5073675472915213,
+        2.735145147379474
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "80  & 20 & $[0.439, 0.507]$ & $2.74$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        246
+      ],
+      "verbatim": "80  & 20 & $[0.439, 0.507]$ & $2.74$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n080_beta20_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        6.033554381403114e-48,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "80  & 20 & $[0.439, 0.507]$ & $2.74$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        246
+      ],
+      "verbatim": "80  & 20 & $[0.439, 0.507]$ & $2.74$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n080_beta30_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.542,
+        0.618,
+        3.01
+      ],
+      "recomputed_value": [
+        0.5417195804333403,
+        0.6183032603447687,
+        3.005518914162119
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "80  & 30 & $[0.542, 0.618]$ & $3.01$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        247
+      ],
+      "verbatim": "80  & 30 & $[0.542, 0.618]$ & $3.01$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n080_beta30_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        1.4433911243505885e-51,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "80  & 30 & $[0.542, 0.618]$ & $3.01$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        247
+      ],
+      "verbatim": "80  & 30 & $[0.542, 0.618]$ & $3.01$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n080_beta40_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.382,
+        0.433,
+        3.13
+      ],
+      "recomputed_value": [
+        0.3818565087453062,
+        0.43349619828126396,
+        3.1329325899170306
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "80  & 40 & $[0.382, 0.433]$ & $3.13$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        248
+      ],
+      "verbatim": "80  & 40 & $[0.382, 0.433]$ & $3.13$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n080_beta40_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        3.4869468742771883e-53,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "80  & 40 & $[0.382, 0.433]$ & $3.13$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        248
+      ],
+      "verbatim": "80  & 40 & $[0.382, 0.433]$ & $3.13$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n090_beta20_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.444,
+        0.523,
+        2.43
+      ],
+      "recomputed_value": [
+        0.4444585192237758,
+        0.5233424186533515,
+        2.4343713236582807
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 20 & $[0.444, 0.523]$ & $2.43$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        249
+      ],
+      "verbatim": "90  & 20 & $[0.444, 0.523]$ & $2.43$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n090_beta20_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        1.4010949477331782e-43,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 20 & $[0.444, 0.523]$ & $2.43$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        249
+      ],
+      "verbatim": "90  & 20 & $[0.444, 0.523]$ & $2.43$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n090_beta30_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.882,
+        0.962,
+        4.6
+      ],
+      "recomputed_value": [
+        0.8824725787777968,
+        0.9620184046202384,
+        4.60095829988098
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 30 & $[0.882, 0.962]$ & $4.60$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        250
+      ],
+      "verbatim": "90  & 30 & $[0.882, 0.962]$ & $4.60$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n090_beta30_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        1.2363359810977762e-68,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 30 & $[0.882, 0.962]$ & $4.60$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        250
+      ],
+      "verbatim": "90  & 30 & $[0.882, 0.962]$ & $4.60$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n090_beta40_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.451,
+        0.514,
+        3.04
+      ],
+      "recomputed_value": [
+        0.4511109016761864,
+        0.5140146850430811,
+        3.044361478877281
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 40 & $[0.451, 0.514]$ & $3.04$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        251
+      ],
+      "verbatim": "90  & 40 & $[0.451, 0.514]$ & $3.04$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n090_beta40_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        4.577809342404837e-52,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "90  & 40 & $[0.451, 0.514]$ & $3.04$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        251
+      ],
+      "verbatim": "90  & 40 & $[0.451, 0.514]$ & $3.04$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n100_beta20_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.328,
+        0.396,
+        2.12
+      ],
+      "recomputed_value": [
+        0.32847349091759326,
+        0.3963720461300849,
+        2.1182347656598757
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 20 & $[0.328, 0.396]$ & $2.12$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        252
+      ],
+      "verbatim": "100 & 20 & $[0.328, 0.396]$ & $2.12$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n100_beta20_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        1.4851569603252196e-38,
+        4.139373908714419e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 20 & $[0.328, 0.396]$ & $2.12$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        252
+      ],
+      "verbatim": "100 & 20 & $[0.328, 0.396]$ & $2.12$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n100_beta30_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        1.31,
+        1.387,
+        6.24
+      ],
+      "recomputed_value": [
+        1.3099263535253929,
+        1.387414435363865,
+        6.239278403402714
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 30 & $[1.310, 1.387]$ & $6.24$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        253
+      ],
+      "verbatim": "100 & 30 & $[1.310, 1.387]$ & $6.24$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n100_beta30_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        5.976941816038787e-99,
+        9.239952282714919e-22
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 30 & $[1.310, 1.387]$ & $6.24$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        253
+      ],
+      "verbatim": "100 & 30 & $[1.310, 1.387]$ & $6.24$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n100_beta40_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        1.147,
+        1.19,
+        9.6
+      ],
+      "recomputed_value": [
+        1.1468245378188873,
+        1.190459791449944,
+        9.600801663000764
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 40 & $[1.147, 1.190]$ & $9.60$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        254
+      ],
+      "verbatim": "100 & 40 & $[1.147, 1.190]$ & $9.60$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n100_beta40_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        3.200871900636333e-121,
+        9.239952282714919e-22
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "100 & 40 & $[1.147, 1.190]$ & $9.60$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        254
+      ],
+      "verbatim": "100 & 40 & $[1.147, 1.190]$ & $9.60$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n110_beta20_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.203,
+        0.267,
+        1.47
+      ],
+      "recomputed_value": [
+        0.20323395810397715,
+        0.266521474428973,
+        1.4727970798303411
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 20 & $[0.203, 0.267]$ & $1.47$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        255
+      ],
+      "verbatim": "110 & 20 & $[0.203, 0.267]$ & $1.47$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n110_beta20_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        1.0916111427487668e-26,
+        4.7408945782600864e-17
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 20 & $[0.203, 0.267]$ & $1.47$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        255
+      ],
+      "verbatim": "110 & 20 & $[0.203, 0.267]$ & $1.47$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n110_beta30_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        1.072,
+        1.151,
+        5.64
+      ],
+      "recomputed_value": [
+        1.0724114913959435,
+        1.1506819433284703,
+        5.6357150996691
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 30 & $[1.072, 1.151]$ & $5.64$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        256
+      ],
+      "verbatim": "110 & 30 & $[1.072, 1.151]$ & $5.64$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n110_beta30_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        4.894364279195959e-77,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 30 & $[1.072, 1.151]$ & $5.64$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        256
+      ],
+      "verbatim": "110 & 30 & $[1.072, 1.151]$ & $5.64$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n110_beta40_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        1.133,
+        1.194,
+        6.82
+      ],
+      "recomputed_value": [
+        1.132540006573936,
+        1.193710013825618,
+        6.8163410726549865
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 40 & $[1.133, 1.194]$ & $6.82$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        257
+      ],
+      "verbatim": "110 & 40 & $[1.133, 1.194]$ & $6.82$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n110_beta40_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        1.710918827280248e-103,
+        9.239952282714919e-22
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "110 & 40 & $[1.133, 1.194]$ & $6.82$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        257
+      ],
+      "verbatim": "110 & 40 & $[1.133, 1.194]$ & $6.82$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n120_beta20_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.063,
+        0.125,
+        0.6
+      ],
+      "recomputed_value": [
+        0.0630229454133884,
+        0.12538415175827866,
+        0.5994761453774263
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 20 & $[0.063, 0.125]$ & $0.60$  & $3.3\\times 10^{-8}$ & $1.4\\times 10^{-7}$ \\\\"
+      ],
+      "tex_lines": [
+        258
+      ],
+      "verbatim": "120 & 20 & $[0.063, 0.125]$ & $0.60$  & $3.3\\times 10^{-8}$ & $1.4\\times 10^{-7}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n120_beta20_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "3.3\\times 10^{-8}",
+        "1.4\\times 10^{-7}"
+      ],
+      "recomputed_value": [
+        3.323574844420658e-08,
+        1.3828387401551853e-07
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 20 & $[0.063, 0.125]$ & $0.60$  & $3.3\\times 10^{-8}$ & $1.4\\times 10^{-7}$ \\\\"
+      ],
+      "tex_lines": [
+        258
+      ],
+      "verbatim": "120 & 20 & $[0.063, 0.125]$ & $0.60$  & $3.3\\times 10^{-8}$ & $1.4\\times 10^{-7}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n120_beta30_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.711,
+        0.771,
+        4.97
+      ],
+      "recomputed_value": [
+        0.7114028284914933,
+        0.7705978104534885,
+        4.967669036447188
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 30 & $[0.711, 0.771]$ & $4.97$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        259
+      ],
+      "verbatim": "120 & 30 & $[0.711, 0.771]$ & $4.97$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n120_beta30_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        8.524179434837906e-72,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 30 & $[0.711, 0.771]$ & $4.97$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        259
+      ],
+      "verbatim": "120 & 30 & $[0.711, 0.771]$ & $4.97$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n120_beta40_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        -0.048,
+        -0.008,
+        -0.28
+      ],
+      "recomputed_value": [
+        -0.0484741688345781,
+        -0.007870094763326473,
+        -0.27533996406230454
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 40 & $[-0.048, -0.008]$ & $-0.28$ & $0.007$ & $0.016$ \\\\"
+      ],
+      "tex_lines": [
+        260
+      ],
+      "verbatim": "120 & 40 & $[-0.048, -0.008]$ & $-0.28$ & $0.007$ & $0.016$ \\\\"
+    },
+    {
+      "claim_id": "stats_n120_beta40_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "0.007",
+        "0.016"
+      ],
+      "recomputed_value": [
+        0.007017919180287613,
+        0.016243894723567905
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "120 & 40 & $[-0.048, -0.008]$ & $-0.28$ & $0.007$ & $0.016$ \\\\"
+      ],
+      "tex_lines": [
+        260
+      ],
+      "verbatim": "120 & 40 & $[-0.048, -0.008]$ & $-0.28$ & $0.007$ & $0.016$ \\\\"
+    },
+    {
+      "claim_id": "stats_n130_beta20_ci",
+      "match": true,
+      "method": "t-interval and paired t-test p, n=130 beta=20",
+      "note": "",
+      "paper_value": [
+        -0.029,
+        0.035,
+        0.85
+      ],
+      "recomputed_value": [
+        -0.028554272980039604,
+        0.03455926493234419,
+        0.8506438625349196
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "$[-0.029, +0.035]$, $p=0.85$"
+      ],
+      "tex_lines": [
+        227
+      ],
+      "verbatim": "$[-0.029, +0.035]$, $p=0.85$"
+    },
+    {
+      "claim_id": "stats_n130_beta20_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        -0.029,
+        0.035,
+        0.02
+      ],
+      "recomputed_value": [
+        -0.028554272980039604,
+        0.03455926493234419,
+        0.01887900317431712
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 20 & $[-0.029, 0.035]$ & $0.02$  & $0.85$ & $0.74$ \\\\"
+      ],
+      "tex_lines": [
+        261
+      ],
+      "verbatim": "130 & 20 & $[-0.029, 0.035]$ & $0.02$  & $0.85$ & $0.74$ \\\\"
+    },
+    {
+      "claim_id": "stats_n130_beta20_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "0.85",
+        "0.74"
+      ],
+      "recomputed_value": [
+        0.8506438625349196,
+        0.7439395352842529
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 20 & $[-0.029, 0.035]$ & $0.02$  & $0.85$ & $0.74$ \\\\"
+      ],
+      "tex_lines": [
+        261
+      ],
+      "verbatim": "130 & 20 & $[-0.029, 0.035]$ & $0.02$  & $0.85$ & $0.74$ \\\\"
+    },
+    {
+      "claim_id": "stats_n130_beta30_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        0.33,
+        0.374,
+        3.19
+      ],
+      "recomputed_value": [
+        0.3301382051137916,
+        0.3739711211916403,
+        3.187343635874065
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 30 & $[0.330, 0.374]$ & $3.19$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        262
+      ],
+      "verbatim": "130 & 30 & $[0.330, 0.374]$ & $3.19$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n130_beta30_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        7.383406383857022e-54,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 30 & $[0.330, 0.374]$ & $3.19$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        262
+      ],
+      "verbatim": "130 & 30 & $[0.330, 0.374]$ & $3.19$  & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n130_beta40_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        -1.352,
+        -1.298,
+        -8.81
+      ],
+      "recomputed_value": [
+        -1.3516689031910754,
+        -1.297740043771479,
+        -8.80564593012485
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 40 & $[-1.352, -1.298]$ & $-8.81$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        263
+      ],
+      "verbatim": "130 & 40 & $[-1.352, -1.298]$ & $-8.81$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n130_beta40_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        9.909543913018636e-117,
+        9.239952282714919e-22
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "130 & 40 & $[-1.352, -1.298]$ & $-8.81$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        263
+      ],
+      "verbatim": "130 & 40 & $[-1.352, -1.298]$ & $-8.81$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n140_beta20_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        -0.136,
+        -0.08,
+        -0.76
+      ],
+      "recomputed_value": [
+        -0.1357042124148586,
+        -0.07952794712713172,
+        -0.7602272904800474
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 20 & $[-0.136, -0.080]$ & $-0.76$ & $1.7\\times 10^{-11}$ & $6.2\\times 10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        264
+      ],
+      "verbatim": "140 & 20 & $[-0.136, -0.080]$ & $-0.76$ & $1.7\\times 10^{-11}$ & $6.2\\times 10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n140_beta20_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "1.7\\times 10^{-11}",
+        "6.2\\times 10^{-10}"
+      ],
+      "recomputed_value": [
+        1.6893677095532558e-11,
+        6.188773004847958e-10
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 20 & $[-0.136, -0.080]$ & $-0.76$ & $1.7\\times 10^{-11}$ & $6.2\\times 10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        264
+      ],
+      "verbatim": "140 & 20 & $[-0.136, -0.080]$ & $-0.76$ & $1.7\\times 10^{-11}$ & $6.2\\times 10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n140_beta30_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        -0.053,
+        -0.019,
+        -0.42
+      ],
+      "recomputed_value": [
+        -0.05349629215874299,
+        -0.01895709004631724,
+        -0.41623205047730455
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 30 & $[-0.053, -0.019]$ & $-0.42$ & $7\\times 10^{-5}$ & $5.8\\times 10^{-5}$ \\\\"
+      ],
+      "tex_lines": [
+        265
+      ],
+      "verbatim": "140 & 30 & $[-0.053, -0.019]$ & $-0.42$ & $7\\times 10^{-5}$ & $5.8\\times 10^{-5}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n140_beta30_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "7\\times 10^{-5}",
+        "5.8\\times 10^{-5}"
+      ],
+      "recomputed_value": [
+        6.727005186543482e-05,
+        5.834610829586528e-05
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 30 & $[-0.053, -0.019]$ & $-0.42$ & $7\\times 10^{-5}$ & $5.8\\times 10^{-5}$ \\\\"
+      ],
+      "tex_lines": [
+        265
+      ],
+      "verbatim": "140 & 30 & $[-0.053, -0.019]$ & $-0.42$ & $7\\times 10^{-5}$ & $5.8\\times 10^{-5}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n140_beta40_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        -1.496,
+        -1.409,
+        -6.59
+      ],
+      "recomputed_value": [
+        -1.495976087465066,
+        -1.4085233609303733,
+        -6.590025571236316
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 40 & $[-1.496, -1.409]$ & $-6.59$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        266
+      ],
+      "verbatim": "140 & 40 & $[-1.496, -1.409]$ & $-6.59$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n140_beta40_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        1.372089617959981e-83,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "140 & 40 & $[-1.496, -1.409]$ & $-6.59$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        266
+      ],
+      "verbatim": "140 & 40 & $[-1.496, -1.409]$ & $-6.59$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n150_beta20_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        -0.201,
+        -0.145,
+        -1.21
+      ],
+      "recomputed_value": [
+        -0.20108749136998688,
+        -0.14455896274633329,
+        -1.2132591634914056
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 20 & $[-0.201, -0.145]$ & $-1.21$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        267
+      ],
+      "verbatim": "150 & 20 & $[-0.201, -0.145]$ & $-1.21$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n150_beta20_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        2.673453527394047e-21,
+        3.4412810293497976e-15
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 20 & $[-0.201, -0.145]$ & $-1.21$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        267
+      ],
+      "verbatim": "150 & 20 & $[-0.201, -0.145]$ & $-1.21$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n150_beta30_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        -0.415,
+        -0.374,
+        -3.88
+      ],
+      "recomputed_value": [
+        -0.4147798800481867,
+        -0.37438872778090754,
+        -3.8767939051415947
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 30 & $[-0.415, -0.374]$ & $-3.88$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        268
+      ],
+      "verbatim": "150 & 30 & $[-0.415, -0.374]$ & $-3.88$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n150_beta30_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        1.1759053573677148e-61,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 30 & $[-0.415, -0.374]$ & $-3.88$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        268
+      ],
+      "verbatim": "150 & 30 & $[-0.415, -0.374]$ & $-3.88$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n150_beta40_ci_d",
+      "match": true,
+      "method": "t-interval on the mean advantage; Cohen's d = mean / sample std",
+      "note": "",
+      "paper_value": [
+        -1.333,
+        -1.252,
+        -6.3
+      ],
+      "recomputed_value": [
+        -1.3332020643826632,
+        -1.2517465248353963,
+        -6.296807851514595
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 40 & $[-1.333, -1.252]$ & $-6.30$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        269
+      ],
+      "verbatim": "150 & 40 & $[-1.333, -1.252]$ & $-6.30$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_n150_beta40_p",
+      "match": true,
+      "method": "two-sided one-sample t-test and Wilcoxon signed-rank on the advantage; a printed bound must hold, a printed value must round to it",
+      "note": "",
+      "paper_value": [
+        "<10^{-15}",
+        "<10^{-10}"
+      ],
+      "recomputed_value": [
+        1.1197455168969603e-81,
+        3.896559845095909e-18
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "150 & 40 & $[-1.333, -1.252]$ & $-6.30$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+      ],
+      "tex_lines": [
+        269
+      ],
+      "verbatim": "150 & 40 & $[-1.333, -1.252]$ & $-6.30$ & $<10^{-15}$ & $<10^{-10}$ \\\\"
+    },
+    {
+      "claim_id": "stats_shapiro_exceptions",
+      "match": true,
+      "method": "Shapiro-Wilk p on the advantage; these are the only groups at or below 0.05",
+      "note": "",
+      "paper_value": [
+        0.033,
+        0.049
+      ],
+      "recomputed_value": [
+        0.03264248065638722,
+        0.04921164101959765
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "$n=100$, $\\beta=20$ ($p=0.033$) and $n=110$, $\\beta=40$ ($p=0.049$)"
+      ],
+      "tex_lines": [
+        227
+      ],
+      "verbatim": "$n=100$, $\\beta=20$ ($p=0.033$) and $n=110$, $\\beta=40$ ($p=0.049$)"
+    },
+    {
+      "claim_id": "stats_t_p_below_1e-15",
+      "match": true,
+      "method": "groups whose paired t-test p is below 1e-15",
+      "note": "",
+      "paper_value": [
+        28,
+        33
+      ],
+      "recomputed_value": [
+        28,
+        33
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "$p<10^{-15}$ for 28 of the 33 complete groups"
+      ],
+      "tex_lines": [
+        227
+      ],
+      "verbatim": "$p<10^{-15}$ for 28 of the 33 complete groups"
+    },
+    {
+      "claim_id": "std_n070_beta40",
+      "match": true,
+      "method": "sample std of the advantage, n=70 beta=40",
+      "note": "",
+      "paper_value": 0.096,
+      "recomputed_value": 0.09571528506884106,
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "the standard deviation is 0.096, roughly one-quarter of the mean"
+      ],
+      "tex_lines": [
+        448
+      ],
+      "verbatim": "the standard deviation is 0.096, roughly one-quarter of the mean"
+    },
+    {
+      "claim_id": "std_range_beta30",
+      "match": true,
+      "method": "smallest and largest sample std of the advantage over n=50..150, beta=30",
+      "note": "",
+      "paper_value": [
+        0.09,
+        0.22
+      ],
+      "recomputed_value": [
+        0.08703484285025141,
+        0.2161580726561432
+      ],
+      "source": {
+        "campaign": "main",
+        "field": "advantage",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "the standard deviation remains stable at 0.09--0.22 across dimensions"
+      ],
+      "tex_lines": [
+        448
+      ],
+      "verbatim": "the standard deviation remains stable at 0.09--0.22 across dimensions"
+    },
+    {
+      "claim_id": "tours3x_beta20_closure",
+      "match": true,
+      "method": "1 - mean advantage_3x / main-campaign mean advantage; gap_closed count; seed count, n=60 beta=20",
+      "note": "",
+      "paper_value": [
+        67,
+        26,
+        100
+      ],
+      "recomputed_value": [
+        66.93390947130564,
+        26,
+        100
+      ],
+      "source": {
+        "campaign": "tours3x",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "closes 67\\% of the gap and wins 26 of 100 seeds"
+      ],
+      "tex_lines": [
+        321
+      ],
+      "verbatim": "closes 67\\% of the gap and wins 26 of 100 seeds"
     },
     {
       "claim_id": "tours3x_equal_time_tours",
@@ -489,6 +5553,33 @@
         319
       ],
       "verbatim": "$+0.38$ nats at $n=50$, $+0.50$ at $n=60$, $+0.55$ at $n=70$, $+0.56$ at $n=80$"
+    },
+    {
+      "claim_id": "tours3x_gap_move_pct",
+      "match": true,
+      "method": "mean advantage_3x against the main-campaign mean advantage, beta=30, range over n=50..80",
+      "note": "",
+      "paper_value": [
+        -6,
+        5
+      ],
+      "recomputed_value": [
+        -5.6982826695303075,
+        4.821816221912778
+      ],
+      "source": {
+        "campaign": "tours3x",
+        "kind": "seeds",
+        "q": 97
+      },
+      "status": "DERIVED",
+      "tex_anchors": [
+        "($-6\\%$ to $+5\\%$)"
+      ],
+      "tex_lines": [
+        319
+      ],
+      "verbatim": "($-6\\%$ to $+5\\%$)"
     },
     {
       "claim_id": "tours3x_gaps_closed",

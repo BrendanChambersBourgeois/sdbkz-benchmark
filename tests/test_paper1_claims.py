@@ -30,7 +30,11 @@ def test_committed_ledger_matches_builder():
 
 
 def test_rounding_rule():
-    from build_paper1_claims import _matches
+    from build_paper1_claims import _matches, _p_matches
     assert _matches(1.1634, 1.163, 3)
     assert not _matches(1.1636, 1.163, 3)
     assert not _matches([0.1], [0.1, 0.2], 1)
+    assert _matches([98.0, 0.2909], [98, 0.291], [0, 3])
+    assert _p_matches("<10^{-15}", 1e-20) and not _p_matches("<10^{-15}", 1e-14)
+    assert _p_matches(r"3.3\times 10^{-8}", 3.32e-8) and _p_matches("0.007", 0.00702)
+    assert not _p_matches("0.85", 0.86)
