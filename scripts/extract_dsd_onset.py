@@ -135,7 +135,7 @@ def _seed_fires(seed: dict, variant: str, n: int) -> bool:
 def _cell_rate(tree: str, n: int, beta: int, q: int, variant: str,
                max_tours: int = DEFAULT_TOURS):
     """(fires, total) for one (tree, n, beta, q) cell at one tour budget, or
-    None if absent. Precisions pool; other budgets do not.
+    None if absent. One file per seed, the highest precision; other budgets do not pool.
 
     Each seed is scored by _seed_fires (recovery field first, _is_dsd fallback).
     Byte-identity note: pre-fix cells (no recovery field) score exactly as before
@@ -145,7 +145,13 @@ def _cell_rate(tree: str, n: int, beta: int, q: int, variant: str,
     the committed trend table is unaffected."""
     pat = os.path.join(BASE, "results", "seeds", tree, f"q{q}",
                        f"p*_mt{max_tours}", f"n{n:03d}_beta{beta:02d}", "seed*.json")
-    files = sorted(glob.glob(pat))
+    best = {}  # seed file name -> (precision, path): a higher-precision rerun replaces the lower
+    for f in sorted(glob.glob(pat)):
+        prec = int(f.split(os.sep)[-3][1:].split("_")[0])
+        name = os.path.basename(f)
+        if name not in best or prec > best[name][0]:
+            best[name] = (prec, f)
+    files = [f for _, f in best.values()]
     if not files:
         return None
     fires = poisoned_fallback = 0

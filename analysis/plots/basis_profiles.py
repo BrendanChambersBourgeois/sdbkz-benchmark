@@ -12,13 +12,9 @@ from .._style import COLORS
 
 
 def fig_basis_profiles(groups, output_dir=".", show_groups=None):
-    """Plot the actual Rankin profile of the reduced basis vs the Li-Nguyen
-    theoretical fixed point.
+    """Plot the mean Rankin profile of the reduced basis, BKZ vs SD-BKZ.
 
-    This is the canonical lattice paper figure: shows the GSO log-norm
-    profile shape directly. Each panel = one (n, β) group, with three
-    curves: BKZ result, SD-BKZ result, and the theoretical fixed point.
-    Profiles are averaged across all seeds in the group.
+    Each panel = one (n, β) group, profiles averaged across its seeds.
 
     Args:
         groups: Output of load_all_seeds().

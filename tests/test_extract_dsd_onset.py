@@ -107,14 +107,14 @@ def test_cell_rate_reads_one_tour_budget(base):
     assert ed._q_grid("ntru", 167, 40, max_tours=200) == []
 
 
-def test_cell_rate_pools_precisions_at_one_budget(base):
+def test_cell_rate_takes_highest_precision_per_seed(base):
     # n=89 q=97 shape: p250_mt50 + p500_mt50 reruns with the same seed ids.
-    # Both precisions count (5 + 4 = 9 seeds); q appears once on the grid.
+    # Seeds 1-4 come from p500, seed 5 from p250; q appears once on the grid.
     for prec, seeds in (("p250", [_seed(recovered=True)] * 3 + [_seed(recovered=False)] * 2),
                         ("p500", [_seed(recovered=True)] * 2 + [_seed(recovered=False)] * 2)):
         d = base / "results" / "seeds" / "ntru" / "q97" / f"{prec}_mt50" / "n089_beta20"
         d.mkdir(parents=True)
         for i, s in enumerate(seeds):
             (d / f"seed{i + 1:04d}.json").write_text(json.dumps(s))
-    assert ed._cell_rate("ntru", 89, 20, 97, "sdbkz") == (5, 9)
+    assert ed._cell_rate("ntru", 89, 20, 97, "sdbkz") == (2, 5)
     assert ed._q_grid("ntru", 89, 20) == [97]

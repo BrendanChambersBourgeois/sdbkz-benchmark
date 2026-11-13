@@ -1,4 +1,4 @@
-"""Figure 10: GSO log-norm staircase with GSA and Li-Nguyen predictions.
+"""Paper 1 Figure 8: GSO log-norm staircase with GSA and Li-Nguyen predictions.
 
 The classic lattice paper figure: log||b*_i|| vs basis position i,
 overlaid with theoretical GSA and LN reference lines computed from
@@ -88,7 +88,8 @@ def fig_gso_profiles(groups, output_dir=".", show_groups=None):
         # profile's log_vol so the theoretical lines have the same area.
         log_vol = float(np.sum(bkz_active))
         log_factor = math.log(beta / (2 * math.pi * math.e))
-        log_delta_gsa = log_factor / (2 * beta)
+        # Standard GSA root-Hermite slope: delta^(2(beta-1)) = beta/(2 pi e) * (pi beta)^(1/beta)
+        log_delta_gsa = (log_factor + math.log(math.pi * beta) / beta) / (2 * (beta - 1))
         log_delta_ln = log_factor / (2 * (beta - 1))
 
         gsa_line = np.array([

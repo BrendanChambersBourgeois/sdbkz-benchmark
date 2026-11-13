@@ -57,13 +57,14 @@ def fig_ntru_profiles(output_dir=".", fname="profiles.png"):
     fig, axes = plt.subplots(1, 3, figsize=(12, 4.2), sharey=True)
     for ax, q, lbl, c in zip(axes, QS, LABELS, cells, strict=True):
         d = c[seed]
-        ax.plot(d["initial_gs_lognorms"], color="#94a3b8", lw=1.2, ls=":",
+        pos = range(1, 2 * N + 1)  # 1-based GS position
+        ax.plot(pos, d["initial_gs_lognorms"], color="#94a3b8", lw=1.2, ls=":",
                 label="initial profile", zorder=2)
-        ax.plot(d["gs_lognorms_bkz"], color=bkz_c, lw=1.6, label="BKZ", zorder=3)
-        ax.plot(d["gs_lognorms_sdbkz"], color=sd_c, lw=1.6, label="SD-BKZ", zorder=4)
+        ax.plot(pos, d["gs_lognorms_bkz"], color=bkz_c, lw=1.6, label="BKZ", zorder=3)
+        ax.plot(pos, d["gs_lognorms_sdbkz"], color=sd_c, lw=1.6, label="SD-BKZ", zorder=4)
         ax.axhline(secret, color=COLORS["zero"], lw=1.0, ls="--", alpha=0.7,
                    zorder=1, label=r"mean secret $\log\sqrt{4n/3}$")
-        ax.axvline(N, color="#475569", lw=0.8, ls="--", alpha=0.6, zorder=1)
+        ax.axvline(N + 0.5, color="#475569", lw=0.8, ls="--", alpha=0.6, zorder=1)
         ax.set_title(f"$q={q}$: {lbl}")
         ax.set_xlabel("GS position $i$")
         ax.grid(alpha=0.15, zorder=0)

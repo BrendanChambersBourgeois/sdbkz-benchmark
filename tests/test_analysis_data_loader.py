@@ -77,10 +77,12 @@ def _entry(**kwargs):
 
 @pytest.fixture
 def fresh_cache():
-    """Ensure _MANIFEST_CACHE starts empty every test."""
+    """Empty _MANIFEST_CACHE around every test; restore the paths tests repoint."""
+    old_default, old_file = data.DEFAULT_MANIFEST_PATH, data.__file__
     data._MANIFEST_CACHE.clear()
     yield
     data._MANIFEST_CACHE.clear()
+    data.DEFAULT_MANIFEST_PATH, data.__file__ = old_default, old_file
 
 
 @pytest.fixture
