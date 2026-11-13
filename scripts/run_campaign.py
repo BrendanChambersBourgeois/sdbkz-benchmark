@@ -355,8 +355,9 @@ def _ntru_log_clamp(ctx: str, position: int, raw_value: float) -> None:
 
 # NTRU task tuple: (n, beta, seed, q, precision, max_tours, generator,
 # seed_tag, backend, metric_float_type, store_short_vectors, store_per_tour,
-# sieve_trace). Defaults for the fields after `backend`.
-_NTRU_TASK_TAIL_DEFAULTS = ("double", False, False, False)
+# sieve_trace, variants, exact_match_tour). Defaults for the fields after
+# `backend`.
+_NTRU_TASK_TAIL_DEFAULTS = ("double", False, False, False, ("bkz", "sdbkz"), False)
 
 
 def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
@@ -384,7 +385,8 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
     (n, beta, seed, q, precision, max_tours, generator, seed_tag,
      backend) = task[:9]
     # 9-field tuple (run_packed): the tail takes _NTRU_TASK_TAIL_DEFAULTS.
-    metric_float_type, store_short_vectors, store_per_tour, sieve_trace = (
+    (metric_float_type, store_short_vectors, store_per_tour, sieve_trace,
+     variants, exact_match_tour) = (
         tuple(task[9:]) + _NTRU_TASK_TAIL_DEFAULTS[len(task) - 9:])
     # Track which reduction leg is in flight so a failure / wall-cap kill /
     # crash can be attributed.
@@ -451,6 +453,7 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
             store_per_tour=store_per_tour,
             sieve_trace=sieve_trace,
             tour_cb=_sieve_trace_cb(task) if sieve_trace else None,
+            variants=variants, exact_match_tour=exact_match_tour,
         )
         write_seed_atomic(out, r)
         # Centralised per-seed completion event (side-log only; never touches
@@ -459,7 +462,7 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
         PIPELINE.info(
             "seed done", cat="seed", n=n, beta=beta, seed=seed, q=q,
             precision=precision, backend=backend, seed_tag=seed_tag,
-            advantage=r["advantage"],
+            advantage=r.get("advantage"),
         )
     except Exception as e:  # noqa: BLE001 -- isolate one seed's failure
         PIPELINE.error(
@@ -469,7 +472,8 @@ def _ntru_seed_worker(task: tuple, leg_notify=None) -> tuple:
             error=f"{type(e).__name__}: {e}",
         )
         return (n, beta, seed, None, f"error: {type(e).__name__}: {e}")
-    return (n, beta, seed, r["advantage"], "ok")
+    # A single-variant seed has no advantage; nan keeps the progress print.
+    return (n, beta, seed, r.get("advantage", float("nan")), "ok")
 
 
 # Per-seed wall-cap side log. A wedged seed (g6k β≥50 past dim ~300
@@ -750,7 +754,7 @@ def _dispatch_ntru(
          campaign.tours_by_beta[beta], campaign.generator, seed_tag,
          campaign.backend, campaign.metric_float_type,
          campaign.store_short_vectors, campaign.store_per_tour,
-         campaign.sieve_trace)
+         campaign.sieve_trace, campaign.variants, campaign.exact_match_tour)
         for n in campaign.n_grid
         for beta in campaign.beta_grid
         for seed in range(first_seed, campaign.num_seeds + 1)

@@ -57,6 +57,8 @@ CAMPAIGN_FIELDS: frozenset[str] = frozenset({
     "seed_wall_s",
     "sieve_trace",
     "image",
+    "variants",
+    "exact_match_tour",
 })
 
 # Top-level (non-campaign) keys allowed in the TOML root. `default` is
@@ -137,6 +139,12 @@ class Campaign:
     # kahan-v3 rerun), run_campaign defaults --image to this and refuses any
     # other value, so a run on the wrong engine cannot write into the tree.
     image: str | None = None
+    # Reduction legs to run (NTRU runner only). A single-leg seed carries no
+    # advantage, so such a campaign must write to its own seed tree.
+    variants: tuple[str, ...] = ("bkz", "sdbkz")
+    # Opt-in (NTRU runner only): test the planted secret after every tour and
+    # store first_exact_match_tour_{variant}.
+    exact_match_tour: bool = False
 
 
 def _read_toml(path: str) -> dict[str, Any]:
@@ -319,6 +327,13 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
                 f"{sorted(_KNOWN_CAMPAIGNS)}"
             )
 
+    variants = tuple(str(v) for v in merged.get("variants", ("bkz", "sdbkz")))
+    if not variants or len(set(variants)) != len(variants) or not set(variants) <= {"bkz", "sdbkz"}:
+        raise ConfigError(f"{ctx}: variants must be distinct names from bkz, sdbkz, "
+                          f"got {list(variants)!r}")
+    if len(variants) < 2 and not seed_tag_val:
+        raise ConfigError(f"{ctx}: a single-variant campaign needs its own seed_tag")
+
     return Campaign(
         name=name,
         description=str(merged.get("description", "")),
@@ -339,6 +354,8 @@ def _to_campaign(name: str, merged: dict[str, Any]) -> Campaign:
         store_bases=bool(merged.get("store_bases", False)),
         sieve_trace=sieve_trace,
         image=(str(merged["image"]) if merged.get("image") else None),
+        variants=variants,
+        exact_match_tour=bool(merged.get("exact_match_tour", False)),
     )
 
 

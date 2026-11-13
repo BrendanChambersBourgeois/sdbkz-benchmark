@@ -64,6 +64,7 @@ PATCHED_TREES: dict[str, str] = {
 SIDE_TREES: dict[str, str] = {
     "ntru_b2": "fplll",
     "ntru_b2_probe": "fplll",
+    "ntru_equal_sweep": "fplll",
     "ntru_exact": "fplll",
     "q3329_mpfr": "fplll",
     "ntru_flatter": "flatter+fplll",

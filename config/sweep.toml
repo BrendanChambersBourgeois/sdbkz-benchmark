@@ -566,6 +566,19 @@ n_grid = [59, 61, 67, 71, 73, 79, 83, 89, 101, 113, 127]
 tours_by_beta = { "20" = 50, "40" = 50 }
 num_seeds = 100
 
+[campaigns.ntru_equal_sweep]
+description = "NTRU n=163 beta=40 BKZ-only legs at 130 tours (equal-sweep control vs stored SD-BKZ at 50); pass --q"
+inherits = "ntru"
+seed_tag = "ntru_equal_sweep"
+q = 4049
+precision = 500
+beta_grid = [40]
+n_grid = [163]
+tours_by_beta = { "40" = 130 }
+num_seeds = 20
+variants = ["bkz"]
+exact_match_tour = true
+
 [campaigns.ntru_g6k_exact]
 description = "Flag-scored G6K NTRU cells rerun to record secret_exact_match"
 generator = "ntru"

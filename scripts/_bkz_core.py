@@ -214,8 +214,17 @@ def run_single(
     sieve_trace: bool = False,
     tour_cb: Optional[Callable[..., None]] = None,
     basis_cb: Optional[Callable[[str, int, Any], None]] = None,
+    variants: tuple[str, ...] = ("bkz", "sdbkz"),
+    exact_match_tour: bool = False,
 ) -> dict[str, Any]:
     """Run BKZ and SD-BKZ on a single (n, beta, seed) lattice.
+
+    ``variants`` restricts the run to one leg (a single-leg result carries no
+    ``advantage``, ``rhf_advantage`` or ``crossover_tour``). ``exact_match_tour``
+    tests the integer basis against the planted secret after every tour and
+    records ``first_exact_match_tour_{variant}`` (None = never); it needs
+    ``secret_f``/``secret_g``. Both are off by default, which leaves the
+    result unchanged.
 
     Returns a result dict matching the schema of the legacy run_single
     copies. Callers (sweep_parallel, q3329_verify)
@@ -284,7 +293,9 @@ def run_single(
     result["initial_rankin_profile"] = [float(x) for x in init["rankin"]]
     result["initial_gs_lognorms"] = [float(x) for x in init["gs_lognorms"]]
 
-    for variant in ("bkz", "sdbkz"):
+    if exact_match_tour and (secret_f is None or secret_g is None):
+        raise ValueError("exact_match_tour needs secret_f and secret_g")
+    for variant in variants:
         # Side-channel only (wall-cap / crash / seed-failed
         # records carried no variant, so leg attribution was inference).
         # Reports which leg is starting; must never affect the science path,
@@ -317,6 +328,7 @@ def run_single(
         stag_rhf = None
         stag_gs = None
         termination = "max_tours_reached"
+        first_exact_tour = None
         prev_rankin = init["rankin"]
         t0 = time.time()
 
@@ -332,6 +344,9 @@ def run_single(
             M = engine.gso()
             if basis_cb is not None:
                 basis_cb(variant, t, M.B)
+            if (exact_match_tour and first_exact_tour is None
+                    and _secret_recovery(M.B, secret_f, secret_g, n)["exact_match"]):
+                first_exact_tour = t
             if store_per_tour:
                 metrics = _metrics(M, full=True, ctx=vctx)
                 rankin_per_tour.append([float(x) for x in metrics["rankin"]])
@@ -404,6 +419,8 @@ def run_single(
             result[f"min_actual_norm2_{variant}"] = rec["min_norm2"]
             result[f"secret_recovered_{variant}"] = rec["recovered"]
             result[f"secret_exact_match_{variant}"] = rec["exact_match"]
+            if exact_match_tour:
+                result[f"first_exact_match_tour_{variant}"] = first_exact_tour
             if store_short_vectors:
                 # Opt-in (campaign store_short_vectors = true): the three
                 # shortest exact integer rows, so a sub-q^2 non-secret leg
@@ -434,6 +451,9 @@ def run_single(
         else:  # "plain" — sweep_parallel legacy form
             result[f"{variant}_floor"] = float(np.mean(deltas[-5:]))
         result[f"{variant}_time"] = elapsed
+
+    if not {"bkz", "sdbkz"} <= set(variants):
+        return result
 
     result["advantage"] = result["bkz_final_dln"] - result["sdbkz_final_dln"]
     result["rhf_advantage"] = result["rhf_bkz"] - result["rhf_sdbkz"]

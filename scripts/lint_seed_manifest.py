@@ -97,6 +97,8 @@ NON_MANIFEST_SEED_TREES = frozenset({
     # Its own tree for the same reason, and its seeds carry the extra
     # per-tour arrays, so they are not canonical-manifest members.
     "ntru_b2_probe",
+    # BKZ-only equal-sweep control: single-leg seeds, own tree.
+    "ntru_equal_sweep",
     # g6k short-vector probe (2026-09-02, store_short_vectors=true reruns of
     # band-bearing ntru_g6k seeds): own tree, extra keys.
     "ntru_g6k_vecprobe",

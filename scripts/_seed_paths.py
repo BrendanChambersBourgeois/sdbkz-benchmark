@@ -57,6 +57,10 @@ _KNOWN_CAMPAIGNS = frozenset({
     # store_short_vectors. Own tree: their b50 cells and seeds are also rerun
     # in ntru_g6k_reject, so sharing that tree would collide.
     "ntru_g6k_vecprobe_reject",
+    # BKZ-only legs at a longer tour budget (equal-sweep control against the
+    # stored SD-BKZ legs). Single-variant seeds carry no advantage, so they
+    # never share a tree with two-leg seeds.
+    "ntru_equal_sweep",
 })
 
 
@@ -185,7 +189,7 @@ def seed_dir_for(
     elif campaign in ("ntru_b2", "ntru_b2_probe", "ntru_g6k_vecprobe",
                       "ntru_patched_kahan_v3", "ntru_g6k_diag",
                       "ntru_exact", "ntru_g6k_exact", "ntru_g6k_reject",
-                      "ntru_g6k_vecprobe_reject"):
+                      "ntru_g6k_vecprobe_reject", "ntru_equal_sweep"):
         # forever-runner idle-filler: same layout as ntru, separate root so the
         # extra-power seeds never touch or re-open a published cell's N.
         # ntru_b2_probe shares the layout under its own root for the same

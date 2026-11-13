@@ -111,3 +111,29 @@ def test_shortest_rows_are_exact_and_ascending():
     assert rec["shortest_rows"][0][0] == rec["min_norm2"]
     assert set(rec) == {"secret_norm2", "min_norm2", "recovered",
                         "exact_match", "shortest_rows"}
+
+
+def test_single_variant_and_first_exact_match_tour():
+    # A BKZ-only run reproduces the two-leg run's BKZ fields, drops the
+    # two-leg fields, and records the tour of the first exact match.
+    from _bkz_core import run_single
+    from generators import build_ntru, get_metric_span
+    n, q = 59, 97
+    L, f, g = build_ntru(n, q, seed=1)
+    ms, me = get_metric_span("ntru")(n, len(L))
+    kw = dict(L=L, n=n, active_block_start=ms, active_block_end=me, beta=20,
+              seed=1, q=q, precision=250, max_tours=5, log_clamp_fn=None,
+              secret_f=f, secret_g=g)
+    both = run_single(**kw)
+    one = run_single(**kw, variants=("bkz",), exact_match_tour=True)
+    first = one.pop("first_exact_match_tour_bkz")
+    assert set(both) - set(one) == {k for k in both if "sdbkz" in k} | {
+        "advantage", "rhf_advantage", "crossover_tour"}
+    for k in one:
+        if k not in ("timestamp", "bkz_time"):
+            assert one[k] == both[k], f"field {k} changed"
+    if one["secret_exact_match_bkz"]:
+        assert first is not None
+    assert first is None or 1 <= first <= 5
+    with pytest.raises(ValueError):
+        run_single(**{**kw, "secret_f": None}, exact_match_tour=True)
