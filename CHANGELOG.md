@@ -5,6 +5,8 @@ User-visible changes per version. Seed counts are manifest totals.
 ## Unreleased
 
 ### Fixed
+- Paper 2 Figure profiles: legend names the mean secret log-norm; caption states the precision per panel.
+- Figure code: paired-keys reads seed files in sorted order, peak-dip counts seeds with a profile, the R² fit stops on an empty cell; a test ties figure onset constants to the claims tables.
 - `analysis/_data.py`: a seed file a loader cannot read, or a convergence file without per-tour keys, is logged (path and error) and counted before it is skipped.
 - Paper 1 Figure 12 re-rendered: title and labels describe the double-precision measurement, 100 seeds; caption spike range.
 - Paper 2: floored-leg and all-ones-leg counts updated to the current seed set.
