@@ -4,7 +4,14 @@ User-visible changes per version. Seed counts are manifest totals.
 
 ## Unreleased
 
+### Added
+- Paper 1 claims ledger (`make paper1-claims`, `results/paper_claims/paper1_claims.json`) with a test tying printed numbers to the seeds.
+
 ### Fixed
+- Paper 1 Figure 8: the GSA line uses the standard slope; the caption states what the figure shows.
+- Paper 1: block size 40 is level with 30 at n=110; the tour-cost sentence cites the 3x-tour runs. Paper 2 abstract: onset gap under a monotone fit.
+- `extract_dsd_onset.py` counts one file per seed, the highest precision. Paper 2 profiles figure plots 1-based positions.
+- Loader tests restore the manifest path they repoint.
 - Paper 2 Figure profiles: legend names the mean secret log-norm; caption states the precision per panel.
 - Figure code: paired-keys reads seed files in sorted order, peak-dip counts seeds with a profile, the R² fit stops on an empty cell; a test ties figure onset constants to the claims tables.
 - `analysis/_data.py`: a seed file a loader cannot read, or a convergence file without per-tour keys, is logged (path and error) and counted before it is skipped.
