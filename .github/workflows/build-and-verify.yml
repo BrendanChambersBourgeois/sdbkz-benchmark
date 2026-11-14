@@ -120,7 +120,7 @@ jobs:
             results/seeds/ntru_exact/ results/seeds/ntru_g6k_exact/ \
             results/seeds/ntru_g6k_reject/ results/seeds/ntru_g6k_vecprobe_reject/ \
             results/seeds/q3329_kahan/ results/seeds/q3329_control/ \
-            results/seeds/q3329_mpfr/
+            results/seeds/q3329_mpfr/ results/seeds/ntru_equal_sweep/
           # tours3x is non-strict: pilot and extended seeds share (n, beta, seed).
           docker run --rm -v "${{ github.workspace }}:/repo" -w /repo \
             sdbkz-benchmark:ci python3 scripts/validate_seeds.py \

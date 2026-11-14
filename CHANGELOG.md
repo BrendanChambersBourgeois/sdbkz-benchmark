@@ -8,6 +8,7 @@ User-visible changes per version. Seed counts are manifest totals.
 - Paper 1 claims ledger (`make paper1-claims`, `results/paper_claims/paper1_claims.json`) with a test tying printed numbers to the seeds.
 - Paper 1 claims ledger covers the main, statistics, decomposition, growth, peak and q=3329 tables and the convergence sentences.
 - Campaign `ntru_equal_sweep`: BKZ-only legs that record the tour of the first exact key match.
+- Seed tree `results/seeds/ntru_equal_sweep/` (120 seeds; side manifest 10,073).
 
 ### Fixed
 - Paper 1 Figure 8: the GSA line uses the standard slope; the caption states what the figure shows.
