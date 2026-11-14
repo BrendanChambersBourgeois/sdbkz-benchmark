@@ -223,7 +223,8 @@ def run_single(
     ``advantage``, ``rhf_advantage`` or ``crossover_tour``). ``exact_match_tour``
     tests the integer basis against the planted secret after every tour and
     records ``first_exact_match_tour_{variant}`` (None = never); it needs
-    ``secret_f``/``secret_g``. Both are off by default, which leaves the
+    ``secret_f``/``secret_g``. A match can be transient: ``secret_exact_match``
+    is the state after the last tour. Both are off by default, which leaves the
     result unchanged.
 
     Returns a result dict matching the schema of the legacy run_single
