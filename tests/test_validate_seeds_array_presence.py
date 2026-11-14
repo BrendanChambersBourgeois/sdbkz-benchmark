@@ -78,3 +78,13 @@ def test_trajectory_with_finite_dln_no_presence_error(tmp_path):
     errs = _errors_for(p, "convergence")
     assert not any("trajectory seed missing" in e for e in errs), errs
     assert not any("non-finite" in e for e in errs), errs
+
+
+def test_single_leg_tree_accepts_bkz_only_and_other_trees_do_not(tmp_path):
+    payload = {k: v for k, v in _SWEEP_BASE.items()
+               if k not in ("advantage", "sdbkz_final_dln")}
+    payload.update(dim=100, initial_gs_lognorms=[0.0] * 100,
+                   gs_lognorms_bkz=[0.0] * 100)
+    p = _write(tmp_path, "ntru_equal_sweep", "seed0001.json", payload)
+    assert _errors_for(p, "ntru_equal_sweep") == []
+    assert any("missing keys" in e for e in _errors_for(p, "ntru"))

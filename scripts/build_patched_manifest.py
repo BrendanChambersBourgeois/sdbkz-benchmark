@@ -47,6 +47,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from _seed_paths import SINGLE_LEG_TREES  # noqa: E402
 from log import get_logger  # noqa: E402
 
 PIPELINE = get_logger("build_patched_manifest")
@@ -149,9 +150,12 @@ def collect(repo_root: str, trees: dict[str, str] = PATCHED_TREES
         if doc.get("status") != "completed":
             rejects.append((rel, f"status={doc.get('status')!r}"))
             continue
-        adv = doc.get("advantage")
+        # A single-leg seed has no advantage; gate on its leg's final dln.
+        leg = SINGLE_LEG_TREES.get(tree)
+        gate = f"{leg}_final_dln" if leg else "advantage"
+        adv = doc.get(gate)
         if not isinstance(adv, (int, float)) or not math.isfinite(adv):
-            rejects.append((rel, f"non-finite advantage: {adv!r}"))
+            rejects.append((rel, f"non-finite {gate}: {adv!r}"))
             continue
         q = int(m.group("q")) if m.group("q") else doc.get("q")
         if not isinstance(q, int):

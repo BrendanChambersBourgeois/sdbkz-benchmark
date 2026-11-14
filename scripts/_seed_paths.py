@@ -63,6 +63,10 @@ _KNOWN_CAMPAIGNS = frozenset({
     "ntru_equal_sweep",
 })
 
+# Trees whose campaign runs one leg (config/sweep.toml `variants`): tree ->
+# the leg its seeds carry. No sdbkz_* keys and no advantage there.
+SINGLE_LEG_TREES = {"ntru_equal_sweep": "bkz"}
+
 
 def _leaf_name(seed: int, *, is_fat: bool, cloud: bool, campaign: str) -> str:
     """Filename at the leaf: seedNNNN[_cloud][_fat].json.

@@ -46,6 +46,7 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _seed_hash import science_hash  # noqa: E402,I001
+from _seed_paths import SINGLE_LEG_TREES  # noqa: E402
 
 try:
     from log import get_logger  # noqa: E402
@@ -64,6 +65,10 @@ REQUIRED_SWEEP = {
     "bkz_final_dln", "sdbkz_final_dln",
 }
 REQUIRED_Q3329 = REQUIRED_SWEEP  # same schema
+# Single-leg trees are listed by name, so a two-leg seed that lost its
+# SD-BKZ half still fails everywhere else.
+SINGLE_LEG_TAGS = SINGLE_LEG_TREES
+REQUIRED_BKZ_ONLY = REQUIRED_SWEEP - {"advantage", "sdbkz_final_dln"}
 REQUIRED_3X_ORIG = {"n", "beta", "seed", "gap_normal", "gap_3x"}
 REQUIRED_3X_EXT = {"n", "beta", "seed", "advantage_equal_tours", "advantage_3x"}
 REQUIRED_CONV = {"n", "beta", "seed"}
@@ -99,6 +104,8 @@ def detect_schema(filepath: str, tag: str) -> set[str]:
         return REQUIRED_3X_EXT if "_3x_seed" in fname else REQUIRED_3X_ORIG
     if "convergence" in tag:
         return REQUIRED_CONV
+    if tag in SINGLE_LEG_TAGS:
+        return REQUIRED_BKZ_ONLY
     return REQUIRED_SWEEP
 
 
@@ -182,6 +189,7 @@ class SeedValidator:
         fname = os.path.basename(filepath)
         label = f"{tag}/{fname}"
         required_keys = detect_schema(filepath, tag)
+        legs = (SINGLE_LEG_TAGS[tag],) if tag in SINGLE_LEG_TAGS else ("bkz", "sdbkz")
 
         # 1. Valid JSON
         try:
@@ -290,8 +298,9 @@ class SeedValidator:
                     self._err(f"{label}: {key} has non-finite values",
                               cat="integrity", file=fname, field=key)
         else:
-            missing_gs = [k for k in ("initial_gs_lognorms", "gs_lognorms_bkz",
-                                      "gs_lognorms_sdbkz") if k not in d]
+            missing_gs = [k for k in ("initial_gs_lognorms",
+                                      *(f"gs_lognorms_{v}" for v in legs))
+                          if k not in d]
             if missing_gs:
                 self._err(f"{label}: GS-bearing seed missing {missing_gs}",
                           cat="schema", file=fname,
@@ -365,10 +374,11 @@ class SeedValidator:
         #       residual after removing them is <= 15.1 nat. A cracked seed is
         #       judged by secret_exact_match_* / _is_dsd, not this check.
         NTRU_CRACK_THRESHOLD = 10.0
-        if all(k in d for k in ("initial_gs_lognorms", "gs_lognorms_bkz", "gs_lognorms_sdbkz")):
+        leg_gs = tuple(f"gs_lognorms_{v}" for v in legs)
+        if all(k in d for k in ("initial_gs_lognorms", *leg_gs)):
             init_sum = sum(d["initial_gs_lognorms"])
             is_q3329 = d.get("q") == 3329
-            for key in ("gs_lognorms_bkz", "gs_lognorms_sdbkz"):
+            for key in leg_gs:
                 arr_sum = sum(d[key])
                 diff = abs(init_sum - arr_sum)
                 if diff > VOLUME_DRIFT_THRESHOLD:
