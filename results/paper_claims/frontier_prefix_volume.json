@@ -1,0 +1,362 @@
+{
+  "fplll": {
+    "cells": {
+      "n157_b40_mt50": {
+        "bkz_collapsed": 456,
+        "pairs": 1300,
+        "sd_collapsed": 514,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 58,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 514,
+        "wall_sd_only": 0
+      },
+      "n163_b40_mt50": {
+        "bkz_collapsed": 364,
+        "pairs": 440,
+        "sd_collapsed": 385,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 21,
+        "wall_bkz_only": 17,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      },
+      "n167_b40_mt50": {
+        "bkz_collapsed": 490,
+        "pairs": 560,
+        "sd_collapsed": 515,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 25,
+        "wall_bkz_only": 13,
+        "wall_pairs_dropped": 27,
+        "wall_sd_only": 0
+      },
+      "n167_b40_mt580": {
+        "bkz_collapsed": 6,
+        "pairs": 8,
+        "sd_collapsed": 7,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 1,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 1
+      },
+      "n173_b40_mt50": {
+        "bkz_collapsed": 229,
+        "pairs": 280,
+        "sd_collapsed": 246,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 17,
+        "wall_bkz_only": 13,
+        "wall_pairs_dropped": 26,
+        "wall_sd_only": 0
+      },
+      "n179_b40_mt50": {
+        "bkz_collapsed": 21,
+        "pairs": 100,
+        "sd_collapsed": 31,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 10,
+        "wall_bkz_only": 12,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      },
+      "n181_b40_mt50": {
+        "bkz_collapsed": 39,
+        "pairs": 120,
+        "sd_collapsed": 49,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 10,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 49,
+        "wall_sd_only": 0
+      }
+    },
+    "total": {
+      "bkz_collapsed": 1605,
+      "pairs": 2808,
+      "sd_collapsed": 1747,
+      "tours_bkz_only": 0,
+      "tours_sd_only": 142,
+      "wall_bkz_only": 55,
+      "wall_pairs_dropped": 616,
+      "wall_sd_only": 1
+    },
+    "tours_sign_test": {
+      "bkz_net_keys": 0,
+      "p": 2.350988701644575e-38,
+      "sd_net_keys": 126
+    },
+    "tree": "ntru",
+    "wall_sign_test": {
+      "bkz_net_keys": 46,
+      "p": 6.821210263296962e-13,
+      "sd_net_keys": 1
+    }
+  },
+  "g6k": {
+    "cells": {
+      "n167_b40_mt50": {
+        "bkz_collapsed": 26,
+        "pairs": 80,
+        "sd_collapsed": 52,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 26,
+        "wall_bkz_only": 1,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 4
+      },
+      "n173_b40_mt50": {
+        "bkz_collapsed": 58,
+        "pairs": 80,
+        "sd_collapsed": 76,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 18,
+        "wall_bkz_only": 4,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 4
+      },
+      "n179_b40_mt200": {
+        "bkz_collapsed": 13,
+        "pairs": 20,
+        "sd_collapsed": 18,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 5,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 5
+      },
+      "n179_b40_mt50": {
+        "bkz_collapsed": 24,
+        "pairs": 80,
+        "sd_collapsed": 55,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 31,
+        "wall_bkz_only": 1,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 5
+      },
+      "n179_b40_mt580": {
+        "bkz_collapsed": 16,
+        "pairs": 20,
+        "sd_collapsed": 19,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 3,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 2
+      },
+      "n179_b50_mt50": {
+        "bkz_collapsed": 70,
+        "pairs": 100,
+        "sd_collapsed": 76,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 6,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 1
+      },
+      "n179_b60_mt50": {
+        "bkz_collapsed": 6,
+        "pairs": 6,
+        "sd_collapsed": 6,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 0,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      },
+      "n181_b50_mt50": {
+        "bkz_collapsed": 108,
+        "pairs": 180,
+        "sd_collapsed": 112,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 4,
+        "wall_bkz_only": 1,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 2
+      },
+      "n181_b60_mt50": {
+        "bkz_collapsed": 11,
+        "pairs": 33,
+        "sd_collapsed": 12,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 1,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      },
+      "n183_b50_mt50": {
+        "bkz_collapsed": 6,
+        "pairs": 6,
+        "sd_collapsed": 6,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 0,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      },
+      "n185_b50_mt50": {
+        "bkz_collapsed": 21,
+        "pairs": 21,
+        "sd_collapsed": 21,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 0,
+        "wall_bkz_only": 1,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      },
+      "n185_b60_mt50": {
+        "bkz_collapsed": 21,
+        "pairs": 24,
+        "sd_collapsed": 22,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 1,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      }
+    },
+    "total": {
+      "bkz_collapsed": 380,
+      "pairs": 650,
+      "sd_collapsed": 475,
+      "tours_bkz_only": 0,
+      "tours_sd_only": 95,
+      "wall_bkz_only": 8,
+      "wall_pairs_dropped": 0,
+      "wall_sd_only": 23
+    },
+    "tours_sign_test": {
+      "bkz_net_keys": 0,
+      "p": 6.462348535570529e-27,
+      "sd_net_keys": 88
+    },
+    "tree": "ntru_g6k",
+    "wall_sign_test": {
+      "bkz_net_keys": 8,
+      "p": 0.0241195447742939,
+      "sd_net_keys": 21
+    }
+  },
+  "g6k_reject": {
+    "cells": {
+      "n179_b40_mt200": {
+        "bkz_collapsed": 13,
+        "pairs": 20,
+        "sd_collapsed": 18,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 5,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 4
+      },
+      "n179_b40_mt580": {
+        "bkz_collapsed": 16,
+        "pairs": 20,
+        "sd_collapsed": 19,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 3,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 2
+      },
+      "n179_b50_mt50": {
+        "bkz_collapsed": 70,
+        "pairs": 100,
+        "sd_collapsed": 76,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 6,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 2
+      },
+      "n179_b60_mt50": {
+        "bkz_collapsed": 6,
+        "pairs": 6,
+        "sd_collapsed": 6,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 0,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      },
+      "n181_b50_mt50": {
+        "bkz_collapsed": 108,
+        "pairs": 180,
+        "sd_collapsed": 112,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 4,
+        "wall_bkz_only": 1,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 2
+      },
+      "n181_b60_mt50": {
+        "bkz_collapsed": 11,
+        "pairs": 33,
+        "sd_collapsed": 12,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 1,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      },
+      "n183_b50_mt50": {
+        "bkz_collapsed": 6,
+        "pairs": 6,
+        "sd_collapsed": 6,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 0,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      },
+      "n185_b50_mt50": {
+        "bkz_collapsed": 21,
+        "pairs": 21,
+        "sd_collapsed": 21,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 0,
+        "wall_bkz_only": 1,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      },
+      "n185_b60_mt50": {
+        "bkz_collapsed": 29,
+        "pairs": 32,
+        "sd_collapsed": 30,
+        "tours_bkz_only": 0,
+        "tours_sd_only": 1,
+        "wall_bkz_only": 0,
+        "wall_pairs_dropped": 0,
+        "wall_sd_only": 0
+      }
+    },
+    "total": {
+      "bkz_collapsed": 280,
+      "pairs": 418,
+      "sd_collapsed": 300,
+      "tours_bkz_only": 0,
+      "tours_sd_only": 20,
+      "wall_bkz_only": 2,
+      "wall_pairs_dropped": 0,
+      "wall_sd_only": 10
+    },
+    "tours_sign_test": {
+      "bkz_net_keys": 0,
+      "p": 3.0517578125e-05,
+      "sd_net_keys": 16
+    },
+    "tree": "ntru_g6k_reject",
+    "wall_sign_test": {
+      "bkz_net_keys": 2,
+      "p": 0.109375,
+      "sd_net_keys": 8
+    }
+  },
+  "volume_check": {
+    "keys_spread_above_1e-3": 0,
+    "keys_with_two_or_more_collapsed_legs": 382,
+    "max_spread": 1.1653255764798587e-06
+  }
+}

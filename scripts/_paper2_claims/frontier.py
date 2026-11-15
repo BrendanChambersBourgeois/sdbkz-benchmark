@@ -14,11 +14,13 @@ from __future__ import annotations
 
 import glob
 import json
+import math
 import os
 import re
 import sys
 from collections import defaultdict
 from decimal import Decimal
+from itertools import pairwise
 
 BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(BASE, "scripts"))
@@ -189,3 +191,93 @@ def build_records() -> list[dict]:
             f"{b}:{c}" == paper and abs(p - p_paper) <= half,
             f"{len(legs)} paired seeds."))
     return recs
+
+
+# --- Prefix-volume collapse (not a tex claim; written beside the ledger) -----
+
+def _collapsed(lognorms, n: int) -> bool:
+    """Prefix-only dense-sublattice test: the first n Gram-Schmidt log-norms
+    have mean within 0.5 of 0.5 ln(4n/3). Uses no suffix value, so a floored
+    suffix cannot hide or fake a collapse."""
+    return sum(lognorms[:n]) / n - 0.5 * math.log(4 * n / 3) < 0.5
+
+
+def _collapse_tour(initial_dln, dln_per_tour):
+    """1-based tour of the collapse step in d(LN), or None when no single step
+    stands out. A clean leg has one rise of 140 nats or more and no other
+    reaching a quarter of it; a leg whose per-tour values flicker (double-measured
+    cells) has several of similar size and no readable collapse tour."""
+    seq = [initial_dln] + list(dln_per_tour)
+    steps = [b - a for a, b in pairwise(seq)]
+    top = max(steps)
+    if sum(s >= top / 4 for s in steps) != 1:
+        return None
+    return steps.index(top) + 1
+
+
+def _net_sign(clusters) -> dict:
+    """Sign test over (n, seed) keys: one vote per key, by its net direction."""
+    a = sum(sd > bk for sd, bk in clusters.values())
+    b = sum(bk > sd for sd, bk in clusters.values())
+    return {"sd_net_keys": a, "bkz_net_keys": b, "p": _sign_p_two_sided(a, b)}
+
+
+def prefix_volume(n_min: int = 157) -> dict:
+    """Collapse discordance SD-BKZ vs BKZ on the frontier trees, every leg
+    scored from its prefix (no leg dropped), per tree with no cross-build
+    dedupe. Equal tours: both legs at their stored end. Equal wall: each leg
+    is collapsed only if its collapse tour, at that leg's mean time per tour,
+    falls inside the shorter leg's wall time; pairs with a collapsed leg whose
+    collapse tour is unreadable are left out and counted; time per tour is
+    taken as constant within a leg. Keys repeat across
+    q, beta and build, so the sign tests vote once per (n, seed)."""
+    out, vol = {}, defaultdict(list)
+    for eng, tree in TREE.items():
+        cells = defaultdict(lambda: defaultdict(int))
+        clus = {"tours": defaultdict(lambda: [0, 0]), "wall": defaultdict(lambda: [0, 0])}
+        pat = os.path.join(BASE, f"results/seeds/{tree}/q*/p*_mt*/n*_beta*/seed*.json")
+        for f in sorted(glob.glob(pat)):
+            n, beta = map(int, re.search(r"/n(\d+)_beta(\d+)/", f).groups())
+            if n < n_min:
+                continue
+            with open(f) as fh:
+                d = json.load(fh)
+            c = cells[f"n{n}_b{beta}_mt{d['max_tours']}"]
+            key = (n, d["seed"])
+            col, tc, per_tour = {}, {}, {}
+            for v in ("sdbkz", "bkz"):
+                ln = d[f"gs_lognorms_{v}"]
+                if len(ln) != 2 * n or min(ln[:n]) < -100:
+                    raise ValueError(f"{f}: {v} prefix log-norms unusable")
+                col[v] = _collapsed(ln, n)
+                if col[v]:
+                    vol[key].append(sum(ln[:n]) / n)
+                    tc[v] = _collapse_tour(d["initial_dln"], d[f"{v}_dln_per_tour"])
+                per_tour[v] = d[f"{v}_time"] / len(d[f"{v}_dln_per_tour"])
+            c["pairs"] += 1
+            c["sd_collapsed"] += col["sdbkz"]
+            c["bkz_collapsed"] += col["bkz"]
+            modes = {"tours": col}
+            if any(col[v] and tc[v] is None for v in col):
+                c["wall_pairs_dropped"] += 1
+            else:
+                wall = min(d["sdbkz_time"], d["bkz_time"])
+                modes["wall"] = {v: col[v] and tc[v] * per_tour[v] <= wall for v in col}
+            for mode, m in modes.items():
+                if m["sdbkz"] != m["bkz"]:
+                    side = 0 if m["sdbkz"] else 1
+                    c[f"{mode}_{'sd' if side == 0 else 'bkz'}_only"] += 1
+                    clus[mode][key][side] += 1
+        fields = ("pairs", "sd_collapsed", "bkz_collapsed", "tours_sd_only", "tours_bkz_only",
+                  "wall_pairs_dropped", "wall_sd_only", "wall_bkz_only")
+        rows = {k: {x: v[x] for x in fields} for k, v in sorted(cells.items())}
+        total = {x: sum(r[x] for r in rows.values()) for x in fields}
+        out[eng] = {"tree": tree, "cells": rows, "total": total,
+                    "tours_sign_test": _net_sign(clus["tours"]),
+                    "wall_sign_test": _net_sign(clus["wall"])}
+    spreads = sorted(max(v) - min(v) for v in vol.values() if len(v) > 1)
+    out["volume_check"] = {  # one key, one sublattice: ln vol(prefix)/n must agree
+        "keys_with_two_or_more_collapsed_legs": len(spreads),
+        "max_spread": spreads[-1] if spreads else None,
+        "keys_spread_above_1e-3": sum(s > 1e-3 for s in spreads)}
+    return out

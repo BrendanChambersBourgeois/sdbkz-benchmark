@@ -71,6 +71,24 @@ def test_committed_ledger_matches_builder():
     assert build() == _ledger(), "stale ledger: run `make paper2-claims`"
 
 
+def test_prefix_volume_matches_builder_and_keys_agree():
+    """Committed collapse counts are what the seeds give, and every key's
+    collapsed legs span one sublattice (equal prefix volume)."""
+    import sys
+    sys.path.insert(0, os.path.join(REPO, "scripts"))
+    from _paper2_claims import frontier
+    out = frontier.prefix_volume()
+    with open(os.path.join(REPO, "results", "paper_claims", "frontier_prefix_volume.json")) as f:
+        assert out == json.load(f), "stale: run `make paper2-claims`"
+    assert out["volume_check"]["keys_spread_above_1e-3"] == 0
+
+
+def test_collapse_tour_single_step_only():
+    from _paper2_claims.frontier import _collapse_tour
+    assert _collapse_tour(240, [80, 75, 300, 305]) == 3     # first-tour drop is not a collapse
+    assert _collapse_tour(105, [203, 480, 310, 500]) is None  # several large rises: unreadable
+
+
 def test_sign_p_two_sided_bounded():
     import sys
     sys.path.insert(0, os.path.join(REPO, "scripts"))

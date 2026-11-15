@@ -52,6 +52,7 @@ except Exception:  # pragma: no cover
     PIPELINE = None
 
 OUT = os.path.join(BASE, "results", "paper_claims", "paper2_claims.json")
+PREFIX_OUT = os.path.join(BASE, "results", "paper_claims", "frontier_prefix_volume.json")
 TEX = os.path.join(BASE, "paper2", "latex", "sdbkz_paper2.tex")
 SCHEMA_VERSION = 1
 
@@ -125,6 +126,10 @@ def main(argv=None) -> int:
         json.dump(manifest, f, indent=2, sort_keys=True)
         f.write("\n")
 
+    with open(PREFIX_OUT, "w") as f:   # collapse counts; no tex claim, so no ledger record
+        json.dump(frontier.prefix_volume(), f, indent=2, sort_keys=True)
+        f.write("\n")
+
     print(f"paper2_claims: {manifest['n_records']} records, "
           f"{manifest['n_match']} match; by_status={manifest['by_status']}")
     if manifest["unresolved"]:
@@ -132,7 +137,7 @@ def main(argv=None) -> int:
               "fix the tex, then rebuild):")
         for cid in manifest["unresolved"]:
             print(f"    - {cid}")
-    print(f"  wrote {os.path.relpath(OUT, BASE)}")
+    print(f"  wrote {os.path.relpath(OUT, BASE)}, {os.path.relpath(PREFIX_OUT, BASE)}")
     if PIPELINE is not None:
         PIPELINE.info("paper2 claims built", cat="claims",
                       n_records=manifest["n_records"], n_match=manifest["n_match"],
