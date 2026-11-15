@@ -12,6 +12,7 @@ build. Read-only on results/seeds/.
 """
 from __future__ import annotations
 
+import functools
 import glob
 import json
 import math
@@ -102,6 +103,16 @@ MCNEMAR = [
 ]
 
 
+# (engine, table row, "equal tours" by key, "equal wall" by key) as printed.
+PREFIX = [
+    ("fplll", r"fplll & $2808$ & $1747$ & $1605$ & $142$:$0$ & $1$:$55$ & $616$", "126:0", "1:46"),
+    ("g6k", r"G6K & $650$ & $475$ & $380$ & $95$:$0$ & $23$:$8$ & $0$", "88:0", "21:8"),
+    ("g6k_reject", r"G6K$^\ddagger$ & $418$ & $300$ & $280$ & $20$:$0$ & $10$:$2$ & $0$", "16:0", "8:2"),
+]
+PREFIX_KEY_ANCHORS = [r"equal tours give $126$:$0$, $88$:$0$ and $16$:$0$,",
+                      r"equal wall time $1$:$46$, $21$:$8$ and $8$:$2$."]
+
+
 def q_fat(n: int) -> float:
     return 0.004 * n ** 2.484
 
@@ -190,10 +201,27 @@ def build_records() -> list[dict]:
             {"counts": f"{b}:{c}", "p": p},
             f"{b}:{c}" == paper and abs(p - p_paper) <= half,
             f"{len(legs)} paired seeds."))
+    pv = prefix_volume()
+    for eng, row, tours_key, wall_key in PREFIX:
+        t = pv[eng]["total"]
+        cells = [t["pairs"], t["sd_collapsed"], t["bkz_collapsed"],
+                 f"{t['tours_sd_only']}:{t['tours_bkz_only']}",
+                 f"{t['wall_sd_only']}:{t['wall_bkz_only']}", t["wall_pairs_dropped"]]
+        by_key = [f"{s['sd_net_keys']}:{s['bkz_net_keys']}"
+                  for s in (pv[eng]["tours_sign_test"], pv[eng]["wall_sign_test"])]
+        paper = {"row": re.findall(r"[\d:]+", row.split("&", 1)[1].replace("$", "")),
+                 "by_key": [tours_key, wall_key]}
+        value = {"row": [str(c) for c in cells], "by_key": by_key}
+        recs.append(_rec(
+            f"frontier_prefix_collapse_{eng}", [row] + PREFIX_KEY_ANCHORS,
+            f"tab:prefix {eng}: seeds, SD, BKZ, equal tours, equal wall, left out; by key",
+            paper, f"results/seeds/{TREE[eng]}/q*/p*_mt*/n*_beta*/seed*.json",
+            "frontier.prefix_volume totals over n>=157; by key = one vote per (n, seed)",
+            value, value == paper, "Cells in results/paper_claims/frontier_prefix_volume.json."))
     return recs
 
 
-# --- Prefix-volume collapse (not a tex claim; written beside the ledger) -----
+# --- Prefix-volume collapse (tab:prefix; cells written beside the ledger) -----
 
 def _collapsed(lognorms, n: int) -> bool:
     """Prefix-only dense-sublattice test: the first n Gram-Schmidt log-norms
@@ -222,6 +250,7 @@ def _net_sign(clusters) -> dict:
     return {"sd_net_keys": a, "bkz_net_keys": b, "p": _sign_p_two_sided(a, b)}
 
 
+@functools.cache
 def prefix_volume(n_min: int = 157) -> dict:
     """Collapse discordance SD-BKZ vs BKZ on the frontier trees, every leg
     scored from its prefix (no leg dropped), per tree with no cross-build

@@ -2,13 +2,13 @@
   "by_status": {
     "DERIVED": 10,
     "POINTER": 28,
-    "RECOMPUTED": 132
+    "RECOMPUTED": 135
   },
   "description": "Paper-2 \u00a76-\u00a77 claim -> source -> method -> verified-value ledger (deep-audit finding 6). See scripts/build_paper2_claims.py.",
   "generated_utc_epoch": 0.0,
   "guard_invariant": true,
-  "n_match": 170,
-  "n_records": 170,
+  "n_match": 173,
+  "n_records": 173,
   "records": [
     {
       "claim_id": "bootstrap_ci_n101_fplll_rate_gap",
@@ -434,7 +434,7 @@
       ],
       "tex_lines": [
         382,
-        964
+        994
       ],
       "verbatim": "tab:dsdgap n=101 flag: 19% SD-vs-BKZ onset gap"
     },
@@ -460,7 +460,7 @@
         33,
         383,
         462,
-        964
+        994
       ],
       "verbatim": "tab:dsdgap n=113 flag: 28% SD-vs-BKZ onset gap"
     },
@@ -485,7 +485,7 @@
       "tex_lines": [
         33,
         381,
-        964
+        994
       ],
       "verbatim": "tab:dsdgap n=89 flag: 19% SD-vs-BKZ onset gap"
     },
@@ -737,7 +737,7 @@
         32,
         372,
         382,
-        965
+        995
       ],
       "verbatim": "tab:dsdgap n=101 SKR gap 29%, CI [16.6,33.4]"
     },
@@ -817,7 +817,7 @@
         32,
         372,
         381,
-        965
+        995
       ],
       "verbatim": "tab:dsdgap n=89 SKR gap 20%, CI [7.1,27.2]"
     },
@@ -2289,7 +2289,7 @@
         "become $37$:$9$ ($p=4\\times10^{-5}$)"
       ],
       "tex_lines": [
-        874
+        904
       ],
       "verbatim": "paired SD-only:BKZ-only 37:9 at n=181 beta=50 g6k_reject, p=4e-5"
     },
@@ -2594,6 +2594,159 @@
         782
       ],
       "verbatim": "tab:frontier n=185 beta=60 g6k sdbkz onset 2.06x q_fat"
+    },
+    {
+      "claim_id": "frontier_prefix_collapse_fplll",
+      "match": true,
+      "method": "frontier.prefix_volume totals over n>=157; by key = one vote per (n, seed)",
+      "note": "Cells in results/paper_claims/frontier_prefix_volume.json.",
+      "paper_value": {
+        "by_key": [
+          "126:0",
+          "1:46"
+        ],
+        "row": [
+          "2808",
+          "1747",
+          "1605",
+          "142:0",
+          "1:55",
+          "616"
+        ]
+      },
+      "recomputed_value": {
+        "by_key": [
+          "126:0",
+          "1:46"
+        ],
+        "row": [
+          "2808",
+          "1747",
+          "1605",
+          "142:0",
+          "1:55",
+          "616"
+        ]
+      },
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru/q*/p*_mt*/n*_beta*/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "fplll & $2808$ & $1747$ & $1605$ & $142$:$0$ & $1$:$55$ & $616$",
+        "equal tours give $126$:$0$, $88$:$0$ and $16$:$0$,",
+        "equal wall time $1$:$46$, $21$:$8$ and $8$:$2$."
+      ],
+      "tex_lines": [
+        855,
+        856,
+        873
+      ],
+      "verbatim": "tab:prefix fplll: seeds, SD, BKZ, equal tours, equal wall, left out; by key"
+    },
+    {
+      "claim_id": "frontier_prefix_collapse_g6k",
+      "match": true,
+      "method": "frontier.prefix_volume totals over n>=157; by key = one vote per (n, seed)",
+      "note": "Cells in results/paper_claims/frontier_prefix_volume.json.",
+      "paper_value": {
+        "by_key": [
+          "88:0",
+          "21:8"
+        ],
+        "row": [
+          "650",
+          "475",
+          "380",
+          "95:0",
+          "23:8",
+          "0"
+        ]
+      },
+      "recomputed_value": {
+        "by_key": [
+          "88:0",
+          "21:8"
+        ],
+        "row": [
+          "650",
+          "475",
+          "380",
+          "95:0",
+          "23:8",
+          "0"
+        ]
+      },
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k/q*/p*_mt*/n*_beta*/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "G6K & $650$ & $475$ & $380$ & $95$:$0$ & $23$:$8$ & $0$",
+        "equal tours give $126$:$0$, $88$:$0$ and $16$:$0$,",
+        "equal wall time $1$:$46$, $21$:$8$ and $8$:$2$."
+      ],
+      "tex_lines": [
+        855,
+        856,
+        874
+      ],
+      "verbatim": "tab:prefix g6k: seeds, SD, BKZ, equal tours, equal wall, left out; by key"
+    },
+    {
+      "claim_id": "frontier_prefix_collapse_g6k_reject",
+      "match": true,
+      "method": "frontier.prefix_volume totals over n>=157; by key = one vote per (n, seed)",
+      "note": "Cells in results/paper_claims/frontier_prefix_volume.json.",
+      "paper_value": {
+        "by_key": [
+          "16:0",
+          "8:2"
+        ],
+        "row": [
+          "418",
+          "300",
+          "280",
+          "20:0",
+          "10:2",
+          "0"
+        ]
+      },
+      "recomputed_value": {
+        "by_key": [
+          "16:0",
+          "8:2"
+        ],
+        "row": [
+          "418",
+          "300",
+          "280",
+          "20:0",
+          "10:2",
+          "0"
+        ]
+      },
+      "slice": "frontier",
+      "source": {
+        "glob": "results/seeds/ntru_g6k_reject/q*/p*_mt*/n*_beta*/seed*.json",
+        "kind": "seeds"
+      },
+      "status": "RECOMPUTED",
+      "tex_anchors": [
+        "G6K$^\\ddagger$ & $418$ & $300$ & $280$ & $20$:$0$ & $10$:$2$ & $0$",
+        "equal tours give $126$:$0$, $88$:$0$ and $16$:$0$,",
+        "equal wall time $1$:$46$, $21$:$8$ and $8$:$2$."
+      ],
+      "tex_lines": [
+        855,
+        856,
+        875
+      ],
+      "verbatim": "tab:prefix g6k_reject: seeds, SD, BKZ, equal tours, equal wall, left out; by key"
     },
     {
       "claim_id": "gap_n101_fplll",
@@ -3507,7 +3660,7 @@
       ],
       "tex_lines": [
         36,
-        968
+        998
       ],
       "verbatim": "fplll n=101 beta=40 per key (SD-BKZ ahead : BKZ ahead): unresolved"
     },
@@ -3535,7 +3688,7 @@
       "tex_lines": [
         36,
         657,
-        968
+        998
       ],
       "verbatim": "g6k n=101 beta=40 per key (SD-BKZ ahead : BKZ ahead): unresolved"
     },
@@ -3559,7 +3712,7 @@
       "tex_lines": [
         35,
         655,
-        968
+        998
       ],
       "verbatim": "fplll n=113 beta=40 per key (SD-BKZ ahead : BKZ ahead): 21:4"
     },
@@ -3583,7 +3736,7 @@
       "tex_lines": [
         35,
         655,
-        968
+        998
       ],
       "verbatim": "g6k n=113 beta=40 per key (SD-BKZ ahead : BKZ ahead): 19:5"
     },
@@ -3607,7 +3760,7 @@
       "tex_lines": [
         35,
         586,
-        968
+        998
       ],
       "verbatim": "fplll n=89 beta=40 per key (SD-BKZ ahead : BKZ ahead): 49:17"
     },
@@ -3631,7 +3784,7 @@
       "tex_lines": [
         35,
         586,
-        968
+        998
       ],
       "verbatim": "g6k n=89 beta=40 per key (SD-BKZ ahead : BKZ ahead): 47:12"
     },

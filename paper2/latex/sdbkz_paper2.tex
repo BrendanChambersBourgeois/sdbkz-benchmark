@@ -847,6 +847,36 @@ not descended: from $2.6\times$ the $\beta=50$ variants differ in the descent, n
 the discovery---dense-sublattice discovery without key recovery, which the flag
 of Section~\ref{sec:bg-obs} cannot separate.
 
+\paragraph{Collapse counted from the basis prefix.}
+A leg is \emph{collapsed} when the mean of its first $n$ GS log-norms is
+below $\log\sqrt{4n/3}+0.5$, a test that reads no suffix value; collapse is
+not key recovery. Table~\ref{tab:prefix} counts it over every completed
+seed at $n\ge157$ (all $q$, $\beta$ and tour budgets). Clustered by key,
+equal tours give $126$:$0$, $88$:$0$ and $16$:$0$,
+equal wall time $1$:$46$, $21$:$8$ and $8$:$2$.
+
+\begin{table}[tbp]
+\centering
+\caption{Prefix collapse at $n\ge157$, per seed tree ($\ddagger$ as in
+Table~\ref{tab:frontier}; the two G6K builds repeat instances and are not
+pooled). A seed is one SD-BKZ/BKZ pair; SD-BKZ and BKZ count collapsed legs,
+the paired columns SD-only:BKZ-only. Equal wall: a leg counts only if its
+collapse tour, at that leg's mean time per tour (taken as constant), falls
+within the shorter leg's wall time; the collapse tour is the largest
+one-tour rise in $d(\mathrm{LN})$, and pairs where a collapsed leg has a
+second rise of a quarter its size are left out.\label{tab:prefix}}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+engine & seeds & SD-BKZ & BKZ & equal tours & equal wall & left out \\
+\midrule
+fplll & $2808$ & $1747$ & $1605$ & $142$:$0$ & $1$:$55$ & $616$ \\
+G6K & $650$ & $475$ & $380$ & $95$:$0$ & $23$:$8$ & $0$ \\
+G6K$^\ddagger$ & $418$ & $300$ & $280$ & $20$:$0$ & $10$:$2$ & $0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \paragraph{Limitations.}
 Every count in Table~\ref{tab:frontier} above $n=157$ is preliminary against the
 $100$-seed standard of Section~\ref{sec:fatigue}. The three $50$-tour G6K
