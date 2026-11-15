@@ -11,6 +11,7 @@ User-visible changes per version. Seed counts are manifest totals.
 - Seed tree `results/seeds/ntru_equal_sweep/` (120 seeds; side manifest 10,073).
 - Frontier collapse counts from the basis prefix (`make paper2-claims`, `results/paper_claims/frontier_prefix_volume.json`).
 - Paper 2 frontier section: prefix-collapse table, with ledger records.
+- `results/profile_decomposition.json`: d(LN) advantage split between the profile body and its last beta log-norms, with body slopes.
 
 ### Fixed
 - Paper 1 Figure 8: the GSA line uses the standard slope; the caption states what the figure shows.

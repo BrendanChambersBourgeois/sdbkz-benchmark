@@ -10,6 +10,7 @@ Provides:
     _load_convergence_files() — Load 500-tour convergence test seeds
     _group_advantages()      — Per-group advantage arrays
     _decompose_seed()        — Head/mid/tail Rankin profile decomposition
+    _split_seed()            — d(LN) advantage split, profile body vs last beta
 
 The figure modules and the diagnostics/tables modules import from here.
 The leading underscore on _load_convergence_files / _group_advantages /
@@ -622,3 +623,39 @@ def _decompose_seed(
     # multiple-of-3 dimensions (e.g. n=100 → size=101, old tail=35 vs 33/33).
     head, mid, tail = np.array_split(improvement, 3)
     return (float(np.mean(head)), float(np.mean(mid)), float(np.mean(tail)))
+
+
+def _split_seed(seed_data: SeedDict) -> tuple[float, float, float, float] | None:
+    """Split a seed's d(LN) advantage (BKZ minus SD-BKZ) between the body of
+    the log-norm profile (all but the last beta indices) and its last beta.
+
+    Each part is the d(LN) change from swapping that part between the two
+    profiles, averaged over the two swap orders, so body + tail is the
+    advantage exactly. Log-norms are read back from the Rankin profile, so
+    they are centred; both legs reduce one lattice and share that centre.
+
+    Returns:
+        (body, tail, body_slope_bkz, body_slope_sd), slopes being the decline
+        per index of a line fitted to the body log-norms, or None if data missing.
+    """
+    rp_bkz = seed_data.get("rankin_profile_bkz")
+    rp_sd = seed_data.get("rankin_profile_sdbkz")
+    if rp_bkz is None or rp_sd is None or len(rp_bkz) != len(rp_sd):
+        return None
+    size, beta = len(rp_bkz), seed_data["beta"]
+    fp = np.array(ln_fixed_point(size, beta))
+    k = size - beta
+    frac = np.arange(1, size + 1) / size
+
+    def dln(lognorms):
+        cum = np.cumsum(lognorms)
+        return float(np.mean(np.abs(cum - frac * cum[-1] - fp)))
+
+    lb, ls = (np.diff(rp, prepend=0.0) for rp in (rp_bkz, rp_sd))
+    d_bb, d_ss = dln(lb), dln(ls)
+    d_sb = dln(np.concatenate([ls[:k], lb[k:]]))   # SD-BKZ body, BKZ tail
+    d_bs = dln(np.concatenate([lb[:k], ls[k:]]))
+    body = 0.5 * ((d_bb - d_sb) + (d_bs - d_ss))
+    tail = 0.5 * ((d_bb - d_bs) + (d_sb - d_ss))
+    x = np.arange(k)
+    return (body, tail, float(-np.polyfit(x, lb[:k], 1)[0]), float(-np.polyfit(x, ls[:k], 1)[0]))

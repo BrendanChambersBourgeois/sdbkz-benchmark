@@ -12,7 +12,7 @@ returns a list of dicts (one per row) in addition to printing to stdout.
 import numpy as np
 from scipy import stats as scipy_stats
 
-from ._data import _decompose_seed
+from ._data import _decompose_seed, _split_seed
 from ._stats_helpers import cliffs_delta, holm_bonferroni
 
 
@@ -123,7 +123,10 @@ def spatial_decomposition(groups, min_seeds=10):
     pct_* shares are |region| / (|head| + |mid| + |tail|), so they stay
     meaningful in groups where BKZ wins; largest_region is the region with
     the largest |mean|. Win rates are the share of seeds where the region's
-    mean improvement is positive.
+    mean improvement is positive. dln_advantage_body and dln_advantage_tail
+    split the mean d(LN) advantage between all but the last beta log-norms
+    and the last beta; body_slope_* is the mean fitted decline per index of
+    the body log-norms.
     """
     out = []
     for (n, beta), seeds in sorted(groups.items()):
@@ -143,6 +146,11 @@ def spatial_decomposition(groups, min_seeds=10):
         for i, region in enumerate(("head", "mid", "tail")):
             rec[f"{region}_win_rate"] = float((a[:, i] > 0).mean() * 100)
         rec["largest_region"] = ("HEAD", "MID", "TAIL")[int(mag.argmax())]
+        split = [d for d in (_split_seed(s) for s in seeds) if d is not None]
+        if split:
+            body, tail, slope_bkz, slope_sd = np.mean(split, axis=0)
+            rec.update(dln_advantage_body=float(body), dln_advantage_tail=float(tail),
+                       body_slope_bkz=float(slope_bkz), body_slope_sd=float(slope_sd))
         out.append(rec)
     return out
 
