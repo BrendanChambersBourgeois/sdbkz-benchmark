@@ -11,6 +11,7 @@ User-visible changes per version. Seed counts are manifest totals.
 - Seed tree `results/seeds/ntru_equal_sweep/` (120 seeds; side manifest 10,073).
 - Frontier collapse counts from the basis prefix (`make paper2-claims`, `results/paper_claims/frontier_prefix_volume.json`).
 - Paper 2 frontier section: prefix-collapse table, with ledger records.
+- Paper 1 claims ledger covers the runtime table, the HF column, the reference-profile section and the figure captions.
 - `results/profile_decomposition.json`: d(LN) advantage split between the profile body and its last beta log-norms, with body slopes.
 
 ### Fixed

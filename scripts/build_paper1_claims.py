@@ -33,6 +33,8 @@ from scipy import stats  # noqa: E402
 from analysis._data import (  # noqa: E402
     _decompose_seed,
     _load_convergence_files,
+    _per_position_group_stats,
+    gsa_fixed_point,
     load_all_seeds,
 )
 
@@ -47,6 +49,12 @@ HF_OUTLIER = 1e-3      # a seed whose two HFs differ by more is an outlier seed
 SLOPE_POSITIONS = 75   # leading active positions the Figure 8 slopes are fitted on
 FAVOURABLE_MAX_N = 110  # "favourable" groups in the paper are n=50..110
 MAIN = {"kind": "seeds", "campaign": "main", "q": 97, "field": "advantage"}
+FLOOR_LOGNORM = -100.0  # a q=3329 double-measured seed below this hit the floor
+# Captions that restate a prose claim word for word: second anchor, same record.
+CAPTION_ECHO = {
+    "tours3x_gaps_closed": r"0/400 gaps closed across four dimensions",
+    "tours3x_beta20_closure": r"closes 67\% of the gap and wins 26/100 seeds",
+}
 
 
 def _matches(got, paper, decimals) -> bool:
@@ -71,12 +79,24 @@ def _p_matches(cell: str, got: float) -> bool:
     return float(f"{got:.{sig - 1}e}") == val
 
 
+def _sci_matches(cell: str, got: float) -> bool:
+    """A signed cell ('-7.4\\times 10^{-11}') or a bound on the size ('<10^{-6}')
+    agrees with got."""
+    if cell.startswith("<"):
+        return _p_matches(cell, abs(got))
+    return cell.startswith("-") == (got < 0) and _p_matches(cell.lstrip("-"), abs(got))
+
+
+def _num(cell: str) -> float:
+    return float(re.sub(r"\{,\}|\\times", "", cell))
+
+
 def _rec(cid, anchor, paper, got, decimals, source, method, status="RECOMPUTED",
          match=None):
     return {
         "claim_id": cid, "tex_anchors": [anchor], "verbatim": anchor,
         "paper_value": paper, "recomputed_value": got,
-        "match": _matches(got, paper, decimals) if match is None else match,
+        "match": bool(_matches(got, paper, decimals) if match is None else match),
         "status": status, "source": source, "method": method, "note": "",
     }
 
@@ -507,7 +527,7 @@ def _convergence_records() -> list[dict]:
     b140, s140 = load(140, 500)
     bk, sk = load(140, 1000)
     adv90, adv140, advk = b90 - s90, b140 - s140, (bk - sk)[:, 999]
-    return [
+    recs = [
         _rec("conv_n090_gain_past_70",
              r"improving by only $+0.042$ nats over 430 additional tours. SD-BKZ continues descending throughout, gaining $+0.448$ nats",
              [0.042, 0.448],
@@ -534,6 +554,20 @@ def _convergence_records() -> list[dict]:
              [3, 3, 3, 0, 0], src(140, 1000),
              "mean advantage at tour 1000, t-interval, SD-BKZ wins and seed count"),
     ]
+    gain90, a90, v140, vk = (r["recomputed_value"] for r in recs)
+    recs += [
+        _rec("cap_conv_n090",
+             r"BKZ gains $+0.042$ nats (flat), SD-BKZ gains $+0.448$ nats. The advantage widens from $+0.925$ to $+1.331$",
+             [0.042, 0.448, 0.925, 1.331], gain90 + a90, 3, src(90, 500),
+             "Figure caption: gain past tour 70 (BKZ, SD-BKZ), advantage at tours 70 and 500"),
+        _rec("cap_conv_n140",
+             r"BKZ improves $+0.122$ nats vs SD-BKZ $+0.099$ nats; the gap widens slightly to $-0.075$ at $t=500$ (20\% SD-BKZ win); at $t=1000$ this deficit is statistically undetectable ($+0.029$, n.s.",
+             [0.122, 0.099, -0.075, 20, 0.029], v140[:2] + [v140[3], v140[5], vk[0]],
+             [3, 3, 3, 0, 3], src(140, 1000),
+             "Figure caption: gain past tour 70 (BKZ, SD-BKZ), advantage and SD-BKZ win % "
+             "at tour 500, advantage at tour 1000"),
+    ]
+    return recs
 
 
 def _q3329_records(gs) -> list[dict]:
@@ -561,6 +595,236 @@ def _q3329_records(gs) -> list[dict]:
     return recs
 
 
+def _runtime_records(main) -> list[dict]:
+    """Wall time over seeds 1-100 of every group, the cell the table reports."""
+    src = {"kind": "seeds", "campaign": "main", "q": 97, "field": "{bkz,sdbkz}_time",
+           "seeds": "1-100"}
+    t = {}
+    for key, seeds in main.items():
+        first = [s for s in seeds if s["seed"] <= 100]
+        t[key] = [st.mean(s["bkz_time"] for s in first),
+                  st.mean(s["sdbkz_time"] for s in first)]
+    ratio = {k: sd / bkz for k, (bkz, sd) in t.items()}
+    recs = []
+    for row, c in _rows("tab:runtime"):
+        key = (int(c[0]), int(c[1]))
+        recs.append(_rec(f"runtime_n{key[0]:03d}_beta{key[1]}", row, [_num(x) for x in c[2:]],
+                         t[key] + [ratio[key]], [0, 0, 2], src,
+                         "mean BKZ and SD-BKZ wall seconds per seed and their ratio"))
+    hi, lo = max(ratio, key=ratio.get), min(ratio, key=ratio.get)
+    bkz50, sd50 = t[(50, 30)]
+    early = [(k, var) for k, seeds in main.items() for s in seeds for var in ("bkz", "sdbkz")
+             if s[f"{var}_termination"] != "max_tours_reached"]
+    runs = 2 * sum(len(v) for v in main.values())
+    recs += [
+        _rec("runtime_ratio_range",
+             r"ranges from $2.72\times$ ($n=70$, $\beta=30$) to $2.00\times$ ($n=140$, $\beta=20$)",
+             [2.72, 70, 30, 2.00, 140, 20], [ratio[hi], *hi, ratio[lo], *lo],
+             [2, 0, 0, 2, 0, 0], src, "largest and smallest runtime ratio and their groups",
+             status="DERIVED"),
+        _rec("runtime_n50_extrapolation",
+             r"approximately 1{,}486 seconds, and BKZ at 210 tours extrapolates to 1{,}695 seconds ($3\times 565$), 14\% more",
+             [1486, 1695, 565, 14], [sd50, 3 * bkz50, bkz50, 100 * (3 * bkz50 / sd50 - 1)],
+             0, src, "SD-BKZ seconds, three times the BKZ seconds, BKZ seconds, % excess; "
+             "n=50 beta=30", status="DERIVED"),
+        _rec("early_exit_runs",
+             r"only 1 of 6{,}776 algorithm runs (a single BKZ run at $n=50$, $\beta=20$)",
+             [1, 6776, 50, 20], [len(early), runs, *(early[0][0] if early else (0, 0))], 0,
+             {"kind": "seeds", "campaign": "main", "q": 97, "field": "{bkz,sdbkz}_termination"},
+             "runs that stopped before the tour limit, all runs, group of the first",
+             match=[len(early), runs] == [1, 6776] and early[0] == ((50, 20), "bkz")),
+    ]
+    return recs
+
+
+def _hf_records(main, gs) -> list[dict]:
+    src = {"kind": "seeds", "campaign": "main", "q": 97, "field": "rhf_advantage"}
+    mean = {k: st.mean(s["rhf_advantage"] for s in v) for k, v in main.items()}
+    outlier = {k: any(abs(s["rhf_advantage"]) > HF_OUTLIER for s in v)
+               for k, v in main.items()}
+    recs = []
+    for row, c in _rows("tab:main"):
+        key = (int(c[0]), int(c[1]))
+        recs.append(_rec(f"main_hf_n{key[0]:03d}_beta{key[1]}", row, c[3], mean[key], None, src,
+                         "group mean rhf_advantage against the HF column; a star marks a "
+                         "group with an outlier seed",
+                         match=_sci_matches(c[3], mean[key])
+                         and ("\\ast" in row) == outlier[key]))
+    clean = [abs(mean[k]) for k in mean if not outlier[k]]
+    rhf_win = [100 * float(np.mean([s["rhf_advantage"] > 0 for s in v])) for v in main.values()]
+    fav_win = [g["win"] for k, g in gs.items() if k[0] <= FAVOURABLE_MAX_N]
+    recs += [
+        _rec("rhf_unstarred_bound",
+             r"In the 28 unstarred groups, the mean HF difference is at most $2.2\times 10^{-6}$",
+             [28, 2.2e-6], [len(clean), max(clean)], None, src,
+             "groups with no outlier seed and their largest |group mean rhf_advantage|",
+             status="DERIVED",
+             match=len(clean) == 28 and _p_matches(r"2.2\times 10^{-6}", max(clean))),
+        _rec("rhf_win_range", r"RHF win rates are 42--58\% across all groups", [42, 58],
+             [min(rhf_win), max(rhf_win)], 0, src,
+             "smallest and largest share of seeds with rhf_advantage > 0", status="DERIVED"),
+        _rec("dln_win_range_favourable",
+             r"win rates range from 90\% to 100\% at favourable dimensions", [90, 100],
+             [min(fav_win), max(fav_win)], 0, MAIN,
+             "smallest and largest SD-BKZ win % over n=50..110", status="DERIVED"),
+    ]
+    return recs
+
+
+def _gsa_records(main) -> list[dict]:
+    src = {"kind": "seeds", "campaign": "main", "q": 97,
+           "field": "rankin_profile_{bkz,sdbkz}"}
+    ln, gsa, flips = [], [], []
+    for (n, beta), seeds in sorted(main.items()):
+        ref = np.array(gsa_fixed_point(n + 1, beta))
+        g = [float(np.mean(np.abs(np.array(s["rankin_profile_bkz"]) - ref))
+                   - np.mean(np.abs(np.array(s["rankin_profile_sdbkz"]) - ref)))
+             for s in seeds]
+        a = [s["advantage"] for s in seeds]
+        ln, gsa = ln + a, gsa + g
+        if (st.mean(a) > 0) != (st.mean(g) > 0):
+            flips.append((n, beta))
+    method = "advantage recomputed against the GSA profile, same mean absolute distance"
+    return [
+        _rec("gsa_pearson",
+             r"Across all 3{,}388 main-sweep seeds (33 groups), the per-seed $d(\mathrm{GSA})$ advantage correlates strongly with $d(\mathrm{LN})$ (Pearson $r=0.89$)",
+             [3388, 33, 0.89], [len(ln), len(main), float(stats.pearsonr(ln, gsa)[0])],
+             [0, 0, 2], src, method + "; seeds, groups, Pearson r of the per-seed pairs",
+             status="DERIVED"),
+        _rec("gsa_sign_agreement",
+             r"Of the 33 groups, 30 agree on the sign of the mean advantage under both metrics",
+             [33, 30], [len(main), len(main) - len(flips)], 0, src,
+             method + "; groups whose two mean advantages share a sign", status="DERIVED"),
+        _rec("gsa_reversal_groups",
+             r"$n=120$ $\beta=40$, $n=140$ $\beta=30$, and $n=150$ $\beta=30$",
+             [120, 40, 140, 30, 150, 30], [x for key in flips for x in key], 0, src,
+             method + "; groups whose two mean advantages differ in sign", status="DERIVED"),
+        _rec("gsa_core_unanimous",
+             r"in the core advantage region ($n\leq 110$), agreement is unanimous",
+             0, sum(n <= FAVOURABLE_MAX_N for n, _ in flips), 0, src,
+             method + "; sign reversals at n<=110", status="DERIVED"),
+    ]
+
+
+def _caption_records(main, gs) -> list[dict]:
+    """Numbers printed only in figure captions."""
+    def mean(key, field):
+        return st.mean(s[field] for s in main[key])
+
+    def thirds(key):
+        return np.array([_decompose_seed(s) for s in main[key]]).mean(axis=0)
+
+    def per_pos(key):
+        means = _per_position_group_stats(main[key])[0]
+        return means, np.linspace(0, 1, len(means))
+
+    rhf = np.array([s["rhf_advantage"] for s in main[(100, 30)]])
+    top = max(gs, key=lambda k: gs[k]["d"])
+    full30 = [n for n in DIMS if gs[(n, 30)]["win"] == 100]
+    through = max(n for n in full30 if all(m in full30 for m in DIMS if m <= n))
+    peak = {b: sorted(DIMS, key=lambda n: -gs[(n, b)]["mean"]) for b in (20, 30, 40)}
+    mid40 = float(np.mean([thirds((n, 40))[1] for n in (130, 140, 150)]))
+    p100, x100 = per_pos((100, 20))
+    p150, x150 = per_pos((150, 20))
+    prof = {"kind": "seeds", "campaign": "main", "q": 97,
+            "field": "rankin_profile_{bkz,sdbkz}"}
+    final = {"kind": "seeds", "campaign": "main", "q": 97, "field": "{bkz,sdbkz}_final_dln"}
+    recs = [
+        _rec("cap_z_scores",
+             r"(mean $-0.02\sigma$, coin flip); $d(\mathrm{LN})$ (green) sits $6.24\sigma$ from zero with no overlap (this group; peak effect is $9.6\sigma$ at $n=100$, $\beta=40$)",
+             [-0.02, 6.24, 9.6, 100, 40],
+             [float(rhf.mean() / rhf.std(ddof=1)), gs[(100, 30)]["d"], gs[top]["d"], *top],
+             [2, 2, 1, 0, 0], MAIN,
+             "mean over sample std of rhf_advantage and of advantage at n=100 beta=30; "
+             "largest such ratio and its group", status="DERIVED"),
+        _rec("cap_win_through_n130", r"shows 100\% win rate through $n=130$ before collapsing",
+             130, through, 0, MAIN, "largest n up to which every beta=30 group wins 100%",
+             status="DERIVED"),
+        _rec("cap_hist_beta30",
+             r"sits above 0.5 nats with 100\% win rate; by $n=150$, the distribution is entirely negative (0\% win)",
+             [0.5, 100, 0],
+             [float(gs[(100, 30)]["a"].min()), gs[(100, 30)]["win"], gs[(150, 30)]["win"]],
+             0, MAIN, "smallest advantage and win % at n=100, win % at n=150, beta=30",
+             status="DERIVED",
+             match=gs[(100, 30)]["a"].min() > 0.5
+             and [gs[(100, 30)]["win"], gs[(150, 30)]["win"]] == [100, 0]),
+        _rec("cap_hist_beta40",
+             r"over three times larger: $n=130$ shows mean $-1.325$ nats with no overlap with zero",
+             [3, -1.325, 0],
+             [gs[(130, 40)]["mean"] / gs[(150, 30)]["mean"], gs[(130, 40)]["mean"],
+              float(gs[(130, 40)]["a"].max())], 3, MAIN,
+             "mean at n=130 beta=40 over mean at n=150 beta=30; that mean; its largest "
+             "advantage", status="DERIVED",
+             match=gs[(130, 40)]["mean"] / gs[(150, 30)]["mean"] > 3
+             and _matches(gs[(130, 40)]["mean"], -1.325, 3) and gs[(130, 40)]["a"].max() < 0),
+        _rec("cap_spatial_mid_beta30", r"the middle peaks at $n=100$--$110$ ($+1.9$ to $+2.0$ nats)",
+             [1.9, 2.0], [float(thirds((100, 30))[1]), float(thirds((110, 30))[1])], 1, prof,
+             "mean middle-third improvement at n=100 and n=110, beta=30", status="DERIVED"),
+        _rec("cap_spatial_mid_beta40", r"the middle carries most of the loss (about $-2.8$ nats)",
+             -2.8, mid40, 1, prof,
+             "mean middle-third improvement averaged over n=130, 140, 150, beta=40",
+             status="DERIVED"),
+        _rec("cap_profiles_n150", r"SD-BKZ is the further of the two ($-0.395$ nats)",
+             -0.395, gs[(150, 30)]["mean"], 3, MAIN, "group mean advantage, n=150 beta=30"),
+        _rec("cap_peak_dimensions",
+             r"$\beta=20$ peaks at $n=90$, $\beta=30$ at $n=100$, and $\beta=40$ at $n=100$--$110$",
+             [90, 100, 100, 110], [peak[20][0], peak[30][0], *sorted(peak[40][:2])], 0, MAIN,
+             "dimension of the largest group mean at beta=20 and 30; the two largest at "
+             "beta=40", status="DERIVED"),
+        _rec("cap_cliff_swing", r"a swing of 2.5 nats in two dimension steps",
+             2.5, gs[(110, 40)]["mean"] - gs[(130, 40)]["mean"], 1, MAIN,
+             "group mean at n=110 minus n=130, beta=40", status="DERIVED"),
+        _rec("cap_abs_dln_beta20", r"(${\sim}15$ nats at $n=120$)", [15, 15],
+             [mean((120, 20), "bkz_final_dln"), mean((120, 20), "sdbkz_final_dln")], 0, final,
+             "mean final d(LN), BKZ then SD-BKZ, n=120 beta=20"),
+        _rec("cap_abs_dln_beta40", r"(SD-BKZ ${\sim}12.4$ vs BKZ ${\sim}11.1$)", [12.4, 11.1],
+             [mean((150, 40), "sdbkz_final_dln"), mean((150, 40), "bkz_final_dln")], 1, final,
+             "mean final d(LN), SD-BKZ then BKZ, n=150 beta=40"),
+        _rec("cap_abs_dln_cross", r"the curves cross at $n=120$", 120,
+             min(n for n in DIMS if gs[(n, 40)]["mean"] < 0), 0, MAIN,
+             "smallest n with a negative group mean advantage at beta=40", status="DERIVED"),
+        _rec("cap_scatter_cliff",
+             r"$n=110$ ($+1.16$ at $\beta/n=0.36$) drops to $n=130$ ($-1.32$ at $\beta/n=0.31$) and $n=140$ ($-1.45$ at $\beta/n=0.29$)",
+             [1.16, 0.36, -1.32, 0.31, -1.45, 0.29],
+             [x for n in (110, 130, 140) for x in (gs[(n, 40)]["mean"], 40 / n)], 2, MAIN,
+             "group mean advantage and beta/n at n=110, 130, 140, beta=40"),
+        _rec("cap_perpos_dip_position", r"the dip (position $0.88$ at $n=100$, $0.59$ at $n=150$)",
+             [0.88, 0.59], [float(x100[p100.argmin()]), float(x150[p150.argmin()])], 2, prof,
+             "fractional position of the smallest mean per-position improvement, beta=20",
+             status="DERIVED"),
+        _rec("cap_perpos_beta30",
+             r"the peak improvement reaches $+2.5$~nats at $n=100$ while the dip reaches $-2.3$~nats at $n=150$",
+             [2.5, -2.3], [float(per_pos((100, 30))[0].max()), float(per_pos((150, 30))[0].min())],
+             1, prof, "largest mean per-position improvement at n=100, smallest at n=150, "
+             "beta=30", status="DERIVED"),
+        _rec("cap_q3329_q97_panel", r"122 seeds, mean $+1.349$ nats", [122, 1.349],
+             [gs[(100, 30)]["seeds"], gs[(100, 30)]["mean"]], [0, 3], MAIN,
+             "seed count and group mean advantage, q=97 n=100 beta=30"),
+    ]
+
+    cell = load_all_seeds(campaign="q3329", n=100, beta=30, q=3329, precision=1000,
+                          max_tours=70)[(100, 30)]
+    floored = [s for s in cell if s["seed"] <= 100 and min(
+        min(s["gs_lognorms_bkz"]), min(s["gs_lognorms_sdbkz"])) < FLOOR_LOGNORM]
+    adv = [s["advantage"] for s in floored]
+    worst = max(floored, key=lambda s: max(s["bkz_dln_per_tour"] + s["sdbkz_dln_per_tour"]))
+    spikes = [x for x in worst["bkz_dln_per_tour"] + worst["sdbkz_dln_per_tour"] if x > 20]
+    src = {"kind": "seeds", "campaign": "q3329", "q": 3329, "cells": ["n100_beta30"],
+           "seeds": "1-100", "measurement": "double"}
+    recs += [
+        _rec("cap_q3329_floored",
+             r"the 38 seeds with a measurement floor scatter across $\pm 170$ nats",
+             [38, -170, 170], [len(floored), min(adv), max(adv)], [0, -1, -1], src,
+             f"seeds with a stored log-norm below {FLOOR_LOGNORM}; their smallest and "
+             "largest advantage", status="DERIVED"),
+        _rec("cap_q3329_spikes", r"it spikes to 105--337 nats", [105, 337],
+             [min(spikes), max(spikes)], 0, src,
+             "per-tour d(LN) above 20 nats, smallest and largest, in the floored seed "
+             "with the highest spike", status="DERIVED"),
+    ]
+    return recs
+
+
 def build() -> dict:
     main = load_all_seeds(campaign="main", q=97)
     t3 = load_all_seeds(campaign="tours3x")
@@ -569,7 +833,12 @@ def build() -> dict:
                + _rhf_records(main) + _tours3x_records(t3) + _figure8_records(main)
                + _group_table_records(gs) + _stats_records(gs) + _growth_records(gs)
                + _spatial_records(main) + _trajectory_records(main, t3)
-               + _convergence_records() + _q3329_records(gs))
+               + _convergence_records() + _q3329_records(gs)
+               + _runtime_records(main) + _hf_records(main, gs) + _gsa_records(main)
+               + _caption_records(main, gs))
+    for r in records:
+        if r["claim_id"] in CAPTION_ECHO:
+            r["tex_anchors"].append(CAPTION_ECHO[r["claim_id"]])
     _resolve_tex_lines(records, TEX)
     records.sort(key=lambda r: r["claim_id"])
     return {
