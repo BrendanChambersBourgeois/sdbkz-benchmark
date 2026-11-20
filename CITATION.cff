@@ -40,3 +40,11 @@ keywords:
   - benchmark
   - cryptanalysis
   - post-quantum-cryptography
+references:
+  - type: article
+    title: "Self-Dual BKZ on NTRU: Dimension-Onset, Fatigue, and a Cross-Engine Reference-Free DSD Observable"
+    authors:
+      - family-names: "Chambers-Bourgeois"
+        given-names: "Brendan"
+    year: 2026
+    doi: 10.5281/zenodo.24393193
