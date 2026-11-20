@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/Code-MIT-blue.svg)](LICENSE)
 [![License: CC-BY-4.0](https://img.shields.io/badge/Paper%20%26%20data-CC--BY--4.0-brightgreen.svg)](https://creativecommons.org/licenses/by/4.0/)
 
-Empirical comparison of self-dual BKZ (SD-BKZ) against BKZ, measured by the distance d(LN) of the reduced basis profile from the Li–Nguyen fixed point. Two engines: fplll 5.5.0 enumeration (14,669 seeds under `results/seed_manifest.json`) and G6K sieving (3,034 seeds under `results/g6k_seed_manifest.json`). Paper 1 (LWE-Kannan, published on Zenodo) lives in `paper1/`; Paper 2 (NTRU dense-sublattice onset and the cross-engine study, in progress) in `paper2/`.
+Empirical comparison of self-dual BKZ (SD-BKZ) against BKZ, measured by the distance d(LN) of the reduced basis profile from the Li–Nguyen fixed point. Two engines: fplll 5.5.0 enumeration (14,669 seeds under `results/seed_manifest.json`) and G6K sieving (3,034 seeds under `results/g6k_seed_manifest.json`). Paper 1 (LWE-Kannan, published on Zenodo) lives in `paper1/`; Paper 2 (NTRU dense-sublattice onset and the cross-engine study, published on Zenodo, DOI [10.5281/zenodo.24393193](https://doi.org/10.5281/zenodo.24393193)) in `paper2/`.
 
 ## Quickstart
 
@@ -67,7 +67,7 @@ Hosts: Intel 13900K (Ubuntu 24.04, MPFR 4.2.1), AWS Batch (Debian bookworm, MPFR
 
 ## License and citation
 
-Code: [MIT](LICENSE). Papers and data (`paper1/`, `paper2/`, `results/`): [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/). Cite via `CITATION.cff` or DOI 10.5281/zenodo.19686927.
+Code: [MIT](LICENSE). Papers and data (`paper1/`, `paper2/`, `results/`): [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/). Cite via `CITATION.cff` or DOI 10.5281/zenodo.19686927; cite Paper 2 by DOI 10.5281/zenodo.24393193.
 
 ## Acknowledgements
 

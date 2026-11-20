@@ -12,6 +12,7 @@ User-visible changes per version. Seed counts are manifest totals.
 - Frontier collapse counts from the basis prefix (`make paper2-claims`, `results/paper_claims/frontier_prefix_volume.json`).
 - Paper 2 frontier section: prefix-collapse table, with ledger records.
 - Paper 1 claims ledger covers the runtime table, the HF column, the reference-profile section and the figure captions.
+- Paper 2 published on Zenodo, DOI 10.5281/zenodo.24393193; READMEs cite it.
 - `results/profile_decomposition.json`: d(LN) advantage split between the profile body and its last beta log-norms, with body slopes.
 
 ### Fixed
